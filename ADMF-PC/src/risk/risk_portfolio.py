@@ -82,8 +82,8 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         self._order_history: List[Order] = []
         self._active_orders: Dict[str, Order] = {}
         
-        # Register capabilities
-        self._register_capabilities()
+        # Register capabilities (commented out as UniversalScopedContainer doesn't support this)
+        # self._register_capabilities()
     
     def _register_capabilities(self) -> None:
         """Register risk management capabilities."""
