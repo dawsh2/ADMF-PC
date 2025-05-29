@@ -1,129 +1,105 @@
 """
 Strategy module for ADMF-PC.
 
-Provides a comprehensive framework for building trading strategies with:
-- Protocol-based design for flexibility
-- Built-in optimization support
-- Regime-aware containers
-- Feature extraction
-- Trading rules
-- Risk management
+This module provides trading strategies using protocol-based design
+with no inheritance. Components can be enhanced with capabilities
+through composition.
+
+Example Usage:
+    ```python
+    from src.strategy import MomentumStrategy
+    from src.core.components import ComponentFactory
+    
+    # Create strategy with capabilities
+    strategy = ComponentFactory().create_component({
+        'class': 'MomentumStrategy',
+        'params': {
+            'lookback_period': 20,
+            'momentum_threshold': 0.02
+        },
+        'capabilities': ['strategy', 'optimization', 'events']
+    })
+    
+    # Use strategy
+    signal = strategy.generate_signal(market_data)
+    ```
 """
 
 # Core protocols
 from .protocols import (
     Strategy,
     Indicator,
-    FeatureExtractor,
+    Feature,
     Rule,
-    SignalGenerator,
-    RiskManager,
-    RegimeClassifier,
-    Optimizable
+    SignalAggregator,
+    Classifier,
+    RegimeAdaptive,
+    Optimizable,
+    PerformanceTracker,
+    SignalDirection
 )
 
-# Base implementations
-from .base import (
-    StrategyBase,
-    IndicatorBase,
-    SignalGeneratorBase
+# Capabilities
+from .capabilities import (
+    StrategyCapability,
+    IndicatorCapability,
+    RuleManagementCapability,
+    RegimeAdaptiveCapability
 )
 
-# Indicators
-from .indicators import (
-    IndicatorHub,
-    SimpleMovingAverage,
-    ExponentialMovingAverage,
-    RSI,
-    MACD,
-    ATR,
-    BollingerBands
+# Strategies
+from .strategies.momentum import MomentumStrategy, create_momentum_strategy
+
+# Optimization
+from .optimization import (
+    # Protocols
+    Optimizer,
+    Objective,
+    Constraint,
+    ParameterSpace,
+    OptimizationWorkflow,
+    RegimeAnalyzer,
+    
+    # Capabilities
+    OptimizationCapability,
+    
+    # Containers
+    OptimizationContainer,
+    RegimeAwareOptimizationContainer
 )
 
-# Regime components
-from .regime import (
-    TrendVolatilityClassifier,
-    MultiIndicatorClassifier,
-    RegimeStrategyContainer,
-    AdaptiveEnsembleContainer
-)
-
-# Features
-from .features import (
-    PriceFeatureExtractor,
-    IndicatorFeatureExtractor,
-    TechnicalFeatureExtractor,
-    MarketMicrostructureExtractor
-)
-
-# Rules
-from .rules import (
-    ThresholdRule,
-    CrossoverRule,
-    StopLossRule,
-    TakeProfitRule,
-    PercentEquityRule,
-    MaxPositionRule
-)
-
-# Concrete strategies
-from .strategies import (
-    MomentumStrategy,
-    MeanReversionStrategy,
-    TrendFollowingStrategy,
-    MarketMakingStrategy,
-    ArbitrageStrategy
-)
 
 __all__ = [
     # Protocols
-    'Strategy',
-    'Indicator',
-    'FeatureExtractor',
-    'Rule',
-    'SignalGenerator',
-    'RiskManager',
-    'RegimeClassifier',
-    'Optimizable',
+    "Strategy",
+    "Indicator", 
+    "Feature",
+    "Rule",
+    "SignalAggregator",
+    "Classifier",
+    "RegimeAdaptive",
+    "Optimizable",
+    "PerformanceTracker",
+    "SignalDirection",
     
-    # Base classes
-    'StrategyBase',
-    'IndicatorBase',
-    'SignalGeneratorBase',
-    
-    # Indicators
-    'IndicatorHub',
-    'SimpleMovingAverage',
-    'ExponentialMovingAverage',
-    'RSI',
-    'MACD',
-    'ATR',
-    'BollingerBands',
-    
-    # Regime
-    'TrendVolatilityClassifier',
-    'MultiIndicatorClassifier',
-    'RegimeStrategyContainer',
-    'AdaptiveEnsembleContainer',
-    
-    # Features
-    'PriceFeatureExtractor',
-    'IndicatorFeatureExtractor',
-    'TechnicalFeatureExtractor',
-    'MarketMicrostructureExtractor',
-    
-    # Rules
-    'ThresholdRule',
-    'CrossoverRule',
-    'StopLossRule',
-    'TakeProfitRule',
-    'PercentEquityRule',
-    'MaxPositionRule',
+    # Capabilities
+    "StrategyCapability",
+    "IndicatorCapability",
+    "RuleManagementCapability",
+    "RegimeAdaptiveCapability",
     
     # Strategies
-    'MomentumStrategy',
-    'MeanReversionStrategy',
-    'TrendFollowingStrategy',
-    'MarketMakingStrategy',
-    'ArbitrageStrategy'
+    "MomentumStrategy",
+    "create_momentum_strategy",
+    
+    # Optimization
+    "Optimizer",
+    "Objective",
+    "Constraint",
+    "ParameterSpace",
+    "OptimizationWorkflow",
+    "RegimeAnalyzer",
+    "OptimizationCapability",
+    "OptimizationContainer",
+    "RegimeAwareOptimizationContainer"
 ]

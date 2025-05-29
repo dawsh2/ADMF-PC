@@ -1,0 +1,298 @@
+# ADMF-PC Architecture Diagram
+
+## Overview
+The ADMF-PC (Adaptive Dynamic Market Framework - Protocol Components) system implements a sophisticated multi-symbol trading architecture with nested container hierarchy, protocol-based design, and complete separation of concerns between orchestration and execution.
+
+## Primary Container Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              COORDINATOR                                      │
+│  • Orchestrates workflows across all containers                               │
+│  • Manages phase transitions and data flow                                    │
+│  • Handles checkpointing and resumability                                     │
+│  • Creates and manages top-level containers (Backtest, Optimization, Live)    │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          BACKTEST CONTAINER                                   │
+│  (Encapsulates entire backtest process - ensures clean creation/disposal)     │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌────────────────┐                                                          │
+│  │ Historical Data│                                                          │
+│  │    Streamer    │─────────┐                                               │
+│  └────────────────┘         │                                               │
+│                             │                                               │
+│  ┌──────────────────────────▼───────────────────────────────────────────┐   │
+│  │                    Shared Indicator Architecture                      │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │   │
+│  │  │              Indicator Hub (Shared Computation)              │    │   │
+│  │  │  • MA, RSI, ATR, etc. computed once from streamed data      │    │   │
+│  │  │  • Caches results for efficiency                             │    │   │
+│  │  │  • Emits indicator events to downstream consumers            │    │   │
+│  │  └─────────────────────────────────────────────────────────────┘    │   │
+│  │                             │                                         │   │
+│  │                             │ Indicator Events                       │   │
+│  │                             ▼                                         │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                │                                              │
+│  ┌─────────────────────────────┼─────────────────────────────────────────┐   │
+│  │         Classifier Container Layer (Parallel Execution)               │   │
+│  └─────────────────────────────┼─────────────────────────────────────────┘   │
+│                ┌───────────────┴────────────────┐                            │
+│                │                                │                            │
+│  ┌─────────────▼─────────────────┐  ┌──────────▼─────────────────────┐     │
+│  │   HMM Classifier Container    │  │  Pattern Classifier Container   │     │
+│  ├───────────────────────────────┤  ├────────────────────────────────┤     │
+│  │ ┌───────────────────────────┐ │  │ ┌────────────────────────────┐ │     │
+│  │ │   HMM Regime Classifier   │ │  │ │ Pattern Regime Classifier  │ │     │
+│  │ │ • Consumes indicator data │ │  │ │ • Consumes indicator data  │ │     │
+│  │ │ • Determines regime state │ │  │ │ • Detects market patterns  │ │     │
+│  │ │ • Bull/Bear/Neutral       │ │  │ │ • Breakout/Range/Trending │ │     │
+│  │ └────────────┬──────────────┘ │  │ └─────────────┬──────────────┘ │     │
+│  │              │                │  │               │                │     │
+│  │              ▼                │  │               ▼                │     │
+│  │ ┌───────────────────────────┐ │  │ ┌────────────────────────────┐ │     │
+│  │ │  Risk Container Pool      │ │  │ │  Risk Container Pool       │ │     │
+│  │ │  (Subcontainers)          │ │  │ │  (Subcontainers)           │ │     │
+│  │ ├───────────────────────────┤ │  │ ├────────────────────────────┤ │     │
+│  │ │ ┌───────────────────────┐ │ │  │ │ ┌────────────────────────┐ │ │     │
+│  │ │ │ Conservative Risk      │ │ │  │ │ │ Balanced Risk         │ │ │     │
+│  │ │ │ • Max 2% per position │ │ │  │ │ │ • Max 3% per position │ │ │     │
+│  │ │ │ • 10% total exposure  │ │ │  │ │ │ • 20% total exposure  │ │ │     │
+│  │ │ │ ┌───────────────────┐ │ │ │  │ │ │ ┌────────────────────┐│ │ │     │
+│  │ │ │ │ Momentum Strategy │ │ │ │  │ │ │ │ Pattern Strategy   ││ │ │     │
+│  │ │ │ │ AAPL(40%),GOOGL  │ │ │ │  │ │ │ │ SPY(60%), QQQ(40%)││ │ │     │
+│  │ │ │ │ (30%),MSFT(30%)  │ │ │ │  │ │ │ └────────────────────┘│ │ │     │
+│  │ │ │ └───────────────────┘ │ │ │  │ │ └────────────────────────┘ │ │     │
+│  │ │ │ ┌───────────────────┐ │ │ │  │ │                            │ │     │
+│  │ │ │ │ Mean Rev Strategy │ │ │ │  │ │ ┌────────────────────────┐ │ │     │
+│  │ │ │ │ SPY (100%)        │ │ │ │  │ │ │ Aggressive Risk        │ │ │     │
+│  │ │ │ └───────────────────┘ │ │ │  │ │ │ • Max 5% per position │ │ │     │
+│  │ │ └───────────────────────┘ │ │  │ │ │ • 30% total exposure  │ │ │     │
+│  │ │                           │ │  │ │ │ ┌────────────────────┐ │ │ │     │
+│  │ │ ┌───────────────────────┐ │ │  │ │ │ │ Breakout Strategy  │ │ │ │     │
+│  │ │ │ Aggressive Risk       │ │ │  │ │ │ │ BTC(50%), ETH(30%)│ │ │ │     │
+│  │ │ │ • Max 5% per position │ │ │  │ │ │ │ SOL(20%)          │ │ │ │     │
+│  │ │ │ • 30% total exposure  │ │ │  │ │ │ └────────────────────┘ │ │ │     │
+│  │ │ │ ┌───────────────────┐ │ │ │  │ │ └────────────────────────┘ │ │     │
+│  │ │ │ │ Breakout Strategy │ │ │ │  │ └────────────────────────────┘ │     │
+│  │ │ │ │ Crypto symbols    │ │ │ │  │                                │     │
+│  │ │ │ └───────────────────┘ │ │ │  │ Output: Signals & Performance │     │
+│  │ │ └───────────────────────┘ │ │  └────────────────────────────────┘     │
+│  │ └───────────────────────────┘ │                                          │
+│  │                               │                                          │
+│  │ Output: Signals & Performance │                                          │
+│  └───────────────────────────────┘                                          │
+│                │                                │                            │
+│                └────────────────┬───────────────┘                            │
+│                                 │                                            │
+│  ┌──────────────────────────────▼───────────────────────────────────────┐   │
+│  │                         Backtest Engine                               │   │
+│  │  • Executes trades based on aggregated signals                       │   │
+│  │  • Manages portfolio state and position tracking                     │   │
+│  │  • Calculates performance metrics                                    │   │
+│  │  • Handles multi-symbol data alignment                               │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                 │                                            │
+│                                 ▼                                            │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                      Results & Performance Storage                    │   │
+│  │  • Streams results to disk during execution                          │   │
+│  │  • Maintains in-memory cache of top performers only                  │   │
+│  │  • Provides aggregated metrics to Coordinator                        │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Simplified Data Flow View
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          BACKTEST CONTAINER                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│                        Historical Data Stream                                 │
+│                                 │                                             │
+│                                 ▼                                             │
+│                    ┌────────────────────────┐                                │
+│                    │    Indicator Hub       │                                │
+│                    │ (Compute once, share)  │                                │
+│                    └───────────┬────────────┘                                │
+│                                │                                              │
+│                    ┌───────────┼───────────┐                                 │
+│                    ▼           ▼           ▼                                 │
+│            ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                  │
+│            │ Classifier 1│ │ Classifier 2│ │ Classifier N│                  │
+│            ├─────────────┤ ├─────────────┤ ├─────────────┤                  │
+│            │┌───────────┐│ │┌───────────┐│ │┌───────────┐│                  │
+│            ││Risk Cont. ││ ││Risk Cont. ││ ││Risk Cont. ││                  │
+│            ││┌─────────┐││ ││┌─────────┐││ ││┌─────────┐││                  │
+│            │││Strategy │││ │││Strategy │││ │││Strategy │││                  │
+│            ││└─────────┘││ ││└─────────┘││ ││└─────────┘││                  │
+│            │└───────────┘│ │└───────────┘│ │└───────────┘│                  │
+│            └──────┬──────┘ └──────┬──────┘ └──────┬──────┘                  │
+│                   │               │               │                          │
+│                   └───────────────┼───────────────┘                          │
+│                                   ▼                                          │
+│                          ┌─────────────────┐                                │
+│                          │ Backtest Engine │                                │
+│                          └────────┬────────┘                                │
+│                                   ▼                                          │
+│                          ┌─────────────────┐                                │
+│                          │     Results     │                                │
+│                          └─────────────────┘                                │
+│                                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Container Lifecycle Management
+
+### Backtest Container Benefits
+
+1. **Complete Isolation**: All backtest components live within a single container
+2. **Clean Lifecycle**: Single point of creation and disposal
+3. **Resource Management**: Track and limit resource usage for entire backtest
+4. **State Consistency**: Ensures all components share same backtest context
+5. **Easy Parallelization**: Run multiple backtests in parallel containers
+
+### Container Creation Flow
+
+```
+Coordinator.start_backtest()
+        │
+        ▼
+┌─────────────────────┐
+│ Create Backtest     │
+│ Container           │
+└──────────┬──────────┘
+           │
+           ▼
+    Within Container:
+    1. Create Data Streamer
+    2. Create Indicator Hub
+    3. Create Classifiers
+    4. Create Risk Subcontainers
+    5. Create Strategies
+    6. Create Backtest Engine
+    7. Wire up event buses
+           │
+           ▼
+┌─────────────────────┐
+│ Execute Backtest    │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ Stream Results      │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ Dispose Container   │
+│ (Clean up all       │
+│  subcomponents)     │
+└─────────────────────┘
+```
+
+## Multi-Symbol Architecture Details
+
+### Symbol Distribution
+```
+Portfolio Level (Managed by Risk Containers)
+├── Conservative Risk Container
+│   ├── Total Exposure Limit: $100,000
+│   ├── Max Position Size: 2% ($2,000)
+│   └── Strategies:
+│       ├── Momentum Strategy
+│       │   ├── AAPL: 40% of strategy allocation
+│       │   ├── GOOGL: 30% of strategy allocation
+│       │   └── MSFT: 30% of strategy allocation
+│       └── Mean Reversion Strategy
+│           └── SPY: 100% of strategy allocation
+│
+└── Aggressive Risk Container
+    ├── Total Exposure Limit: $300,000
+    ├── Max Position Size: 5% ($15,000)
+    └── Strategies:
+        └── Breakout Strategy
+            ├── BTC: 50% of strategy allocation
+            ├── ETH: 30% of strategy allocation
+            └── SOL: 20% of strategy allocation
+```
+
+## Key Architectural Principles
+
+### 1. Protocol-Based Design
+- No inheritance, only protocol implementations
+- Clean contracts between components
+- Easy testing and mocking
+
+### 2. Event-Driven Communication
+- Unidirectional event flow
+- No circular dependencies
+- Clear data lineage
+
+### 3. Container Isolation
+- Each container has its own event bus scope
+- Independent configuration namespaces
+- Resource tracking per container
+
+### 4. Nested Subcontainers
+- Risk containers inherit classifier context
+- Strategies inherit risk context
+- Clean hierarchical data flow
+
+### 5. Separation of Concerns
+- Coordinator: Orchestration and workflow management
+- Backtest Container: Lifecycle and resource management
+- Backtest Engine: Execution and performance calculation
+- Classifiers: Regime detection
+- Risk Containers: Portfolio-level risk management
+- Strategies: Signal generation
+
+## Phase Management and Data Flow
+
+### Phase Transitions
+```
+INITIALIZATION → DATA_PREPARATION → COMPUTATION → VALIDATION → AGGREGATION
+      │                │                 │             │            │
+      ▼                ▼                 ▼             ▼            ▼
+Create Container  Load Data      Execute Trades  Validate Results  Store
+& Components      Setup Streams   Run Strategies  Check Metrics    Output
+```
+
+### Cross-Phase Data Flow
+1. Each phase publishes completion events
+2. Next phase subscribes to previous phase events
+3. Coordinator manages transitions
+4. Results stream to disk continuously
+5. Only top performers kept in memory
+
+## Container Naming Strategy
+
+Format: `{container_type}_{phase}_{classifier}_{risk_profile}_{timestamp}`
+
+Examples:
+- `backtest_phase1_hmm_conservative_20240115_143052`
+- `backtest_phase2_pattern_aggressive_20240115_145523`
+
+This enables:
+- Easy identification of container purpose
+- Tracking across optimization phases
+- Debugging and monitoring
+- Result aggregation by type
+
+## Benefits of This Architecture
+
+1. **Clean Isolation**: Backtest container ensures complete isolation
+2. **Reusability**: Same architecture works for optimization, live trading
+3. **Scalability**: Easy to parallelize multiple backtests
+4. **Maintainability**: Clear boundaries and responsibilities
+5. **Testability**: Each component can be tested in isolation
+6. **Flexibility**: Easy to add new classifiers, risk profiles, strategies
+7. **Resource Efficiency**: Shared computation in Indicator Hub
+8. **Observability**: Clear event flow for monitoring and debugging

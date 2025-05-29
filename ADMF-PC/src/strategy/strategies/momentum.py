@@ -1,308 +1,259 @@
 """
-Momentum-based trading strategy.
+Momentum trading strategy implementation.
+
+This demonstrates a pure protocol-based strategy with NO inheritance.
+The strategy can be enhanced with capabilities through the ComponentFactory.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
-import logging
 
-from ...core.events import Event, EventType
-from ..base import StrategyBase
-from ..indicators import RSI, MACD, Momentum
-from ..features import PriceReturnExtractor, TechnicalFeatureExtractor
-from ..rules import CrossoverRule, ThresholdRule, CompositeRule
-from ..rules import StopLossRule, TakeProfitRule, PercentEquityRule
+from ..protocols import Strategy, SignalDirection
 
 
-logger = logging.getLogger(__name__)
-
-
-class MomentumStrategy(StrategyBase):
+class MomentumStrategy:
     """
-    Momentum strategy that trades based on price momentum and trend strength.
+    Momentum-based trading strategy.
+    
+    This is a simple class with no inheritance. It implements the
+    Strategy protocol methods, making it compatible with the system.
     
     Features:
-    - Multiple momentum indicators (RSI, MACD, Rate of Change)
-    - Trend confirmation
-    - Dynamic position sizing based on signal strength
-    - Regime-aware adjustments
+    - Price momentum calculation
+    - RSI-based signals
+    - No inheritance required
     """
     
     def __init__(self, 
-                 name: str = "momentum_strategy",
-                 rsi_period: int = 14,
-                 rsi_overbought: float = 70,
-                 rsi_oversold: float = 30,
-                 macd_fast: int = 12,
-                 macd_slow: int = 26,
-                 macd_signal: int = 9,
                  lookback_period: int = 20,
-                 min_momentum_score: float = 0.6):
-        super().__init__(name)
+                 momentum_threshold: float = 0.02,
+                 rsi_period: int = 14,
+                 rsi_oversold: float = 30,
+                 rsi_overbought: float = 70):
+        """
+        Initialize momentum strategy.
         
+        Args:
+            lookback_period: Period for momentum calculation
+            momentum_threshold: Minimum momentum for signal
+            rsi_period: RSI calculation period
+            rsi_oversold: RSI oversold threshold
+            rsi_overbought: RSI overbought threshold
+        """
         # Parameters
-        self.rsi_period = rsi_period
-        self.rsi_overbought = rsi_overbought
-        self.rsi_oversold = rsi_oversold
-        self.macd_fast = macd_fast
-        self.macd_slow = macd_slow
-        self.macd_signal = macd_signal
         self.lookback_period = lookback_period
-        self.min_momentum_score = min_momentum_score
+        self.momentum_threshold = momentum_threshold
+        self.rsi_period = rsi_period
+        self.rsi_oversold = rsi_oversold
+        self.rsi_overbought = rsi_overbought
         
-        # Initialize components
-        self._initialize_components()
+        # State
+        self.price_history: List[float] = []
+        self.rsi_values: List[float] = []
+        self.last_signal_time: Optional[datetime] = None
+        self.signal_cooldown = 3600  # 1 hour in seconds
+        
+        # Internal calculation state
+        self._gains: List[float] = []
+        self._losses: List[float] = []
+        
+    @property
+    def name(self) -> str:
+        """Strategy name for identification."""
+        return "momentum_strategy"
     
-    def _initialize_components(self):
-        """Initialize strategy components."""
-        # Indicators
-        self.indicators = {
-            'rsi': RSI(self.rsi_period),
-            'macd': MACD(self.macd_fast, self.macd_slow, self.macd_signal),
-            'momentum': Momentum(self.lookback_period)
-        }
+    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Generate trading signal from market data.
         
-        # Feature extractors
-        self.feature_extractors = [
-            PriceReturnExtractor([5, 10, 20], name="returns"),
-            TechnicalFeatureExtractor(name="technical")
-        ]
+        This method implements the Strategy protocol.
+        """
+        # Extract price
+        price = market_data.get('close', market_data.get('price'))
+        timestamp = market_data.get('timestamp', datetime.now())
+        symbol = market_data.get('symbol', 'UNKNOWN')
         
-        # Signal rules
-        self.entry_rules = self._create_entry_rules()
-        self.exit_rules = self._create_exit_rules()
+        if price is None:
+            return None
         
-        # Position sizing
-        self.position_sizer = PercentEquityRule(
-            name="momentum_sizer",
-            percent=0.02,  # 2% base size
-            max_percent=0.05  # 5% max
-        )
-    
-    def _create_entry_rules(self) -> CompositeRule:
-        """Create entry signal rules."""
-        # RSI rules
-        rsi_buy = ThresholdRule(
-            name="rsi_oversold",
-            value_key="rsi",
-            threshold=self.rsi_oversold,
-            direction="below",
-            signal_type="BUY"
-        )
+        # Update price history
+        self.price_history.append(price)
+        if len(self.price_history) > self.lookback_period * 2:
+            self.price_history.pop(0)
         
-        rsi_sell = ThresholdRule(
-            name="rsi_overbought",
-            value_key="rsi",
-            threshold=self.rsi_overbought,
-            direction="above",
-            signal_type="SELL"
-        )
+        # Need enough data
+        if len(self.price_history) < self.lookback_period:
+            return None
         
-        # MACD crossover
-        macd_cross = CrossoverRule(
-            name="macd_signal_cross",
-            fast_key="macd_line",
-            slow_key="signal_line",
-            signal_on="both"
-        )
+        # Check cooldown
+        if self.last_signal_time:
+            time_since_last = (timestamp - self.last_signal_time).total_seconds()
+            if time_since_last < self.signal_cooldown:
+                return None
         
-        # Combine rules
-        return CompositeRule(
-            name="momentum_entry",
-            rules=[rsi_buy, rsi_sell, macd_cross],
-            logic="any",
-            min_rules=1
-        )
-    
-    def _create_exit_rules(self) -> List[Any]:
-        """Create exit rules."""
-        return [
-            StopLossRule(
-                name="momentum_stop",
-                stop_type="atr",
-                stop_distance=2.0  # 2x ATR
-            ),
-            TakeProfitRule(
-                name="momentum_target",
-                target_type="risk_reward",
-                risk_reward_ratio=3.0
-            )
-        ]
-    
-    def on_bar(self, event: Event) -> None:
-        """Process new bar data."""
-        bar_data = event.payload
+        # Calculate momentum
+        momentum = self._calculate_momentum()
         
-        # Update indicators
-        price = bar_data.get('close', bar_data.get('price'))
-        timestamp = bar_data.get('timestamp', datetime.now())
+        # Calculate RSI
+        rsi = self._calculate_rsi(price)
         
-        for name, indicator in self.indicators.items():
-            value = indicator.calculate(price, timestamp)
-            if value is not None:
-                self.state[name] = value
+        # Generate signal based on momentum and RSI
+        signal = None
         
-        # Extract features
-        all_features = {}
-        for extractor in self.feature_extractors:
-            features = extractor.extract(bar_data)
-            all_features.update(features)
-        
-        # Calculate momentum score
-        momentum_score = self._calculate_momentum_score(all_features)
-        self.state['momentum_score'] = momentum_score
-        
-        # Check entry signals if we have momentum
-        if momentum_score >= self.min_momentum_score:
-            # Prepare data for rules
-            rule_data = {
-                **self.state,
-                **all_features,
-                'macd_line': getattr(self.indicators['macd'], 'macd_line', None),
-                'signal_line': getattr(self.indicators['macd'], 'signal_line', None)
+        if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
+            # Bullish momentum, not overbought
+            signal = {
+                'symbol': symbol,
+                'direction': SignalDirection.BUY,
+                'strength': min(momentum / (self.momentum_threshold * 2), 1.0),
+                'timestamp': timestamp,
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'reason': 'Positive momentum with room to run'
+                }
             }
             
-            # Evaluate entry rules
-            signal = self.entry_rules.evaluate(rule_data)
-            
-            if signal:
-                self._generate_signal(signal, bar_data)
-        
-        # Check exits for existing positions
-        self._check_exits(bar_data)
-    
-    def _calculate_momentum_score(self, features: Dict[str, float]) -> float:
-        """Calculate overall momentum score."""
-        scores = []
-        
-        # Price momentum
-        for period in [5, 10, 20]:
-            ret_key = f'returns_return_{period}'
-            if ret_key in features:
-                ret = features[ret_key]
-                scores.append(1.0 if ret > 0 else 0.0)
-        
-        # RSI momentum
-        if 'rsi' in self.state:
-            rsi = self.state['rsi']
-            if rsi > 50:
-                scores.append((rsi - 50) / 50)
-            else:
-                scores.append((50 - rsi) / 50)
-        
-        # MACD momentum
-        if hasattr(self.indicators['macd'], 'histogram'):
-            hist = self.indicators['macd'].histogram
-            if hist is not None:
-                scores.append(1.0 if hist > 0 else 0.0)
-        
-        # Technical momentum features
-        if 'technical_combined_momentum' in features:
-            scores.append((features['technical_combined_momentum'] + 1) / 2)
-        
-        return sum(scores) / len(scores) if scores else 0.0
-    
-    def _generate_signal(self, signal: Dict[str, Any], bar_data: Dict[str, Any]) -> None:
-        """Generate trading signal."""
-        # Calculate position size
-        context = {
-            'equity': self.state.get('equity', 100000),
-            'close': bar_data.get('close'),
-            'atr': self.state.get('atr', bar_data.get('close', 1) * 0.02)
-        }
-        
-        size = self.position_sizer.calculate_size(signal, context)
-        
-        # Adjust size based on momentum score
-        momentum_score = self.state.get('momentum_score', 0.5)
-        size *= momentum_score
-        
-        # Create enhanced signal
-        enhanced_signal = {
-            **signal,
-            'strategy': self.name,
-            'size': size,
-            'momentum_score': momentum_score,
-            'timestamp': bar_data.get('timestamp')
-        }
-        
-        # Emit signal event
-        if self._events and self._events.event_bus:
-            signal_event = Event('SIGNAL', enhanced_signal)
-            self._events.event_bus.publish(signal_event)
-        
-        logger.info(f"Generated {signal['type']} signal with size {size:.2f}")
-    
-    def _check_exits(self, bar_data: Dict[str, Any]) -> None:
-        """Check exit conditions for open positions."""
-        positions = self.state.get('positions', [])
-        
-        for position in positions:
-            context = {
-                **bar_data,
-                'atr': self.state.get('atr')
+        elif momentum < -self.momentum_threshold and rsi > self.rsi_oversold:
+            # Bearish momentum, not oversold
+            signal = {
+                'symbol': symbol,
+                'direction': SignalDirection.SELL,
+                'strength': min(abs(momentum) / (self.momentum_threshold * 2), 1.0),
+                'timestamp': timestamp,
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'reason': 'Negative momentum with room to fall'
+                }
             }
             
-            for exit_rule in self.exit_rules:
-                exit_info = exit_rule.should_exit(position, context)
-                
-                if exit_info:
-                    # Create exit signal
-                    exit_signal = {
-                        'type': 'EXIT',
-                        'position_id': position.get('id'),
-                        'strategy': self.name,
-                        **exit_info
-                    }
-                    
-                    # Emit exit signal
-                    if self._events and self._events.event_bus:
-                        exit_event = Event('SIGNAL', exit_signal)
-                        self._events.event_bus.publish(exit_event)
-                    
-                    logger.info(f"Generated exit signal: {exit_info['reason']}")
-                    break
-    
-    def get_parameter_space(self) -> Dict[str, Any]:
-        """Get optimization parameter space."""
-        return {
-            'rsi_period': {'type': 'int', 'min': 10, 'max': 20},
-            'rsi_overbought': {'type': 'float', 'min': 65, 'max': 80},
-            'rsi_oversold': {'type': 'float', 'min': 20, 'max': 35},
-            'macd_fast': {'type': 'int', 'min': 8, 'max': 15},
-            'macd_slow': {'type': 'int', 'min': 20, 'max': 30},
-            'macd_signal': {'type': 'int', 'min': 7, 'max': 12},
-            'lookback_period': {'type': 'int', 'min': 10, 'max': 30},
-            'min_momentum_score': {'type': 'float', 'min': 0.5, 'max': 0.8}
-        }
-    
-    def set_parameters(self, params: Dict[str, Any]) -> None:
-        """Update strategy parameters."""
-        # Update parameters
-        for key, value in params.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        elif rsi < self.rsi_oversold and momentum > 0:
+            # Oversold with positive momentum - potential reversal
+            signal = {
+                'symbol': symbol,
+                'direction': SignalDirection.BUY,
+                'strength': 0.5,  # Lower confidence for reversal
+                'timestamp': timestamp,
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'reason': 'Oversold reversal signal'
+                }
+            }
+            
+        elif rsi > self.rsi_overbought and momentum < 0:
+            # Overbought with negative momentum - potential reversal
+            signal = {
+                'symbol': symbol,
+                'direction': SignalDirection.SELL,
+                'strength': 0.5,  # Lower confidence for reversal
+                'timestamp': timestamp,
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'reason': 'Overbought reversal signal'
+                }
+            }
         
-        # Reinitialize components with new parameters
-        self._initialize_components()
+        if signal:
+            self.last_signal_time = timestamp
         
-        logger.info(f"Updated parameters: {params}")
+        return signal
+    
+    def _calculate_momentum(self) -> float:
+        """Calculate price momentum."""
+        if len(self.price_history) < self.lookback_period:
+            return 0.0
+        
+        # Simple rate of change
+        current_price = self.price_history[-1]
+        past_price = self.price_history[-self.lookback_period]
+        
+        if past_price == 0:
+            return 0.0
+        
+        return (current_price - past_price) / past_price
+    
+    def _calculate_rsi(self, current_price: float) -> float:
+        """Calculate RSI indicator."""
+        if len(self.price_history) < 2:
+            return 50.0  # Neutral
+        
+        # Calculate price change
+        prev_price = self.price_history[-2] if len(self.price_history) > 1 else current_price
+        change = current_price - prev_price
+        
+        # Track gains and losses
+        gain = max(0, change)
+        loss = max(0, -change)
+        
+        self._gains.append(gain)
+        self._losses.append(loss)
+        
+        # Limit history
+        if len(self._gains) > self.rsi_period:
+            self._gains.pop(0)
+            self._losses.pop(0)
+        
+        # Need enough data
+        if len(self._gains) < self.rsi_period:
+            return 50.0
+        
+        # Calculate average gain/loss
+        avg_gain = sum(self._gains) / len(self._gains)
+        avg_loss = sum(self._losses) / len(self._losses)
+        
+        if avg_loss == 0:
+            return 100.0  # No losses = RSI 100
+        
+        rs = avg_gain / avg_loss
+        rsi = 100 - (100 / (1 + rs))
+        
+        return rsi
     
     def reset(self) -> None:
         """Reset strategy state."""
-        super().reset()
-        
-        # Reset indicators
-        for indicator in self.indicators.values():
-            if hasattr(indicator, 'reset'):
-                indicator.reset()
-        
-        # Reset feature extractors
-        for extractor in self.feature_extractors:
-            if hasattr(extractor, 'reset'):
-                extractor.reset()
-        
-        # Reset rules
-        self.entry_rules.reset()
-        for rule in self.exit_rules:
-            rule.reset()
+        self.price_history.clear()
+        self.rsi_values.clear()
+        self._gains.clear()
+        self._losses.clear()
+        self.last_signal_time = None
+    
+    # Note: Optimization methods are added by OptimizationCapability
+    # when the strategy is created through ComponentFactory.
+    # This keeps the strategy class clean and focused on its core purpose.
+
+
+# Example of creating the strategy with capabilities
+def create_momentum_strategy(config: Dict[str, Any] = None) -> Any:
+    """
+    Factory function to create momentum strategy with capabilities.
+    
+    This would typically use ComponentFactory to add capabilities.
+    """
+    # Default configuration
+    default_config = {
+        'lookback_period': 20,
+        'momentum_threshold': 0.02,
+        'rsi_period': 14,
+        'rsi_oversold': 30,
+        'rsi_overbought': 70
+    }
+    
+    if config:
+        default_config.update(config)
+    
+    # Create strategy instance
+    strategy = MomentumStrategy(**default_config)
+    
+    # In real usage, this would use ComponentFactory:
+    # from core.components import ComponentFactory
+    # 
+    # strategy = ComponentFactory().create_component({
+    #     'class': 'MomentumStrategy',
+    #     'params': default_config,
+    #     'capabilities': ['strategy', 'lifecycle', 'events', 'optimization']
+    # })
+    
+    return strategy

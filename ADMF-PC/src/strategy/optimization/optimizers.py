@@ -1,382 +1,304 @@
 """
-Optimization algorithm implementations.
+Optimizer implementations for ADMF-PC.
+
+These optimizers implement the Optimizer protocol without inheritance.
+They can be used to optimize any component that implements Optimizable.
 """
 
-from typing import Dict, Any, List, Callable, Optional
+from typing import Dict, Any, List, Optional, Callable
 import itertools
 import random
 from datetime import datetime
-import logging
 
-logger = logging.getLogger(__name__)
+from .protocols import Optimizer
 
 
 class GridOptimizer:
-    """Grid search optimization"""
+    """
+    Grid search optimizer.
+    
+    Exhaustively searches all parameter combinations.
+    Best for smaller parameter spaces or when you need
+    to understand the full parameter landscape.
+    """
     
     def __init__(self):
+        """Initialize grid optimizer."""
+        self.history: List[Dict[str, Any]] = []
         self.best_params: Optional[Dict[str, Any]] = None
-        self.best_score: float = float('-inf')
-        self.all_results: List[Dict[str, Any]] = []
-        self.current_trial = 0
-        self.total_trials = 0
-    
-    def optimize(self, evaluate_func: Callable[[Dict[str, Any]], float],
-                n_trials: int = None, **kwargs) -> Dict[str, Any]:
-        """Run grid search optimization"""
-        parameter_space = kwargs.get('parameter_space', {})
+        self.best_score: Optional[float] = None
+        self._current_trial = 0
         
-        if not parameter_space:
-            raise ValueError("parameter_space must be provided in kwargs")
+    def optimize(self, 
+                evaluate_func: Callable[[Dict[str, Any]], float],
+                parameter_space: Dict[str, Any],
+                n_trials: Optional[int] = None,
+                **kwargs) -> Dict[str, Any]:
+        """
+        Run grid search optimization.
         
+        Args:
+            evaluate_func: Function that evaluates parameters
+            parameter_space: Space to search
+            n_trials: Max trials (uses all combinations if None)
+            **kwargs: Additional options
+            
+        Returns:
+            Best parameters found
+        """
         # Generate all combinations
-        param_combinations = self._generate_combinations(parameter_space)
-        self.total_trials = len(param_combinations)
+        combinations = self._generate_combinations(parameter_space)
         
         # Limit trials if specified
-        if n_trials:
-            param_combinations = param_combinations[:n_trials]
-            self.total_trials = min(self.total_trials, n_trials)
+        if n_trials and n_trials < len(combinations):
+            combinations = combinations[:n_trials]
         
-        logger.info(f"Starting grid search with {len(param_combinations)} trials")
+        # Reset state
+        self.history.clear()
+        self.best_params = None
+        self.best_score = None
+        self._current_trial = 0
         
         # Evaluate each combination
-        for params in param_combinations:
-            self.current_trial += 1
+        for params in combinations:
+            self._current_trial += 1
             
             try:
+                # Evaluate parameters
                 score = evaluate_func(params)
                 
-                # Record result
-                result = {
-                    'params': params.copy(),
+                # Record trial
+                trial_result = {
+                    'trial_number': self._current_trial,
+                    'parameters': params.copy(),
                     'score': score,
-                    'trial': self.current_trial,
                     'timestamp': datetime.now()
                 }
-                self.all_results.append(result)
+                self.history.append(trial_result)
                 
-                # Update best if needed
-                if score > self.best_score:
+                # Update best if improved
+                if self.best_score is None or score > self.best_score:
                     self.best_score = score
                     self.best_params = params.copy()
-                    logger.info(f"New best score: {score} with params: {params}")
+                    
+                # Progress callback if provided
+                if 'progress_callback' in kwargs:
+                    kwargs['progress_callback'](
+                        self._current_trial, 
+                        len(combinations),
+                        self.best_score
+                    )
                     
             except Exception as e:
-                logger.error(f"Error evaluating {params}: {e}")
-                continue
+                # Record failed trial
+                trial_result = {
+                    'trial_number': self._current_trial,
+                    'parameters': params.copy(),
+                    'score': None,
+                    'error': str(e),
+                    'timestamp': datetime.now()
+                }
+                self.history.append(trial_result)
         
-        logger.info(f"Grid search complete. Best score: {self.best_score}")
-        return self.best_params
+        return self.best_params or {}
     
-    def _generate_combinations(self, space: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
-        """Generate all parameter combinations"""
-        keys = list(space.keys())
-        values = [space[key] for key in keys]
+    def get_best_parameters(self) -> Optional[Dict[str, Any]]:
+        """Get best parameters found so far."""
+        return self.best_params.copy() if self.best_params else None
+    
+    def get_best_score(self) -> Optional[float]:
+        """Get best score achieved."""
+        return self.best_score
+    
+    def get_optimization_history(self) -> List[Dict[str, Any]]:
+        """Get history of all trials."""
+        return self.history.copy()
+    
+    def _generate_combinations(self, parameter_space: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate all parameter combinations from space."""
+        # Extract parameter names and values
+        param_names = []
+        param_values = []
         
+        for name, space_def in parameter_space.items():
+            param_names.append(name)
+            
+            if isinstance(space_def, list):
+                # Discrete values
+                param_values.append(space_def)
+            elif isinstance(space_def, tuple) and len(space_def) == 2:
+                # Range - generate some values
+                # For grid search, we need discrete values
+                min_val, max_val = space_def
+                steps = 5  # Default number of steps
+                if isinstance(min_val, int) and isinstance(max_val, int):
+                    step_size = max(1, (max_val - min_val) // (steps - 1))
+                    values = [min_val + i * step_size for i in range(steps)]
+                    values[-1] = max_val  # Ensure we include max
+                else:
+                    step_size = (max_val - min_val) / (steps - 1)
+                    values = [min_val + i * step_size for i in range(steps)]
+                param_values.append(values)
+            elif isinstance(space_def, dict):
+                # Complex definition
+                if 'values' in space_def:
+                    param_values.append(space_def['values'])
+                elif 'min' in space_def and 'max' in space_def:
+                    # Generate values based on step
+                    min_val = space_def['min']
+                    max_val = space_def['max']
+                    step = space_def.get('step', (max_val - min_val) / 4)
+                    values = []
+                    val = min_val
+                    while val <= max_val:
+                        values.append(val)
+                        val += step
+                    param_values.append(values)
+                else:
+                    param_values.append([space_def.get('default', 0)])
+            else:
+                # Single value
+                param_values.append([space_def])
+        
+        # Generate all combinations
         combinations = []
-        for combo in itertools.product(*values):
-            combinations.append(dict(zip(keys, combo)))
+        for combo in itertools.product(*param_values):
+            combinations.append(dict(zip(param_names, combo)))
         
         return combinations
-    
-    def get_best_parameters(self) -> Dict[str, Any]:
-        """Get best parameters found"""
-        return self.best_params.copy() if self.best_params else {}
-    
-    def get_best_score(self) -> float:
-        """Get best score achieved"""
-        return self.best_score
-    
-    def get_optimization_history(self) -> List[Dict[str, Any]]:
-        """Get history of all trials"""
-        return self.all_results.copy()
 
 
-class BayesianOptimizer:
-    """Bayesian optimization using surrogate model"""
+class RandomOptimizer:
+    """
+    Random search optimizer.
     
-    def __init__(self, acquisition_function: str = 'expected_improvement'):
-        self.acquisition_function = acquisition_function
-        self.observations: List[Dict[str, Any]] = []
+    Randomly samples parameter space. Often more efficient
+    than grid search for high-dimensional spaces.
+    """
+    
+    def __init__(self, seed: Optional[int] = None):
+        """
+        Initialize random optimizer.
+        
+        Args:
+            seed: Random seed for reproducibility
+        """
+        self.seed = seed
+        if seed is not None:
+            random.seed(seed)
+            
+        self.history: List[Dict[str, Any]] = []
         self.best_params: Optional[Dict[str, Any]] = None
-        self.best_score: float = float('-inf')
-        self.surrogate_model = None
-    
-    def optimize(self, evaluate_func: Callable[[Dict[str, Any]], float],
-                n_trials: int = 100, **kwargs) -> Dict[str, Any]:
-        """Run Bayesian optimization"""
-        parameter_space = kwargs.get('parameter_space', {})
+        self.best_score: Optional[float] = None
+        self._current_trial = 0
         
-        if not parameter_space:
-            raise ValueError("parameter_space must be provided in kwargs")
-        
-        # Initial random exploration
-        n_initial = min(10, n_trials // 4)
-        initial_params = self._random_sample(parameter_space, n_initial)
-        
-        logger.info(f"Starting Bayesian optimization with {n_initial} initial samples")
-        
-        # Evaluate initial points
-        for params in initial_params:
-            score = evaluate_func(params)
-            self._update_observations(params, score)
-        
-        # Bayesian optimization loop
-        for i in range(n_trials - n_initial):
-            # Fit surrogate model (simplified - would use Gaussian Process in production)
-            self._fit_surrogate_model()
+    def optimize(self, 
+                evaluate_func: Callable[[Dict[str, Any]], float],
+                parameter_space: Dict[str, Any],
+                n_trials: Optional[int] = None,
+                **kwargs) -> Dict[str, Any]:
+        """Run random search optimization."""
+        # Default number of trials
+        if n_trials is None:
+            n_trials = 100
             
-            # Select next point using acquisition function
-            next_params = self._select_next_point(parameter_space)
+        # Reset state
+        self.history.clear()
+        self.best_params = None
+        self.best_score = None
+        self._current_trial = 0
+        
+        # Run trials
+        for _ in range(n_trials):
+            self._current_trial += 1
             
-            # Evaluate
-            score = evaluate_func(next_params)
-            self._update_observations(next_params, score)
+            # Sample parameters
+            params = self._sample_parameters(parameter_space)
             
-            logger.debug(f"Trial {n_initial + i + 1}/{n_trials}: score={score}")
-        
-        logger.info(f"Bayesian optimization complete. Best score: {self.best_score}")
-        return self.best_params
-    
-    def _random_sample(self, space: Dict[str, Any], n_samples: int) -> List[Dict[str, Any]]:
-        """Generate random samples from parameter space"""
-        samples = []
-        
-        for _ in range(n_samples):
-            sample = {}
-            for param_name, param_def in space.items():
-                if isinstance(param_def, list):
-                    # Discrete values
-                    sample[param_name] = random.choice(param_def)
-                elif isinstance(param_def, tuple) and len(param_def) == 2:
-                    # Continuous range
-                    sample[param_name] = random.uniform(param_def[0], param_def[1])
-            samples.append(sample)
-        
-        return samples
-    
-    def _update_observations(self, params: Dict[str, Any], score: float) -> None:
-        """Update observations and best parameters"""
-        self.observations.append({
-            'params': params.copy(),
-            'score': score,
-            'timestamp': datetime.now()
-        })
-        
-        if score > self.best_score:
-            self.best_score = score
-            self.best_params = params.copy()
-    
-    def _fit_surrogate_model(self) -> None:
-        """Fit surrogate model to observations"""
-        # Simplified - in production would use sklearn GaussianProcessRegressor
-        # For now, just store observations
-        pass
-    
-    def _select_next_point(self, space: Dict[str, Any]) -> Dict[str, Any]:
-        """Select next point using acquisition function"""
-        # Simplified - would compute acquisition function over space
-        # For now, use random with bias towards unexplored regions
-        
-        # Get one random sample
-        candidates = self._random_sample(space, 100)
-        
-        # Simple heuristic: prefer points far from existing observations
-        best_candidate = None
-        best_distance = -1
-        
-        for candidate in candidates:
-            min_distance = float('inf')
-            for obs in self.observations:
-                distance = self._parameter_distance(candidate, obs['params'])
-                min_distance = min(min_distance, distance)
-            
-            if min_distance > best_distance:
-                best_distance = min_distance
-                best_candidate = candidate
-        
-        return best_candidate
-    
-    def _parameter_distance(self, params1: Dict[str, Any], params2: Dict[str, Any]) -> float:
-        """Calculate distance between parameter sets"""
-        distance = 0
-        for key in params1:
-            if key in params2:
-                val1, val2 = params1[key], params2[key]
-                if isinstance(val1, (int, float)) and isinstance(val2, (int, float)):
-                    distance += (val1 - val2) ** 2
-                elif val1 != val2:
-                    distance += 1
-        return distance ** 0.5
-    
-    def get_best_parameters(self) -> Dict[str, Any]:
-        """Get best parameters found"""
-        return self.best_params.copy() if self.best_params else {}
-    
-    def get_best_score(self) -> float:
-        """Get best score achieved"""
-        return self.best_score
-    
-    def get_optimization_history(self) -> List[Dict[str, Any]]:
-        """Get history of all trials"""
-        return self.observations.copy()
-
-
-class GeneticOptimizer:
-    """Genetic algorithm optimization"""
-    
-    def __init__(self, population_size: int = 50, mutation_rate: float = 0.1,
-                 crossover_rate: float = 0.7):
-        self.population_size = population_size
-        self.mutation_rate = mutation_rate
-        self.crossover_rate = crossover_rate
-        self.best_params: Optional[Dict[str, Any]] = None
-        self.best_score: float = float('-inf')
-        self.generation_history: List[Dict[str, Any]] = []
-    
-    def optimize(self, evaluate_func: Callable[[Dict[str, Any]], float],
-                n_trials: int = None, **kwargs) -> Dict[str, Any]:
-        """Run genetic algorithm optimization"""
-        parameter_space = kwargs.get('parameter_space', {})
-        generations = kwargs.get('generations', 20)
-        
-        if not parameter_space:
-            raise ValueError("parameter_space must be provided in kwargs")
-        
-        logger.info(f"Starting genetic optimization with population={self.population_size}, "
-                   f"generations={generations}")
-        
-        # Initialize population
-        population = self._initialize_population(parameter_space)
-        
-        # Evolution loop
-        for gen in range(generations):
-            # Evaluate fitness
-            fitness_scores = []
-            for individual in population:
-                try:
-                    score = evaluate_func(individual)
-                    fitness_scores.append(score)
+            try:
+                # Evaluate
+                score = evaluate_func(params)
+                
+                # Record trial
+                trial_result = {
+                    'trial_number': self._current_trial,
+                    'parameters': params.copy(),
+                    'score': score,
+                    'timestamp': datetime.now()
+                }
+                self.history.append(trial_result)
+                
+                # Update best
+                if self.best_score is None or score > self.best_score:
+                    self.best_score = score
+                    self.best_params = params.copy()
                     
-                    # Update best
-                    if score > self.best_score:
-                        self.best_score = score
-                        self.best_params = individual.copy()
-                        
-                except Exception as e:
-                    fitness_scores.append(float('-inf'))
-                    logger.error(f"Error evaluating individual: {e}")
-            
-            # Record generation stats
-            self.generation_history.append({
-                'generation': gen,
-                'best_score': max(fitness_scores),
-                'avg_score': sum(fitness_scores) / len(fitness_scores),
-                'timestamp': datetime.now()
-            })
-            
-            logger.debug(f"Generation {gen}: best={max(fitness_scores):.4f}, "
-                        f"avg={sum(fitness_scores)/len(fitness_scores):.4f}")
-            
-            # Select parents and create next generation
-            population = self._evolve_population(population, fitness_scores, parameter_space)
+            except Exception as e:
+                # Record failed trial
+                trial_result = {
+                    'trial_number': self._current_trial,
+                    'parameters': params.copy(),
+                    'score': None,
+                    'error': str(e),
+                    'timestamp': datetime.now()
+                }
+                self.history.append(trial_result)
         
-        logger.info(f"Genetic optimization complete. Best score: {self.best_score}")
-        return self.best_params
+        return self.best_params or {}
     
-    def _initialize_population(self, space: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Initialize random population"""
-        population = []
-        
-        for _ in range(self.population_size):
-            individual = {}
-            for param_name, param_def in space.items():
-                if isinstance(param_def, list):
-                    individual[param_name] = random.choice(param_def)
-                elif isinstance(param_def, tuple) and len(param_def) == 2:
-                    individual[param_name] = random.uniform(param_def[0], param_def[1])
-            population.append(individual)
-        
-        return population
+    def get_best_parameters(self) -> Optional[Dict[str, Any]]:
+        """Get best parameters found so far."""
+        return self.best_params.copy() if self.best_params else None
     
-    def _evolve_population(self, population: List[Dict[str, Any]], 
-                          fitness_scores: List[float],
-                          space: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Create next generation through selection, crossover, and mutation"""
-        new_population = []
-        
-        # Keep best individual (elitism)
-        best_idx = fitness_scores.index(max(fitness_scores))
-        new_population.append(population[best_idx].copy())
-        
-        # Generate rest of population
-        while len(new_population) < self.population_size:
-            # Selection (tournament)
-            parent1 = self._tournament_select(population, fitness_scores)
-            parent2 = self._tournament_select(population, fitness_scores)
-            
-            # Crossover
-            if random.random() < self.crossover_rate:
-                child = self._crossover(parent1, parent2)
-            else:
-                child = parent1.copy()
-            
-            # Mutation
-            if random.random() < self.mutation_rate:
-                child = self._mutate(child, space)
-            
-            new_population.append(child)
-        
-        return new_population
-    
-    def _tournament_select(self, population: List[Dict[str, Any]], 
-                          fitness_scores: List[float],
-                          tournament_size: int = 3) -> Dict[str, Any]:
-        """Select individual using tournament selection"""
-        tournament_indices = random.sample(range(len(population)), tournament_size)
-        tournament_fitness = [fitness_scores[i] for i in tournament_indices]
-        winner_idx = tournament_indices[tournament_fitness.index(max(tournament_fitness))]
-        return population[winner_idx].copy()
-    
-    def _crossover(self, parent1: Dict[str, Any], parent2: Dict[str, Any]) -> Dict[str, Any]:
-        """Uniform crossover between parents"""
-        child = {}
-        for key in parent1:
-            if random.random() < 0.5:
-                child[key] = parent1[key]
-            else:
-                child[key] = parent2[key]
-        return child
-    
-    def _mutate(self, individual: Dict[str, Any], space: Dict[str, Any]) -> Dict[str, Any]:
-        """Mutate individual parameters"""
-        mutated = individual.copy()
-        
-        # Mutate one random parameter
-        param_to_mutate = random.choice(list(space.keys()))
-        param_def = space[param_to_mutate]
-        
-        if isinstance(param_def, list):
-            mutated[param_to_mutate] = random.choice(param_def)
-        elif isinstance(param_def, tuple) and len(param_def) == 2:
-            # Small perturbation for continuous parameters
-            current = mutated[param_to_mutate]
-            range_size = param_def[1] - param_def[0]
-            perturbation = random.gauss(0, range_size * 0.1)
-            mutated[param_to_mutate] = max(param_def[0], 
-                                           min(param_def[1], current + perturbation))
-        
-        return mutated
-    
-    def get_best_parameters(self) -> Dict[str, Any]:
-        """Get best parameters found"""
-        return self.best_params.copy() if self.best_params else {}
-    
-    def get_best_score(self) -> float:
-        """Get best score achieved"""
+    def get_best_score(self) -> Optional[float]:
+        """Get best score achieved."""
         return self.best_score
     
     def get_optimization_history(self) -> List[Dict[str, Any]]:
-        """Get history of all trials"""
-        return self.generation_history.copy()
+        """Get history of all trials."""
+        return self.history.copy()
+    
+    def _sample_parameters(self, parameter_space: Dict[str, Any]) -> Dict[str, Any]:
+        """Sample random parameters from space."""
+        params = {}
+        
+        for name, space_def in parameter_space.items():
+            if isinstance(space_def, list):
+                # Choose from discrete values
+                params[name] = random.choice(space_def)
+            elif isinstance(space_def, tuple) and len(space_def) == 2:
+                # Sample from range
+                min_val, max_val = space_def
+                if isinstance(min_val, int) and isinstance(max_val, int):
+                    params[name] = random.randint(min_val, max_val)
+                else:
+                    params[name] = random.uniform(min_val, max_val)
+            elif isinstance(space_def, dict):
+                # Complex definition
+                if 'values' in space_def:
+                    params[name] = random.choice(space_def['values'])
+                elif 'min' in space_def and 'max' in space_def:
+                    min_val = space_def['min']
+                    max_val = space_def['max']
+                    if space_def.get('type') == 'int':
+                        params[name] = random.randint(min_val, max_val)
+                    else:
+                        params[name] = random.uniform(min_val, max_val)
+                else:
+                    params[name] = space_def.get('default', 0)
+            else:
+                # Single value
+                params[name] = space_def
+        
+        return params
+
+
+# Factory functions
+def create_grid_optimizer() -> GridOptimizer:
+    """Create a grid search optimizer."""
+    return GridOptimizer()
+
+
+def create_random_optimizer(seed: Optional[int] = None) -> RandomOptimizer:
+    """Create a random search optimizer."""
+    return RandomOptimizer(seed)

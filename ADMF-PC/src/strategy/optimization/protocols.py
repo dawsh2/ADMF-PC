@@ -1,8 +1,8 @@
 """
-Optimization protocols for ADMF-PC.
+Optimization protocols for ADMF-PC strategy module.
 
-These protocols define the contracts for optimization components without
-requiring inheritance.
+These protocols define contracts for optimization components without
+requiring inheritance, enabling flexible composition.
 """
 
 from typing import Protocol, runtime_checkable, Dict, Any, List, Optional, Tuple, Callable
@@ -10,70 +10,27 @@ from abc import abstractmethod
 
 
 @runtime_checkable
-class Optimizable(Protocol):
-    """Protocol for components that can be optimized"""
-    
-    @abstractmethod
-    def get_parameter_space(self) -> Dict[str, Any]:
-        """
-        Return parameter space for optimization.
-        
-        Returns:
-            Dict mapping parameter names to their possible values or ranges.
-            Examples:
-                {'period': [10, 20, 30]}  # Discrete values
-                {'threshold': (0.0, 1.0)}  # Continuous range
-                {'method': ['SMA', 'EMA']}  # Categorical
-        """
-        ...
-    
-    @abstractmethod
-    def set_parameters(self, params: Dict[str, Any]) -> None:
-        """
-        Apply parameter values to the component.
-        
-        Args:
-            params: Parameter values to apply
-        """
-        ...
-    
-    @abstractmethod
-    def get_parameters(self) -> Dict[str, Any]:
-        """
-        Get current parameter values.
-        
-        Returns:
-            Current parameter values
-        """
-        ...
-    
-    @abstractmethod
-    def validate_parameters(self, params: Dict[str, Any]) -> Tuple[bool, str]:
-        """
-        Validate parameter values.
-        
-        Args:
-            params: Parameters to validate
-            
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        ...
-
-
-@runtime_checkable
 class Optimizer(Protocol):
-    """Protocol for optimization algorithms"""
+    """
+    Protocol for optimization algorithms.
+    
+    Optimizers search parameter spaces to find optimal values
+    according to an objective function.
+    """
     
     @abstractmethod
-    def optimize(self, evaluate_func: Callable[[Dict[str, Any]], float], 
-                n_trials: int = None, **kwargs) -> Dict[str, Any]:
+    def optimize(self, 
+                evaluate_func: Callable[[Dict[str, Any]], float],
+                parameter_space: Dict[str, Any],
+                n_trials: Optional[int] = None,
+                **kwargs) -> Dict[str, Any]:
         """
         Run optimization and return best parameters.
         
         Args:
             evaluate_func: Function that takes parameters and returns score
-            n_trials: Number of trials to run (optional)
+            parameter_space: Parameter space definition
+            n_trials: Number of trials to run
             **kwargs: Additional optimizer-specific arguments
             
         Returns:
@@ -82,13 +39,13 @@ class Optimizer(Protocol):
         ...
     
     @abstractmethod
-    def get_best_parameters(self) -> Dict[str, Any]:
-        """Get best parameters found so far"""
+    def get_best_parameters(self) -> Optional[Dict[str, Any]]:
+        """Get best parameters found so far."""
         ...
     
     @abstractmethod
-    def get_best_score(self) -> float:
-        """Get best score achieved"""
+    def get_best_score(self) -> Optional[float]:
+        """Get best score achieved."""
         ...
     
     @abstractmethod
@@ -97,14 +54,19 @@ class Optimizer(Protocol):
         Get history of all trials.
         
         Returns:
-            List of dicts with 'params', 'score', and other trial info
+            List of dicts with 'parameters', 'score', and metadata
         """
         ...
 
 
 @runtime_checkable
 class Objective(Protocol):
-    """Protocol for optimization objectives"""
+    """
+    Protocol for optimization objectives.
+    
+    Objectives define what metric to optimize and how to calculate it
+    from backtest or evaluation results.
+    """
     
     @abstractmethod
     def calculate(self, results: Dict[str, Any]) -> float:
@@ -112,10 +74,10 @@ class Objective(Protocol):
         Calculate objective value from results.
         
         Args:
-            results: Backtest or evaluation results
+            results: Evaluation results (e.g., backtest metrics)
             
         Returns:
-            Objective value (higher is better)
+            Objective value (higher is better by convention)
         """
         ...
     
@@ -138,29 +100,36 @@ class Objective(Protocol):
             List of required result fields
         """
         ...
+    
+    @abstractmethod
+    def is_better(self, score1: float, score2: float) -> bool:
+        """
+        Compare two scores.
+        
+        Returns:
+            True if score1 is better than score2
+        """
+        ...
 
 
 @runtime_checkable
 class Constraint(Protocol):
-    """Protocol for parameter constraints"""
+    """
+    Protocol for parameter constraints.
+    
+    Constraints ensure parameter combinations are valid and
+    can adjust invalid parameters to satisfy requirements.
+    """
     
     @abstractmethod
     def is_satisfied(self, params: Dict[str, Any]) -> bool:
-        """
-        Check if parameters satisfy constraint.
-        
-        Args:
-            params: Parameters to check
-            
-        Returns:
-            True if constraint is satisfied
-        """
+        """Check if parameters satisfy constraint."""
         ...
     
     @abstractmethod
     def validate_and_adjust(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Validate and optionally adjust parameters to satisfy constraint.
+        Validate and optionally adjust parameters.
         
         Args:
             params: Parameters to validate/adjust
@@ -172,63 +141,37 @@ class Constraint(Protocol):
     
     @abstractmethod
     def get_description(self) -> str:
-        """Get human-readable description of constraint"""
+        """Get human-readable description of constraint."""
         ...
 
 
 @runtime_checkable
-class OptimizationWorkflow(Protocol):
-    """Protocol for optimization workflows"""
+class ParameterSpace(Protocol):
+    """
+    Protocol for parameter space definitions.
+    
+    Parameter spaces define the searchable space for optimization,
+    including types, ranges, and valid values.
+    """
     
     @abstractmethod
-    def run(self) -> Dict[str, Any]:
+    def get_dimensions(self) -> Dict[str, Any]:
         """
-        Execute the workflow and return results.
+        Get parameter dimensions.
         
         Returns:
-            Workflow results including best parameters, scores, etc.
+            Dict mapping parameter names to their definitions
         """
         ...
     
     @abstractmethod
-    def get_stages(self) -> List[str]:
+    def sample(self, n_samples: int, method: str = 'random') -> List[Dict[str, Any]]:
         """
-        Get list of workflow stages.
-        
-        Returns:
-            Ordered list of stage names
-        """
-        ...
-    
-    @abstractmethod
-    def get_current_stage(self) -> Optional[str]:
-        """
-        Get currently executing stage.
-        
-        Returns:
-            Current stage name or None
-        """
-        ...
-    
-    @abstractmethod
-    def cancel(self) -> None:
-        """Cancel the running workflow"""
-        ...
-
-
-@runtime_checkable
-class ParameterSampler(Protocol):
-    """Protocol for parameter sampling strategies"""
-    
-    @abstractmethod
-    def sample(self, parameter_space: Dict[str, Any], 
-              n_samples: int) -> List[Dict[str, Any]]:
-        """
-        Sample parameters from the space.
+        Sample parameter combinations.
         
         Args:
-            parameter_space: Parameter space definition
-            n_samples: Number of samples to generate
+            n_samples: Number of samples
+            method: Sampling method ('random', 'grid', 'latin_hypercube')
             
         Returns:
             List of parameter combinations
@@ -236,16 +179,203 @@ class ParameterSampler(Protocol):
         ...
     
     @abstractmethod
-    def get_next_sample(self, parameter_space: Dict[str, Any],
+    def is_valid(self, params: Dict[str, Any]) -> bool:
+        """Check if parameters are within space."""
+        ...
+    
+    @abstractmethod
+    def get_size(self) -> Optional[int]:
+        """
+        Get total size of parameter space.
+        
+        Returns:
+            Number of combinations (None if infinite)
+        """
+        ...
+
+
+@runtime_checkable
+class OptimizationWorkflow(Protocol):
+    """
+    Protocol for optimization workflows.
+    
+    Workflows orchestrate complex optimization processes,
+    potentially with multiple stages and components.
+    """
+    
+    @abstractmethod
+    async def run(self) -> Dict[str, Any]:
+        """
+        Execute the workflow.
+        
+        Returns:
+            Workflow results including best parameters, metrics, etc.
+        """
+        ...
+    
+    @abstractmethod
+    def get_stages(self) -> List[str]:
+        """Get list of workflow stages."""
+        ...
+    
+    @abstractmethod
+    def get_current_stage(self) -> Optional[str]:
+        """Get currently executing stage."""
+        ...
+    
+    @abstractmethod
+    def cancel(self) -> None:
+        """Cancel the running workflow."""
+        ...
+    
+    @abstractmethod
+    def get_progress(self) -> Dict[str, Any]:
+        """
+        Get workflow progress.
+        
+        Returns:
+            Dict with 'stage', 'progress', 'estimated_time_remaining'
+        """
+        ...
+
+
+@runtime_checkable
+class RegimeAnalyzer(Protocol):
+    """
+    Protocol for regime-based performance analysis.
+    
+    Analyzes trading results to determine optimal parameters
+    for each market regime.
+    """
+    
+    @abstractmethod
+    def analyze_trades(self, 
+                      trades: List[Dict[str, Any]], 
+                      regime_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Analyze trades with regime context.
+        
+        Args:
+            trades: List of completed trades
+            regime_history: List of regime classifications over time
+            
+        Returns:
+            Analysis results with regime-specific metrics
+        """
+        ...
+    
+    @abstractmethod
+    def get_regime_metrics(self, regime: str) -> Dict[str, float]:
+        """Get performance metrics for specific regime."""
+        ...
+    
+    @abstractmethod
+    def get_best_parameters_by_regime(self) -> Dict[str, Dict[str, Any]]:
+        """Get optimal parameters for each regime."""
+        ...
+    
+    @abstractmethod
+    def get_regime_statistics(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Get statistics for each regime.
+        
+        Returns:
+            Dict with trade counts, durations, transitions, etc.
+        """
+        ...
+
+
+@runtime_checkable
+class OptimizationContainer(Protocol):
+    """
+    Protocol for optimization-specific containers.
+    
+    These containers manage isolated environments for running
+    optimization trials with proper state management.
+    """
+    
+    @abstractmethod
+    def create_trial_instance(self, 
+                            parameters: Dict[str, Any],
+                            trial_id: str) -> Tuple[str, Any]:
+        """
+        Create isolated instance for parameter trial.
+        
+        Args:
+            parameters: Trial parameters
+            trial_id: Unique trial identifier
+            
+        Returns:
+            Tuple of (instance_id, component)
+        """
+        ...
+    
+    @abstractmethod
+    def run_trial(self,
+                 parameters: Dict[str, Any],
+                 evaluator: Callable) -> Dict[str, Any]:
+        """
+        Run optimization trial in isolation.
+        
+        Args:
+            parameters: Trial parameters
+            evaluator: Function to evaluate the trial
+            
+        Returns:
+            Trial results with metrics
+        """
+        ...
+    
+    @abstractmethod
+    def get_trial_results(self, trial_id: str) -> Optional[Dict[str, Any]]:
+        """Get results for specific trial."""
+        ...
+    
+    @abstractmethod
+    def cleanup_trial(self, trial_id: str) -> None:
+        """Clean up resources for completed trial."""
+        ...
+
+
+@runtime_checkable
+class ParameterSampler(Protocol):
+    """
+    Protocol for parameter sampling strategies.
+    
+    Samplers generate parameter combinations for optimization
+    using various strategies.
+    """
+    
+    @abstractmethod
+    def sample(self, 
+              parameter_space: Dict[str, Any],
+              n_samples: int,
+              constraints: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
+        """
+        Sample parameters from space.
+        
+        Args:
+            parameter_space: Space definition
+            n_samples: Number of samples
+            constraints: Optional constraints to satisfy
+            
+        Returns:
+            List of parameter combinations
+        """
+        ...
+    
+    @abstractmethod
+    def get_next_sample(self,
+                       parameter_space: Dict[str, Any],
                        history: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Get next sample based on history.
         
         Args:
-            parameter_space: Parameter space definition
-            history: Previous trials and their results
+            parameter_space: Space definition
+            history: Previous trials and results
             
         Returns:
-            Next parameter combination to try
+            Next parameter combination
         """
         ...

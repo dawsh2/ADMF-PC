@@ -1,22 +1,90 @@
 """
-Core protocols for the strategy module.
+Strategy module protocols for ADMF-PC.
 
-These protocols define the contracts that strategy components must implement,
-enabling composition and flexibility without inheritance.
+These protocols define the contracts for all strategy components, enabling
+flexible composition without inheritance. Components can implement multiple
+protocols to gain different capabilities.
 """
 
 from typing import Protocol, runtime_checkable, Dict, Any, Optional, List, Tuple
 from abc import abstractmethod
 from datetime import datetime
+from enum import Enum
+
+
+class SignalDirection(Enum):
+    """Trading signal direction."""
+    BUY = "BUY"
+    SELL = "SELL"
+    HOLD = "HOLD"
+    EXIT = "EXIT"
+
+
+@runtime_checkable
+class Strategy(Protocol):
+    """
+    Core protocol for trading strategies.
+    
+    A strategy processes market data and generates trading signals.
+    No inheritance required - any class implementing these methods
+    can be used as a strategy.
+    """
+    
+    @abstractmethod
+    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Generate trading signal from market data.
+        
+        Args:
+            market_data: Dict containing price data, indicators, etc.
+            
+        Returns:
+            Signal dict with keys:
+                - symbol: str
+                - direction: SignalDirection
+                - strength: float (0-1)
+                - timestamp: datetime
+                - metadata: Dict[str, Any]
+            Or None if no signal
+        """
+        ...
+    
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Strategy name for identification."""
+        ...
 
 
 @runtime_checkable
 class Indicator(Protocol):
-    """Protocol for technical indicators."""
+    """
+    Protocol for technical indicators.
+    
+    Indicators calculate values from price data that can be used
+    by strategies to make trading decisions.
+    """
     
     @abstractmethod
-    def calculate(self, value: float, timestamp: datetime) -> Optional[float]:
-        """Calculate indicator value for new data point."""
+    def calculate(self, value: float, timestamp: Optional[datetime] = None) -> Optional[float]:
+        """
+        Calculate indicator value for new data point.
+        
+        Args:
+            value: New price value
+            timestamp: Optional timestamp
+            
+        Returns:
+            Calculated indicator value or None if not ready
+        """
+        ...
+    
+    @abstractmethod
+    def update(self, value: float, timestamp: Optional[datetime] = None) -> None:
+        """
+        Update indicator state without returning value.
+        More efficient for streaming updates.
+        """
         ...
     
     @property
@@ -39,41 +107,66 @@ class Indicator(Protocol):
 
 @runtime_checkable
 class Feature(Protocol):
-    """Protocol for market features derived from indicators."""
+    """
+    Protocol for market features derived from multiple data sources.
+    
+    Features are higher-level market characteristics computed from
+    raw data, indicators, or other features.
+    """
     
     @abstractmethod
-    def calculate(self, indicators: Dict[str, float]) -> Optional[float]:
-        """Calculate feature value from indicator values."""
+    def extract(self, data: Dict[str, Any]) -> Dict[str, float]:
+        """
+        Extract feature values from market data.
+        
+        Args:
+            data: Market data including prices, indicators, etc.
+            
+        Returns:
+            Dict of feature_name -> feature_value
+        """
         ...
     
     @property
     @abstractmethod
-    def value(self) -> Optional[float]:
-        """Current feature value."""
+    def feature_names(self) -> List[str]:
+        """Names of features this extractor produces."""
         ...
     
-    @property
     @abstractmethod
-    def ready(self) -> bool:
-        """Whether feature has enough data."""
+    def reset(self) -> None:
+        """Reset feature extractor state."""
         ...
 
 
 @runtime_checkable
-class TradingRule(Protocol):
-    """Protocol for trading decision rules."""
+class Rule(Protocol):
+    """
+    Protocol for trading rules.
+    
+    Rules encapsulate specific trading logic that evaluates
+    market conditions and produces trading decisions.
+    """
     
     @abstractmethod
     def evaluate(self, data: Dict[str, Any]) -> Tuple[bool, float]:
         """
-        Evaluate rule and return (triggered, strength).
+        Evaluate rule against market data.
         
         Args:
             data: Market data including prices, indicators, features
             
         Returns:
             Tuple of (is_triggered, signal_strength)
+            - is_triggered: Whether rule conditions are met
+            - signal_strength: Strength of signal (-1 to 1)
         """
+        ...
+    
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Rule name for identification."""
         ...
     
     @property
@@ -84,55 +177,42 @@ class TradingRule(Protocol):
 
 
 @runtime_checkable
-class SignalGenerator(Protocol):
-    """Protocol for components that generate trading signals."""
+class SignalAggregator(Protocol):
+    """
+    Protocol for combining multiple signals.
+    
+    Aggregators combine signals from multiple sources (rules, strategies)
+    into a single actionable signal.
+    """
     
     @abstractmethod
-    def generate_signal(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def aggregate(self, signals: List[Tuple[Dict[str, Any], float]]) -> Optional[Dict[str, Any]]:
         """
-        Generate trading signal from market data.
+        Aggregate multiple weighted signals.
         
+        Args:
+            signals: List of (signal_dict, weight) tuples
+            
         Returns:
-            Signal dict with keys: symbol, direction, strength, timestamp, metadata
+            Aggregated signal or None if no consensus
         """
         ...
-
-
-@runtime_checkable
-class Strategy(Protocol):
-    """Protocol for trading strategies."""
     
+    @property
     @abstractmethod
-    def on_bar(self, bar: Dict[str, Any]) -> None:
-        """Process new market bar."""
+    def min_signals(self) -> int:
+        """Minimum number of signals required."""
         ...
-    
-    @abstractmethod
-    def reset(self) -> None:
-        """Reset strategy state."""
-        ...
-    
-    # Built-in optimization support (with defaults)
-    def get_parameter_space(self) -> Dict[str, Any]:
-        """Return optimizable parameters. Default: no parameters."""
-        return {}
-    
-    def set_parameters(self, params: Dict[str, Any]) -> None:
-        """Apply parameters. Default: no-op."""
-        pass
-    
-    def get_parameters(self) -> Dict[str, Any]:
-        """Get current parameters. Default: empty dict."""
-        return {}
-    
-    def validate_parameters(self, params: Dict[str, Any]) -> Tuple[bool, str]:
-        """Validate parameters. Default: always valid."""
-        return True, ""
 
 
 @runtime_checkable
 class Classifier(Protocol):
-    """Protocol for general classification of market conditions."""
+    """
+    Protocol for market regime classification.
+    
+    Classifiers analyze market conditions and assign categorical
+    labels (e.g., trending, ranging, volatile).
+    """
     
     @abstractmethod
     def classify(self, data: Dict[str, Any]) -> str:
@@ -140,10 +220,10 @@ class Classifier(Protocol):
         Classify current market conditions.
         
         Args:
-            data: Dict containing indicator values or other features
+            data: Market data for classification
             
         Returns:
-            Classification label (e.g., 'TRENDING_UP', 'HIGH_VOLATILITY', 'BULLISH', etc.)
+            Classification label
         """
         ...
     
@@ -158,37 +238,131 @@ class Classifier(Protocol):
     def confidence(self) -> float:
         """Confidence in current classification (0-1)."""
         ...
+    
+    @abstractmethod
+    def reset(self) -> None:
+        """Reset classifier state."""
+        ...
 
 
 @runtime_checkable
-class MetaLabeler(Protocol):
-    """Protocol for signal quality assessment."""
+class RegimeAdaptive(Protocol):
+    """
+    Protocol for regime-adaptive strategies.
+    
+    These strategies can modify their behavior based on
+    detected market regimes.
+    """
     
     @abstractmethod
-    def evaluate_signal(self, signal: Dict[str, Any], 
-                       context: Dict[str, Any]) -> Dict[str, Any]:
+    def on_regime_change(self, new_regime: str, metadata: Dict[str, Any]) -> None:
         """
-        Evaluate signal quality and add metadata.
+        Handle regime change notification.
+        
+        Args:
+            new_regime: New regime classification
+            metadata: Additional regime information
+        """
+        ...
+    
+    @abstractmethod
+    def get_active_parameters(self) -> Dict[str, Any]:
+        """Get currently active parameters for current regime."""
+        ...
+
+
+@runtime_checkable
+class Optimizable(Protocol):
+    """
+    Protocol for components that can be optimized.
+    
+    Any component implementing this protocol can participate
+    in optimization workflows.
+    """
+    
+    @abstractmethod
+    def get_parameter_space(self) -> Dict[str, Any]:
+        """
+        Get parameter space for optimization.
         
         Returns:
-            Enhanced signal with quality metrics
+            Dict mapping parameter names to:
+                - List[Any]: discrete values
+                - Tuple[float, float]: continuous range (min, max)
+                - Dict with 'type', 'min', 'max', 'step', etc.
+        """
+        ...
+    
+    @abstractmethod
+    def set_parameters(self, params: Dict[str, Any]) -> None:
+        """Apply parameter values."""
+        ...
+    
+    @abstractmethod
+    def get_parameters(self) -> Dict[str, Any]:
+        """Get current parameter values."""
+        ...
+    
+    @abstractmethod
+    def validate_parameters(self, params: Dict[str, Any]) -> Tuple[bool, str]:
+        """
+        Validate parameter values.
+        
+        Returns:
+            Tuple of (is_valid, error_message)
         """
         ...
 
 
 @runtime_checkable
-class SignalAggregator(Protocol):
-    """Protocol for combining multiple signals."""
+class StrategyContainer(Protocol):
+    """
+    Protocol for strategy containers.
+    
+    Containers manage strategy lifecycle and provide
+    isolation for parallel execution.
+    """
     
     @abstractmethod
-    def aggregate(self, signals: List[Tuple[Dict[str, Any], float]]) -> Optional[Dict[str, Any]]:
+    def create_strategy(self, spec: Dict[str, Any]) -> Any:
+        """Create strategy instance from specification."""
+        ...
+    
+    @abstractmethod
+    def initialize_strategy(self, strategy: Any) -> None:
+        """Initialize strategy with container context."""
+        ...
+    
+    @abstractmethod
+    def reset_strategy(self) -> None:
+        """Reset strategy state for new run."""
+        ...
+
+
+@runtime_checkable
+class PerformanceTracker(Protocol):
+    """
+    Protocol for tracking strategy performance metrics.
+    
+    Used for optimization and analysis of trading results.
+    """
+    
+    @abstractmethod
+    def record_trade(self, trade: Dict[str, Any], regime: Optional[str] = None) -> None:
+        """Record a completed trade with optional regime context."""
+        ...
+    
+    @abstractmethod
+    def get_metrics(self, regime: Optional[str] = None) -> Dict[str, float]:
         """
-        Aggregate multiple weighted signals into one.
+        Get performance metrics, optionally filtered by regime.
         
-        Args:
-            signals: List of (signal, weight) tuples
-            
         Returns:
-            Aggregated signal or None
+            Dict with metrics like sharpe_ratio, win_rate, etc.
         """
+        ...
+    
+    @abstractmethod
+    def get_regime_analysis(self) -> Dict[str, Dict[str, float]]:
+        """Get performance metrics broken down by regime."""
         ...
