@@ -1,13 +1,15 @@
 """
 Trend following trading strategy.
+
+This demonstrates a pure protocol-based strategy with NO inheritance.
+The strategy can be enhanced with capabilities through the ComponentFactory.
 """
 
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import logging
 
-from ...core.events import Event
-from ..base import StrategyBase
+from ..protocols import Strategy, SignalDirection
 from ..indicators import (
     SimpleMovingAverage,
     ExponentialMovingAverage,
@@ -22,7 +24,7 @@ from ..rules import TrailingStopRule, VolatilityBasedRule
 logger = logging.getLogger(__name__)
 
 
-class TrendFollowingStrategy(StrategyBase):
+class TrendFollowingStrategy:
     """
     Trend following strategy that identifies and rides trends.
     
@@ -35,7 +37,6 @@ class TrendFollowingStrategy(StrategyBase):
     """
     
     def __init__(self,
-                 name: str = "trend_following_strategy",
                  fast_ma_period: int = 20,
                  slow_ma_period: int = 50,
                  trend_ma_period: int = 200,
@@ -44,8 +45,6 @@ class TrendFollowingStrategy(StrategyBase):
                  atr_period: int = 14,
                  pyramid_enabled: bool = True,
                  max_pyramids: int = 3):
-        super().__init__(name)
-        
         # Parameters
         self.fast_ma_period = fast_ma_period
         self.slow_ma_period = slow_ma_period
@@ -62,6 +61,10 @@ class TrendFollowingStrategy(StrategyBase):
         # Track pyramid positions
         self.pyramid_count: Dict[str, int] = {}  # symbol -> count
         self.last_pyramid_price: Dict[str, float] = {}  # symbol -> price
+        
+        # State tracking
+        self.state: Dict[str, Any] = {}
+        self.positions: List[Dict[str, Any]] = []
     
     def _initialize_components(self):
         """Initialize strategy components."""
@@ -139,9 +142,14 @@ class TrendFollowingStrategy(StrategyBase):
             )
         ]
     
-    def on_bar(self, event: Event) -> None:
-        """Process new bar data."""
-        bar_data = event.payload
+    @property
+    def name(self) -> str:
+        """Strategy name for identification."""
+        return "trend_following_strategy"
+    
+    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Generate trading signal from market data."""
+        bar_data = market_data
         price = bar_data.get('close', bar_data.get('price'))
         timestamp = bar_data.get('timestamp', datetime.now())
         symbol = bar_data.get('symbol', 'default')
@@ -172,14 +180,15 @@ class TrendFollowingStrategy(StrategyBase):
             signal = self.entry_rules.evaluate(rule_data)
             
             if signal:
-                self._generate_signal(signal, bar_data)
+                return self._generate_signal(signal, bar_data)
         
         # Check for pyramid opportunities
         if self.pyramid_enabled:
-            self._check_pyramid_opportunity(symbol, price)
+            pyramid_signal = self._check_pyramid_opportunity(symbol, price)
+            if pyramid_signal:
+                return pyramid_signal
         
-        # Check exits
-        self._check_exits(bar_data)
+        return None
     
     def _calculate_trend_alignment(self, price: float) -> None:
         """Calculate trend alignment score."""
@@ -221,18 +230,18 @@ class TrendFollowingStrategy(StrategyBase):
         # All indicators must be ready
         return all(ind.ready for ind in self.indicators.values())
     
-    def _check_pyramid_opportunity(self, symbol: str, price: float) -> None:
+    def _check_pyramid_opportunity(self, symbol: str, price: float) -> Optional[Dict[str, Any]]:
         """Check if we should add to winning position."""
         positions = self.state.get('positions', [])
         symbol_positions = [p for p in positions if p.get('symbol') == symbol]
         
         if not symbol_positions:
-            return
+            return None
         
         # Check pyramid count
         current_pyramids = self.pyramid_count.get(symbol, 0)
         if current_pyramids >= self.max_pyramids:
-            return
+            return None
         
         # Get position details
         position = symbol_positions[0]  # Assume one position per symbol
@@ -278,18 +287,17 @@ class TrendFollowingStrategy(StrategyBase):
             
             pyramid_signal['size'] = pyramid_size
             
-            # Emit signal
-            if self._events and self._events.event_bus:
-                signal_event = Event('SIGNAL', pyramid_signal)
-                self._events.event_bus.publish(signal_event)
-            
             # Update tracking
             self.pyramid_count[symbol] = current_pyramids + 1
             self.last_pyramid_price[symbol] = price
             
             logger.info(f"Generated pyramid signal for {symbol} at level {current_pyramids + 1}")
+            
+            return pyramid_signal
+        
+        return None
     
-    def _generate_signal(self, signal: Dict[str, Any], bar_data: Dict[str, Any]) -> None:
+    def _generate_signal(self, signal: Dict[str, Any], bar_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate trading signal."""
         symbol = bar_data.get('symbol', 'default')
         
@@ -322,28 +330,19 @@ class TrendFollowingStrategy(StrategyBase):
             'timestamp': bar_data.get('timestamp')
         }
         
-        # Emit signal
-        if self._events and self._events.event_bus:
-            signal_event = Event('SIGNAL', enhanced_signal)
-            self._events.event_bus.publish(signal_event)
-        
         logger.info(f"Generated trend signal: {signal['type']} with ADX {adx:.1f}")
+        
+        return enhanced_signal
     
-    def get_parameter_space(self) -> Dict[str, Any]:
-        """Get optimization parameter space."""
-        return {
-            'fast_ma_period': {'type': 'int', 'min': 10, 'max': 30},
-            'slow_ma_period': {'type': 'int', 'min': 30, 'max': 100},
-            'trend_ma_period': {'type': 'int', 'min': 100, 'max': 300},
-            'adx_period': {'type': 'int', 'min': 10, 'max': 20},
-            'adx_threshold': {'type': 'float', 'min': 20, 'max': 35},
-            'atr_period': {'type': 'int', 'min': 10, 'max': 20},
-            'max_pyramids': {'type': 'int', 'min': 1, 'max': 5}
-        }
+    # Note: Optimization methods are added by OptimizationCapability
+    # when the strategy is created through ComponentFactory.
+    # This keeps the strategy class clean and focused on its core purpose.
     
     def reset(self) -> None:
         """Reset strategy state."""
-        super().reset()
+        # Clear state
+        self.state.clear()
+        self.positions.clear()
         
         # Clear pyramid tracking
         self.pyramid_count.clear()
@@ -353,3 +352,40 @@ class TrendFollowingStrategy(StrategyBase):
         for indicator in self.indicators.values():
             if hasattr(indicator, 'reset'):
                 indicator.reset()
+
+
+# Example of creating the strategy with capabilities
+def create_trend_following_strategy(config: Dict[str, Any] = None) -> Any:
+    """
+    Factory function to create trend following strategy with capabilities.
+    
+    This would typically use ComponentFactory to add capabilities.
+    """
+    # Default configuration
+    default_config = {
+        'fast_ma_period': 20,
+        'slow_ma_period': 50,
+        'trend_ma_period': 200,
+        'adx_period': 14,
+        'adx_threshold': 25,
+        'atr_period': 14,
+        'pyramid_enabled': True,
+        'max_pyramids': 3
+    }
+    
+    if config:
+        default_config.update(config)
+    
+    # Create strategy instance
+    strategy = TrendFollowingStrategy(**default_config)
+    
+    # In real usage, this would use ComponentFactory:
+    # from core.components import ComponentFactory
+    # 
+    # strategy = ComponentFactory().create_component({
+    #     'class': 'TrendFollowingStrategy',
+    #     'params': default_config,
+    #     'capabilities': ['strategy', 'lifecycle', 'events', 'optimization']
+    # })
+    
+    return strategy

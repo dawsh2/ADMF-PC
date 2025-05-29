@@ -1,8 +1,8 @@
-# Multi-Phase Optimization Workflow Testing Strategy
+# Enhanced Multi-Phase Optimization Workflow Testing Strategy
 
 ## Overview
 
-This document outlines a comprehensive testing strategy for the multi-phase optimization workflow described in EFFICIENT_DIAGRAM.MD. The approach emphasizes both unit testing of individual phases and integration testing of the complete workflow.
+This document outlines a comprehensive testing strategy for the multi-phase optimization workflow with parallel regime classifier environments. The approach emphasizes unit testing of individual phases, integration testing of the complete workflow, and specific tests for the parallel regime architecture.
 
 ## Testing Architecture
 
@@ -60,6 +60,41 @@ class MarketDataFixtures:
     def create_simple_data(n_bars: int = 100) -> pd.DataFrame:
         """Create simple test data for unit tests"""
         # ... simplified version
+    
+    @staticmethod
+    def create_multi_regime_transition_data() -> pd.DataFrame:
+        """Create data with multiple rapid regime transitions for stress testing"""
+        data = []
+        regimes = ['BULL', 'BEAR', 'NEUTRAL', 'VOLATILE']
+        bars_per_regime = 50
+        
+        for regime_idx, regime in enumerate(regimes * 3):  # 12 regime transitions
+            base_price = 100 + regime_idx * 5
+            for i in range(bars_per_regime):
+                if regime == 'BULL':
+                    price_drift = i * 0.1
+                    volatility = 0.5
+                elif regime == 'BEAR':
+                    price_drift = -i * 0.1
+                    volatility = 0.5
+                elif regime == 'NEUTRAL':
+                    price_drift = 0
+                    volatility = 0.3
+                else:  # VOLATILE
+                    price_drift = 0
+                    volatility = 3.0
+                
+                data.append({
+                    'timestamp': datetime(2023, 1, 1) + timedelta(minutes=len(data)),
+                    'open': base_price + price_drift + random.uniform(-volatility, volatility),
+                    'close': base_price + price_drift + random.uniform(-volatility, volatility),
+                    'high': base_price + price_drift + random.uniform(0, volatility * 1.5),
+                    'low': base_price + price_drift + random.uniform(-volatility * 1.5, 0),
+                    'volume': 1000 + random.randint(-100, 100),
+                    'expected_regime': regime  # For validation
+                })
+        
+        return pd.DataFrame(data)
 ```
 
 ### 2. Component Test Helpers
@@ -113,11 +148,24 @@ class ContainerTestHelpers:
         
         container.initialize_scope()
         return container
+    
+    @staticmethod
+    def create_regime_classifier_environment(
+        classifier_type: str,
+        classifier_config: Dict[str, Any],
+        strategy_specs: List[Dict[str, Any]],
+        shared_indicators: UniversalScopedContainer
+    ) -> RegimeClassifierEnvironment:
+        """Create a complete regime classifier environment for testing"""
+        env = RegimeClassifierEnvironment(classifier_type, classifier_config)
+        env.register_shared_service('indicator_hub', shared_indicators)
+        env.setup_environment(strategy_specs)
+        return env
 ```
 
 ## Phase-by-Phase Testing
 
-### Phase 1: Grid Search Parameter Optimization
+### Phase 1: Grid Search Parameter Optimization with Parallel Regimes
 
 ```python
 # test/test_phase1_grid_search.py
@@ -211,6 +259,95 @@ class TestPhase1GridSearch:
         assert 'TRENDING_UP' in regime_counts
         assert 'HIGH_VOLATILITY' in regime_counts
         assert 'TRENDING_DOWN' in regime_counts
+    
+    def test_parallel_regime_environments(self):
+        """Test parallel execution of different regime classifier environments"""
+        # Setup shared infrastructure
+        data = MarketDataFixtures.create_regime_aware_data()
+        indicator_hub = ContainerTestHelpers.create_test_indicator_container([
+            {'type': 'SMA', 'period': 10},
+            {'type': 'RSI', 'period': 14}
+        ])
+        
+        # Create strategy specs
+        strategy_specs = [
+            {'class': 'MAStrategy', 'params': {'fast': 5, 'slow': 20}},
+            {'class': 'RSIStrategy', 'params': {'period': 14, 'threshold': 30}}
+        ]
+        
+        # Create multiple regime environments
+        hmm_env = ContainerTestHelpers.create_regime_classifier_environment(
+            'HMM',
+            {'states': ['BULL', 'BEAR', 'NEUTRAL']},
+            strategy_specs,
+            indicator_hub
+        )
+        
+        vol_env = ContainerTestHelpers.create_regime_classifier_environment(
+            'Volatility',
+            {'thresholds': {'low': 0.01, 'high': 0.03}},
+            strategy_specs,
+            indicator_hub
+        )
+        
+        # Process data through both environments
+        hmm_results = []
+        vol_results = []
+        
+        for _, bar in data.iterrows():
+            # Calculate indicators once
+            indicator_data = indicator_hub.process_bar(bar)
+            
+            # Each environment processes independently
+            hmm_regime = hmm_env.process_indicator_event(indicator_data)
+            vol_regime = vol_env.process_indicator_event(indicator_data)
+            
+            hmm_results.append(hmm_regime)
+            vol_results.append(vol_regime)
+        
+        # Verify different regime classifications
+        hmm_regimes = set(r['regime'] for r in hmm_results)
+        vol_regimes = set(r['regime'] for r in vol_results)
+        
+        assert hmm_regimes != vol_regimes  # Different classifier paradigms
+        assert len(hmm_regimes) >= 2  # Multiple regimes detected
+        assert len(vol_regimes) >= 2
+    
+    def test_cross_classifier_strategy_consistency(self):
+        """Test that same strategy produces consistent results across different classifiers"""
+        # Create identical strategies in different classifier environments
+        data = MarketDataFixtures.create_simple_data()
+        indicator_hub = ContainerTestHelpers.create_test_indicator_container([
+            {'type': 'SMA', 'period': 10}
+        ])
+        
+        # Same strategy spec
+        strategy_spec = {'class': 'MAStrategy', 'params': {'threshold': 0.01}}
+        
+        # Different classifier environments
+        hmm_env = ContainerTestHelpers.create_regime_classifier_environment(
+            'HMM', {}, [strategy_spec], indicator_hub
+        )
+        vol_env = ContainerTestHelpers.create_regime_classifier_environment(
+            'Volatility', {}, [strategy_spec], indicator_hub
+        )
+        
+        # Process same data
+        for _, bar in data.iterrows():
+            indicator_data = indicator_hub.process_bar(bar)
+            hmm_env.process_indicator_event(indicator_data)
+            vol_env.process_indicator_event(indicator_data)
+        
+        # Get portfolios from each environment
+        hmm_portfolio = hmm_env.strategy_containers[0].resolve('portfolio')
+        vol_portfolio = vol_env.strategy_containers[0].resolve('portfolio')
+        
+        # Both should have valid results (though different due to regime context)
+        assert hmm_portfolio.get_total_trades() > 0
+        assert vol_portfolio.get_total_trades() > 0
+        
+        # But results should differ due to regime influence
+        assert hmm_portfolio.get_value() != vol_portfolio.get_value()
 ```
 
 ### Phase 2: Regime Analysis
@@ -266,6 +403,45 @@ class TestPhase2RegimeAnalysis:
         
         # Should not include regime with insufficient data
         assert 'RARE_REGIME' not in regime_results
+    
+    def test_parallel_regime_analysis_comparison(self):
+        """Test analysis of results from different regime classifiers"""
+        # Mock results from parallel environments
+        hmm_results = {
+            'classifier': 'HMM',
+            'optimization_results': [
+                {
+                    'params': {'fast': 10, 'slow': 20},
+                    'performance_by_regime': {
+                        'BULL': {'sharpe': 1.5, 'trades': 50},
+                        'BEAR': {'sharpe': -0.3, 'trades': 30},
+                        'NEUTRAL': {'sharpe': 0.8, 'trades': 20}
+                    }
+                }
+            ]
+        }
+        
+        vol_results = {
+            'classifier': 'Volatility',
+            'optimization_results': [
+                {
+                    'params': {'fast': 10, 'slow': 20},
+                    'performance_by_regime': {
+                        'LOW_VOL': {'sharpe': 1.2, 'trades': 60},
+                        'HIGH_VOL': {'sharpe': 0.5, 'trades': 40}
+                    }
+                }
+            ]
+        }
+        
+        # Analyze cross-classifier performance
+        cross_analyzer = CrossClassifierAnalyzer()
+        comparison = cross_analyzer.compare_classifiers([hmm_results, vol_results])
+        
+        # Verify comparison metrics
+        assert 'best_classifier_by_strategy' in comparison
+        assert 'regime_stability_scores' in comparison
+        assert 'parameter_consistency' in comparison
 ```
 
 ### Phase 3: Weight Optimization
@@ -334,6 +510,35 @@ class TestPhase3WeightOptimization:
         volatile_weights = genetic_optimizer.optimize(volatile_signals)
         
         assert optimal_weights != volatile_weights
+    
+    def test_classifier_specific_weight_optimization(self):
+        """Test weight optimization for each classifier environment separately"""
+        # Mock signals from different classifiers
+        hmm_signals = [
+            {
+                'timestamp': datetime(2023, 1, 1),
+                'regime': 'BULL',
+                'classifier': 'HMM',
+                'component_signals': {'MA': 0.8, 'RSI': 0.3}
+            }
+        ]
+        
+        vol_signals = [
+            {
+                'timestamp': datetime(2023, 1, 1),
+                'regime': 'HIGH_VOL',
+                'classifier': 'Volatility',
+                'component_signals': {'MA': 0.2, 'RSI': 0.9}
+            }
+        ]
+        
+        # Optimize weights for each classifier
+        optimizer = WeightOptimizer()
+        hmm_weights = optimizer.optimize_for_classifier(hmm_signals, 'HMM')
+        vol_weights = optimizer.optimize_for_classifier(vol_signals, 'Volatility')
+        
+        # Weights should be different for different classifiers
+        assert hmm_weights != vol_weights
 ```
 
 ### Phase 4: Test Validation
@@ -386,6 +591,63 @@ class TestPhase4Validation:
             active_regime = adaptive_strategy.current_regime
             expected_params = regime_params[active_regime]
             assert change['params'] == expected_params
+    
+    def test_regime_transition_handling_across_environments(self):
+        """Test that regime transitions are handled independently in each environment"""
+        # Create data with known regime transitions
+        transition_data = MarketDataFixtures.create_multi_regime_transition_data()
+        
+        # Set up parallel environments
+        indicator_hub = ContainerTestHelpers.create_test_indicator_container([
+            {'type': 'SMA', 'period': 10}
+        ])
+        
+        hmm_env = ContainerTestHelpers.create_regime_classifier_environment(
+            'HMM', {}, [{'class': 'TestStrategy', 'params': {}}], indicator_hub
+        )
+        vol_env = ContainerTestHelpers.create_regime_classifier_environment(
+            'Volatility', {}, [{'class': 'TestStrategy', 'params': {}}], indicator_hub
+        )
+        
+        # Track regime transitions
+        hmm_transitions = []
+        vol_transitions = []
+        
+        prev_hmm_regime = None
+        prev_vol_regime = None
+        
+        for _, bar in transition_data.iterrows():
+            indicator_data = indicator_hub.process_bar(bar)
+            
+            hmm_result = hmm_env.process_indicator_event(indicator_data)
+            vol_result = vol_env.process_indicator_event(indicator_data)
+            
+            # Track transitions
+            if prev_hmm_regime and hmm_result['regime'] != prev_hmm_regime:
+                hmm_transitions.append({
+                    'from': prev_hmm_regime,
+                    'to': hmm_result['regime'],
+                    'timestamp': bar['timestamp']
+                })
+            
+            if prev_vol_regime and vol_result['regime'] != prev_vol_regime:
+                vol_transitions.append({
+                    'from': prev_vol_regime,
+                    'to': vol_result['regime'],
+                    'timestamp': bar['timestamp']
+                })
+            
+            prev_hmm_regime = hmm_result['regime']
+            prev_vol_regime = vol_result['regime']
+        
+        # Verify transitions detected
+        assert len(hmm_transitions) > 0
+        assert len(vol_transitions) > 0
+        
+        # Transitions should be independent
+        hmm_timestamps = [t['timestamp'] for t in hmm_transitions]
+        vol_timestamps = [t['timestamp'] for t in vol_transitions]
+        assert hmm_timestamps != vol_timestamps  # Different transition points
 ```
 
 ## Integration Testing
@@ -406,7 +668,8 @@ class TestFullWorkflowIntegration:
                     'parameter_space': {
                         'fast': [5, 10, 15],
                         'slow': [20, 30, 40]
-                    }
+                    },
+                    'regime_classifiers': ['HMM', 'Volatility']
                 },
                 'regime_analysis': {
                     'min_trades': 5
@@ -437,6 +700,10 @@ class TestFullWorkflowIntegration:
         assert 'weight_optimization' in results
         assert 'test_validation' in results
         
+        # Verify parallel classifier results
+        assert 'HMM' in results['grid_search']['classifier_results']
+        assert 'Volatility' in results['grid_search']['classifier_results']
+        
         # Verify final test results
         test_results = results['test_validation']
         assert test_results['sharpe_ratio'] > 0
@@ -457,6 +724,48 @@ class TestFullWorkflowIntegration:
         # Results should be identical
         assert results1['grid_search']['best_params'] == results2['grid_search']['best_params']
         assert results1['test_validation']['sharpe_ratio'] == results2['test_validation']['sharpe_ratio']
+    
+    def test_parallel_container_cleanup(self):
+        """Test that all containers are properly cleaned up after parallel execution"""
+        import gc
+        import psutil
+        
+        process = psutil.Process()
+        
+        # Baseline memory
+        gc.collect()
+        baseline_memory = process.memory_info().rss / 1024 / 1024  # MB
+        
+        # Run workflow with multiple classifiers
+        config = {
+            'phases': {
+                'grid_search': {
+                    'parameter_space': {
+                        'fast': list(range(5, 25, 5)),  # 4 values
+                        'slow': list(range(20, 60, 10))  # 4 values
+                    },
+                    'regime_classifiers': ['HMM', 'Volatility', 'ML']  # 3 classifiers
+                }
+            }
+        }
+        
+        coordinator = Coordinator(config)
+        results = coordinator.execute()
+        
+        # Verify cleanup
+        assert len(coordinator.active_containers) == 0  # All containers destroyed
+        
+        # Force garbage collection
+        del results
+        del coordinator
+        gc.collect()
+        
+        # Check memory returned to near baseline
+        final_memory = process.memory_info().rss / 1024 / 1024  # MB
+        memory_leak = final_memory - baseline_memory
+        
+        # Should have minimal memory leak (< 50MB)
+        assert memory_leak < 50
 ```
 
 ## Performance Testing
@@ -508,6 +817,35 @@ class TestWorkflowPerformance:
         
         # Should use less than 1GB for 100 strategies
         assert memory_used < 1024
+    
+    def test_parallel_classifier_performance(self):
+        """Test performance of parallel regime classifier execution"""
+        import time
+        from concurrent.futures import ThreadPoolExecutor
+        
+        # Sequential execution
+        start = time.time()
+        seq_results = []
+        for classifier in ['HMM', 'Volatility', 'ML']:
+            result = run_classifier_optimization(classifier)
+            seq_results.append(result)
+        sequential_time = time.time() - start
+        
+        # Parallel execution
+        start = time.time()
+        with ThreadPoolExecutor() as executor:
+            parallel_results = list(executor.map(
+                run_classifier_optimization,
+                ['HMM', 'Volatility', 'ML']
+            ))
+        parallel_time = time.time() - start
+        
+        # Should be faster (near 3x for 3 classifiers)
+        speedup = sequential_time / parallel_time
+        assert speedup > 2.5
+        
+        # Results should be identical
+        assert seq_results == parallel_results
 ```
 
 ## Test Utilities
@@ -545,16 +883,78 @@ class WorkflowAssertions:
         baseline_sharpe = baseline.get('sharpe_ratio', 0)
         optimized_sharpe = optimized.get('sharpe_ratio', 0)
         assert optimized_sharpe > baseline_sharpe
+    
+    @staticmethod
+    def assert_classifier_independence(results: Dict):
+        """Assert that classifier results are independent"""
+        classifier_results = results['grid_search']['classifier_results']
+        
+        # Each classifier should have different optimal parameters
+        hmm_best = classifier_results['HMM']['best_params']
+        vol_best = classifier_results['Volatility']['best_params']
+        
+        # May be same by chance, but regime performance should differ
+        hmm_regime_perf = classifier_results['HMM']['regime_performance']
+        vol_regime_perf = classifier_results['Volatility']['regime_performance']
+        
+        # Different regime definitions should lead to different performance profiles
+        assert hmm_regime_perf.keys() != vol_regime_perf.keys()
+    
+    @staticmethod
+    def assert_regime_transition_independence(hmm_transitions: List, vol_transitions: List):
+        """Assert that regime transitions are independent between classifiers"""
+        # Transition timestamps should be different
+        hmm_times = [t['timestamp'] for t in hmm_transitions]
+        vol_times = [t['timestamp'] for t in vol_transitions]
+        
+        # Some overlap is okay, but not complete overlap
+        overlap = set(hmm_times) & set(vol_times)
+        overlap_ratio = len(overlap) / max(len(hmm_times), len(vol_times))
+        
+        assert overlap_ratio < 0.5  # Less than 50% overlap
 ```
 
 ## Testing Best Practices
 
 1. **Use Consistent Test Data**: The `MarketDataFixtures` ensure all tests use the same data patterns
 2. **Test Each Phase in Isolation**: Verify each phase works before testing integration
-3. **Mock External Dependencies**: Use mocks for data sources, brokers, etc.
-4. **Test Edge Cases**: Empty data, single regime, no trades, etc.
-5. **Performance Benchmarks**: Ensure optimizations actually improve performance
-6. **Reproducibility Tests**: Verify same config produces same results
-7. **Memory Leak Tests**: Ensure containers are properly cleaned up
+3. **Test Parallel Classifier Independence**: Ensure regime environments don't contaminate each other
+4. **Mock External Dependencies**: Use mocks for data sources, brokers, etc.
+5. **Test Edge Cases**: Empty data, single regime, no trades, rapid regime transitions
+6. **Performance Benchmarks**: Ensure optimizations actually improve performance
+7. **Reproducibility Tests**: Verify same config produces same results
+8. **Memory Leak Tests**: Ensure containers are properly cleaned up
+9. **Cross-Classifier Validation**: Verify strategies work across different regime paradigms
+10. **Transition Stress Testing**: Test handling of rapid regime changes
 
-This comprehensive testing strategy ensures your multi-phase workflow is robust, efficient, and produces reliable results.
+## Additional Test Scenarios
+
+### Stress Testing
+
+```python
+def test_rapid_regime_transitions():
+    """Test system behavior with rapid regime changes"""
+    # Create data with regime change every 10 bars
+    rapid_transition_data = create_rapid_transition_data()
+    
+    # Run through system
+    # Verify no crashes, memory leaks, or state corruption
+```
+
+### Edge Cases
+
+```python
+def test_single_regime_optimization():
+    """Test when entire dataset is single regime"""
+    # Should still work but with warnings
+
+def test_no_trades_generated():
+    """Test when strategies generate no trades"""
+    # Should handle gracefully with appropriate warnings
+
+def test_classifier_disagreement():
+    """Test when classifiers completely disagree on regimes"""
+    # System should still function with independent results
+```
+
+This comprehensive testing strategy ensures your multi-phase workflow with parallel regime classifier environments is robust, efficient, and produces reliable results across all execution scenarios.

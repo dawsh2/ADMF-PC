@@ -1,115 +1,155 @@
 """
-Optimization framework for ADMF-PC.
+Optimization framework for ADMF-PC strategies.
 
-This module provides protocol-based optimization capabilities that can be
-added to any component without inheritance. It includes optimizers, objectives,
-constraints, and workflow management.
+This module provides protocol-based optimization components that
+work seamlessly with the container isolation architecture.
 
 Example Usage:
     ```python
-    from src.core.optimization import (
-        OptimizationCapability,
+    from src.strategy.optimization import (
+        OptimizationContainer,
         GridOptimizer,
         SharpeObjective
     )
     
-    # Make any component optimizable
-    strategy = create_component({
-        'class': 'MyStrategy',
-        'capabilities': ['optimization'],
-        'parameter_space': {
-            'fast_period': [5, 10, 15, 20],
-            'slow_period': [20, 30, 40, 50]
+    # Create optimization container
+    container = OptimizationContainer(
+        container_id="opt_001",
+        base_config={
+            'class': 'MomentumStrategy',
+            'capabilities': ['strategy', 'optimization']
         }
-    })
+    )
     
-    # Optimize it
+    # Run optimization
     optimizer = GridOptimizer()
     objective = SharpeObjective()
     
     best_params = optimizer.optimize(
-        lambda params: backtest_with_params(strategy, params),
-        parameter_space=strategy.get_parameter_space()
+        evaluate_func=lambda params: container.run_trial(params, evaluator),
+        parameter_space={
+            'lookback_period': [10, 20, 30],
+            'momentum_threshold': [0.01, 0.02, 0.03]
+        }
     )
     ```
 """
 
+# Protocols
 from .protocols import (
-    Optimizable,
     Optimizer,
     Objective,
     Constraint,
-    OptimizationWorkflow
+    ParameterSpace,
+    OptimizationWorkflow,
+    RegimeAnalyzer,
+    OptimizationContainer as OptimizationContainerProtocol,
+    ParameterSampler
 )
 
-from .capabilities import (
-    OptimizationCapability
+# Capabilities
+from .capabilities import OptimizationCapability
+
+# Containers
+from .containers import (
+    OptimizationContainer,
+    OptimizationResultsCollector,
+    RegimeTracker,
+    RegimeAwareOptimizationContainer
 )
 
+# Workflows
+from .workflows import (
+    ContainerizedComponentOptimizer,
+    SequentialOptimizationWorkflow,
+    RegimeBasedOptimizationWorkflow,
+    PhaseAwareOptimizationWorkflow,
+    create_phase_aware_workflow
+)
+
+# Optimizers
 from .optimizers import (
     GridOptimizer,
-    BayesianOptimizer,
-    GeneticOptimizer
+    RandomOptimizer
 )
 
+# Objectives
 from .objectives import (
     SharpeObjective,
     MaxReturnObjective,
     MinDrawdownObjective,
-    CompositeObjective
+    CompositeObjective,
+    CalmarObjective,
+    SortinoObjective
 )
 
+# Constraints
 from .constraints import (
-    ParameterConstraint,
     RelationalConstraint,
-    RangeConstraint
+    RangeConstraint,
+    DiscreteConstraint,
+    FunctionalConstraint,
+    CompositeConstraint
 )
 
-from .workflows import (
-    SequentialOptimizationWorkflow,
-    RegimeBasedOptimizationWorkflow,
-    ContainerizedComponentOptimizer
-)
-
-from .containers import (
-    OptimizationContainer,
-    OptimizationResultsCollector
+# Walk-forward validation
+from .walk_forward import (
+    WalkForwardPeriod,
+    WalkForwardValidator,
+    WalkForwardAnalyzer,
+    ContainerizedWalkForward
 )
 
 
 __all__ = [
     # Protocols
-    "Optimizable",
-    "Optimizer", 
+    "Optimizer",
     "Objective",
     "Constraint",
+    "ParameterSpace",
     "OptimizationWorkflow",
+    "RegimeAnalyzer",
+    "OptimizationContainerProtocol",
+    "ParameterSampler",
     
     # Capabilities
     "OptimizationCapability",
     
+    # Containers
+    "OptimizationContainer",
+    "OptimizationResultsCollector",
+    "RegimeTracker",
+    "RegimeAwareOptimizationContainer",
+    
+    # Workflows
+    "ContainerizedComponentOptimizer",
+    "SequentialOptimizationWorkflow",
+    "RegimeBasedOptimizationWorkflow",
+    "PhaseAwareOptimizationWorkflow",
+    "create_phase_aware_workflow",
+    
     # Optimizers
     "GridOptimizer",
-    "BayesianOptimizer",
-    "GeneticOptimizer",
+    "RandomOptimizer",
     
     # Objectives
     "SharpeObjective",
     "MaxReturnObjective",
     "MinDrawdownObjective",
     "CompositeObjective",
+    "CalmarObjective",
+    "SortinoObjective",
     
     # Constraints
-    "ParameterConstraint",
     "RelationalConstraint",
     "RangeConstraint",
+    "DiscreteConstraint",
+    "FunctionalConstraint",
+    "CompositeConstraint",
     
-    # Workflows
-    "SequentialOptimizationWorkflow",
-    "RegimeBasedOptimizationWorkflow",
-    "ContainerizedComponentOptimizer",
-    
-    # Containers
-    "OptimizationContainer",
-    "OptimizationResultsCollector"
+    # Walk-forward validation
+    "WalkForwardPeriod",
+    "WalkForwardValidator",
+    "WalkForwardAnalyzer",
+    "ContainerizedWalkForward"
 ]

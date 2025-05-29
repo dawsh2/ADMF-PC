@@ -8,31 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ParameterConstraint:
-    """Base class for parameter constraints"""
-    
-    def __init__(self, description: str = ""):
-        self.description = description
-    
-    def is_satisfied(self, params: Dict[str, Any]) -> bool:
-        """Check if parameters satisfy constraint"""
-        raise NotImplementedError
-    
-    def validate_and_adjust(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate and optionally adjust parameters"""
-        if self.is_satisfied(params):
-            return params
-        
-        # Default: don't adjust, just return original
-        logger.warning(f"Constraint not satisfied: {self.get_description()}")
-        return params
-    
-    def get_description(self) -> str:
-        """Get human-readable description"""
-        return self.description or self.__class__.__name__
-
-
-class RelationalConstraint(ParameterConstraint):
+class RelationalConstraint:
     """Constraint based on relationship between parameters"""
     
     def __init__(self, param1: str, relation: str, param2: str, 
@@ -54,7 +30,7 @@ class RelationalConstraint(ParameterConstraint):
         if description is None:
             description = f"{param1} {relation} {param2}"
         
-        super().__init__(description)
+        self.description = description
         
         # Map relations to functions
         self.relation_funcs = {
@@ -114,9 +90,13 @@ class RelationalConstraint(ParameterConstraint):
                         adjusted[self.param1] = val2 * 1.1
         
         return adjusted
+    
+    def get_description(self) -> str:
+        """Get human-readable description"""
+        return self.description
 
 
-class RangeConstraint(ParameterConstraint):
+class RangeConstraint:
     """Constraint that parameter must be within range"""
     
     def __init__(self, param_name: str, min_value: Optional[float] = None,
@@ -145,7 +125,7 @@ class RangeConstraint(ParameterConstraint):
             else:
                 description = f"{param_name} range constraint"
         
-        super().__init__(description)
+        self.description = description
     
     def is_satisfied(self, params: Dict[str, Any]) -> bool:
         """Check if parameter is within range"""
@@ -182,9 +162,13 @@ class RangeConstraint(ParameterConstraint):
             adjusted[self.param_name] = value
         
         return adjusted
+    
+    def get_description(self) -> str:
+        """Get human-readable description"""
+        return self.description
 
 
-class DiscreteConstraint(ParameterConstraint):
+class DiscreteConstraint:
     """Constraint that parameter must be one of allowed values"""
     
     def __init__(self, param_name: str, allowed_values: List[Any],
@@ -204,7 +188,7 @@ class DiscreteConstraint(ParameterConstraint):
         if description is None:
             description = f"{param_name} in {allowed_values}"
         
-        super().__init__(description)
+        self.description = description
     
     def is_satisfied(self, params: Dict[str, Any]) -> bool:
         """Check if parameter has allowed value"""
@@ -235,9 +219,13 @@ class DiscreteConstraint(ParameterConstraint):
             adjusted[self.param_name] = closest
         
         return adjusted
+    
+    def get_description(self) -> str:
+        """Get human-readable description"""
+        return self.description
 
 
-class FunctionalConstraint(ParameterConstraint):
+class FunctionalConstraint:
     """Constraint defined by a custom function"""
     
     def __init__(self, constraint_func: Callable[[Dict[str, Any]], bool],
@@ -251,7 +239,7 @@ class FunctionalConstraint(ParameterConstraint):
             description: Description of the constraint
             adjust_func: Optional function to adjust parameters
         """
-        super().__init__(description)
+        self.description = description
         self.constraint_func = constraint_func
         self.adjust_func = adjust_func
     
@@ -275,12 +263,16 @@ class FunctionalConstraint(ParameterConstraint):
                 logger.error(f"Error in constraint adjustment: {e}")
         
         return params
+    
+    def get_description(self) -> str:
+        """Get human-readable description"""
+        return self.description
 
 
-class CompositeConstraint(ParameterConstraint):
+class CompositeConstraint:
     """Combine multiple constraints with AND/OR logic"""
     
-    def __init__(self, constraints: List[ParameterConstraint], 
+    def __init__(self, constraints: List[Any], 
                  logic: str = 'AND', description: str = None):
         """
         Initialize composite constraint.
@@ -301,7 +293,7 @@ class CompositeConstraint(ParameterConstraint):
             constraint_descs = [c.get_description() for c in constraints]
             description = f" {logic} ".join(constraint_descs)
         
-        super().__init__(description)
+        self.description = description
     
     def is_satisfied(self, params: Dict[str, Any]) -> bool:
         """Check if composite constraint is satisfied"""
@@ -318,3 +310,7 @@ class CompositeConstraint(ParameterConstraint):
             adjusted = constraint.validate_and_adjust(adjusted)
         
         return adjusted
+    
+    def get_description(self) -> str:
+        """Get human-readable description"""
+        return self.description

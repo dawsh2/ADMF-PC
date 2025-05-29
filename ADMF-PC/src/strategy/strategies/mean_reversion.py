@@ -8,7 +8,7 @@ import numpy as np
 import logging
 
 from ...core.events import Event
-from ..base import StrategyBase
+from ..protocols import Strategy, SignalDirection
 from ..indicators import BollingerBands, RSI, SimpleMovingAverage
 from ..features import PriceFeatureExtractor, VolatilityExtractor
 from ..rules import ThresholdRule, CompositeRule
@@ -18,7 +18,7 @@ from ..rules import StopLossRule, TakeProfitRule, VolatilityBasedRule
 logger = logging.getLogger(__name__)
 
 
-class MeanReversionStrategy(StrategyBase):
+class MeanReversionStrategy:
     """
     Mean reversion strategy that trades price deviations from equilibrium.
     
@@ -31,7 +31,6 @@ class MeanReversionStrategy(StrategyBase):
     """
     
     def __init__(self,
-                 name: str = "mean_reversion_strategy",
                  bb_period: int = 20,
                  bb_std: float = 2.0,
                  z_score_threshold: float = 2.0,
@@ -39,8 +38,6 @@ class MeanReversionStrategy(StrategyBase):
                  rsi_threshold: float = 30,
                  mean_exit_threshold: float = 0.1,
                  max_holding_period: int = 10):
-        super().__init__(name)
-        
         # Parameters
         self.bb_period = bb_period
         self.bb_std = bb_std
@@ -52,6 +49,10 @@ class MeanReversionStrategy(StrategyBase):
         
         # Initialize components
         self._initialize_components()
+        
+        # State management
+        self.state: Dict[str, Any] = {}
+        self._events = None  # For event capability
         
         # Track positions for mean reversion exits
         self.position_entry_data: Dict[str, Dict[str, Any]] = {}
@@ -121,9 +122,23 @@ class MeanReversionStrategy(StrategyBase):
             # Mean reversion specific exits handled in _check_mean_exits
         ]
     
-    def on_bar(self, event: Event) -> None:
-        """Process new bar data."""
-        bar_data = event.payload
+    @property
+    def name(self) -> str:
+        """Strategy name for identification."""
+        return "mean_reversion_strategy"
+    
+    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Generate trading signal from market data."""
+        # Update indicators and check for signals
+        self._process_market_data(market_data)
+        
+        # Return any generated signal (stored in state)
+        return self.state.get('last_signal')
+    
+    def _process_market_data(self, bar_data: Dict[str, Any]) -> None:
+        """Process market data and update strategy state."""
+        # Clear any previous signal
+        self.state.pop('last_signal', None)
         price = bar_data.get('close', bar_data.get('price'))
         timestamp = bar_data.get('timestamp', datetime.now())
         
@@ -158,7 +173,6 @@ class MeanReversionStrategy(StrategyBase):
                 self._generate_signal(signal, bar_data)
         
         # Check exits
-        self._check_exits(bar_data)
         self._check_mean_exits(bar_data)
     
     def _should_check_entry(self) -> bool:
@@ -220,8 +234,11 @@ class MeanReversionStrategy(StrategyBase):
             'timestamp': bar_data.get('timestamp')
         }
         
-        # Emit signal
-        if self._events and self._events.event_bus:
+        # Store signal for return from generate_signal
+        self.state['last_signal'] = enhanced_signal
+        
+        # Emit signal if event capability is attached
+        if self._events and hasattr(self._events, 'event_bus'):
             signal_event = Event('SIGNAL', enhanced_signal)
             self._events.event_bus.publish(signal_event)
         
@@ -291,8 +308,11 @@ class MeanReversionStrategy(StrategyBase):
                     'bars_held': entry_data['bars_held']
                 }
                 
-                # Emit exit signal
-                if self._events and self._events.event_bus:
+                # Store exit signal
+                self.state['last_signal'] = exit_signal
+                
+                # Emit exit signal if event capability is attached
+                if self._events and hasattr(self._events, 'event_bus'):
                     exit_event = Event('SIGNAL', exit_signal)
                     self._events.event_bus.publish(exit_event)
                 
@@ -315,7 +335,8 @@ class MeanReversionStrategy(StrategyBase):
     
     def reset(self) -> None:
         """Reset strategy state."""
-        super().reset()
+        # Clear state
+        self.state.clear()
         
         # Clear position tracking
         self.position_entry_data.clear()
