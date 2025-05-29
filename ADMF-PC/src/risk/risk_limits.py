@@ -253,6 +253,80 @@ class VaRLimit(BaseRiskLimit):
         }
 
 
+class MaxExposureLimit(BaseRiskLimit):
+    """Maximum total exposure limit."""
+    
+    def __init__(
+        self,
+        max_exposure_pct: Decimal,
+        name: str = "MaxExposureLimit"
+    ):
+        """Initialize maximum exposure limit.
+        
+        Args:
+            max_exposure_pct: Maximum exposure as % of portfolio (0-100)
+            name: Name of the limit
+        """
+        super().__init__(name)
+        self.max_exposure_pct = max_exposure_pct
+    
+    def check_limit(
+        self,
+        order: Order,
+        portfolio_state: PortfolioStateProtocol,
+        market_data: Dict[str, Any]
+    ) -> tuple[bool, Optional[str]]:
+        """Check if order would exceed total exposure limit.
+        
+        Args:
+            order: Proposed order
+            portfolio_state: Current portfolio state
+            market_data: Current market data
+            
+        Returns:
+            Tuple of (passes_check, reason_if_failed)
+        """
+        # Get current metrics
+        metrics = portfolio_state.get_risk_metrics()
+        portfolio_value = portfolio_state.get_total_value()
+        current_exposure = metrics.positions_value
+        
+        # Calculate order value
+        price = order.price
+        if not price:
+            price = market_data.get("prices", {}).get(order.symbol)
+            if not price:
+                return False, "No price available for exposure check"
+        
+        price = Decimal(str(price))
+        order_value = order.quantity * price
+        
+        # Calculate new exposure
+        if order.side.value == "buy":
+            new_exposure = current_exposure + order_value
+        else:
+            # Selling reduces exposure
+            new_exposure = current_exposure - order_value
+        
+        # Calculate exposure percentage
+        exposure_pct = (new_exposure / portfolio_value) * 100 if portfolio_value > 0 else Decimal(0)
+        
+        if exposure_pct > self.max_exposure_pct:
+            reason = f"Total exposure {exposure_pct:.1f}% would exceed limit {self.max_exposure_pct:.1f}%"
+            self._record_violation(order, reason)
+            return False, reason
+        
+        return True, None
+    
+    def get_limit_info(self) -> Dict[str, Any]:
+        """Get information about this limit."""
+        return {
+            "name": self.name,
+            "max_exposure_pct": str(self.max_exposure_pct),
+            "violations_count": len(self._violations)
+        }
+
+
 class ConcentrationLimit(BaseRiskLimit):
     """Portfolio concentration limit."""
     

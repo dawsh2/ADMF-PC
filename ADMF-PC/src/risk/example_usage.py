@@ -7,7 +7,7 @@ multiple strategy components.
 
 from decimal import Decimal
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from ..core.containers import UniversalScopedContainer
 from ..core.components import ComponentFactory
@@ -82,12 +82,12 @@ def create_risk_portfolio_container(config: Dict[str, Any]) -> UniversalScopedCo
                 # Simplified signal generation
                 return Signal(
                     signal_id=f"{strat_name}_{datetime.now().timestamp()}",
-                    timestamp=datetime.now(),
                     strategy_id=strat_name,
                     symbol=market_data['symbol'],
                     signal_type=SignalType.ENTRY,
                     side=OrderSide.BUY,  # Simplified
-                    strength=0.8,
+                    strength=Decimal("0.8"),
+                    timestamp=datetime.now(),
                     metadata={
                         'reason': 'example_signal',
                         'confidence': 0.8
@@ -174,12 +174,12 @@ def example_workflow():
     # Example 1: Process a signal that passes all checks
     signal1 = Signal(
         signal_id="sig_001",
-        timestamp=datetime.now(),
         strategy_id="momentum_strategy",
         symbol="AAPL",
         signal_type=SignalType.ENTRY,
         side=OrderSide.BUY,
-        strength=0.85,
+        strength=Decimal("0.85"),
+        timestamp=datetime.now(),
         metadata={
             'price': 150.00,
             'confidence': 0.85
@@ -200,12 +200,12 @@ def example_workflow():
     # Example 2: Process a signal that may be rejected due to exposure
     signal2 = Signal(
         signal_id="sig_002",
-        timestamp=datetime.now(),
         strategy_id="momentum_strategy",
         symbol="GOOGL",
         signal_type=SignalType.ENTRY,
         side=OrderSide.BUY,
-        strength=0.90,
+        strength=Decimal("0.90"),
+        timestamp=datetime.now(),
         metadata={
             'price': 2800.00,
             'confidence': 0.90

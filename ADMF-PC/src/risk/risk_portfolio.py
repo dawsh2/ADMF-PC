@@ -6,11 +6,11 @@ from decimal import Decimal
 from typing import Dict, List, Any, Optional, Set
 from threading import RLock
 
-from ..core.containers.universal import UniversalContainer
-from ..core.events.types import EventType, EventData
+from ..core.containers.universal import UniversalScopedContainer
+from ..core.events.types import EventType, Event
 from ..core.coordinator.types import ExecutionContext
 from ..core.logging.structured import get_logger
-from ..core.infrastructure.protocols import Capability
+from ..core.components.protocols import Capability
 from ..strategy.protocols import StrategyProtocol
 
 from .protocols import (
@@ -32,7 +32,7 @@ from .signal_processing import SignalProcessor
 from .position_sizing import PercentagePositionSizer
 
 
-class RiskPortfolioContainer(UniversalContainer, RiskPortfolioProtocol):
+class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
     """Unified Risk & Portfolio management container.
     
     This container manages:
@@ -57,7 +57,8 @@ class RiskPortfolioContainer(UniversalContainer, RiskPortfolioProtocol):
             initial_capital: Starting capital
             base_currency: Base currency for portfolio
         """
-        super().__init__(name=name)
+        super().__init__(container_id=name, container_type="risk_portfolio")
+        self.name = name  # Store name separately
         self.logger = get_logger(self.__class__.__name__)
         
         # Core components
@@ -201,11 +202,11 @@ class RiskPortfolioContainer(UniversalContainer, RiskPortfolioProtocol):
                     
                     # Emit order created event
                     self._emit_event(
-                        EventType.CUSTOM,
-                        EventData(
-                            event_type=EventType.CUSTOM,
+                        EventType.ORDER,
+                        Event(
+                            event_type=EventType.ORDER,
                             source_id=self.name,
-                            data={
+                            payload={
                                 "type": "order_created",
                                 "order": order,
                                 "signal": signal
@@ -292,11 +293,11 @@ class RiskPortfolioContainer(UniversalContainer, RiskPortfolioProtocol):
                 
                 # Emit fill event
                 self._emit_event(
-                    EventType.CUSTOM,
-                    EventData(
-                        event_type=EventType.CUSTOM,
+                    EventType.FILL,
+                    Event(
+                        event_type=EventType.FILL,
                         source_id=self.name,
-                        data={
+                        payload={
                             "type": "fill_processed",
                             "fill": fill,
                             "position": position
@@ -403,7 +404,15 @@ class RiskPortfolioContainer(UniversalContainer, RiskPortfolioProtocol):
             "order_history_count": len(self._order_history)
         }
     
-    def _emit_event(self, event_type: EventType, data: EventData) -> None:
-        """Emit event if event bus is available."""
-        if hasattr(self, "_event_bus") and self._event_bus:
-            self._event_bus.emit(event_type, data)
+    def _emit_event(self, event_type: EventType, data: Event) -> None:
+        """Emit event through container event system."""
+        # Use parent container's event system if available
+        if self._parent_container and hasattr(self._parent_container, 'publish_event'):
+            self._parent_container.publish_event(event_type, data)
+        else:
+            # Log event if no event system available
+            self.logger.debug(
+                "event_emitted",
+                event_type=event_type.value,
+                data=data
+            )

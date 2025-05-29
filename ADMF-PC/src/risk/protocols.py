@@ -7,8 +7,7 @@ from datetime import datetime
 from typing import Protocol, Optional, Dict, List, Any, Set
 from enum import Enum
 
-from ..core.components.protocols import Component
-from ..core.infrastructure.protocols import Capability
+from ..core.components.protocols import Component, Capability
 
 
 class OrderType(Enum):
@@ -36,6 +35,7 @@ class SignalType(Enum):
 @dataclass(frozen=True)
 class Signal:
     """Trading signal from strategy."""
+    signal_id: str
     strategy_id: str
     symbol: str
     signal_type: SignalType
