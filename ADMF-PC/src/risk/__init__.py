@@ -42,6 +42,17 @@ from .risk_limits import (
 )
 from .portfolio_state import PortfolioState
 from .signal_processing import SignalProcessor, SignalAggregator
+from .signal_advanced import (
+    SignalRouter,
+    SignalValidator,
+    RiskAdjustedSignalProcessor,
+    SignalCache,
+    SignalPrioritizer,
+)
+from .signal_flow import (
+    SignalFlowManager,
+    MultiSymbolSignalFlow,
+)
 from .capabilities import (
     RiskPortfolioCapability,
     ThreadSafeRiskPortfolioCapability
@@ -73,6 +84,15 @@ __all__ = [
     "PortfolioState",
     "SignalProcessor",
     "SignalAggregator",
+    # Advanced Signal Processing
+    "SignalRouter",
+    "SignalValidator",
+    "RiskAdjustedSignalProcessor",
+    "SignalCache",
+    "SignalPrioritizer",
+    # Signal Flow
+    "SignalFlowManager",
+    "MultiSymbolSignalFlow",
     # Capabilities
     "RiskPortfolioCapability",
     "ThreadSafeRiskPortfolioCapability",

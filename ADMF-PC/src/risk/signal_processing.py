@@ -363,6 +363,7 @@ class SignalAggregator:
             template = max(signals, key=lambda s: s.timestamp)
             
             return Signal(
+                signal_id=f"AGG-{uuid.uuid4().hex[:8]}",
                 strategy_id="aggregated",
                 symbol=template.symbol,
                 signal_type=template.signal_type,
@@ -393,6 +394,7 @@ class SignalAggregator:
             template = max(signals, key=lambda s: s.timestamp)
             
             return Signal(
+                signal_id=f"AGG-{uuid.uuid4().hex[:8]}",
                 strategy_id="aggregated",
                 symbol=template.symbol,
                 signal_type=template.signal_type,
@@ -422,6 +424,7 @@ class SignalAggregator:
             template = max(signals, key=lambda s: s.timestamp)
             
             return Signal(
+                signal_id=f"AGG-{uuid.uuid4().hex[:8]}",
                 strategy_id="aggregated",
                 symbol=template.symbol,
                 signal_type=template.signal_type,

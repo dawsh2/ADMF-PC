@@ -1,0 +1,461 @@
+# ADMF-Trader Coordinator Design Document
+
+## Overview
+
+The `Coordinator` is the central orchestration component that reads workflow configurations and delegates execution to specialized managers. It serves as the primary entry point for all high-level operations in the ADMF-Trader system, abstracting away the complexity of container management, optimization workflows, and component lifecycle.
+
+## Architecture Position
+
+```
+Application Entry Point (main.py)
+        │
+        ▼
+    Coordinator
+        │
+        ├── Container Management (ContainerFactory, LifecycleManager)
+        ├── Optimization (OptimizationManager)
+        ├── Data Management (DataManager)
+        ├── Execution (BacktestEngine, LiveTradingEngine)
+        └── Results Collection (ResultsCollector)
+```
+
+## Core Responsibilities
+
+1. **Configuration Interpretation**: Parse and validate workflow configurations
+2. **Infrastructure Setup**: Initialize shared services and resources
+3. **Workflow Orchestration**: Execute complex multi-phase workflows
+4. **Delegation**: Hand off specialized tasks to appropriate managers
+5. **Result Aggregation**: Collect and format results from various subsystems
+
+## Class Design
+
+```python
+from typing import Dict, Any, Optional, List
+from enum import Enum
+from dataclasses import dataclass
+import logging
+
+class WorkflowType(Enum):
+    OPTIMIZATION = "optimization"
+    BACKTEST = "backtest"
+    LIVE_TRADING = "live_trading"
+    ANALYSIS = "analysis"
+    VALIDATION = "validation"
+
+@dataclass
+class WorkflowResult:
+    """Standardized result container for all workflow types"""
+    workflow_type: WorkflowType
+    success: bool
+    data: Dict[str, Any]
+    metadata: Dict[str, Any]
+    errors: List[str] = None
+    warnings: List[str] = None
+
+class Coordinator:
+    """
+    Master coordinator that orchestrates all processes based on configuration.
+    
+    The Coordinator is responsible for:
+    - Reading and validating workflow configurations
+    - Setting up shared infrastructure (indicators, data feeds)
+    - Delegating to specialized managers
+    - Managing workflow transitions
+    - Aggregating and returning results
+    """
+    
+    def __init__(self, config_path: str):
+        """
+        Initialize the Coordinator with a configuration file.
+        
+        Args:
+            config_path: Path to the workflow configuration YAML file
+        """
+        self.config = self._load_and_validate_config(config_path)
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize subsystem managers
+        self._initialize_managers()
+        
+        # Shared infrastructure
+        self.shared_services = None
+        self.active_containers = {}
+        
+    def _initialize_managers(self):
+        """Initialize all specialized managers"""
+        # Container management
+        self.container_factory = ContainerFactory()
+        self.lifecycle_manager = ContainerLifecycleManager()
+        
+        # Specialized workflow managers
+        self.optimization_manager = OptimizationManager()
+        self.backtest_engine = BacktestEngine()
+        self.live_trading_engine = LiveTradingEngine()
+        
+        # Data and results
+        self.data_manager = DataManager()
+        self.results_collector = ResultsCollector()
+        
+    def execute(self) -> WorkflowResult:
+        """
+        Execute the workflow defined in the configuration.
+        
+        Returns:
+            WorkflowResult containing the execution results
+        """
+        workflow_type = WorkflowType(self.config['workflow']['type'])
+        
+        self.logger.info(f"Executing {workflow_type.value} workflow")
+        
+        try:
+            # Set up shared infrastructure
+            self._setup_shared_infrastructure()
+            
+            # Delegate to appropriate workflow handler
+            if workflow_type == WorkflowType.OPTIMIZATION:
+                result = self._run_optimization_workflow()
+            elif workflow_type == WorkflowType.BACKTEST:
+                result = self._run_backtest_workflow()
+            elif workflow_type == WorkflowType.LIVE_TRADING:
+                result = self._run_live_trading_workflow()
+            elif workflow_type == WorkflowType.ANALYSIS:
+                result = self._run_analysis_workflow()
+            elif workflow_type == WorkflowType.VALIDATION:
+                result = self._run_validation_workflow()
+            else:
+                raise ValueError(f"Unknown workflow type: {workflow_type}")
+                
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Workflow execution failed: {e}")
+            return WorkflowResult(
+                workflow_type=workflow_type,
+                success=False,
+                data={},
+                metadata={'error': str(e)},
+                errors=[str(e)]
+            )
+        finally:
+            self._cleanup()
+    
+    def _setup_shared_infrastructure(self):
+        """Set up infrastructure shared across all workflow phases"""
+        # Initialize shared services provider
+        self.shared_services = SharedServicesProvider()
+        
+        # Set up shared indicators if specified
+        if 'shared_indicators' in self.config['workflow']:
+            self._setup_shared_indicators()
+            
+        # Set up data feeds
+        if 'data' in self.config['workflow']:
+            self._setup_data_feeds()
+            
+    def _setup_shared_indicators(self):
+        """Create shared indicator containers"""
+        indicator_config = self.config['workflow']['shared_indicators']
+        
+        # Create indicator hub container
+        indicator_container = self.container_factory.create_indicator_container(
+            indicators=indicator_config['indicators']
+        )
+        
+        # Register with shared services
+        self.shared_services.register('indicator_hub', indicator_container)
+        
+        # Initialize the container
+        self.lifecycle_manager.initialize_container(indicator_container)
+        
+    def _setup_data_feeds(self):
+        """Set up data sources for the workflow"""
+        data_config = self.config['workflow']['data']
+        
+        # Initialize data manager with sources
+        self.data_manager.initialize(
+            sources=data_config['sources'],
+            symbols=data_config['symbols'],
+            timeframe=data_config.get('timeframe', '1min')
+        )
+        
+        # Register with shared services
+        self.shared_services.register('data_manager', self.data_manager)
+```
+
+## Workflow Implementations
+
+### Optimization Workflow
+
+```python
+def _run_optimization_workflow(self) -> WorkflowResult:
+    """
+    Run a complete optimization workflow with multiple phases.
+    
+    Phases:
+    1. Parameter optimization (grid search/genetic/bayesian)
+    2. Regime analysis (if regime-aware)
+    3. Weight optimization (for ensemble strategies)
+    4. Validation on test set
+    """
+    opt_config = self.config['workflow']['optimization']
+    results = {}
+    
+    # Phase 1: Parameter Optimization
+    if 'parameter_optimization' in opt_config:
+        self.logger.info("Phase 1: Parameter optimization")
+        param_results = self._run_parameter_optimization(
+            opt_config['parameter_optimization']
+        )
+        results['parameter_optimization'] = param_results
+        
+    # Phase 2: Regime Analysis (if enabled)
+    if opt_config.get('regime_aware', False):
+        self.logger.info("Phase 2: Regime analysis")
+        regime_results = self._run_regime_analysis(
+            param_results,
+            opt_config.get('regime_analysis', {})
+        )
+        results['regime_analysis'] = regime_results
+        
+    # Phase 3: Weight Optimization (if ensemble)
+    if 'weight_optimization' in opt_config:
+        self.logger.info("Phase 3: Weight optimization")
+        weight_results = self._run_weight_optimization(
+            param_results,
+            regime_results if 'regime_results' in locals() else None,
+            opt_config['weight_optimization']
+        )
+        results['weight_optimization'] = weight_results
+        
+    # Phase 4: Validation
+    if 'validation' in opt_config:
+        self.logger.info("Phase 4: Validation on test set")
+        validation_results = self._run_validation(
+            results,
+            opt_config['validation']
+        )
+        results['validation'] = validation_results
+        
+    return WorkflowResult(
+        workflow_type=WorkflowType.OPTIMIZATION,
+        success=True,
+        data=results,
+        metadata={
+            'total_trials': self._count_total_trials(results),
+            'best_parameters': self._extract_best_parameters(results),
+            'execution_time': self._get_execution_time()
+        }
+    )
+
+def _run_parameter_optimization(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    """Delegate parameter optimization to OptimizationManager"""
+    # Create strategy containers for each parameter combination
+    containers = []
+    for params in self._generate_parameter_combinations(config['parameter_space']):
+        container_id = self.lifecycle_manager.create_and_start_container(
+            container_type="optimization",
+            spec={
+                'strategy': config['strategy'],
+                'parameters': params,
+                'components': config.get('components', [])
+            }
+        )
+        containers.append((container_id, params))
+        
+    # Hand off to optimization manager
+    results = self.optimization_manager.optimize(
+        containers=containers,
+        objective=config['objective'],
+        method=config.get('method', 'grid'),
+        shared_indicators=self.shared_services.get('indicator_hub')
+    )
+    
+    # Clean up containers
+    for container_id, _ in containers:
+        self.lifecycle_manager.stop_and_destroy_container(container_id)
+        
+    return results
+```
+
+### Backtest Workflow
+
+```python
+def _run_backtest_workflow(self) -> WorkflowResult:
+    """Run a single backtest with specified configuration"""
+    backtest_config = self.config['workflow']['backtest']
+    
+    # Create backtest container
+    container_id = self.lifecycle_manager.create_and_start_container(
+        container_type="backtest",
+        spec={
+            'strategy': backtest_config['strategy'],
+            'parameters': backtest_config.get('parameters', {}),
+            'risk_management': backtest_config.get('risk_management', {}),
+            'components': backtest_config.get('components', [])
+        }
+    )
+    
+    try:
+        # Run backtest
+        results = self.backtest_engine.run(
+            container_id=container_id,
+            data_source=self.data_manager,
+            start_date=backtest_config.get('start_date'),
+            end_date=backtest_config.get('end_date')
+        )
+        
+        return WorkflowResult(
+            workflow_type=WorkflowType.BACKTEST,
+            success=True,
+            data=results,
+            metadata={
+                'strategy': backtest_config['strategy'],
+                'period': f"{backtest_config.get('start_date')} to {backtest_config.get('end_date')}"
+            }
+        )
+        
+    finally:
+        self.lifecycle_manager.stop_and_destroy_container(container_id)
+```
+
+## Configuration Schema
+
+```yaml
+# Example workflow configuration
+workflow:
+  type: "optimization"  # optimization, backtest, live_trading, analysis, validation
+  
+  # Shared infrastructure
+  shared_indicators:
+    indicators:
+      - type: "SMA"
+        params: {periods: [5, 10, 20, 50]}
+      - type: "RSI"
+        params: {periods: [14, 21]}
+      - type: "ATR"
+        params: {period: 14}
+  
+  data:
+    sources:
+      - type: "csv"
+        path: "data/historical/EURUSD_1min.csv"
+    symbols: ["EURUSD"]
+    timeframe: "1min"
+  
+  # Workflow-specific configuration
+  optimization:
+    # Phase 1: Parameter optimization
+    parameter_optimization:
+      strategy: "MACrossoverStrategy"
+      parameter_space:
+        fast_period: [5, 10, 15, 20]
+        slow_period: [20, 30, 40, 50]
+      objective: "sharpe_ratio"
+      method: "grid"  # grid, genetic, bayesian
+      
+    # Phase 2: Regime analysis (optional)
+    regime_aware: true
+    regime_analysis:
+      regime_detector: "VolatilityRegimeDetector"
+      min_samples_per_regime: 10
+      
+    # Phase 3: Weight optimization (optional, for ensembles)
+    weight_optimization:
+      method: "genetic"
+      objective: "sharpe_ratio"
+      per_regime: true
+      
+    # Phase 4: Validation
+    validation:
+      data_split: "test"  # Uses test portion of data
+      walk_forward:
+        enabled: true
+        training_window: 252
+        test_window: 63
+        step_size: 21
+```
+
+## Integration Points
+
+### With Container System
+
+```python
+def _create_optimization_container(self, strategy_spec: Dict[str, Any]) -> str:
+    """Create a scoped container for optimization trial"""
+    # Each optimization trial gets its own container
+    container = UniversalScopedContainer(
+        container_id=f"opt_{self._generate_id()}",
+        shared_services=self.shared_services.get_all()
+    )
+    
+    # Create strategy with specified parameters
+    container.create_component({
+        'name': 'strategy',
+        'class': strategy_spec['class'],
+        'params': strategy_spec['parameters'],
+        'capabilities': ['lifecycle', 'events', 'optimization']
+    })
+    
+    # Create isolated portfolio
+    container.create_component({
+        'name': 'portfolio',
+        'class': 'Portfolio',
+        'params': {'initial_cash': 100000},
+        'capabilities': ['lifecycle', 'events', 'reset']
+    })
+    
+    # Initialize all components
+    container.initialize_scope()
+    
+    return container.container_id
+```
+
+### With Protocol + Composition
+
+```python
+def _configure_component_capabilities(self, component_spec: Dict[str, Any]) -> Any:
+    """Apply capabilities to components based on configuration"""
+    component = self.container_factory.create_component(component_spec)
+    
+    # Apply capabilities based on workflow needs
+    if self.config['workflow']['type'] == 'optimization':
+        if 'optimization' not in component_spec.get('capabilities', []):
+            component = OptimizationCapability().apply(component, component_spec)
+            
+    if self.config['workflow'].get('regime_aware', False):
+        component = RegimeAdaptiveCapability().apply(component, component_spec)
+        
+    return component
+```
+
+## Benefits
+
+1. **Single Entry Point**: All workflows start with the Coordinator
+2. **Configuration-Driven**: Complex workflows defined in YAML, not code
+3. **Clean Delegation**: Coordinator orchestrates but doesn't implement details
+4. **Flexible Workflows**: Easy to add new workflow types
+5. **Consistent Results**: Standardized result format across all workflows
+6. **Error Handling**: Centralized error handling and cleanup
+7. **Progress Tracking**: Natural point for adding progress callbacks
+8. **Resource Management**: Ensures proper cleanup of containers and resources
+
+## Usage Example
+
+```python
+# Main application entry point
+def main():
+    # Simple one-line execution
+    coordinator = Coordinator("configs/optimization_workflow.yaml")
+    results = coordinator.execute()
+    
+    if results.success:
+        print(f"Workflow completed successfully")
+        print(f"Best parameters: {results.metadata['best_parameters']}")
+    else:
+        print(f"Workflow failed: {results.errors}")
+
+if __name__ == "__main__":
+    main()
+```
+
+This design provides a clean, extensible architecture that hides complexity while maintaining full control over the execution flow.

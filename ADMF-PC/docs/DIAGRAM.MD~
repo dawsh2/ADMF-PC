@@ -1,0 +1,154 @@
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      PHASE 1: DECOMPOSITION & MINING                         │
+│  (Strategies operate WITHIN distinct, parallel Regime Classifier Environments)│
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────┐                                                         │
+│  │ Training Data  │                                                         │
+│  │    Stream      │─────────┐                                               │
+│  └────────────────┘         │                                               │
+│                             │                                               │
+│  ┌──────────────────────────▼───────────────────────────────────────────┐  │
+│  │                    Shared Indicator Architecture                      │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐   │  │
+│  │  │              Indicator Hub (Shared Computation)              │   │  │
+│  │  │  (MA, RSI, ATR, etc. computed once from Training Data)      │   │  │
+│  │  └─────────────────────────────────────────────────────────────┘   │  │
+│  │                             │                                         │  │
+│  │                             │ Event Bus or Direct Feed:              │  │
+│  │                             │  - Indicator Data/Events               │  │
+│  │                             ▼  (Consumed by Classifier Envs)         │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                │                                             │
+│  ┌─────────────────────────────┼─────────────────────────────────────────┐  │
+│  │    Parallel Regime-Specific Mining Environments (Conceptual Layer)    │  │
+│  │    (Each environment runs the full suite of strategy variations)      │  │
+│  └─────────────────────────────┼─────────────────────────────────────────┘  │
+│                ┌───────────────┴────────────────┐                           │
+│                │                                │                           │
+│  ┌─────────────▼─────────────────┐  ┌──────────▼─────────────────────┐    │
+│  │ HMM_Classifier_Mining_Env     │  │ Vol_Classifier_Mining_Env      │    │
+│  │                               │  │                                │    │
+│  │ ┌───────────────────────────┐ │  │ ┌────────────────────────────┐ │    │
+│  │ │ Internal HMM Regime Logic:│ │  │ │ Internal Vol Regime Logic: │ │    │
+│  │ │ - Consumes Ind.Data/Events│ │  │ │ - Consumes Ind.Data/Events │ │    │
+│  │ │ - Determines Current HMM  │ │  │ │ - Determines Current Vol   │ │    │
+│  │ │   Regime State            │ │  │ │   Regime State             │ │    │
+│  │ └────────────┬──────────────┘ │  │ └─────────────┬──────────────┘ │    │
+│  │              │                │  │               │                │    │
+│  │              ▼                │  │               ▼                │    │
+│  │ ┌───────────────────────────┐ │  │ ┌────────────────────────────┐ │    │
+│  │ │  Strategy Containers (1-N)│ │  │ │  Strategy Containers (1-N) │ │    │
+│  │ │  (Receive Ind + HMM Reg) │ │  │ │  (Receive Ind + Vol Reg)  │ │    │
+│  │ │                           │ │  │ │                            │ │    │
+│  │ │ ┌─────┐ ┌─────┐ ┌─────┐ │ │  │ │ ┌─────┐ ┌─────┐ ┌─────┐  │ │    │
+│  │ │ │StrA│ │StrB│ │ ... │ │ │  │ │ │StrA│ │StrB│ │ ... │  │ │    │
+│  │ │ └─────┘ └─────┘ └─────┘ │ │  │ │ └─────┘ └─────┘ └─────┘  │ │    │
+│  │ └───────────────────────────┘ │  │ └────────────────────────────┘ │    │
+│  │                               │  │                                │    │
+│  │ Output: Results for strategies│  │ Output: Results for strategies │    │
+│  │         under HMM context     │  │         under Vol context      │    │
+│  └───────────────────────────────┘  └────────────────────────────────┘    │
+│                │                                │                           │
+│                └────────────────┬───────────────┘                           │
+│                                 │                                           │
+│  ┌──────────────────────────────▼───────────────────────────────────────┐  │
+│  │                    Aggregated Mining Output Storage                  │  │
+│  │  (Results from each Regime-Specific Mining Environment, allowing     │  │
+│  │   comparison of strategy performance under different regime paradigms,│  │
+│  │   and assessment of classifier generalizability)                     │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Alternative Clean Layout (Horizontal Flow)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      PHASE 1: DECOMPOSITION & MINING                         │
+│  (Strategies operate WITHIN distinct, parallel Regime Classifier Environments)│
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────┐      ┌──────────────────────────────────────────────────────┐
+│ Training   │      │            Shared Indicator Architecture              │
+│   Data     ├─────►│  ┌────────────────────────────────────────────────┐ │
+│  Stream    │      │  │         Indicator Hub (Shared Computation)     │ │
+└────────────┘      │  │    MA, RSI, ATR, etc. computed once           │ │
+                    │  └────────────────────────┬───────────────────────┘ │
+                    └───────────────────────────┼─────────────────────────┘
+                                                │
+                                                │ Indicator Events
+                    ┌───────────────────────────┼───────────────────────────┐
+                    │                           ▼                           │
+┌───────────────────┴─────────────┐    ┌───────┴───────────────────────────┐
+│   HMM Classifier Mining Env     │    │   Volatility Classifier Mining Env │
+├─────────────────────────────────┤    ├───────────────────────────────────┤
+│ ┌─────────────────────────────┐ │    │ ┌─────────────────────────────┐   │
+│ │  HMM Regime Classification  │ │    │ │ Vol Regime Classification  │   │
+│ │  • Consumes indicator data  │ │    │ │ • Consumes indicator data  │   │
+│ │  • Determines HMM regime    │ │    │ │ • Determines Vol regime    │   │
+│ └──────────────┬──────────────┘ │    │ └──────────────┬──────────────┘   │
+│                ▼                │    │                ▼                   │
+│ ┌─────────────────────────────┐ │    │ ┌─────────────────────────────┐   │
+│ │   Strategy Container Pool   │ │    │ │   Strategy Container Pool   │   │
+│ │  ┌─────┐ ┌─────┐ ┌─────┐  │ │    │ │  ┌─────┐ ┌─────┐ ┌─────┐  │   │
+│ │  │MA(5)│ │MA(10)│ │RSI  │  │ │    │ │  │MA(5)│ │MA(10)│ │RSI  │  │   │
+│ │  │ x20 │ │ x30  │ │ 14  │  │ │    │ │  │ x20 │ │ x30  │ │ 14  │  │   │
+│ │  └─────┘ └─────┘ └─────┘  │ │    │ │  └─────┘ └─────┘ └─────┘  │   │
+│ │  ┌─────┐ ┌─────┐ ┌─────┐  │ │    │ │  ┌─────┐ ┌─────┐ ┌─────┐  │   │
+│ │  │MA(15)│ │Ens  │ │...  │  │ │    │ │  │MA(15)│ │Ens  │ │...  │  │   │
+│ │  │ x30 │ │ A   │ │     │  │ │    │ │  │ x30 │ │ A   │ │     │  │   │
+│ │  └─────┘ └─────┘ └─────┘  │ │    │ │  └─────┘ └─────┘ └─────┘  │   │
+│ └─────────────────────────────┘ │    │ └─────────────────────────────┘   │
+│                                 │    │                                    │
+│ Results: Performance under HMM  │    │ Results: Performance under Vol    │
+└─────────────────┬───────────────┘    └────────────────┬──────────────────┘
+                  │                                      │
+                  └──────────────┬───────────────────────┘
+                                 │
+                    ┌────────────▼────────────────────────┐
+                    │  Aggregated Mining Output Storage  │
+                    │  • Cross-classifier comparison     │
+                    │  • Strategy consistency analysis   │
+                    │  • Regime paradigm assessment      │
+                    └─────────────────────────────────────┘
+```
+
+## Simplified Conceptual View
+
+```
+                           Training Data Stream
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │    Shared Indicator Hub       │
+                    │  (Compute indicators once)    │
+                    └───────────────┬───────────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+            ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+            │ HMM Regime  │ │ Vol Regime  │ │ ML Regime   │
+            │ Environment │ │ Environment │ │ Environment │
+            ├─────────────┤ ├─────────────┤ ├─────────────┤
+            │ Classifier  │ │ Classifier  │ │ Classifier  │
+            │     +       │ │     +       │ │     +       │
+            │ Strategies  │ │ Strategies  │ │ Strategies  │
+            └──────┬──────┘ └──────┬──────┘ └──────┬──────┘
+                   │               │               │
+                   └───────────────┼───────────────┘
+                                   ▼
+                        ┌───────────────────┐
+                        │ Aggregated Results│
+                        │  & Comparisons    │
+                        └───────────────────┘
+```
+
+## Key Data Flow Points
+
+1. **Training Data** → Single input stream
+2. **Indicator Hub** → Computes all indicators once
+3. **Parallel Environments** → Each with own regime classifier
+4. **Strategy Containers** → Same strategies in each environment
+5. **Aggregated Storage** → Compare across regime paradigms

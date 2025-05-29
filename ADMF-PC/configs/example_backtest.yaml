@@ -1,0 +1,153 @@
+# Example backtest configuration for ADMF-PC
+
+backtest:
+  start_date: "2023-01-01"
+  end_date: "2023-12-31"
+  symbols:
+    - AAPL
+    - GOOGL
+    - MSFT
+    - AMZN
+    - SPY
+    - QQQ
+  frequency: "1D"  # Daily bars
+
+execution:
+  initial_capital: 1000000  # $1M total capital
+  slippage:
+    type: "fixed"
+    value: 0.01  # $0.01 per share
+  commission:
+    type: "per_share"  
+    value: 0.005  # $0.005 per share
+
+classifiers:
+  - type: "hmm"
+    name: "HMM Regime Classifier"
+    config:
+      n_states: 3  # Bull, Bear, Neutral
+      
+    risk_profiles:
+      - name: "conservative"
+        capital: 300000  # $300k allocation
+        
+        position_sizers:
+          - name: "default"
+            type: "percentage"
+            percentage: 2.0  # 2% per position
+          
+          - name: "volatility_adjusted"
+            type: "volatility"
+            risk_per_trade: 1.0  # 1% risk per trade
+            lookback_period: 20
+            
+        risk_limits:
+          - type: "position"
+            max_position: 5000  # Max 5000 shares per position
+            
+          - type: "exposure"
+            max_exposure_pct: 20  # Max 20% total exposure
+            
+          - type: "drawdown"
+            max_drawdown_pct: 10  # Max 10% drawdown
+            reduce_at_pct: 8      # Start reducing at 8%
+            
+          - type: "concentration"
+            max_position_pct: 5   # Max 5% in any position
+            
+          - type: "daily_loss"
+            max_daily_loss: 6000  # Max $6k daily loss
+            max_daily_loss_pct: 2 # Max 2% daily loss
+            
+        strategies:
+          - name: "momentum"
+            class: "MomentumStrategy"
+            symbols: ["AAPL", "GOOGL", "MSFT"]
+            params:
+              lookback_period: 20
+              entry_threshold: 0.02
+              exit_threshold: -0.01
+              
+          - name: "mean_reversion"
+            class: "MeanReversionStrategy"
+            symbols: ["SPY", "QQQ"]
+            params:
+              lookback_period: 10
+              entry_std: 2.0
+              exit_std: 0.5
+              
+      - name: "aggressive"
+        capital: 400000  # $400k allocation
+        
+        position_sizers:
+          - name: "default"
+            type: "kelly"
+            kelly_fraction: 0.25  # 25% Kelly
+            max_leverage: 1.5
+            
+        risk_limits:
+          - type: "exposure"
+            max_exposure_pct: 60  # Max 60% exposure
+            
+          - type: "drawdown"
+            max_drawdown_pct: 20  # Max 20% drawdown
+            
+          - type: "leverage"
+            max_leverage: 1.5     # Allow up to 1.5x leverage
+            
+        strategies:
+          - name: "breakout"
+            class: "BreakoutStrategy"
+            symbols: ["AAPL", "GOOGL", "AMZN", "MSFT"]
+            params:
+              breakout_period: 50
+              volume_confirmation: true
+              atr_multiplier: 2.0
+
+  - type: "pattern"
+    name: "Pattern-Based Classifier"
+    config:
+      patterns: ["trend", "range", "breakout"]
+      
+    risk_profiles:
+      - name: "balanced"
+        capital: 300000  # $300k allocation
+        
+        position_sizers:
+          - name: "default"
+            type: "atr"
+            risk_amount: 3000     # Risk $3k per trade
+            atr_multiplier: 2.0   # 2x ATR for stops
+            
+        risk_limits:
+          - type: "exposure"
+            max_exposure_pct: 30  # Max 30% exposure
+            
+          - type: "symbol_restriction"
+            allowed_symbols: ["AAPL", "GOOGL", "MSFT", "SPY", "QQQ"]
+            
+        strategies:
+          - name: "pattern_recognition"
+            class: "PatternStrategy"
+            symbols: ["AAPL", "GOOGL", "MSFT", "SPY", "QQQ"]
+            params:
+              min_pattern_strength: 0.7
+              confirmation_required: true
+
+# Data configuration
+data:
+  provider: "yahoo"  # or "alpaca", "polygon", etc.
+  cache_dir: "./data/cache"
+  
+# Logging configuration  
+logging:
+  level: "INFO"
+  file: "./logs/backtest.log"
+  
+# Output configuration
+output:
+  results_dir: "./results"
+  save_trades: true
+  save_signals: true
+  save_metrics: true
+  generate_report: true
