@@ -22,8 +22,16 @@ class BaseWorkflowManager(ABC):
     def __init__(self, container_manager: Any, container_id: str):
         self.container_manager = container_manager
         self.container_id = container_id
-        self.container = container_manager.active_containers[container_id]
-        self.event_bus = self.container.event_bus
+        
+        # Only access container if it exists (not during validation)
+        if container_id in container_manager.active_containers:
+            self.container = container_manager.active_containers[container_id]
+            self.event_bus = self.container.event_bus
+        else:
+            # For validation, we don't need a real container
+            self.container = None
+            self.event_bus = None
+            
         self._phase_executors: Dict[WorkflowPhase, PhaseExecutor] = {}
         
     async def execute(
@@ -44,18 +52,19 @@ class BaseWorkflowManager(ABC):
                 context.update_phase(phase)
                 
                 # Emit phase start event
-                from ..events import Event, EventType
-                start_event = Event(
-                    event_type=EventType.INFO,
-                    payload={
-                        'type': f'workflow.phase.{phase.value}.start',
-                        'workflow_id': context.workflow_id,
-                        'phase': phase.value
-                    },
-                    source_id="workflow_manager",
-                    container_id=self.container_id
-                )
-                self.event_bus.publish(start_event)
+                if self.event_bus:
+                    from ..events import Event, EventType
+                    start_event = Event(
+                        event_type=EventType.INFO,
+                        payload={
+                            'type': f'workflow.phase.{phase.value}.start',
+                            'workflow_id': context.workflow_id,
+                            'phase': phase.value
+                        },
+                        source_id="workflow_manager",
+                        container_id=self.container_id
+                    )
+                    self.event_bus.publish(start_event)
                 
                 # Execute phase
                 phase_result = await self.execute_phase(
@@ -64,18 +73,19 @@ class BaseWorkflowManager(ABC):
                 result.add_phase_result(phase_result)
                 
                 # Emit phase complete event
-                complete_event = Event(
-                    event_type=EventType.INFO,
-                    payload={
-                        'type': f'workflow.phase.{phase.value}.complete',
-                        'workflow_id': context.workflow_id,
-                        'phase': phase.value,
-                        'success': phase_result.success
-                    },
-                    source_id="workflow_manager",
-                    container_id=self.container_id
-                )
-                self.event_bus.publish(complete_event)
+                if self.event_bus:
+                    complete_event = Event(
+                        event_type=EventType.INFO,
+                        payload={
+                            'type': f'workflow.phase.{phase.value}.complete',
+                            'workflow_id': context.workflow_id,
+                            'phase': phase.value,
+                            'success': phase_result.success
+                        },
+                        source_id="workflow_manager",
+                        container_id=self.container_id
+                    )
+                    self.event_bus.publish(complete_event)
                 
                 # Stop on failure if critical phase
                 if not phase_result.success and self.is_critical_phase(phase):
@@ -193,16 +203,22 @@ class OptimizationManager(BaseWorkflowManager):
                 
             elif phase == WorkflowPhase.COMPUTATION:
                 # Run optimization algorithm
-                result.data['optimization_results'] = await self._run_optimization(
+                optimization_results = await self._run_optimization(
                     config.optimization_config or {},
                     context
                 )
+                result.data['optimization_results'] = optimization_results
+                # Store in context for validation phase
+                context.shared_resources['optimization_results'] = optimization_results
                 
             elif phase == WorkflowPhase.VALIDATION:
                 # Validate optimization results
-                validation = await self._validate_results(
-                    result.data.get('optimization_results', {})
-                )
+                # Get optimization results from context or previous phase
+                optimization_results = {}
+                if 'optimization_results' in context.shared_resources:
+                    optimization_results = context.shared_resources['optimization_results']
+                
+                validation = await self._validate_results(optimization_results)
                 result.data['validation'] = validation
                 result.success = validation.get('valid', False)
                 

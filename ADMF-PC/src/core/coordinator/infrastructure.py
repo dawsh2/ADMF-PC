@@ -3,26 +3,28 @@ Infrastructure management for the Coordinator.
 """
 import asyncio
 from typing import Dict, Any, List, Optional, Set
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 import logging
 
-from ..infrastructure import InfrastructureCapability
-from ..events import EventBus
-from ..containers import UniversalContainer
+from ..infrastructure import MonitoringCapability
+from ..events import EventBus, Event, EventType
+from ..containers import UniversalScopedContainer
 from .types import WorkflowConfig, ExecutionContext
 
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class SharedResource:
+class SharedResource(BaseModel):
     """Represents a shared resource."""
     resource_id: str
     resource_type: str
     instance: Any
-    users: Set[str] = field(default_factory=set)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    users: Set[str] = Field(default_factory=set)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class InfrastructureSetup:
@@ -30,7 +32,7 @@ class InfrastructureSetup:
     
     def __init__(
         self,
-        container: UniversalContainer,
+        container: UniversalScopedContainer,
         event_bus: EventBus
     ):
         self.container = container
@@ -69,11 +71,17 @@ class InfrastructureSetup:
         context.shared_resources.update(infrastructure)
         
         # Emit setup complete event
-        await self.event_bus.emit({
-            'type': 'infrastructure.setup.complete',
-            'workflow_id': context.workflow_id,
-            'resources': list(infrastructure.keys())
-        })
+        event = Event(
+            event_type=EventType.INFO,
+            payload={
+                'type': 'infrastructure.setup.complete',
+                'workflow_id': context.workflow_id,
+                'resources': list(infrastructure.keys())
+            },
+            source_id="infrastructure",
+            container_id=self.container.container_id
+        )
+        self.event_bus.publish(event)
         
         return infrastructure
         
@@ -92,10 +100,16 @@ class InfrastructureSetup:
                     )
                     
         # Emit teardown event
-        await self.event_bus.emit({
-            'type': 'infrastructure.teardown.complete',
-            'workflow_id': context.workflow_id
-        })
+        event = Event(
+            event_type=EventType.INFO,
+            payload={
+                'type': 'infrastructure.teardown.complete',
+                'workflow_id': context.workflow_id
+            },
+            source_id="infrastructure",
+            container_id=self.container.container_id
+        )
+        self.event_bus.publish(event)
         
     async def _setup_data_feeds(
         self,
@@ -197,7 +211,11 @@ class InfrastructureSetup:
         logger.info(f"Creating data feed: {feed_name}")
         
         # Get data handler from container
-        data_handler = await self.container.get('data_handler')
+        data_handler = self.container.get_component('data_handler')
+        if not data_handler:
+            # Create a placeholder for now
+            logger.warning(f"No data handler found, creating placeholder for {feed_name}")
+            return {'name': feed_name, 'config': config, 'type': 'placeholder'}
         
         # Create feed configuration
         feed = await data_handler.create_feed(feed_name, config)

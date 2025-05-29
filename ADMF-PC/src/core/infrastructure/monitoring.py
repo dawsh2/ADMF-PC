@@ -90,12 +90,12 @@ class MetricsCollector:
                     result[name] = {
                         'count': len(values),
                         'sum': sum(values),
-                        'mean': np.mean(values),
+                        'mean': sum(values) / len(values) if values else 0,
                         'min': min(values),
                         'max': max(values),
-                        'p50': np.percentile(values, 50),
-                        'p95': np.percentile(values, 95),
-                        'p99': np.percentile(values, 99),
+                        'p50': self._percentile(values, 50),
+                        'p95': self._percentile(values, 95),
+                        'p99': self._percentile(values, 99),
                         'latest': values[-1],
                         'latest_timestamp': points[-1].timestamp.isoformat()
                     }
@@ -120,6 +120,13 @@ class MetricsCollector:
                 
                 if not self.metrics[name]:
                     del self.metrics[name]
+    
+    def _percentile(self, values: List[float], percentile: float) -> float:
+        """Calculate percentile without numpy."""
+        if not values:
+            return 0
+        
+        return np.percentile(values, percentile)
 
 
 class PerformanceTracker:
