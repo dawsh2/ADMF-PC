@@ -1,0 +1,152 @@
+# Complete optimization workflow configuration
+# This demonstrates the configuration-driven approach of the Coordinator
+
+workflow:
+  type: "optimization"  # optimization, backtest, live_trading, analysis, validation
+  
+  # Shared infrastructure - available to all containers
+  parameters:
+    shared_indicators:
+      indicators:
+        - type: "SMA"
+          params: 
+            periods: [5, 10, 20, 50]
+        - type: "RSI"
+          params: 
+            periods: [14, 21]
+        - type: "ATR"
+          params: 
+            period: 14
+        - type: "BollingerBands"
+          params:
+            period: 20
+            std_dev: 2
+  
+  # Data configuration
+  data_config:
+    sources:
+      historical:
+        type: "csv"
+        path: "data/historical/EURUSD_1min.csv"
+        columns:
+          timestamp: "Date"
+          open: "Open"
+          high: "High"
+          low: "Low"
+          close: "Close"
+          volume: "Volume"
+    symbols: ["EURUSD"]
+    timeframe: "1min"
+    
+  # Infrastructure configuration
+  infrastructure_config:
+    computation:
+      thread_pool:
+        max_workers: 4
+      process_pool:
+        max_workers: 2
+    memory:
+      limit_per_container: "2GB"
+  
+  # Workflow-specific configuration
+  optimization_config:
+    # Phase 1: Parameter optimization
+    parameter_optimization:
+      strategy: "MACrossoverStrategy"
+      parameter_space:
+        fast_period: [5, 10, 15, 20]
+        slow_period: [20, 30, 40, 50]
+        signal_threshold: [0.01, 0.02, 0.03, 0.05]
+        stop_loss: [0.01, 0.02, 0.03]
+        take_profit: [0.02, 0.04, 0.06]
+      
+      objective: "sharpe_ratio"
+      method: "grid"  # grid, genetic, bayesian
+      
+      # Constraints
+      constraints:
+        - type: "relational"
+          expression: "fast_period < slow_period"
+        - type: "minimum_trades"
+          value: 30
+      
+    # Phase 2: Regime analysis (optional)
+    regime_aware: true
+    regime_analysis:
+      regime_detector: "VolatilityRegimeDetector"
+      parameters:
+        volatility_window: 20
+        volatility_threshold: 0.015
+        trend_window: 50
+      min_samples_per_regime: 10
+      
+    # Phase 3: Weight optimization (optional, for ensembles)
+    weight_optimization:
+      method: "genetic"
+      objective: "sharpe_ratio"
+      per_regime: true
+      constraints:
+        sum_to_one: true
+        non_negative: true
+      
+    # Phase 4: Validation
+    validation:
+      data_split: "test"  # Uses test portion of data
+      metrics:
+        - "sharpe_ratio"
+        - "max_drawdown"
+        - "win_rate"
+        - "profit_factor"
+      
+      walk_forward:
+        enabled: true
+        training_window: 252  # Trading days
+        test_window: 63
+        step_size: 21
+        min_trades_per_window: 10
+  
+  # Execution settings
+  parallel_execution: true
+  max_workers: 4
+  timeout_seconds: 3600  # 1 hour
+  
+  # Reproducibility settings
+  metadata:
+    version: "1.0"
+    created_date: "2025-01-01"
+    random_seed: 42
+    description: "Optimization of MA Crossover strategy with regime adaptation"
+  
+  environment:
+    data_version: "2025-01-01"
+    component_versions:
+      strategy: "v1.2"
+      risk_manager: "v1.0"
+      regime_detector: "v2.1"
+    
+  # Output settings
+  output:
+    save_results: true
+    output_dir: "./results/optimization"
+    formats: ["json", "yaml", "csv"]
+    
+    # What to save
+    save_options:
+      parameters: true
+      metrics: true
+      trades: true
+      equity_curve: true
+      phase_results: true
+      
+  # Monitoring and logging
+  monitoring:
+    log_level: "INFO"
+    progress_updates: true
+    update_interval: 10  # seconds
+    
+    # Metrics to track during optimization
+    track_metrics:
+      - "current_trial"
+      - "best_sharpe"
+      - "time_elapsed"
+      - "estimated_time_remaining"

@@ -12,7 +12,7 @@ import logging
 
 from ..containers import UniversalScopedContainer, ContainerLifecycleManager, ContainerFactory
 from ..events import EventBus, EventType, Event
-from ..infrastructure import InfrastructureCapability
+from ..infrastructure import MonitoringCapability, ErrorHandlingCapability
 from ..logging import StructuredLogger
 from ..components import ComponentFactory
 
@@ -55,13 +55,18 @@ class Coordinator:
         
         # Core infrastructure
         self.logger = logger or StructuredLogger("coordinator")
-        self.container_manager = ContainerLifecycleManager(self.shared_services)
+        self.container_manager = ContainerLifecycleManager(
+            max_containers=None,
+            shared_services=self.shared_services
+        )
         self.container_factory = ContainerFactory(self.shared_services)
         self.component_factory = ComponentFactory()
         
-        # Create coordinator's own container
+        # Create coordinator's own container with unique ID
+        import uuid
+        coordinator_id = f"coordinator_{uuid.uuid4().hex[:8]}"
         self.coordinator_container = UniversalScopedContainer(
-            container_id="coordinator",
+            container_id=coordinator_id,
             container_type="coordinator",
             shared_services=self.shared_services
         )
@@ -307,9 +312,11 @@ class Coordinator:
         config: WorkflowConfig
     ) -> Dict[str, Any]:
         """Validate workflow configuration."""
-        # Get manager for validation
+        # For validation, we can use a temporary container ID
+        # since we're not actually creating a container yet
         try:
-            manager = self.manager_factory.create_manager(config.workflow_type)
+            temp_container_id = f"validation_{config.workflow_type.value}"
+            manager = self.manager_factory.create_manager(config.workflow_type, temp_container_id)
             return await manager.validate_config(config)
         except ValueError as e:
             return {
@@ -340,8 +347,8 @@ class Coordinator:
             import yaml
             with open(config_path, 'r') as f:
                 return yaml.safe_load(f)
-        except ImportError:
-            self.logger.warning("PyYAML not installed, using empty config")
+        except FileNotFoundError:
+            self.logger.warning(f"Config file not found: {config_path}")
             return {}
         except Exception as e:
             self.logger.error(f"Failed to load config from {config_path}: {e}")

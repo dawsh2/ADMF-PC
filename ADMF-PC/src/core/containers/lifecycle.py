@@ -55,14 +55,16 @@ class ContainerLifecycleManager:
     and provides centralized lifecycle control for the system.
     """
     
-    def __init__(self, max_containers: Optional[int] = None):
+    def __init__(self, max_containers: Optional[int] = None, shared_services: Optional[Dict[str, Any]] = None):
         """
         Initialize the lifecycle manager.
         
         Args:
             max_containers: Maximum number of containers to manage
+            shared_services: Services to share with all containers
         """
         self.max_containers = max_containers
+        self.shared_services = shared_services or {}
         self._containers: Dict[str, ContainerInfo] = {}
         self._lock = threading.RLock()
         
@@ -74,6 +76,9 @@ class ContainerLifecycleManager:
         # Container pools for reuse
         self._container_pools: Dict[str, List[UniversalScopedContainer]] = {}
         self._pool_sizes: Dict[str, int] = {}
+        
+        # Active containers for easy access
+        self.active_containers: Dict[str, UniversalScopedContainer] = {}
         
         logger.info("ContainerLifecycleManager initialized")
     
@@ -131,6 +136,7 @@ class ContainerLifecycleManager:
             
             # Store container info
             self._containers[container_id] = ContainerInfo(container=container)
+            self.active_containers[container_id] = container
             
             # Initialize if requested
             if initialize:
@@ -141,6 +147,48 @@ class ContainerLifecycleManager:
                     self.start_container(container_id)
             
             return container_id
+    
+    def create_and_start_container(
+        self,
+        container_type: str,
+        config: Dict[str, Any]
+    ) -> str:
+        """
+        Create and start a container with configuration.
+        
+        This is a convenience method that combines create_container with initialization and start.
+        
+        Args:
+            container_type: Type of container to create
+            config: Configuration dict with optional keys:
+                - workflow_id: ID for the workflow
+                - shared_services: Services to share (merged with manager's shared services)
+                - specs: Component specifications
+                - Any type-specific config (e.g., optimization_config, backtest_config)
+        
+        Returns:
+            Container ID
+        """
+        # Extract configuration
+        workflow_id = config.get('workflow_id')
+        shared_services = {**self.shared_services}
+        if 'shared_services' in config:
+            shared_services.update(config['shared_services'])
+        
+        specs = config.get('specs', [])
+        
+        # Generate container ID based on workflow
+        container_id = f"{container_type}_{workflow_id}" if workflow_id else None
+        
+        # Create container with initialization and start
+        return self.create_container(
+            container_type=container_type,
+            container_id=container_id,
+            shared_services=shared_services,
+            specs=specs,
+            initialize=True,
+            start=True
+        )
     
     def initialize_container(self, container_id: str) -> None:
         """Initialize a container and all its components."""
@@ -246,6 +294,33 @@ class ContainerLifecycleManager:
             
             # Remove from active containers
             del self._containers[container_id]
+            self.active_containers.pop(container_id, None)
+    
+    def stop_and_destroy_container(self, container_id: str) -> None:
+        """
+        Stop and destroy a container.
+        
+        This is a convenience method that combines stop and dispose.
+        
+        Args:
+            container_id: Container to stop and destroy
+        """
+        try:
+            # Stop the container if it's running
+            if container_id in self._containers:
+                container = self._containers[container_id].container
+                if container.state == ContainerState.RUNNING:
+                    self.stop_container(container_id)
+            
+            # Dispose the container
+            self.dispose_container(container_id, return_to_pool=False)
+            
+        except Exception as e:
+            logger.error(f"Error stopping and destroying container {container_id}: {e}")
+            # Still try to clean up
+            if container_id in self._containers:
+                del self._containers[container_id]
+            self.active_containers.pop(container_id, None)
     
     def get_container(self, container_id: str) -> UniversalScopedContainer:
         """Get a container by ID."""
