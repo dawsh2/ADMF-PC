@@ -69,11 +69,13 @@ Every execution instance (backtest or live) is created through an identical, enf
 │  │              │                │  │               │                │     │
 │  │              ▼                │  │               ▼                │     │
 │  │ ┌───────────────────────────┐ │  │ ┌────────────────────────────┐ │     │
-│  │ │  Risk Container Pool      │ │  │ │  Risk Container Pool       │ │     │
+│  │ │  Risk & Portfolio          │ │  │ │  Risk & Portfolio          │ │     │
+│  │ │  Container Pool            │ │  │ │  Container Pool            │ │     │
 │  │ │  (Subcontainers)          │ │  │ │  (Subcontainers)           │ │     │
 │  │ ├───────────────────────────┤ │  │ ├────────────────────────────┤ │     │
 │  │ │ ┌───────────────────────┐ │ │  │ │ ┌────────────────────────┐ │ │     │
-│  │ │ │ Conservative Risk      │ │ │  │ │ │ Balanced Risk         │ │ │     │
+│  │ │ │ Conservative Risk &   │ │ │  │ │ │ Balanced Risk &       │ │ │     │
+│  │ │ │ Portfolio Container   │ │ │  │ │ │ Portfolio Container   │ │ │     │
 │  │ │ │ • Max 2% per position │ │ │  │ │ │ • Max 3% per position │ │ │     │
 │  │ │ │ • 10% total exposure  │ │ │  │ │ │ • 20% total exposure  │ │ │     │
 │  │ │ │ • Converts Signals→Orders│ │ │  │ │ │ • Converts Signals→Orders│ │ │     │
@@ -84,16 +86,18 @@ Every execution instance (backtest or live) is created through an identical, enf
 │  │ │ │ └───────────────────┘ │ │ │  │ │ └────────────────────────┘ │ │     │
 │  │ │ │ ┌───────────────────┐ │ │ │  │ │                            │ │     │
 │  │ │ │ │ Mean Rev Strategy │ │ │ │  │ │ ┌────────────────────────┐ │ │     │
-│  │ │ │ │ SPY (100%)        │ │ │ │  │ │ │ Aggressive Risk        │ │ │     │
-│  │ │ │ └───────────────────┘ │ │ │  │ │ │ • Max 5% per position │ │ │     │
-│  │ │ └───────────────────────┘ │ │  │ │ │ • 30% total exposure  │ │ │     │
+│  │ │ │ │ SPY (100%)        │ │ │ │  │ │ │ Aggressive Risk &      │ │ │     │
+│  │ │ │ └───────────────────┘ │ │ │  │ │ │ Portfolio Container    │ │ │     │
+│  │ │ └───────────────────────┘ │ │  │ │ │ • Max 5% per position │ │ │     │
+│  │ │                           │ │  │ │ │ • 30% total exposure  │ │ │     │
 │  │ │                           │ │  │ │ │ ┌────────────────────┐ │ │ │     │
 │  │ │ ┌───────────────────────┐ │ │  │ │ │ │ Breakout Strategy  │ │ │ │     │
-│  │ │ │ Aggressive Risk       │ │ │  │ │ │ │ BTC(50%), ETH(30%)│ │ │ │     │
-│  │ │ │ • Max 5% per position │ │ │  │ │ │ │ SOL(20%)          │ │ │ │     │
-│  │ │ │ • 30% total exposure  │ │ │  │ │ │ └────────────────────┘ │ │ │     │
-│  │ │ │ ┌───────────────────┐ │ │ │  │ │ └────────────────────────┘ │ │     │
-│  │ │ │ │ Breakout Strategy │ │ │ │  │ └────────────────────────────┘ │     │
+│  │ │ │ Aggressive Risk &     │ │ │  │ │ │ │ BTC(50%), ETH(30%)│ │ │ │     │
+│  │ │ │ Portfolio Container   │ │ │  │ │ │ │ SOL(20%)          │ │ │ │     │
+│  │ │ │ • Max 5% per position │ │ │  │ │ │ └────────────────────┘ │ │ │     │
+│  │ │ │ • 30% total exposure  │ │ │  │ │ └────────────────────────┘ │ │     │
+│  │ │ │ ┌───────────────────┐ │ │ │  │ └────────────────────────────┘ │     │
+│  │ │ │ │ Breakout Strategy │ │ │ │  │                                │     │
 │  │ │ │ │ Crypto symbols    │ │ │ │  │                                │     │
 │  │ │ │ └───────────────────┘ │ │ │  │ Output: Signals & Performance │     │
 │  │ │ └───────────────────────┘ │ │  └────────────────────────────────┘     │
@@ -144,7 +148,8 @@ Every execution instance (backtest or live) is created through an identical, enf
 │            │ Classifier 1│ │ Classifier 2│ │ Classifier N│                  │
 │            ├─────────────┤ ├─────────────┤ ├─────────────┤                  │
 │            │┌───────────┐│ │┌───────────┐│ │┌───────────┐│                  │
-│            ││Risk Cont. ││ ││Risk Cont. ││ ││Risk Cont. ││                  │
+│            ││Risk & Port││ ││Risk & Port││ ││Risk & Port││                  │
+│            ││Container  ││ ││Container  ││ ││Container  ││                  │
 │            ││┌─────────┐││ ││┌─────────┐││ ││┌─────────┐││                  │
 │            │││Strategy │││ │││Strategy │││ │││Strategy │││                  │
 │            ││└─────────┘││ ││└─────────┘││ ││└─────────┘││                  │
@@ -171,7 +176,7 @@ Every execution instance (backtest or live) is created through an identical, enf
 │                        Event Flow Within Backtest Container                   │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                                               │
-│  Strategies                Risk Containers           Backtest Engine          │
+│  Strategies           Risk & Portfolio Containers      Backtest Engine       │
 │      │                           │                          │                 │
 │      │    SIGNAL Event           │                          │                 │
 │      │  (Buy AAPL, strength=0.8) │                          │                 │
@@ -196,19 +201,20 @@ Every execution instance (backtest or live) is created through an identical, enf
 │      │                           │◄─────────────────────────┤                 │
 │      │                           │  (Filled @ $150.25)      │                 │
 │      │                           │                          │                 │
-│      │                    Update Portfolio:                 │                 │
+│      │                 Update Risk & Portfolio:             │                 │
 │      │                    - Track positions                 │                 │
 │      │                    - Update exposure                 │                 │
 │      │                    - Risk metrics                    │                 │
+│      │                    - Portfolio state                │                 │
 │      │                           │                          │                 │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Points:
 1. **Strategies** generate SIGNAL events based on market data and indicators
-2. **Risk Containers** convert SIGNAL events to ORDER events (or veto them)
+2. **Risk & Portfolio Containers** convert SIGNAL events to ORDER events (or veto them)
 3. **Backtest Engine** executes ORDER events and generates FILL events
-4. **Risk Containers** update portfolio state based on FILL events
+4. **Risk & Portfolio Containers** update portfolio state based on FILL events
 
 ## Container Lifecycle Management
 
@@ -236,7 +242,7 @@ Coordinator.start_backtest()
     1. Create Data Streamer
     2. Create Indicator Hub
     3. Create Classifiers
-    4. Create Risk Subcontainers
+    4. Create Risk & Portfolio Subcontainers
     5. Create Strategies
     6. Create Backtest Engine
     7. Wire up event buses
@@ -263,8 +269,8 @@ Coordinator.start_backtest()
 
 ### Symbol Distribution
 ```
-Portfolio Level (Managed by Risk Containers)
-├── Conservative Risk Container
+Portfolio Level (Managed by Risk & Portfolio Containers)
+├── Conservative Risk & Portfolio Container
 │   ├── Total Exposure Limit: $100,000
 │   ├── Max Position Size: 2% ($2,000)
 │   └── Strategies:
@@ -275,7 +281,7 @@ Portfolio Level (Managed by Risk Containers)
 │       └── Mean Reversion Strategy
 │           └── SPY: 100% of strategy allocation
 │
-└── Aggressive Risk Container
+└── Aggressive Risk & Portfolio Container
     ├── Total Exposure Limit: $300,000
     ├── Max Position Size: 5% ($15,000)
     └── Strategies:
@@ -303,8 +309,8 @@ Portfolio Level (Managed by Risk Containers)
 - Resource tracking per container
 
 ### 4. Nested Subcontainers
-- Risk containers inherit classifier context
-- Strategies inherit risk context
+- Risk & Portfolio containers inherit classifier context
+- Strategies inherit risk & portfolio context
 - Clean hierarchical data flow
 
 ### 5. Separation of Concerns
@@ -312,7 +318,7 @@ Portfolio Level (Managed by Risk Containers)
 - **Backtest Container**: Lifecycle and resource management  
 - **Backtest Engine**: Order execution, fills, and performance calculation
 - **Classifiers**: Regime detection and context provision
-- **Risk Containers**: Signal → Order conversion, position sizing, exposure management
+- **Risk & Portfolio Containers**: Signal → Order conversion, position sizing, exposure management, portfolio state tracking
 - **Strategies**: Signal generation only (no position management)
 
 ## Why This Architecture Matters for Complex Workflows
@@ -419,7 +425,7 @@ For Phase 2 ensemble weight optimization, we use a simplified container architec
 │                             │                                               │
 │                             ▼                                               │
 │            ┌────────────────────────────────┐                               │
-│            │    Risk Container              │                               │
+│            │    Risk & Portfolio Container  │                               │
 │            │ • Applies ensemble weights     │                               │
 │            │ • Combines signals → Orders    │                               │
 │            │ • Same risk limits apply      │                               │
@@ -519,9 +525,9 @@ For signal analysis, MAE/MFE optimization, and classifier tuning, we use an even
 
 ### Use Cases for Signal Generation:
 
-1. **Risk Parameter Optimization**
+1. **Risk & Portfolio Parameter Optimization**
    - Generate signals once
-   - Test different risk settings offline
+   - Test different risk & portfolio settings offline
    - Find optimal position sizing without re-running strategies
 
 2. **MAE/MFE Analysis**
@@ -578,12 +584,12 @@ The Coordinator can select from three standardized patterns:
 
 ```
 1. FULL BACKTEST (Standard)
-   Market Data → Indicators → Classifiers → Strategies → Risk → Execution
+   Market Data → Indicators → Classifiers → Strategies → Risk & Portfolio → Execution
    Use: Complete strategy evaluation, live trading
 
 2. SIGNAL REPLAY (Ensemble)  
-   Signal Logs → Ensemble Weights → Risk → Execution
-   Use: Ensemble optimization, risk parameter tuning
+   Signal Logs → Ensemble Weights → Risk & Portfolio → Execution
+   Use: Ensemble optimization, risk & portfolio parameter tuning
 
 3. SIGNAL GENERATION (Analysis)
    Market Data → Indicators → Classifiers → Strategies → Analysis
@@ -628,7 +634,7 @@ class BacktestCoordinator:
 Coordinator says:                    Backtest Container does:
 "Run grid search with               → Creates 1000 identical containers
  - HMM classifier                   → Each with same component structure
- - Conservative risk                → Each with different parameters
+ - Conservative risk & portfolio    → Each with different parameters
  - 10 momentum variants             → Each fully isolated
  - 100 parameter combos"            → Each following standard pattern
 ```
@@ -670,7 +676,7 @@ class BacktestContainerFactory:
         container.add_component(DataStreamer(config.data_config))
         container.add_component(IndicatorHub(config.indicator_config))
         
-        # 2. Classifier layer (with risk subcontainers)
+        # 2. Classifier layer (with risk & portfolio subcontainers)
         for classifier_config in config.classifiers:
             classifier = container.create_subcontainer(classifier_config)
             for risk_config in classifier_config.risk_containers:
@@ -701,7 +707,7 @@ class SignalReplayContainerFactory:
         # 2. Ensemble optimizer (combines signals with weights)
         container.add_component(EnsembleOptimizer(config.weight_config))
         
-        # 3. Risk container (same as before - converts signals to orders)
+        # 3. Risk & Portfolio container (same as before - converts signals to orders)
         risk_container = container.create_subcontainer(config.risk_config)
         
         # 4. Execution layer (same backtest engine)
@@ -728,7 +734,7 @@ class SignalGenerationContainerFactory:
         # 2. Classifier layer (for testing different classifiers)
         for classifier_config in config.classifiers:
             classifier = container.create_subcontainer(classifier_config)
-            # Add strategies directly - no risk containers needed
+            # Add strategies directly - no risk & portfolio containers needed
             for strategy_config in config.strategies:
                 classifier.add_component(Strategy(strategy_config))
         
@@ -769,7 +775,7 @@ Each container provides complete isolation:
 
 ### For Production
 - **Seamless deployment**: Same container pattern for backtest and live
-- **Risk management**: Guaranteed risk container enforcement
+- **Risk management**: Guaranteed risk & portfolio container enforcement
 - **Audit compliance**: Every execution fully traceable
 
 ### For Scale
@@ -803,24 +809,24 @@ Having both standard and signal-replay containers provides:
 ```
 Traditional Approach (everything recomputed every time):
 - Strategy Optimization: 1000 params × 5 years × 10ms = 14 hours
-- Risk Optimization: 100 risk settings × 5 years × 10ms = 1.4 hours  
+- Risk & Portfolio Optimization: 100 risk & portfolio settings × 5 years × 10ms = 1.4 hours  
 - Ensemble Optimization: 100 weights × 5 years × 10ms = 1.4 hours
 - Total: 16.8 hours
 
 Our Three-Pattern Approach:
 - Signal Generation: 1000 params × 5 years × 8ms = 11.2 hours (no execution)
-- Risk Optimization: 100 risk × 5 years × 0.1ms = 2.5 minutes (signal replay)
+- Risk & Portfolio Optimization: 100 risk & portfolio × 5 years × 0.1ms = 2.5 minutes (signal replay)
 - Ensemble Optimization: 100 weights × 5 years × 0.1ms = 2.5 minutes (signal replay)
 - Total: 11.3 hours
 
 Speedup: 16.8 hours → 11.3 hours = 33% faster overall
-Risk/Ensemble phases: 2.8 hours → 5 minutes = 33x faster!
+Risk & Portfolio/Ensemble phases: 2.8 hours → 5 minutes = 33x faster!
 ```
 
 ### Workflow Benefits
 
 1. **Iterative Development**: Test signal quality before implementing execution
-2. **Rapid Experimentation**: Change risk settings without regenerating signals  
+2. **Rapid Experimentation**: Change risk & portfolio settings without regenerating signals  
 3. **Classifier A/B Testing**: Compare classifiers using same signal set
 4. **MAE/MFE Optimization**: Analyze excursions without full backtest
 5. **Correlation Analysis**: Study signal overlap across strategies
