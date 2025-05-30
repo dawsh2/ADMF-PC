@@ -1,15 +1,14 @@
 """
-Data models for ADMF-PC - keeping the good parts from the original.
+Data models for ADMF-PC.
 
-These are simple data classes with no inheritance.
+This module defines the core data structures used throughout the system
+for representing market data.
 """
 
 from __future__ import annotations
 from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-
 try:
     import numpy as np
     HAS_NUMPY = True
@@ -23,6 +22,8 @@ try:
 except ImportError:
     HAS_PANDAS = False
     pd = None
+
+from enum import Enum
 
 
 class Timeframe(Enum):
@@ -59,7 +60,7 @@ class Timeframe(Enum):
             "4h": 14400,
             "1d": 86400,
             "1w": 604800,
-            "1M": 2592000
+            "1M": 2592000  # Approximate
         }
         return mapping.get(self.value, 0)
 
@@ -67,7 +68,9 @@ class Timeframe(Enum):
 @dataclass
 class Bar:
     """
-    Represents a single OHLCV bar - simple dataclass, no inheritance.
+    Represents a single OHLCV bar of market data.
+    
+    This is the fundamental data structure for price data in the system.
     """
     symbol: str
     timestamp: datetime
@@ -130,10 +133,12 @@ class Bar:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Bar':
         """Create Bar from dictionary."""
+        # Handle timestamp
         timestamp = data["timestamp"]
         if isinstance(timestamp, str):
             timestamp = datetime.fromisoformat(timestamp)
         
+        # Handle timeframe
         timeframe = None
         if "timeframe" in data and data["timeframe"]:
             timeframe = Timeframe(data["timeframe"])
@@ -151,11 +156,11 @@ class Bar:
         )
     
     @classmethod
-    def from_series(cls, series: pd.Series, symbol: str, timestamp: datetime = None) -> 'Bar':
+    def from_series(cls, series: pd.Series, symbol: str) -> 'Bar':
         """Create Bar from pandas Series."""
         return cls(
             symbol=symbol,
-            timestamp=timestamp or series.name or datetime.now(),
+            timestamp=series.name if isinstance(series.name, datetime) else datetime.now(),
             open=series["open"],
             high=series["high"],
             low=series["low"],
@@ -166,7 +171,7 @@ class Bar:
 
 @dataclass
 class Tick:
-    """Represents a single tick - simple dataclass, no inheritance."""
+    """Represents a single tick (trade) in the market."""
     symbol: str
     timestamp: datetime
     price: float
@@ -186,7 +191,8 @@ class Tick:
 class DataView:
     """
     Read-only view of data for memory-efficient access.
-    Simple class, no inheritance.
+    
+    This provides a window into a larger dataset without copying.
     """
     
     def __init__(
@@ -195,6 +201,14 @@ class DataView:
         start_idx: int = 0,
         end_idx: Optional[int] = None
     ):
+        """
+        Initialize data view.
+        
+        Args:
+            data: Underlying DataFrame
+            start_idx: Start index for view
+            end_idx: End index for view (None for end of data)
+        """
         self._data = data
         self._start_idx = start_idx
         self._end_idx = end_idx or len(data)
@@ -241,18 +255,23 @@ class DataView:
 class TimeSeriesData:
     """
     Efficient storage for time series data.
-    Simple class with no inheritance.
+    
+    Stores timestamps and values separately for better memory usage.
     """
     
     def __init__(
         self,
-        timestamps: Union[List[datetime], 'np.ndarray'],
-        data: Dict[str, 'np.ndarray']
+        timestamps: Union[List[datetime], np.ndarray],
+        data: Dict[str, np.ndarray]
     ):
-        if HAS_NUMPY:
-            self.timestamps = np.array(timestamps)
-        else:
-            self.timestamps = list(timestamps)
+        """
+        Initialize time series data.
+        
+        Args:
+            timestamps: Array of timestamps
+            data: Dictionary of column name to value arrays
+        """
+        self.timestamps = np.array(timestamps)
         self.data = data
         self._validate()
     
@@ -269,20 +288,15 @@ class TimeSeriesData:
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> 'TimeSeriesData':
         """Create from pandas DataFrame."""
-        if not HAS_PANDAS:
-            raise RuntimeError("pandas not available")
-        
-        timestamps = df.index.to_numpy() if HAS_NUMPY else df.index.tolist()
-        data = {col: df[col].to_numpy() if HAS_NUMPY else df[col].tolist() 
-                for col in df.columns}
+        timestamps = df.index.to_numpy()
+        data = {col: df[col].to_numpy() for col in df.columns}
         return cls(timestamps, data)
     
-    def to_dataframe(self) -> 'pd.DataFrame':
+    def to_dataframe(self) -> pd.DataFrame:
         """Convert to pandas DataFrame."""
-        if not HAS_PANDAS:
-            raise RuntimeError("pandas not available")
-        
-        if HAS_NUMPY and isinstance(self.timestamps, np.ndarray):
+        # Convert timestamps back to DatetimeIndex
+        if isinstance(self.timestamps, np.ndarray) and len(self.timestamps) > 0:
+            # If timestamps are datetime objects in numpy array
             index = pd.DatetimeIndex(self.timestamps)
         else:
             index = self.timestamps
@@ -301,9 +315,11 @@ class TimeSeriesData:
         return TimeSeriesData(view_timestamps, view_data)
     
     def __len__(self) -> int:
+        """Number of data points."""
         return len(self.timestamps)
     
     def __getitem__(self, idx: int) -> Dict[str, Any]:
+        """Get data point at index."""
         return {
             "timestamp": self.timestamps[idx],
             **{col: values[idx] for col, values in self.data.items()}
@@ -311,19 +327,55 @@ class TimeSeriesData:
 
 
 @dataclass
-class DataSplit:
-    """Represents a train/test data split - simple dataclass."""
-    name: str
-    data: Dict[str, pd.DataFrame]  # symbol -> data
-    start_date: datetime
-    end_date: datetime
-    indices: Dict[str, int] = field(default_factory=dict)  # symbol -> current index
-
-
-@dataclass
-class ValidationResult:
-    """Result of data validation - simple dataclass."""
-    passed: bool
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+class MarketData:
+    """
+    Container for market data used throughout the system.
+    
+    This is a simple wrapper that can hold either DataFrame or TimeSeriesData.
+    """
+    symbol: str
+    timeframe: Union[str, Timeframe]
+    data: Union['pd.DataFrame', TimeSeriesData, Dict[str, Any]]
     metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    @property
+    def is_dataframe(self) -> bool:
+        """Check if data is a DataFrame."""
+        return HAS_PANDAS and isinstance(self.data, pd.DataFrame)
+    
+    @property
+    def is_timeseries(self) -> bool:
+        """Check if data is TimeSeriesData."""
+        return isinstance(self.data, TimeSeriesData)
+    
+    def to_dataframe(self) -> 'pd.DataFrame':
+        """Convert to DataFrame if possible."""
+        if self.is_dataframe:
+            return self.data
+        elif self.is_timeseries:
+            return self.data.to_dataframe()
+        else:
+            # Assume dict format
+            if HAS_PANDAS:
+                return pd.DataFrame(self.data)
+            else:
+                raise RuntimeError("pandas not available")
+    
+    def get_bars(self, start_idx: int = 0, end_idx: Optional[int] = None) -> List[Bar]:
+        """Get bars from the data."""
+        if self.is_dataframe:
+            df = self.data.iloc[start_idx:end_idx]
+            bars = []
+            for idx, row in df.iterrows():
+                bars.append(Bar(
+                    timestamp=idx,
+                    open=row.get('open', 0),
+                    high=row.get('high', 0),
+                    low=row.get('low', 0),
+                    close=row.get('close', 0),
+                    volume=row.get('volume', 0)
+                ))
+            return bars
+        else:
+            # Handle other formats
+            return []

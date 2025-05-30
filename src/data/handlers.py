@@ -1,53 +1,29 @@
 """
-Data handlers for ADMF-PC.
+Data handlers using Protocol+Composition - NO INHERITANCE!
 
-This module provides data loading and management for backtesting and
-live trading within the containerized system.
+Simple classes that implement data protocols through duck typing.
+Enhanced through capabilities, not inheritance.
 """
 
-from __future__ import annotations
-from typing import Dict, List, Optional, Any, Union, Tuple
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 import pandas as pd
-import numpy as np
 from pathlib import Path
-import logging
 
-from .models import Bar, Timeframe, DataView, TimeSeriesData
-from ..core.components import Component, Lifecycle, EventCapable
-from ..core.events import Event, EventType, create_market_event
-from ..core.logging import StructuredLogger, ContainerLogger
+from .models import Bar, Timeframe, DataSplit
+from .loaders import SimpleCSVLoader
 
 
-@dataclass
-class DataSplit:
-    """Represents a train/test data split."""
-    name: str
-    data: Dict[str, pd.DataFrame]  # symbol -> data
-    start_date: datetime
-    end_date: datetime
-    indices: Dict[str, int] = field(default_factory=dict)  # symbol -> current index
-
-
-class DataHandler(Component, Lifecycle, EventCapable, ABC):
+class SimpleHistoricalDataHandler:
     """
-    Abstract base class for data handlers.
-    
-    Data handlers are responsible for loading, managing, and emitting
-    market data events within containers.
+    Simple historical data handler - NO INHERITANCE!
+    Implements multiple protocols through duck typing.
     """
     
-    def __init__(self, handler_id: str = "data_handler"):
-        """
-        Initialize data handler.
-        
-        Args:
-            handler_id: Unique identifier for this handler
-        """
+    def __init__(self, handler_id: str = "historical_data", data_dir: str = "data"):
+        # Simple initialization - no base class complexity
         self.handler_id = handler_id
-        self._logger = StructuredLogger(f"DataHandler.{handler_id}")
+        self.data_dir = data_dir
         
         # Data storage
         self.symbols: List[str] = []
@@ -58,179 +34,230 @@ class DataHandler(Component, Lifecycle, EventCapable, ABC):
         self.splits: Dict[str, DataSplit] = {}
         self.active_split: Optional[str] = None
         
+        # Timeline for multi-symbol synchronization
+        self._timeline: List[Tuple[datetime, str]] = []
+        self._timeline_idx = 0
+        
         # State
-        self._initialized = False
         self._running = False
         
-        # Event bus will be set during initialization
-        self._event_bus = None
-        self.container_id = None
+        # Data loader
+        self.loader = SimpleCSVLoader(data_dir)
     
     @property
-    def component_id(self) -> str:
-        """Component identifier."""
+    def name(self) -> str:
+        """Component name for identification."""
         return self.handler_id
     
-    @property
-    def event_bus(self):
-        """Get event bus."""
-        return self._event_bus
-    
-    @event_bus.setter
-    def event_bus(self, value):
-        """Set event bus."""
-        self._event_bus = value
-    
-    # Abstract methods
-    
-    @abstractmethod
-    def load_data(self, symbols: List[str]) -> None:
-        """
-        Load data for specified symbols.
+    # Implements DataProvider protocol
+    def load_data(self, symbols: List[str]) -> bool:
+        """Load data for specified symbols."""
+        self.symbols = symbols
         
-        Args:
-            symbols: List of symbols to load
-        """
-        pass
+        try:
+            for symbol in symbols:
+                # Load data using loader
+                df = self.loader.load(symbol)
+                
+                # Store data
+                self.data[symbol] = df
+                self.current_indices[symbol] = 0
+            
+            # Build synchronized timeline
+            self._build_timeline()
+            return True
+            
+        except Exception as e:
+            if hasattr(self, 'log_error'):  # If logging capability added
+                self.log_error(f"Failed to load data: {e}")
+            return False
     
-    @abstractmethod
+    def get_symbols(self) -> List[str]:
+        """Get loaded symbols."""
+        return self.symbols.copy()
+    
+    def has_data(self, symbol: str) -> bool:
+        """Check if data exists for symbol."""
+        return symbol in self.data
+    
+    # Implements BarStreamer protocol
     def update_bars(self) -> bool:
-        """
-        Update to next bar and emit event.
+        """Advance to next bar and emit events."""
+        if not self._running:
+            return False
         
-        Returns:
-            True if more bars available, False otherwise
-        """
-        pass
-    
-    @abstractmethod
-    def get_latest_bar(self, symbol: str) -> Optional[Bar]:
-        """
-        Get the latest bar for a symbol.
+        # Get active dataset
+        data_dict = self._get_active_data()
+        indices = self._get_active_indices()
         
-        Args:
-            symbol: Symbol to get bar for
-            
-        Returns:
-            Latest bar or None
-        """
-        pass
-    
-    @abstractmethod
-    def get_latest_bars(self, symbol: str, n: int = 1) -> List[Bar]:
-        """
-        Get the latest N bars for a symbol.
+        # Get timeline for current split
+        if self.active_split:
+            timeline = self._build_split_timeline(data_dict)
+        else:
+            timeline = self._timeline
         
-        Args:
-            symbol: Symbol to get bars for
-            n: Number of bars to retrieve
-            
-        Returns:
-            List of bars (most recent last)
-        """
-        pass
-    
-    # Lifecycle methods
-    
-    def initialize(self, context: Dict[str, Any]) -> None:
-        """Initialize the data handler."""
-        self.event_bus = context.get('event_bus')
-        self.container_id = context.get('container_id')
+        if self._timeline_idx >= len(timeline):
+            return False
         
-        if self.container_id:
-            self._logger = ContainerLogger(
-                "DataHandler",
-                self.container_id,
-                self.handler_id
+        # Get next bar
+        timestamp, symbol = timeline[self._timeline_idx]
+        self._timeline_idx += 1
+        
+        # Get bar data
+        symbol_data = data_dict[symbol]
+        idx = indices[symbol]
+        
+        if idx < len(symbol_data):
+            # Create bar
+            row = symbol_data.iloc[idx]
+            bar = Bar(
+                symbol=symbol,
+                timestamp=timestamp,
+                open=row['open'],
+                high=row['high'],
+                low=row['low'],
+                close=row['close'],
+                volume=row['volume']
             )
+            
+            # Update index
+            indices[symbol] = idx + 1
+            
+            # Emit event if capability available
+            if hasattr(self, 'emit_event'):  # Added by event capability
+                self.emit_event('BAR', {
+                    'symbol': symbol,
+                    'timestamp': timestamp,
+                    'bar': bar.to_dict()
+                })
+            
+            return True
         
-        self._initialized = True
-        self._logger.info("Data handler initialized")
+        return False
     
-    def start(self) -> None:
-        """Start the data handler."""
-        if not self._initialized:
-            raise RuntimeError("Data handler not initialized")
+    def has_more_data(self) -> bool:
+        """Check if more data is available."""
+        data_dict = self._get_active_data()
+        indices = self._get_active_indices()
         
-        self._running = True
-        self._logger.info("Data handler started")
-    
-    def stop(self) -> None:
-        """Stop the data handler."""
-        self._running = False
-        self._logger.info("Data handler stopped")
+        return any(
+            indices.get(symbol, 0) < len(data_dict.get(symbol, []))
+            for symbol in self.symbols
+        )
     
     def reset(self) -> None:
-        """Reset the data handler."""
+        """Reset to beginning of data."""
         # Reset indices
         for symbol in self.symbols:
             self.current_indices[symbol] = 0
         
-        # Reset active split indices
+        # Reset split indices
         if self.active_split and self.active_split in self.splits:
             split = self.splits[self.active_split]
             for symbol in split.indices:
                 split.indices[symbol] = 0
         
-        self._logger.info("Data handler reset")
+        # Reset timeline
+        self._timeline_idx = 0
     
-    def teardown(self) -> None:
-        """Clean up resources."""
-        self.data.clear()
-        self.splits.clear()
-        self.symbols.clear()
-        self._initialized = False
-        self._logger.info("Data handler torn down")
-    
-    # Event methods
-    
-    def initialize_events(self) -> None:
-        """Initialize event subscriptions."""
-        # Data handlers typically don't subscribe to events
-        pass
-    
-    def teardown_events(self) -> None:
-        """Clean up event subscriptions."""
-        pass
-    
-    # Split management
-    
-    def setup_train_test_split(
-        self,
-        method: str = "ratio",
-        train_ratio: float = 0.7,
-        split_date: Optional[datetime] = None
-    ) -> None:
-        """
-        Set up train/test data splits.
+    # Implements DataAccessor protocol
+    def get_latest_bar(self, symbol: str) -> Optional[Bar]:
+        """Get most recent bar for symbol."""
+        data_dict = self._get_active_data()
+        indices = self._get_active_indices()
         
-        Args:
-            method: Split method ("ratio" or "date")
-            train_ratio: Ratio of data for training (if method="ratio")
-            split_date: Date to split at (if method="date")
-        """
+        if symbol not in data_dict:
+            return None
+        
+        idx = indices.get(symbol, 0)
+        if idx == 0:
+            return None
+        
+        # Get the last emitted bar
+        row = data_dict[symbol].iloc[idx - 1]
+        return Bar(
+            symbol=symbol,
+            timestamp=row.name,
+            open=row['open'],
+            high=row['high'],
+            low=row['low'],
+            close=row['close'],
+            volume=row['volume']
+        )
+    
+    def get_latest_bars(self, symbol: str, n: int = 1) -> List[Bar]:
+        """Get last N bars for symbol."""
+        data_dict = self._get_active_data()
+        indices = self._get_active_indices()
+        
+        if symbol not in data_dict:
+            return []
+        
+        idx = indices.get(symbol, 0)
+        if idx == 0:
+            return []
+        
+        # Get the last n emitted bars
+        start_idx = max(0, idx - n)
+        bars = []
+        
+        for i in range(start_idx, idx):
+            row = data_dict[symbol].iloc[i]
+            bar = Bar(
+                symbol=symbol,
+                timestamp=row.name,
+                open=row['open'],
+                high=row['high'],
+                low=row['low'],
+                close=row['close'],
+                volume=row['volume']
+            )
+            bars.append(bar)
+        
+        return bars
+    
+    def get_bar_at_index(self, symbol: str, index: int) -> Optional[Bar]:
+        """Get bar at specific index."""
+        data_dict = self._get_active_data()
+        
+        if symbol not in data_dict:
+            return None
+        
+        data = data_dict[symbol]
+        if index >= len(data):
+            return None
+        
+        row = data.iloc[index]
+        return Bar(
+            symbol=symbol,
+            timestamp=row.name,
+            open=row['open'],
+            high=row['high'],
+            low=row['low'],
+            close=row['close'],
+            volume=row['volume']
+        )
+    
+    # Implements DataSplitter protocol (can be moved to capability)
+    def setup_split(self, method: str = 'ratio', **kwargs) -> None:
+        """Set up train/test split."""
         if not self.data:
             raise ValueError("No data loaded")
         
-        self._logger.info(
-            f"Setting up train/test split",
-            method=method,
-            train_ratio=train_ratio,
-            split_date=split_date
-        )
+        train_ratio = kwargs.get('train_ratio', 0.7)
+        split_date = kwargs.get('split_date')
         
         for symbol, df in self.data.items():
-            if method == "ratio":
+            if method == 'ratio':
                 split_idx = int(len(df) * train_ratio)
                 train_data = df.iloc[:split_idx]
                 test_data = df.iloc[split_idx:]
-            
-            elif method == "date":
+            elif method == 'date':
                 if not split_date:
                     raise ValueError("split_date required for date-based split")
+                split_date = pd.to_datetime(split_date)
                 train_data = df[df.index < split_date]
                 test_data = df[df.index >= split_date]
-            
             else:
                 raise ValueError(f"Unknown split method: {method}")
             
@@ -255,229 +282,44 @@ class DataHandler(Component, Lifecycle, EventCapable, ABC):
                 )
             self.splits["test"].data[symbol] = test_data
             self.splits["test"].indices[symbol] = 0
-        
-        self._logger.info(
-            f"Train/test split complete",
-            train_size=len(self.splits["train"].data[self.symbols[0]]),
-            test_size=len(self.splits["test"].data[self.symbols[0]])
-        )
     
     def set_active_split(self, split_name: Optional[str]) -> None:
-        """
-        Set the active data split.
-        
-        Args:
-            split_name: "train", "test", or None for full data
-        """
+        """Set active data split."""
         if split_name and split_name not in self.splits:
             raise ValueError(f"Unknown split: {split_name}")
         
         self.active_split = split_name
         self.reset()
-        
-        self._logger.info(f"Active split set to: {split_name or 'full'}")
-
-
-class HistoricalDataHandler(DataHandler):
-    """
-    Data handler for historical backtesting data.
     
-    This handler loads data from CSV files and emits bars in chronological
-    order across all symbols.
-    """
+    def get_split_info(self) -> Dict[str, Any]:
+        """Get information about current splits."""
+        return {
+            'active_split': self.active_split,
+            'splits_configured': len(self.splits) > 0,
+            'symbols': {
+                symbol: {
+                    'train_size': len(self.splits.get('train', DataSplit('', {}, datetime.now(), datetime.now())).data.get(symbol, [])),
+                    'test_size': len(self.splits.get('test', DataSplit('', {}, datetime.now(), datetime.now())).data.get(symbol, [])),
+                    'full_size': len(self.data.get(symbol, []))
+                }
+                for symbol in self.symbols
+            }
+        }
     
-    def __init__(
-        self,
-        handler_id: str = "historical_data",
-        data_dir: str = "data",
-        timeframe: Timeframe = Timeframe.D1
-    ):
-        """
-        Initialize historical data handler.
-        
-        Args:
-            handler_id: Handler identifier
-            data_dir: Directory containing CSV files
-            timeframe: Data timeframe
-        """
-        super().__init__(handler_id)
-        self.data_dir = Path(data_dir)
-        self.timeframe = timeframe
-        
-        # Multi-symbol synchronization
-        self._timeline: List[Tuple[datetime, str]] = []
-        self._timeline_idx = 0
+    # Implements HasLifecycle protocol (can be moved to capability)
+    def start(self) -> None:
+        """Start the data handler."""
+        self._running = True
+        if hasattr(self, 'log_info'):
+            self.log_info("Data handler started")
     
-    def load_data(self, symbols: List[str]) -> None:
-        """Load data from CSV files."""
-        self.symbols = symbols
-        self._logger.info(f"Loading data for symbols: {symbols}")
-        
-        for symbol in symbols:
-            # Try to find CSV file
-            csv_path = self.data_dir / f"{symbol}.csv"
-            if not csv_path.exists():
-                # Try with lowercase
-                csv_path = self.data_dir / f"{symbol.lower()}.csv"
-            
-            if not csv_path.exists():
-                raise FileNotFoundError(f"Data file not found for {symbol}")
-            
-            # Load CSV
-            df = pd.read_csv(csv_path, parse_dates=True, index_col=0)
-            
-            # Standardize column names
-            df.columns = df.columns.str.lower()
-            
-            # Validate required columns
-            required = ['open', 'high', 'low', 'close', 'volume']
-            missing = set(required) - set(df.columns)
-            if missing:
-                raise ValueError(f"Missing columns for {symbol}: {missing}")
-            
-            # Sort by date
-            df.sort_index(inplace=True)
-            
-            # Store data
-            self.data[symbol] = df
-            self.current_indices[symbol] = 0
-            
-            self._logger.info(
-                f"Loaded {symbol}",
-                rows=len(df),
-                start=df.index[0],
-                end=df.index[-1]
-            )
-        
-        # Build synchronized timeline
-        self._build_timeline()
+    def stop(self) -> None:
+        """Stop the data handler."""
+        self._running = False
+        if hasattr(self, 'log_info'):
+            self.log_info("Data handler stopped")
     
-    def update_bars(self) -> bool:
-        """Emit next bar across all symbols."""
-        if not self._running:
-            return False
-        
-        # Get active dataset
-        data_dict = self._get_active_data()
-        indices = self._get_active_indices()
-        
-        if self.active_split:
-            # Use timeline for current split
-            timeline = self._build_split_timeline(data_dict)
-            if self._timeline_idx >= len(timeline):
-                return False
-            
-            timestamp, symbol = timeline[self._timeline_idx]
-            self._timeline_idx += 1
-        else:
-            # Use main timeline
-            if self._timeline_idx >= len(self._timeline):
-                return False
-            
-            timestamp, symbol = self._timeline[self._timeline_idx]
-            self._timeline_idx += 1
-        
-        # Get bar data
-        symbol_data = data_dict[symbol]
-        idx = indices[symbol]
-        
-        if idx < len(symbol_data):
-            # Create bar
-            row = symbol_data.iloc[idx]
-            bar = Bar(
-                symbol=symbol,
-                timestamp=timestamp,
-                open=row['open'],
-                high=row['high'],
-                low=row['low'],
-                close=row['close'],
-                volume=row['volume'],
-                timeframe=self.timeframe
-            )
-            
-            # Update index
-            indices[symbol] = idx + 1
-            
-            # Emit event
-            if self.event_bus:
-                event = create_market_event(
-                    EventType.BAR,
-                    symbol=symbol,
-                    timestamp=timestamp,
-                    data=bar.to_dict(),
-                    source_id=self.handler_id,
-                    container_id=self.container_id
-                )
-                self.event_bus.publish(event)
-            
-            return True
-        
-        return False
-    
-    def get_latest_bar(self, symbol: str) -> Optional[Bar]:
-        """Get the latest bar for a symbol."""
-        data_dict = self._get_active_data()
-        indices = self._get_active_indices()
-        
-        if symbol not in data_dict:
-            return None
-        
-        idx = indices.get(symbol, 0)
-        if idx == 0:
-            return None
-        
-        # Get the last emitted bar
-        row = data_dict[symbol].iloc[idx - 1]
-        return Bar(
-            symbol=symbol,
-            timestamp=row.name,
-            open=row['open'],
-            high=row['high'],
-            low=row['low'],
-            close=row['close'],
-            volume=row['volume'],
-            timeframe=self.timeframe
-        )
-    
-    def get_latest_bars(self, symbol: str, n: int = 1) -> List[Bar]:
-        """Get the latest N bars for a symbol."""
-        data_dict = self._get_active_data()
-        indices = self._get_active_indices()
-        
-        if symbol not in data_dict:
-            return []
-        
-        idx = indices.get(symbol, 0)
-        if idx == 0:
-            return []
-        
-        # Get the last n emitted bars
-        start_idx = max(0, idx - n)
-        bars = []
-        
-        for i in range(start_idx, idx):
-            row = data_dict[symbol].iloc[i]
-            bar = Bar(
-                symbol=symbol,
-                timestamp=row.name,
-                open=row['open'],
-                high=row['high'],
-                low=row['low'],
-                close=row['close'],
-                volume=row['volume'],
-                timeframe=self.timeframe
-            )
-            bars.append(bar)
-        
-        return bars
-    
-    def reset(self) -> None:
-        """Reset handler state."""
-        super().reset()
-        self._timeline_idx = 0
-    
-    # Private methods
-    
+    # Private helper methods - no inheritance complexity
     def _get_active_data(self) -> Dict[str, pd.DataFrame]:
         """Get the currently active dataset."""
         if self.active_split and self.active_split in self.splits:
@@ -500,8 +342,6 @@ class HistoricalDataHandler(DataHandler):
         
         # Sort by timestamp
         self._timeline.sort(key=lambda x: x[0])
-        
-        self._logger.info(f"Built timeline with {len(self._timeline)} events")
     
     def _build_split_timeline(self, data_dict: Dict[str, pd.DataFrame]) -> List[Tuple[datetime, str]]:
         """Build timeline for a specific split."""
@@ -513,3 +353,122 @@ class HistoricalDataHandler(DataHandler):
         
         timeline.sort(key=lambda x: x[0])
         return timeline
+
+
+class StreamingDataHandler:
+    """
+    Simple streaming data handler - NO INHERITANCE!
+    Shows how to implement streaming protocols.
+    """
+    
+    def __init__(self, handler_id: str = "streaming_data"):
+        self.handler_id = handler_id
+        self.subscribed_symbols: List[str] = []
+        self.latest_bars: Dict[str, Bar] = {}
+        self._connected = False
+    
+    @property
+    def name(self) -> str:
+        return self.handler_id
+    
+    # Implements StreamingProvider protocol
+    def subscribe(self, symbols: List[str]) -> None:
+        """Subscribe to symbols."""
+        self.subscribed_symbols.extend(symbols)
+        # In real implementation, would connect to data feed
+        
+    def unsubscribe(self, symbols: List[str]) -> None:
+        """Unsubscribe from symbols."""
+        for symbol in symbols:
+            if symbol in self.subscribed_symbols:
+                self.subscribed_symbols.remove(symbol)
+    
+    def get_latest_bar(self, symbol: str) -> Optional[Bar]:
+        """Get latest bar from stream."""
+        return self.latest_bars.get(symbol)
+    
+    # Implements HasLifecycle protocol
+    def start(self) -> None:
+        """Start streaming."""
+        self._connected = True
+        # In real implementation, would start data feed connection
+    
+    def stop(self) -> None:
+        """Stop streaming."""
+        self._connected = False
+        # In real implementation, would close connections
+
+
+class SimpleDataValidator:
+    """
+    Simple data validator - NO INHERITANCE!
+    Implements DataValidator protocol.
+    """
+    
+    def __init__(self):
+        self.validation_rules = [
+            'ohlc_relationships',
+            'positive_volume',
+            'no_duplicates',
+            'chronological_order'
+        ]
+    
+    def validate_data(self, data: pd.DataFrame) -> Dict[str, Any]:
+        """Validate data and return results."""
+        errors = []
+        warnings = []
+        
+        # Check required columns
+        required = ["open", "high", "low", "close", "volume"]
+        missing = [col for col in required if col not in data.columns]
+        if missing:
+            errors.append(f"Missing required columns: {missing}")
+        
+        if not errors:  # Only check relationships if we have the columns
+            # Check OHLC relationships
+            invalid_high = (data["high"] < data["low"]) | (data["high"] < data["open"]) | (data["high"] < data["close"])
+            invalid_low = (data["low"] > data["open"]) | (data["low"] > data["close"])
+            invalid_volume = data["volume"] < 0
+            
+            if invalid_high.any():
+                errors.append(f"Invalid high prices in {invalid_high.sum()} bars")
+            if invalid_low.any():
+                errors.append(f"Invalid low prices in {invalid_low.sum()} bars")
+            if invalid_volume.any():
+                errors.append(f"Negative volume in {invalid_volume.sum()} bars")
+            
+            # Check for duplicates
+            if data.index.duplicated().any():
+                warnings.append(f"Found {data.index.duplicated().sum()} duplicate timestamps")
+        
+        return {
+            'passed': len(errors) == 0,
+            'errors': errors,
+            'warnings': warnings,
+            'metadata': {
+                'total_bars': len(data),
+                'date_range': (data.index[0], data.index[-1]) if len(data) > 0 else None
+            }
+        }
+    
+    def get_validation_rules(self) -> List[str]:
+        """Get list of validation rule names."""
+        return self.validation_rules.copy()
+
+
+# Factory functions instead of inheritance
+def create_data_handler(handler_type: str, **config) -> Any:
+    """
+    Factory function to create data handlers.
+    No inheritance - just returns appropriate class.
+    """
+    handlers = {
+        'historical': SimpleHistoricalDataHandler,
+        'streaming': StreamingDataHandler
+    }
+    
+    handler_class = handlers.get(handler_type)
+    if not handler_class:
+        raise ValueError(f"Unknown handler type: {handler_type}")
+    
+    return handler_class(**config)
