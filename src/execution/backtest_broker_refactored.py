@@ -65,8 +65,7 @@ class BacktestBrokerRefactored:
         self._order_lock = asyncio.Lock()
         
         logger.info(
-            "Initialized BacktestBroker with portfolio state",
-            initial_capital=str(self.portfolio_state.get_cash_balance())
+            f"Initialized BacktestBroker with portfolio state, initial_capital={self.portfolio_state.get_cash_balance()}"
         )
     
     async def submit_order(self, order: Order) -> str:
@@ -75,9 +74,7 @@ class BacktestBrokerRefactored:
             # Validate order against portfolio state
             if not await self._validate_order(order):
                 logger.warning(
-                    "Order validation failed",
-                    order_id=order.order_id,
-                    reason="Insufficient funds or position"
+                    f"Order validation failed - ID: {order.order_id}, reason: Insufficient funds or position"
                 )
                 self.order_tracker.order_status[order.order_id] = OrderStatus.REJECTED
                 return order.order_id
@@ -87,12 +84,8 @@ class BacktestBrokerRefactored:
             self.order_tracker.order_status[order.order_id] = OrderStatus.SUBMITTED
             
             logger.info(
-                "order_submitted",
-                order_id=order.order_id,
-                side=order.side.name,
-                quantity=order.quantity,
-                symbol=order.symbol,
-                order_type=order.order_type.name
+                f"Order submitted - ID: {order.order_id}, side: {order.side.name}, "
+                f"quantity: {order.quantity}, symbol: {order.symbol}, type: {order.order_type.name}"
             )
             
             return order.order_id
@@ -122,20 +115,16 @@ class BacktestBrokerRefactored:
         """Cancel pending order."""
         async with self._order_lock:
             if order_id not in self.order_tracker.orders:
-                logger.warning("order_not_found", order_id=order_id)
+                logger.warning(f"Order not found for cancellation: {order_id}")
                 return False
             
             status = self.order_tracker.order_status.get(order_id)
             if status in [OrderStatus.FILLED, OrderStatus.CANCELLED]:
-                logger.warning(
-                    "cannot_cancel_order",
-                    order_id=order_id,
-                    status=status.name
-                )
+                logger.warning(f"Cannot cancel order {order_id} with status {status.name}")
                 return False
             
             self.order_tracker.order_status[order_id] = OrderStatus.CANCELLED
-            logger.info("order_cancelled", order_id=order_id)
+            logger.info(f"Order cancelled - ID: {order_id}")
             return True
     
     async def get_order_status(self, order_id: str) -> OrderStatus:
@@ -191,7 +180,7 @@ class BacktestBrokerRefactored:
         async with self._order_lock:
             order = self.order_tracker.orders.get(fill.order_id)
             if not order:
-                logger.error("order_not_found_for_fill", order_id=fill.order_id)
+                logger.error(f"Order not found for fill: {fill.order_id}")
                 return False
             
             # Store fill for history

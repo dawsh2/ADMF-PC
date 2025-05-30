@@ -11,6 +11,7 @@ from typing import Dict, List, Set, Union, Optional, Callable
 from collections import defaultdict
 import threading
 import logging
+import asyncio
 from weakref import WeakSet, ref
 import traceback
 
@@ -72,7 +73,20 @@ class EventBus(EventBusProtocol):
         # Execute handlers without holding the lock
         for handler in handlers:
             try:
-                handler(event)
+                # Check if handler is async and handle appropriately
+                if asyncio.iscoroutinefunction(handler):
+                    # For async handlers, create a task if we're in an event loop
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(handler(event))
+                    except RuntimeError:
+                        # No event loop running, call synchronously (not ideal but works)
+                        import warnings
+                        warnings.warn("Async handler called without event loop", RuntimeWarning)
+                        asyncio.run(handler(event))
+                else:
+                    # Synchronous handler
+                    handler(event)
             except Exception as e:
                 self._error_count += 1
                 logger.error(

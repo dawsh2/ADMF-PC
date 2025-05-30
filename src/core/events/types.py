@@ -41,8 +41,12 @@ class EventType(Enum):
     # Analytics events
     CLASSIFICATION = auto()
     REGIME_CHANGE = auto()
+    REGIME = auto()  # Alias for REGIME_CHANGE
+    INDICATORS = auto()  # For indicator distribution
+    INDICATOR = auto()  # Individual indicator update
     META_LABEL = auto()
     METRIC = auto()
+    RISK_UPDATE = auto()  # For risk limit changes
     
     # Control events
     START = auto()

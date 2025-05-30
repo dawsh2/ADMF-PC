@@ -59,7 +59,9 @@ class FixedSlippageModel:
         # Add impact for large orders
         order_impact = 0.0
         if volume > 0:
-            order_ratio = order.quantity / volume
+            # Convert to float for calculation
+            order_quantity = float(order.quantity)
+            order_ratio = order_quantity / volume
             if order_ratio > 0.01:  # More than 1% of volume
                 order_impact = market_price * order_ratio * 0.001
         
@@ -88,7 +90,8 @@ class VolumeSlippageModel:
             return market_price * 0.001 * (1 if order.side == OrderSide.BUY else -1)
         
         # Calculate market impact based on order size
-        order_ratio = order.quantity / volume
+        order_quantity = float(order.quantity)
+        order_ratio = order_quantity / volume
         impact = self.base_impact * (1 + order_ratio ** 0.5)
         
         # Add spread component
@@ -180,15 +183,22 @@ class MarketSimulator:
         spread: float = 0.01
     ) -> Optional[Fill]:
         """Simulate order fill with market conditions."""
+        logger.info(f"🎲 MarketSimulator.simulate_fill() called for {order.order_id}")
+        logger.info(f"   Order: {order.symbol} {order.side.value} {order.quantity} @ {order.price} (type: {order.order_type.value})")
+        logger.info(f"   Market: price={market_price}, volume={volume}, spread={spread}")
+        
         # Check fill probability
-        if random.random() > self.fill_probability:
-            logger.info(f"Order {order.order_id} not filled (probability)")
+        fill_roll = random.random()
+        logger.info(f"   Fill probability check: {fill_roll:.3f} vs {self.fill_probability}")
+        if fill_roll > self.fill_probability:
+            logger.info(f"❌ Order {order.order_id} not filled (probability)")
             return None
         
         # Determine fill price based on order type
         fill_price = self._calculate_fill_price(order, market_price, spread)
+        logger.info(f"   Fill price calculation: {fill_price}")
         if fill_price is None:
-            logger.info(f"Order {order.order_id} not filled (price conditions)")
+            logger.info(f"❌ Order {order.order_id} not filled (price conditions)")
             return None
         
         # Calculate slippage
@@ -196,11 +206,13 @@ class MarketSimulator:
             order, market_price, volume, spread
         )
         fill_price += slippage
+        logger.info(f"   Final fill price (with slippage): {fill_price} (slippage: {slippage})")
         
         # Determine fill quantity
         fill_quantity = self._calculate_fill_quantity(order, volume)
+        logger.info(f"   Fill quantity: {fill_quantity}")
         if fill_quantity <= 0:
-            logger.info(f"Order {order.order_id} not filled (no liquidity)")
+            logger.info(f"❌ Order {order.order_id} not filled (no liquidity)")
             return None
         
         # Calculate commission
@@ -242,8 +254,12 @@ class MarketSimulator:
         spread: float
     ) -> Optional[float]:
         """Calculate fill price based on order type."""
+        logger.info(f"   _calculate_fill_price: order.order_type={order.order_type}, OrderType.MARKET={OrderType.MARKET}")
+        logger.info(f"   Order type comparison: {order.order_type == OrderType.MARKET}")
+        
         if order.order_type == OrderType.MARKET:
             # Market orders fill at market price
+            logger.info(f"   Market order detected, returning market_price: {market_price}")
             return market_price
         
         elif order.order_type == OrderType.LIMIT:

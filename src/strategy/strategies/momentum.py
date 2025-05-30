@@ -5,10 +5,13 @@ This demonstrates a pure protocol-based strategy with NO inheritance.
 The strategy can be enhanced with capabilities through the ComponentFactory.
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Set
 from datetime import datetime
+from decimal import Decimal
+import uuid
 
 from ..protocols import Strategy, SignalDirection
+from ...risk.protocols import Signal, SignalType, OrderSide
 
 
 class MomentumStrategy:
@@ -26,7 +29,7 @@ class MomentumStrategy:
     
     def __init__(self, 
                  lookback_period: int = 20,
-                 momentum_threshold: float = 0.02,
+                 momentum_threshold: float = 0.0005,  # Lowered from 0.02 to 0.0005 for minute data
                  rsi_period: int = 14,
                  rsi_oversold: float = 30,
                  rsi_overbought: float = 70):
@@ -51,7 +54,7 @@ class MomentumStrategy:
         self.price_history: List[float] = []
         self.rsi_values: List[float] = []
         self.last_signal_time: Optional[datetime] = None
-        self.signal_cooldown = 3600  # 1 hour in seconds
+        self.signal_cooldown = 300  # 5 minutes in seconds (reduced for testing)
         
         # Internal calculation state
         self._gains: List[float] = []
@@ -62,104 +65,193 @@ class MomentumStrategy:
         """Strategy name for identification."""
         return "momentum_strategy"
     
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def get_required_indicators(self) -> Set[str]:
         """
-        Generate trading signal from market data.
+        Return indicators required by this strategy.
         
-        This method implements the Strategy protocol.
+        This allows the IndicatorContainer to compute shared indicators
+        instead of the strategy calculating them internally.
         """
-        # Extract price
-        price = market_data.get('close', market_data.get('price'))
-        timestamp = market_data.get('timestamp', datetime.now())
-        symbol = market_data.get('symbol', 'UNKNOWN')
+        return {
+            f"SMA_{self.lookback_period}",  # For momentum calculation
+            "RSI"  # For RSI-based signals
+        }
+    
+    def generate_signals(self, strategy_input: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Generate trading signals from market data and indicators.
         
-        if price is None:
-            return None
+        This method is called by StrategyContainer with combined
+        market data and computed indicators.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🎯 MomentumStrategy.generate_signals() called!")
         
-        # Update price history
-        self.price_history.append(price)
-        if len(self.price_history) > self.lookback_period * 2:
-            self.price_history.pop(0)
+        market_data = strategy_input.get('market_data', {})
+        indicators = strategy_input.get('indicators', {})
+        timestamp = strategy_input.get('timestamp', datetime.now())
         
-        # Need enough data
-        if len(self.price_history) < self.lookback_period:
-            return None
+        logger.info(f"   Market data: {list(market_data.keys())} symbols")
+        logger.info(f"   Indicators: {indicators}")
+        logger.info(f"   Timestamp: {timestamp}")
         
-        # Check cooldown
-        if self.last_signal_time:
-            time_since_last = (timestamp - self.last_signal_time).total_seconds()
-            if time_since_last < self.signal_cooldown:
-                return None
+        signals = []
         
-        # Calculate momentum
-        momentum = self._calculate_momentum()
-        
-        # Calculate RSI
-        rsi = self._calculate_rsi(price)
-        
-        # Generate signal based on momentum and RSI
-        signal = None
-        
-        if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
-            # Bullish momentum, not overbought
-            signal = {
-                'symbol': symbol,
-                'direction': SignalDirection.BUY,
-                'strength': min(momentum / (self.momentum_threshold * 2), 1.0),
-                'timestamp': timestamp,
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'reason': 'Positive momentum with room to run'
-                }
-            }
+        # Process each symbol in market data
+        for symbol, data in market_data.items():
+            logger.info(f"   📊 Processing symbol: {symbol}, data: {data}")
+            price = data.get('close', data.get('price'))
+            logger.info(f"   💰 Extracted price: {price}")
+            if price is None:
+                logger.info(f"   ❌ No price found for {symbol}, skipping")
+                continue
             
-        elif momentum < -self.momentum_threshold and rsi > self.rsi_oversold:
-            # Bearish momentum, not oversold
-            signal = {
-                'symbol': symbol,
-                'direction': SignalDirection.SELL,
-                'strength': min(abs(momentum) / (self.momentum_threshold * 2), 1.0),
-                'timestamp': timestamp,
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'reason': 'Negative momentum with room to fall'
-                }
-            }
+            # Get indicators for this symbol
+            symbol_indicators = indicators.get(symbol, {})
             
-        elif rsi < self.rsi_oversold and momentum > 0:
-            # Oversold with positive momentum - potential reversal
-            signal = {
-                'symbol': symbol,
-                'direction': SignalDirection.BUY,
-                'strength': 0.5,  # Lower confidence for reversal
-                'timestamp': timestamp,
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'reason': 'Oversold reversal signal'
-                }
-            }
+            # Update price history for momentum calculation
+            self.price_history.append(price)
+            if len(self.price_history) > self.lookback_period * 2:
+                self.price_history.pop(0)
             
-        elif rsi > self.rsi_overbought and momentum < 0:
-            # Overbought with negative momentum - potential reversal
-            signal = {
-                'symbol': symbol,
-                'direction': SignalDirection.SELL,
-                'strength': 0.5,  # Lower confidence for reversal
-                'timestamp': timestamp,
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'reason': 'Overbought reversal signal'
-                }
-            }
+            # Need enough data for momentum
+            if len(self.price_history) < self.lookback_period:
+                # Debug logging for price history
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.debug(f"Not enough price history: {len(self.price_history)}/{self.lookback_period}")
+                continue
+            
+            # Check cooldown
+            if self.last_signal_time:
+                time_since_last = (timestamp - self.last_signal_time).total_seconds()
+                if time_since_last < self.signal_cooldown:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.debug(f"Signal in cooldown: {time_since_last}s < {self.signal_cooldown}s")
+                    continue
+            
+            # Get indicators - use shared indicators if available, fallback to internal calculation
+            rsi = symbol_indicators.get('RSI')
+            if rsi is None:
+                rsi = self._calculate_rsi(price)
+            
+            # Calculate momentum (still internal for now - could be moved to indicators)
+            momentum = self._calculate_momentum()
+            
+            # Debug logging for signal conditions
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"🎯 SIGNAL ANALYSIS: momentum={momentum:.6f}, rsi={rsi:.2f}, threshold={self.momentum_threshold}")
+            logger.info(f"   RSI bounds: oversold={self.rsi_oversold}, overbought={self.rsi_overbought}")
+            logger.info(f"   Price history length: {len(self.price_history)}, Current price: {price}")
+            logger.info(f"   Momentum conditions: momentum > threshold? {momentum > self.momentum_threshold}, momentum < -threshold? {momentum < -self.momentum_threshold}")
+            logger.info(f"   RSI conditions: rsi < overbought? {rsi < self.rsi_overbought}, rsi > oversold? {rsi > self.rsi_oversold}")
+            
+            # Log the actual signal decision logic
+            if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
+                logger.info(f"   💡 BULLISH signal triggered!")
+            elif momentum < -self.momentum_threshold and rsi > self.rsi_oversold:
+                logger.info(f"   💡 BEARISH signal triggered!")
+            elif rsi < self.rsi_oversold and momentum > 0:
+                logger.info(f"   💡 OVERSOLD REVERSAL signal triggered!")
+            elif rsi > self.rsi_overbought and momentum < 0:
+                logger.info(f"   💡 OVERBOUGHT REVERSAL signal triggered!")
+            else:
+                logger.info(f"   ❌ No signal conditions met")
+            
+            # Generate signal based on momentum and RSI
+            signal = None
+            
+            if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
+                # Bullish momentum, not overbought
+                signal = Signal(
+                    signal_id=str(uuid.uuid4()),
+                    strategy_id=self.name,
+                    symbol=symbol,
+                    signal_type=SignalType.ENTRY,
+                    side=OrderSide.BUY,
+                    strength=Decimal(str(min(momentum / (self.momentum_threshold * 2), 1.0))),
+                    timestamp=timestamp,
+                    metadata={
+                        'momentum': momentum,
+                        'rsi': rsi,
+                        'reason': 'Positive momentum with room to run'
+                    }
+                )
+                
+            elif momentum < -self.momentum_threshold and rsi > self.rsi_oversold:
+                # Bearish momentum, not oversold
+                signal = Signal(
+                    signal_id=str(uuid.uuid4()),
+                    strategy_id=self.name,
+                    symbol=symbol,
+                    signal_type=SignalType.ENTRY,
+                    side=OrderSide.SELL,
+                    strength=Decimal(str(min(abs(momentum) / (self.momentum_threshold * 2), 1.0))),
+                    timestamp=timestamp,
+                    metadata={
+                        'momentum': momentum,
+                        'rsi': rsi,
+                        'reason': 'Negative momentum with room to fall'
+                    }
+                )
+                
+            elif rsi < self.rsi_oversold and momentum > 0:
+                # Oversold with positive momentum - potential reversal
+                signal = Signal(
+                    signal_id=str(uuid.uuid4()),
+                    strategy_id=self.name,
+                    symbol=symbol,
+                    signal_type=SignalType.ENTRY,
+                    side=OrderSide.BUY,
+                    strength=Decimal('0.5'),  # Lower confidence for reversal
+                    timestamp=timestamp,
+                    metadata={
+                        'momentum': momentum,
+                        'rsi': rsi,
+                        'reason': 'Oversold reversal signal'
+                    }
+                )
+                
+            elif rsi > self.rsi_overbought and momentum < 0:
+                # Overbought with negative momentum - potential reversal
+                signal = Signal(
+                    signal_id=str(uuid.uuid4()),
+                    strategy_id=self.name,
+                    symbol=symbol,
+                    signal_type=SignalType.ENTRY,
+                    side=OrderSide.SELL,
+                    strength=Decimal('0.5'),  # Lower confidence for reversal
+                    timestamp=timestamp,
+                    metadata={
+                        'momentum': momentum,
+                        'rsi': rsi,
+                        'reason': 'Overbought reversal signal'
+                    }
+                )
+            
+            if signal:
+                signals.append(signal)
+                self.last_signal_time = timestamp
         
-        if signal:
-            self.last_signal_time = timestamp
+        return signals
+    
+    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Signal]:
+        """
+        Backward compatibility method for single signal generation.
         
-        return signal
+        This delegates to generate_signals for consistency.
+        """
+        strategy_input = {
+            'market_data': {'UNKNOWN': market_data},
+            'indicators': {},
+            'timestamp': market_data.get('timestamp', datetime.now())
+        }
+        
+        signals = self.generate_signals(strategy_input)
+        return signals[0] if signals else None
     
     def _calculate_momentum(self) -> float:
         """Calculate price momentum."""

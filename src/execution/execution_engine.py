@@ -187,14 +187,23 @@ class DefaultExecutionEngine:
     
     async def execute_order(self, order: Order) -> Optional[Fill]:
         """Execute order through broker."""
+        logger.info(f"🔧 DefaultExecutionEngine.execute_order() called for {order.order_id}")
+        
         async with self.context.transaction(f"execute_{order.order_id}"):
             try:
                 # Add to active orders
                 await self.context.add_active_order(order.order_id)
                 
+                # Add order to order manager (it wasn't created through the order manager)
+                async with self.order_manager._lock:
+                    self.order_manager.orders[order.order_id] = order
+                    self.order_manager.order_status[order.order_id] = OrderStatus.PENDING
+                    self.order_manager.pending_orders.add(order.order_id)
+                
                 # Submit to broker
                 await self.order_manager.submit_order(order.order_id)
                 broker_order_id = await self.broker.submit_order(order)
+                logger.info(f"   Broker order ID: {broker_order_id}")
                 
                 # Get market data
                 market_data = self._market_data.get(order.symbol, {})
@@ -204,7 +213,11 @@ class DefaultExecutionEngine:
                 if spread == 0:
                     spread = 0.01  # Default spread
                 
+                logger.info(f"   Market data for {order.symbol}: price={market_price}, volume={volume}, spread={spread}")
+                logger.info(f"   Raw market data: {market_data}")
+                
                 # Simulate fill
+                logger.info(f"   Calling market_simulator.simulate_fill()")
                 fill = await self.market_simulator.simulate_fill(
                     order,
                     market_price,

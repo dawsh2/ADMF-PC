@@ -63,12 +63,12 @@ from .phase_management import (
     WalkForwardValidator,
     integrate_phase_management
 )
-from .multi_symbol_architecture import (
-    SymbolAllocation,
-    RiskContainer,
-    MultiSymbolCoordinator,
-    integrate_multi_symbol_support
-)
+# from .multi_symbol_architecture import (
+#     SymbolAllocation,
+#     RiskContainer,
+#     MultiSymbolCoordinator,
+#     integrate_multi_symbol_support
+# )
 
 __all__ = [
     'get_coordinator',  # Changed from Coordinator to avoid circular import
@@ -88,10 +88,10 @@ __all__ = [
     'WorkflowCoordinator',
     'SharedServiceRegistry',
     'WalkForwardValidator',
-    'integrate_phase_management',
-    # Multi-symbol architecture
-    'SymbolAllocation',
-    'RiskContainer',
-    'MultiSymbolCoordinator',
-    'integrate_multi_symbol_support'
+    'integrate_phase_management'
+    # Multi-symbol architecture (commented out)
+    # 'SymbolAllocation',
+    # 'RiskContainer', 
+    # 'MultiSymbolCoordinator',
+    # 'integrate_multi_symbol_support'
 ]

@@ -8,8 +8,8 @@ description: Test simple price threshold strategy on synthetic data
 # Data configuration - will use --bars 100 for quick testing
 data:
   source: csv
-  file_path: data/SYNTH_1min.csv
-  symbols: ["SYNTH"]
+  file_path: data/SPY_1m.csv
+  symbols: ["SPY"]
   # No date range needed - will use --bars argument
   frequency: "1min"
   

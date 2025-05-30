@@ -1,579 +1,587 @@
 """
-Main Coordinator implementation.
+Canonical Coordinator Implementation
 
-The Coordinator is the primary entry point for all high-level operations.
-It interprets workflow configurations and delegates execution to specialized managers.
+This is the single canonical coordinator for the ADMF-PC system that:
+1. Uses clean imports (no deep dependencies)
+2. Supports both traditional and composable container patterns
+3. Uses lazy loading and dependency injection
+4. Provides flexible workflow execution
+
+Key principles:
+- Minimal imports at module level
+- Lazy loading of complex dependencies
+- Plugin architecture for extensibility
+- Clean separation of concerns
 """
+
 import asyncio
 import uuid
+import logging
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
-import logging
+from dataclasses import dataclass, field
+from enum import Enum
 
-from ..containers import UniversalScopedContainer, ContainerLifecycleManager, ContainerFactory
-from ..events import EventBus, EventType, Event
-from ..infrastructure import MonitoringCapability, ErrorHandlingCapability
-from ..logging import StructuredLogger
-from ..components import ComponentFactory
-
-from .simple_types import (
-    WorkflowConfig, ExecutionContext,
-    WorkflowType, WorkflowPhase
-)
-
-# Import WorkflowResult from __init__ where it's defined without pydantic
-from . import WorkflowResult
-from .infrastructure import InfrastructureSetup
-from .managers import WorkflowManagerFactory
+# Only import basic types and protocols
+from .simple_types import WorkflowConfig, ExecutionContext, WorkflowType, WorkflowPhase
 from .protocols import WorkflowManager
-from .execution_modes import ExecutionModeHandler
 
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class CoordinatorResult:
+    """Result from coordinator workflow execution."""
+    workflow_id: str
+    workflow_type: WorkflowType
+    success: bool
+    data: Dict[str, Any] = field(default_factory=dict)
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    start_time: datetime = field(default_factory=datetime.now)
+    end_time: Optional[datetime] = None
+    
+    def finalize(self) -> None:
+        """Finalize result with completion time."""
+        self.end_time = datetime.now()
+        if self.start_time and self.end_time:
+            duration = (self.end_time - self.start_time).total_seconds()
+            self.metadata['duration_seconds'] = duration
+    
+    def add_error(self, error: str) -> None:
+        """Add error and mark as failed."""
+        self.errors.append(error)
+        self.success = False
+    
+    def add_warning(self, warning: str) -> None:
+        """Add warning."""
+        self.warnings.append(warning)
+
+
+class ExecutionMode(str, Enum):
+    """Supported execution modes."""
+    AUTO = "auto"           # Coordinator chooses best mode
+    TRADITIONAL = "traditional"  # Traditional workflow managers
+    COMPOSABLE = "composable"    # Composable container patterns
+    HYBRID = "hybrid"           # Mix of traditional and composable
+
+
 class Coordinator:
     """
-    Main Coordinator for the ADMF-PC system.
+    Canonical Coordinator for the ADMF-PC system.
     
-    The Coordinator:
-    - Reads workflow configurations
-    - Sets up required infrastructure
-    - Delegates to specialized managers
-    - Aggregates results in standardized format
-    - Ensures clean resource management
+    This coordinator:
+    - Orchestrates workflows without deep dependencies
+    - Supports traditional and composable execution modes
+    - Uses lazy loading to avoid import issues
+    - Provides clean plugin architecture
     """
     
     def __init__(
         self,
-        shared_services: Optional[Dict[str, Any]] = None,
-        config_path: Optional[str] = None,
-        logger: Optional[StructuredLogger] = None
+        enable_composable_containers: bool = True,
+        shared_services: Optional[Dict[str, Any]] = None
     ):
-        """Initialize the Coordinator."""
-        # Load configuration if provided
-        self.config = self._load_config(config_path) if config_path else {}
-        
-        # Shared services across all containers
+        """Initialize coordinator."""
+        self.enable_composable_containers = enable_composable_containers
         self.shared_services = shared_services or {}
         
-        # Core infrastructure
-        self.logger = logger or StructuredLogger("coordinator")
-        self.container_manager = ContainerLifecycleManager(
-            max_containers=None,
-            shared_services=self.shared_services
-        )
-        self.container_factory = ContainerFactory(self.shared_services)
-        self.component_factory = ComponentFactory()
+        # Lazy-loaded components
+        self._composition_engine = None
+        self._container_registry = None
+        self._workflow_manager_factory = None
+        self._container_manager = None
         
-        # Create coordinator's own container with unique ID
-        import uuid
-        coordinator_id = f"coordinator_{uuid.uuid4().hex[:8]}"
-        self.coordinator_container = UniversalScopedContainer(
-            container_id=coordinator_id,
-            container_type="coordinator",
-            shared_services=self.shared_services
-        )
+        # Active workflows tracking
+        self.active_workflows: Dict[str, Dict[str, Any]] = {}
         
-        # Initialize components
-        self.infrastructure = InfrastructureSetup(
-            self.coordinator_container, 
-            self.coordinator_container.event_bus
-        )
-        self.manager_factory = WorkflowManagerFactory(
-            self.container_manager,
-            self.shared_services
-        )
-        
-        # Track active workflows
-        self._active_workflows: Dict[str, ExecutionContext] = {}
-        self._workflow_containers: Dict[str, str] = {}  # workflow_id -> container_id
-        self._workflow_lock = asyncio.Lock()
-        
-        # Register event handlers
-        self._register_event_handlers()
-        
-        self.logger.info(
-            "Coordinator initialized",
-            shared_services=list(self.shared_services.keys())
-        )
-        
+        logger.info(f"Coordinator initialized (composable: {enable_composable_containers})")
+    
     async def execute_workflow(
         self,
-        config: Union[WorkflowConfig, Dict[str, Any]],
-        mode_override: Optional[str] = None,
-        mode_args: Optional[Dict[str, Any]] = None
-    ) -> WorkflowResult:
+        config: WorkflowConfig,
+        workflow_id: Optional[str] = None,
+        execution_mode: ExecutionMode = ExecutionMode.AUTO
+    ) -> CoordinatorResult:
         """
-        Execute a workflow with the given configuration.
+        Execute workflow using specified execution mode.
         
-        This is the main entry point for all workflow execution.
-        """
-        # Convert dict to WorkflowConfig if needed
-        if isinstance(config, dict):
-            config = WorkflowConfig(**config)
+        Args:
+            config: Workflow configuration
+            workflow_id: Optional workflow ID
+            execution_mode: How to execute the workflow
             
-        # Generate workflow ID
-        workflow_id = str(uuid.uuid4())
+        Returns:
+            CoordinatorResult with execution details
+        """
+        workflow_id = workflow_id or str(uuid.uuid4())
+        
+        # Create result
+        result = CoordinatorResult(
+            workflow_id=workflow_id,
+            workflow_type=config.workflow_type,
+            success=True
+        )
         
         # Create execution context
         context = ExecutionContext(
             workflow_id=workflow_id,
             workflow_type=config.workflow_type,
-            metadata={
-                'config': config.dict(),
-                'start_time': datetime.now().isoformat()
-            }
+            metadata={'execution_mode': execution_mode.value}
         )
         
-        # Track active workflow
-        async with self._workflow_lock:
-            self._active_workflows[workflow_id] = context
-            
         try:
-            # Log workflow start
-            self.logger.info(
-                "Starting workflow execution",
-                workflow_id=workflow_id,
-                workflow_type=config.workflow_type.value
-            )
+            # Determine execution mode
+            if execution_mode == ExecutionMode.AUTO:
+                execution_mode = self._determine_execution_mode(config)
+                result.metadata['auto_selected_mode'] = execution_mode.value
             
-            # Create container for this workflow
-            container_id = await self._create_workflow_container(
-                workflow_id, config, context
-            )
-            context.metadata['container_id'] = container_id
+            logger.info(f"Executing workflow {workflow_id} in {execution_mode.value} mode")
             
-            # Get the container's event bus
-            container = self.container_manager.active_containers[container_id]
-            event_bus = container.event_bus
-            
-            # Emit workflow start event
-            event = Event(
-                event_type=EventType.INFO,
-                payload={
-                    'type': 'workflow.start',
-                    'workflow_id': workflow_id,
-                    'workflow_type': config.workflow_type.value,
-                    'config': config.dict()
-                },
-                source_id="coordinator",
-                container_id=container_id
-            )
-            event_bus.publish(event)
-            
-            # Validate configuration
-            validation_result = await self._validate_workflow_config(config)
-            if not validation_result['valid']:
-                return self._create_validation_error_result(
-                    workflow_id,
-                    config.workflow_type,
-                    validation_result['errors']
-                )
-                
-            # Check for special execution modes
-            if mode_override in ['signal-generation', 'signal-replay']:
-                # Handle special modes
-                result = await self._execute_special_mode(
-                    mode_override, config, mode_args or {}
-                )
+            # Execute based on mode
+            if execution_mode == ExecutionMode.TRADITIONAL:
+                await self._execute_traditional_workflow(config, context, result)
+            elif execution_mode == ExecutionMode.COMPOSABLE:
+                await self._execute_composable_workflow(config, context, result)
+            elif execution_mode == ExecutionMode.HYBRID:
+                await self._execute_hybrid_workflow(config, context, result)
             else:
-                # Standard workflow execution
-                # Set up shared infrastructure
-                await self._setup_shared_infrastructure(config, context)
+                result.add_error(f"Unknown execution mode: {execution_mode}")
                 
-                # Get appropriate manager
-                manager = self.manager_factory.create_manager(
-                    config.workflow_type,
-                    container_id
-                )
-                
-                # Execute workflow in its container
-                result = await manager.execute(config, context)
+        except Exception as e:
+            logger.error(f"Workflow {workflow_id} failed: {e}")
+            result.add_error(str(e))
+        finally:
+            # Clean up and finalize
+            await self._cleanup_workflow(workflow_id)
+            result.finalize()
+        
+        return result
+    
+    def _determine_execution_mode(self, config: WorkflowConfig) -> ExecutionMode:
+        """Automatically determine best execution mode."""
+        
+        # Check if config explicitly requests container pattern
+        container_pattern = config.parameters.get('container_pattern')
+        if container_pattern and self.enable_composable_containers:
+            return ExecutionMode.COMPOSABLE
+        
+        # Check for complex multi-pattern workflows
+        if config.parameters.get('use_multiple_patterns', False):
+            return ExecutionMode.COMPOSABLE
+        
+        # Check for parallel optimization with different patterns
+        if (config.workflow_type == WorkflowType.OPTIMIZATION and 
+            config.parameters.get('parallel_patterns', False)):
+            return ExecutionMode.COMPOSABLE
+        
+        # Check if composable containers would provide benefit
+        if self._would_benefit_from_composable(config):
+            return ExecutionMode.COMPOSABLE
+        
+        # Default to traditional for backward compatibility
+        return ExecutionMode.TRADITIONAL
+    
+    def _would_benefit_from_composable(self, config: WorkflowConfig) -> bool:
+        """Determine if config would benefit from composable containers."""
+        
+        if not self.enable_composable_containers:
+            return False
+        
+        # Check for multi-classifier scenarios
+        optimization_config = config.optimization_config or {}
+        classifiers = optimization_config.get('classifiers', [])
+        strategies = optimization_config.get('strategies', [])
+        risk_profiles = optimization_config.get('risk_profiles', [])
+        
+        # Benefit from composable if:
+        # - Multiple classifiers/strategies/risk profiles
+        # - Signal generation/replay workflows
+        # - Complex indicator sharing scenarios
+        
+        has_multiple_components = (
+            len(classifiers) > 1 or 
+            len(strategies) > 1 or 
+            len(risk_profiles) > 1
+        )
+        
+        is_signal_workflow = (
+            config.workflow_type == WorkflowType.ANALYSIS or
+            config.analysis_config.get('mode') == 'signal_generation'
+        )
+        
+        return has_multiple_components or is_signal_workflow
+    
+    async def _execute_traditional_workflow(
+        self,
+        config: WorkflowConfig,
+        context: ExecutionContext,
+        result: CoordinatorResult
+    ) -> None:
+        """Execute workflow using traditional workflow managers."""
+        
+        try:
+            # Lazy import and create workflow manager factory
+            workflow_manager_factory = await self._get_workflow_manager_factory()
             
-            # Log completion
-            self.logger.info(
-                "Workflow execution completed",
-                workflow_id=workflow_id,
-                success=result.success,
-                duration_seconds=result.duration_seconds
+            # Create workflow manager
+            manager = workflow_manager_factory.create_manager(
+                workflow_type=config.workflow_type,
+                container_id=f"workflow_{context.workflow_id}",
+                use_composable=False
             )
             
-            # Emit workflow complete event
-            complete_event = Event(
-                event_type=EventType.INFO,
-                payload={
-                    'type': 'workflow.complete',
-                    'workflow_id': workflow_id,
-                    'success': result.success,
-                    'duration_seconds': result.duration_seconds
-                },
-                source_id="coordinator",
-                container_id=container_id
-            )
-            event_bus.publish(complete_event)
+            # Store workflow info
+            self.active_workflows[context.workflow_id] = {
+                'config': config,
+                'context': context,
+                'manager': manager,
+                'mode': 'traditional'
+            }
             
-            return result
+            # Execute workflow
+            workflow_result = await manager.execute(config, context)
+            
+            # Convert to coordinator result
+            result.success = workflow_result.success
+            result.data = workflow_result.final_results
+            result.errors.extend(workflow_result.errors)
+            result.metadata.update(workflow_result.metadata)
+            result.metadata['execution_mode'] = 'traditional'
+            
+        except ImportError as e:
+            result.add_error(f"Traditional workflow manager not available: {e}")
+        except Exception as e:
+            result.add_error(f"Traditional workflow execution failed: {e}")
+    
+    async def _execute_composable_workflow(
+        self,
+        config: WorkflowConfig,
+        context: ExecutionContext,
+        result: CoordinatorResult
+    ) -> None:
+        """Execute workflow using composable container patterns."""
+        
+        if not self.enable_composable_containers:
+            result.add_error("Composable containers not enabled")
+            return
+        
+        try:
+            # Lazy import composable workflow manager
+            ComposableWorkflowManager = await self._get_composable_workflow_manager()
+            
+            # Create composable workflow manager
+            manager = ComposableWorkflowManager(
+                container_id=f"workflow_{context.workflow_id}",
+                shared_services=self.shared_services
+            )
+            
+            # Store workflow info
+            self.active_workflows[context.workflow_id] = {
+                'config': config,
+                'context': context,
+                'manager': manager,
+                'mode': 'composable'
+            }
+            
+            # Execute workflow
+            workflow_result = await manager.execute(config, context)
+            
+            # Convert to coordinator result
+            result.success = workflow_result.success
+            result.data = workflow_result.final_results
+            result.errors.extend(workflow_result.errors)
+            result.metadata.update(workflow_result.metadata)
+            result.metadata['execution_mode'] = 'composable'
+            
+        except ImportError as e:
+            result.add_error(f"Composable workflow manager not available: {e}")
+            # Fall back to traditional
+            result.add_warning("Falling back to traditional execution")
+            await self._execute_traditional_workflow(config, context, result)
+        except Exception as e:
+            result.add_error(f"Composable workflow execution failed: {e}")
+    
+    async def _execute_hybrid_workflow(
+        self,
+        config: WorkflowConfig,
+        context: ExecutionContext,
+        result: CoordinatorResult
+    ) -> None:
+        """Execute workflow using hybrid approach."""
+        
+        try:
+            # Use traditional for orchestration, composable for specific phases
+            phase_configs = config.parameters.get('phase_patterns', {})
+            
+            if not phase_configs:
+                # No phase-specific config, default to composable
+                await self._execute_composable_workflow(config, context, result)
+                return
+            
+            phase_results = {}
+            
+            for phase_name, phase_config in phase_configs.items():
+                if 'container_pattern' in phase_config:
+                    # Use composable for this phase
+                    phase_context = ExecutionContext(
+                        workflow_id=f"{context.workflow_id}_{phase_name}",
+                        workflow_type=config.workflow_type,
+                        metadata={'phase': phase_name}
+                    )
+                    
+                    phase_result = CoordinatorResult(
+                        workflow_id=phase_context.workflow_id,
+                        workflow_type=config.workflow_type,
+                        success=True
+                    )
+                    
+                    await self._execute_composable_workflow(config, phase_context, phase_result)
+                    phase_results[phase_name] = phase_result
+                else:
+                    # Use traditional for this phase
+                    phase_context = ExecutionContext(
+                        workflow_id=f"{context.workflow_id}_{phase_name}",
+                        workflow_type=config.workflow_type,
+                        metadata={'phase': phase_name}
+                    )
+                    
+                    phase_result = CoordinatorResult(
+                        workflow_id=phase_context.workflow_id,
+                        workflow_type=config.workflow_type,
+                        success=True
+                    )
+                    
+                    await self._execute_traditional_workflow(config, phase_context, phase_result)
+                    phase_results[phase_name] = phase_result
+            
+            # Aggregate results
+            result.success = all(r.success for r in phase_results.values())
+            result.data = {
+                'phase_results': {name: r.data for name, r in phase_results.items()}
+            }
+            result.metadata.update({
+                'execution_mode': 'hybrid',
+                'phases': list(phase_results.keys()),
+                'successful_phases': sum(1 for r in phase_results.values() if r.success)
+            })
+            
+            # Collect all errors and warnings
+            for phase_result in phase_results.values():
+                result.errors.extend(phase_result.errors)
+                result.warnings.extend(phase_result.warnings)
             
         except Exception as e:
-            # Log error
-            self.logger.error(
-                "Workflow execution failed",
-                workflow_id=workflow_id,
-                error=str(e)
-            )
-            
-            # Create error result
-            result = WorkflowResult(
-                workflow_id=workflow_id,
-                workflow_type=config.workflow_type,
-                success=False,
-                errors=[str(e)]
-            )
-            result.finalize()
-            
-            # Emit error event
-            if 'container_id' in context.metadata:
-                container_id = context.metadata['container_id']
-                container = self.container_manager.active_containers.get(container_id)
-                if container:
-                    error_event = Event(
-                        event_type=EventType.ERROR,
-                        payload={
-                            'type': 'workflow.error',
-                            'workflow_id': workflow_id,
-                            'error': str(e)
-                        },
-                        source_id="coordinator",
-                        container_id=container_id
-                    )
-                    container.event_bus.publish(error_event)
-            
-            return result
-            
-        finally:
-            # Clean up container
-            if workflow_id in self._workflow_containers:
-                container_id = self._workflow_containers[workflow_id]
-                await self._cleanup_workflow_container(workflow_id, container_id)
+            result.add_error(f"Hybrid workflow execution failed: {e}")
+    
+    async def _cleanup_workflow(self, workflow_id: str) -> None:
+        """Clean up resources for completed workflow."""
+        
+        if workflow_id not in self.active_workflows:
+            return
+        
+        workflow_info = self.active_workflows[workflow_id]
+        mode = workflow_info.get('mode')
+        
+        try:
+            # Mode-specific cleanup
+            if mode == 'traditional':
+                # Traditional workflows clean up automatically
+                pass
+            elif mode == 'composable':
+                # Composable workflows might need container disposal
+                manager = workflow_info.get('manager')
+                if manager and hasattr(manager, 'cleanup'):
+                    await manager.cleanup()
             
             # Remove from active workflows
-            async with self._workflow_lock:
-                self._active_workflows.pop(workflow_id, None)
-                self._workflow_containers.pop(workflow_id, None)
+            del self.active_workflows[workflow_id]
+            
+            logger.debug(f"Cleaned up workflow {workflow_id} ({mode} mode)")
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up workflow {workflow_id}: {e}")
+    
+    # Lazy loading methods to avoid deep imports
+    
+    async def _get_workflow_manager_factory(self):
+        """Lazy load workflow manager factory."""
+        if self._workflow_manager_factory is None:
+            try:
+                from .managers import WorkflowManagerFactory
                 
-    async def get_workflow_status(
-        self,
-        workflow_id: str
-    ) -> Dict[str, Any]:
-        """Get the status of a workflow."""
-        async with self._workflow_lock:
-            context = self._active_workflows.get(workflow_id)
-            
-        if not context:
-            return {
-                'workflow_id': workflow_id,
-                'status': 'not_found',
-                'active': False
-            }
-            
-        return {
-            'workflow_id': workflow_id,
-            'status': 'active',
-            'active': True,
-            'workflow_type': context.workflow_type.value,
-            'current_phase': context.current_phase.value if context.current_phase else None,
-            'completed_phases': [p.value for p in context.completed_phases],
-            'start_time': context.start_time.isoformat()
-        }
-        
-    async def list_active_workflows(self) -> List[Dict[str, Any]]:
-        """List all active workflows."""
-        async with self._workflow_lock:
-            workflows = []
-            
-            for workflow_id, context in self._active_workflows.items():
-                workflows.append({
-                    'workflow_id': workflow_id,
-                    'workflow_type': context.workflow_type.value,
-                    'current_phase': context.current_phase.value if context.current_phase else None,
-                    'start_time': context.start_time.isoformat()
-                })
+                # Create container manager if needed
+                if self._container_manager is None:
+                    from ..containers import ContainerLifecycleManager
+                    self._container_manager = ContainerLifecycleManager()
                 
-        return workflows
+                self._workflow_manager_factory = WorkflowManagerFactory(
+                    container_manager=self._container_manager,
+                    shared_services=self.shared_services
+                )
+            except ImportError as e:
+                raise ImportError(f"Cannot load workflow manager factory: {e}")
         
-    async def cancel_workflow(self, workflow_id: str) -> bool:
-        """Cancel an active workflow."""
-        async with self._workflow_lock:
-            context = self._active_workflows.get(workflow_id)
+        return self._workflow_manager_factory
+    
+    async def _get_composable_workflow_manager(self):
+        """Lazy load composable workflow manager."""
+        try:
+            from .composable_workflow_manager import ComposableWorkflowManager
+            return ComposableWorkflowManager
+        except ImportError as e:
+            raise ImportError(f"Cannot load composable workflow manager: {e}")
+    
+    async def _get_composition_engine(self):
+        """Lazy load composition engine."""
+        if self._composition_engine is None:
+            try:
+                from ..containers.composition_engine import get_global_composition_engine
+                self._composition_engine = get_global_composition_engine()
+            except ImportError as e:
+                raise ImportError(f"Cannot load composition engine: {e}")
+        
+        return self._composition_engine
+    
+    async def _get_container_registry(self):
+        """Lazy load container registry."""
+        if self._container_registry is None:
+            try:
+                from ..containers.composition_engine import get_global_registry
+                self._container_registry = get_global_registry()
+            except ImportError as e:
+                raise ImportError(f"Cannot load container registry: {e}")
+        
+        return self._container_registry
+    
+    # Public API methods
+    
+    async def get_available_patterns(self) -> Dict[str, Any]:
+        """Get all available container patterns."""
+        if not self.enable_composable_containers:
+            return {}
+        
+        try:
+            registry = await self._get_container_registry()
+            patterns = registry.list_available_patterns()
             
-        if not context:
-            return False
+            pattern_info = {}
+            for pattern_name in patterns:
+                pattern = registry.get_pattern(pattern_name)
+                if pattern:
+                    pattern_info[pattern_name] = {
+                        'description': pattern.description,
+                        'required_capabilities': list(pattern.required_capabilities),
+                        'default_config': pattern.default_config
+                    }
             
-        # Emit cancellation event
-        await self.event_bus.emit({
-            'type': 'workflow.cancel',
-            'workflow_id': workflow_id
-        })
-        
-        # The actual cancellation would be handled by the manager
-        # through the event system
-        
-        return True
-        
-    async def _validate_workflow_config(
+            return pattern_info
+        except ImportError:
+            return {}
+    
+    async def validate_workflow_config(
         self,
-        config: WorkflowConfig
+        config: WorkflowConfig,
+        execution_mode: ExecutionMode = ExecutionMode.AUTO
     ) -> Dict[str, Any]:
         """Validate workflow configuration."""
-        # For validation, we can use a temporary container ID
-        # since we're not actually creating a container yet
-        try:
-            temp_container_id = f"validation_{config.workflow_type.value}"
-            manager = self.manager_factory.create_manager(config.workflow_type, temp_container_id)
-            return await manager.validate_config(config)
-        except ValueError as e:
-            return {
-                'valid': False,
-                'errors': [str(e)],
-                'warnings': []
-            }
-            
-    def _create_validation_error_result(
-        self,
-        workflow_id: str,
-        workflow_type: WorkflowType,
-        errors: List[str]
-    ) -> WorkflowResult:
-        """Create a result for validation errors."""
-        result = WorkflowResult(
-            workflow_id=workflow_id,
-            workflow_type=workflow_type,
-            success=False,
-            errors=errors
-        )
-        result.finalize()
-        return result
         
-    def _load_config(self, config_path: str) -> Dict[str, Any]:
-        """Load configuration from YAML file."""
-        try:
-            import yaml
-            with open(config_path, 'r') as f:
-                return yaml.safe_load(f)
-        except FileNotFoundError:
-            self.logger.warning(f"Config file not found: {config_path}")
-            return {}
-        except Exception as e:
-            self.logger.error(f"Failed to load config from {config_path}: {e}")
-            return {}
-    
-    async def _create_workflow_container(
-        self,
-        workflow_id: str,
-        config: WorkflowConfig,
-        context: ExecutionContext
-    ) -> str:
-        """Create a container for workflow execution."""
-        # Determine container type based on workflow
-        if config.workflow_type == WorkflowType.OPTIMIZATION:
-            container_id = self.container_manager.create_and_start_container(
-                "optimization",
-                {
-                    'workflow_id': workflow_id,
-                    'optimization_config': config.optimization_config,
-                    'shared_services': self.shared_services
-                }
-            )
-        elif config.workflow_type == WorkflowType.BACKTEST:
-            container_id = self.container_manager.create_and_start_container(
-                "backtest",
-                {
-                    'workflow_id': workflow_id,
-                    'backtest_config': config.backtest_config,
-                    'shared_services': self.shared_services
-                }
-            )
-        else:
-            # Generic container for other types
-            container_id = self.container_manager.create_and_start_container(
-                config.workflow_type.value,
-                {
-                    'workflow_id': workflow_id,
-                    'config': config.dict(),
-                    'shared_services': self.shared_services
-                }
-            )
+        validation_result = {
+            'valid': True,
+            'errors': [],
+            'warnings': [],
+            'suggested_mode': None
+        }
         
-        async with self._workflow_lock:
-            self._workflow_containers[workflow_id] = container_id
+        # Basic validation
+        if not config.data_config:
+            validation_result['errors'].append("Missing data configuration")
         
-        return container_id
-    
-    async def _setup_shared_infrastructure(
-        self,
-        config: WorkflowConfig,
-        context: ExecutionContext
-    ) -> None:
-        """Set up shared infrastructure for the workflow."""
-        # Set up shared indicators if specified
-        if 'shared_indicators' in config.parameters:
-            await self._setup_shared_indicators(
-                config.parameters['shared_indicators'],
-                context
-            )
+        if config.workflow_type == WorkflowType.BACKTEST and not config.backtest_config:
+            validation_result['warnings'].append("Missing backtest configuration, using defaults")
         
-        # Set up data feeds
-        if config.data_config:
-            await self._setup_data_feeds(config.data_config, context)
-    
-    async def _setup_shared_indicators(
-        self,
-        indicators_config: Dict[str, Any],
-        context: ExecutionContext
-    ) -> None:
-        """Set up shared indicator containers."""
-        # Create indicator hub container
-        indicator_container_id = self.container_factory.create_indicator_container(
-            indicators=indicators_config.get('indicators', [])
-        )
+        if config.workflow_type == WorkflowType.OPTIMIZATION and not config.optimization_config:
+            validation_result['errors'].append("Missing optimization configuration")
         
-        # Initialize the container
-        self.container_manager.initialize_container(indicator_container_id)
+        # Execution mode validation
+        if execution_mode == ExecutionMode.AUTO:
+            suggested_mode = self._determine_execution_mode(config)
+            validation_result['suggested_mode'] = suggested_mode.value
         
-        # Store reference in context
-        context.shared_resources['indicator_hub'] = indicator_container_id
+        # Container pattern validation
+        container_pattern = config.parameters.get('container_pattern')
+        if container_pattern and self.enable_composable_containers:
+            try:
+                registry = await self._get_container_registry()
+                pattern = registry.get_pattern(container_pattern)
+                if not pattern:
+                    validation_result['errors'].append(f"Unknown container pattern: {container_pattern}")
+            except ImportError:
+                validation_result['warnings'].append("Cannot validate container pattern - composable containers not available")
         
-        self.logger.info(
-            "Created shared indicator hub",
-            workflow_id=context.workflow_id,
-            container_id=indicator_container_id
-        )
-    
-    async def _setup_data_feeds(
-        self,
-        data_config: Dict[str, Any],
-        context: ExecutionContext
-    ) -> None:
-        """Set up data sources for the workflow."""
-        # This would integrate with your data manager
-        # For now, store config in context
-        context.shared_resources['data_config'] = data_config
+        validation_result['valid'] = len(validation_result['errors']) == 0
         
-        self.logger.info(
-            "Configured data feeds",
-            workflow_id=context.workflow_id,
-            sources=list(data_config.get('sources', {}).keys())
-        )
-    
-    async def _cleanup_workflow_container(
-        self,
-        workflow_id: str,
-        container_id: str
-    ) -> None:
-        """Clean up workflow container."""
-        try:
-            self.container_manager.stop_and_destroy_container(container_id)
-            self.logger.info(
-                "Cleaned up workflow container",
-                workflow_id=workflow_id,
-                container_id=container_id
-            )
-        except Exception as e:
-            self.logger.error(
-                f"Failed to cleanup container {container_id}: {e}"
-            )
-    
-    def _register_event_handlers(self) -> None:
-        """Register internal event handlers."""
-        # Use coordinator container's event bus
-        self.coordinator_container.event_bus.subscribe(
-            EventType.SYSTEM,
-            self._handle_workflow_event
-        )
-        
-    def _handle_workflow_event(self, event: Event) -> None:
-        """Handle workflow lifecycle events."""
-        if isinstance(event.payload, dict):
-            event_type = event.payload.get('type', '')
-            workflow_id = event.payload.get('workflow_id')
-            
-            # Log significant events
-            if event_type in ['workflow.start', 'workflow.complete', 'workflow.error']:
-                self.logger.info(
-                    f"Workflow event: {event_type}",
-                    workflow_id=workflow_id,
-                    details=event.payload
-                )
-            
-    async def _execute_special_mode(
-        self,
-        mode: str,
-        config: WorkflowConfig,
-        mode_args: Dict[str, Any]
-    ) -> WorkflowResult:
-        """Execute special modes (signal generation/replay)."""
-        # Convert config to dict for the handler
-        base_config = config.dict()
-        
-        # Merge data config
-        if config.data_config:
-            base_config['data'] = config.data_config
-        
-        try:
-            if mode == 'signal-generation':
-                result_data = await ExecutionModeHandler.run_signal_generation(
-                    base_config=base_config,
-                    **mode_args
-                )
-            elif mode == 'signal-replay':
-                result_data = await ExecutionModeHandler.run_signal_replay(
-                    base_config=base_config,
-                    **mode_args
-                )
-            else:
-                raise ValueError(f"Unknown special mode: {mode}")
-            
-            # Create workflow result
-            result = WorkflowResult(
-                workflow_id=str(uuid.uuid4()),
-                workflow_type=WorkflowType.BACKTEST,  # Use backtest as default
-                success=result_data.get('success', True),
-                results=result_data
-            )
-            result.finalize()
-            return result
-            
-        except Exception as e:
-            self.logger.error(f"Special mode execution failed: {e}")
-            result = WorkflowResult(
-                workflow_id=str(uuid.uuid4()),
-                workflow_type=WorkflowType.BACKTEST,
-                success=False,
-                errors=[str(e)]
-            )
-            result.finalize()
-            return result
+        return validation_result
     
     async def shutdown(self) -> None:
-        """Shutdown the coordinator and clean up resources."""
-        self.logger.info("Shutting down Coordinator")
+        """Shutdown coordinator and clean up all resources."""
+        logger.info("Shutting down Coordinator...")
         
-        # Cancel any active workflows
-        async with self._workflow_lock:
-            active_ids = list(self._active_workflows.keys())
-            
-        for workflow_id in active_ids:
-            await self.cancel_workflow(workflow_id)
-            
-        # Wait for workflows to complete
-        wait_time = 0
-        while self._active_workflows and wait_time < 30:
-            await asyncio.sleep(1)
-            wait_time += 1
-            
-        if self._active_workflows:
-            self.logger.warning(
-                "Some workflows still active after shutdown",
-                count=len(self._active_workflows)
-            )
+        # Clean up all active workflows
+        workflow_ids = list(self.active_workflows.keys())
+        for workflow_id in workflow_ids:
+            await self._cleanup_workflow(workflow_id)
+        
+        # Clean up container manager if created
+        if self._container_manager and hasattr(self._container_manager, 'shutdown'):
+            await self._container_manager.shutdown()
+        
+        logger.info("Coordinator shutdown complete")
+
+
+# Convenience functions for backward compatibility
+
+async def execute_backtest(
+    config: WorkflowConfig,
+    coordinator: Optional[Coordinator] = None,
+    container_pattern: Optional[str] = None
+) -> CoordinatorResult:
+    """Execute backtest workflow."""
+    
+    if coordinator is None:
+        coordinator = Coordinator(enable_composable_containers=True)
+    
+    # Add container pattern if specified
+    if container_pattern:
+        config.parameters['container_pattern'] = container_pattern
+    
+    try:
+        result = await coordinator.execute_workflow(
+            config=config,
+            execution_mode=ExecutionMode.COMPOSABLE if container_pattern else ExecutionMode.AUTO
+        )
+        return result
+    finally:
+        await coordinator.shutdown()
+
+
+async def execute_optimization(
+    config: WorkflowConfig,
+    coordinator: Optional[Coordinator] = None,
+    use_composable: bool = True
+) -> CoordinatorResult:
+    """Execute optimization workflow."""
+    
+    if coordinator is None:
+        coordinator = Coordinator(enable_composable_containers=use_composable)
+    
+    try:
+        result = await coordinator.execute_workflow(
+            config=config,
+            execution_mode=ExecutionMode.COMPOSABLE if use_composable else ExecutionMode.TRADITIONAL
+        )
+        return result
+    finally:
+        await coordinator.shutdown()

@@ -1,0 +1,83 @@
+# SPY Momentum Strategy Backtest
+# Real backtest using SPY 1-minute data with momentum strategy
+
+name: SPY Momentum Strategy Backtest
+workflow_type: backtest
+description: Test momentum strategy on SPY 1-minute data
+
+# Data configuration
+data:
+  source: csv
+  file_path: data/SPY_1m.csv
+  symbols: ["SPY"]
+  frequency: "1min"
+  
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  currency: USD
+  commission:
+    type: percentage
+    value: 0.001  # 0.1% commission
+    
+# Strategy configuration
+strategies:
+  - name: momentum_strategy
+    type: momentum
+    enabled: true
+    allocation: 1.0
+    parameters:
+      lookback_period: 20        # 20-period momentum
+      momentum_threshold: 0.0002  # 0.02% minimum momentum (adjusted for minute data)
+      rsi_period: 14            # Standard RSI period
+      rsi_oversold: 30          # RSI oversold level
+      rsi_overbought: 70        # RSI overbought level
+      
+# Risk management
+risk:
+  position_sizers:
+    - name: percentage_sizer
+      type: percentage
+      size: 0.02  # 2% risk per trade
+  
+  limits:
+    - type: max_position_value
+      value: 20000  # Max $20k per position
+    - type: max_total_exposure  
+      value: 0.8    # Max 80% of capital deployed
+
+# Backtest configuration
+backtest:
+  initial_capital: 100000
+  commission: 0.001     # 0.1%
+  slippage: 0.0005     # 0.05% slippage
+  start_date: null     # Use all available data
+  end_date: null
+  
+  # Strategy configuration for backtest engine
+  strategies:
+    - name: momentum_strategy
+      type: momentum
+      parameters:
+        lookback_period: 20
+        momentum_threshold: 0.0002
+        rsi_period: 14
+        rsi_oversold: 30
+        rsi_overbought: 70
+        
+  portfolio:
+    initial_capital: 100000
+
+# Analysis configuration
+analysis:
+  metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+    - win_rate
+    - total_trades
+    - avg_trade_return
+    - profit_factor
+  print_trades: true
+  save_results: true
+  output_format: json
