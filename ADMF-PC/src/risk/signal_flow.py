@@ -111,9 +111,7 @@ class SignalFlowManager:
         self._strategy_weights[strategy_id] = weight
         
         self.logger.info(
-            "strategy_registered",
-            strategy_id=strategy_id,
-            weight=str(weight)
+            f"Strategy registered - ID: {strategy_id}, Weight: {weight}"
         )
     
     def unregister_strategy(self, strategy_id: str) -> None:
@@ -121,7 +119,7 @@ class SignalFlowManager:
         self._registered_strategies.discard(strategy_id)
         self._strategy_weights.pop(strategy_id, None)
         
-        self.logger.info("strategy_unregistered", strategy_id=strategy_id)
+        self.logger.info(f"Strategy unregistered - ID: {strategy_id}")
     
     def add_order_callback(self, callback: Callable[[Order], None]) -> None:
         """Add callback for when orders are generated.
@@ -145,9 +143,7 @@ class SignalFlowManager:
         # Validate strategy is registered
         if signal.strategy_id not in self._registered_strategies:
             self.logger.warning(
-                "signal_from_unregistered_strategy",
-                strategy_id=signal.strategy_id,
-                signal_id=signal.signal_id
+                f"Signal from unregistered strategy - Strategy ID: {signal.strategy_id}, Signal ID: {signal.signal_id}"
             )
             self._signals_rejected += 1
             return
@@ -214,9 +210,7 @@ class SignalFlowManager:
             return []
         
         self.logger.info(
-            "processing_signals",
-            signal_count=len(signals),
-            strategies=list(set(s.strategy_id for s in signals))
+            f"Processing signals - Count: {len(signals)}, Strategies: {list(set(s.strategy_id for s in signals))}"
         )
         
         # Aggregate signals if enabled
@@ -225,9 +219,7 @@ class SignalFlowManager:
                 signals, self._strategy_weights
             )
             self.logger.debug(
-                "signals_aggregated",
-                original_count=len(self._signal_buffer),
-                aggregated_count=len(signals)
+                f"Signals aggregated - Original count: {len(self._signal_buffer)}, Aggregated count: {len(signals)}"
             )
         
         # Prioritize signals
@@ -256,9 +248,7 @@ class SignalFlowManager:
                             callback(order)
                         except Exception as e:
                             self.logger.error(
-                                "order_callback_error",
-                                error=str(e),
-                                order_id=order.order_id
+                                f"Order callback error - Error: {str(e)}, Order ID: {order.order_id}"
                             )
                     
                     # Emit event
@@ -271,17 +261,12 @@ class SignalFlowManager:
                     
             except Exception as e:
                 self.logger.error(
-                    "signal_processing_error",
-                    signal=signal,
-                    error=str(e)
+                    f"Signal processing error - Signal: {signal}, Error: {str(e)}"
                 )
                 self._signals_rejected += 1
         
         self.logger.info(
-            "signals_processed",
-            signals_processed=len(signals),
-            orders_generated=len(orders),
-            approval_rate=f"{len(orders) / len(signals):.1%}" if signals else "N/A"
+            f"Signals processed - Processed: {len(signals)}, Orders generated: {len(orders)}, Approval rate: {f'{len(orders) / len(signals):.1%}' if signals else 'N/A'}"
         )
         
         return orders
@@ -368,9 +353,7 @@ class MultiSymbolSignalFlow:
         self._flow_managers[classifier_id] = flow_manager
         
         self.logger.info(
-            "flow_manager_created",
-            classifier_id=classifier_id,
-            config=config
+            f"Flow manager created - Classifier ID: {classifier_id}, Config: {config}"
         )
         
         return flow_manager
@@ -389,9 +372,7 @@ class MultiSymbolSignalFlow:
         self._symbol_classifiers[symbol] = classifier_id
         
         self.logger.info(
-            "symbol_mapped",
-            symbol=symbol,
-            classifier_id=classifier_id
+            f"Symbol mapped - Symbol: {symbol}, Classifier ID: {classifier_id}"
         )
     
     async def route_signal(self, signal: Signal) -> None:
@@ -404,9 +385,7 @@ class MultiSymbolSignalFlow:
         classifier_id = self._symbol_classifiers.get(signal.symbol)
         if not classifier_id:
             self.logger.warning(
-                "no_classifier_for_symbol",
-                symbol=signal.symbol,
-                signal_id=signal.signal_id
+                f"No classifier for symbol - Symbol: {signal.symbol}, Signal ID: {signal.signal_id}"
             )
             return
         
@@ -414,9 +393,7 @@ class MultiSymbolSignalFlow:
         flow_manager = self._flow_managers.get(classifier_id)
         if not flow_manager:
             self.logger.warning(
-                "no_flow_manager",
-                classifier_id=classifier_id,
-                signal_id=signal.signal_id
+                f"No flow manager - Classifier ID: {classifier_id}, Signal ID: {signal.signal_id}"
             )
             return
         
@@ -453,8 +430,7 @@ class MultiSymbolSignalFlow:
             
             if not portfolio_state or not position_sizer:
                 self.logger.warning(
-                    "missing_components",
-                    classifier_id=classifier_id
+                    f"Missing components - Classifier ID: {classifier_id}"
                 )
                 continue
             
@@ -477,9 +453,7 @@ class MultiSymbolSignalFlow:
             for (classifier_id, _), result in zip(tasks, results):
                 if isinstance(result, Exception):
                     self.logger.error(
-                        "classifier_processing_error",
-                        classifier_id=classifier_id,
-                        error=str(result)
+                        f"Classifier processing error - Classifier ID: {classifier_id}, Error: {str(result)}"
                     )
                     orders_by_classifier[classifier_id] = []
                 else:

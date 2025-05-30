@@ -125,8 +125,7 @@ class RiskPortfolioCapability(Capability):
             component.add_shutdown_hook(risk_portfolio.cleanup)
         
         logger.info(
-            f"Applied Risk & Portfolio capability to {component.container_id}",
-            extra={'initial_capital': float(initial_capital)}
+            f"Applied Risk & Portfolio capability to {component.container_id} with initial capital: {float(initial_capital)}"
         )
         
         return component

@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
 
 from .protocols import ExecutionCapability, OrderType, Order
-from ..core.infrastructure.capabilities import Capability
+from ..core.components.protocols import Capability
 import logging
 
 

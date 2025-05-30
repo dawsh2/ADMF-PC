@@ -62,9 +62,7 @@ class SignalRouter:
         """Add processor for specific strategy."""
         self._strategy_processors[strategy_id] = processor
         self.logger.info(
-            "strategy_processor_added",
-            strategy_id=strategy_id,
-            processor=type(processor).__name__
+            f"Strategy processor added - Strategy ID: {strategy_id}, Processor: {type(processor).__name__}"
         )
     
     def add_signal_type_processor(
@@ -75,9 +73,7 @@ class SignalRouter:
         """Add processor for specific signal type."""
         self._signal_type_processors[signal_type] = processor
         self.logger.info(
-            "signal_type_processor_added",
-            signal_type=signal_type.value,
-            processor=type(processor).__name__
+            f"Signal type processor added - Signal type: {signal_type.value}, Processor: {type(processor).__name__}"
         )
     
     def route_signal(
@@ -108,10 +104,7 @@ class SignalRouter:
         
         if not processor:
             self.logger.warning(
-                "no_processor_found",
-                signal=signal,
-                strategy_id=signal.strategy_id,
-                signal_type=signal.signal_type.value
+                f"No processor found - Signal: {signal}, Strategy ID: {signal.strategy_id}, Signal type: {signal.signal_type.value}"
             )
             return None
         
@@ -170,9 +163,7 @@ class SignalValidator:
         
         if not is_valid:
             self.logger.warning(
-                "signal_validation_failed",
-                signal_id=signal.signal_id,
-                failures=failures
+                f"Signal validation failed - Signal ID: {signal.signal_id}, Failures: {failures}"
             )
         
         return is_valid, failures
@@ -318,10 +309,7 @@ class SignalCache:
                 self._cache_hits += 1
                 self._duplicates_rejected += 1
                 self.logger.debug(
-                    "duplicate_signal_detected",
-                    signal_id=signal.signal_id,
-                    cached_signal_id=cached_signal.signal_id,
-                    age_seconds=age.total_seconds()
+                    f"Duplicate signal detected - Signal ID: {signal.signal_id}, Cached signal ID: {cached_signal.signal_id}, Age: {age.total_seconds()}s"
                 )
                 return True
             else:
@@ -431,10 +419,7 @@ class SignalPrioritizer:
                     total_score += score
                 except Exception as e:
                     self.logger.error(
-                        "priority_rule_error",
-                        rule_name=rule_name,
-                        signal_id=signal.signal_id,
-                        error=str(e)
+                        f"Priority rule error - Rule: {rule_name}, Signal ID: {signal.signal_id}, Error: {str(e)}"
                     )
             
             signal_scores.append((signal, total_score))
