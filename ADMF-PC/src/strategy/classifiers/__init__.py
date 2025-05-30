@@ -9,7 +9,10 @@ forms of market categorization.
 
 from .classifier import (
     TrendVolatilityClassifier,
-    MultiIndicatorClassifier
+    MultiIndicatorClassifier,
+    RegimeClassifier,
+    RegimeState,
+    RegimeContext
 )
 
 from .classifier_container import (
@@ -17,12 +20,32 @@ from .classifier_container import (
     AdaptiveWeightContainer
 )
 
+from .hmm_classifier import HMMClassifier, HMMRegimeState, HMMParameters
+from .pattern_classifier import PatternClassifier, PatternRegimeState, PatternParameters
+from .enhanced_classifier_container import (
+    EnhancedClassifierContainer,
+    create_classifier_hierarchy
+)
+
 __all__ = [
+    # Base classes
+    'RegimeClassifier',
+    'RegimeState',
+    'RegimeContext',
+    
     # Classifiers
     'TrendVolatilityClassifier',
     'MultiIndicatorClassifier',
+    'HMMClassifier',
+    'HMMRegimeState',
+    'HMMParameters',
+    'PatternClassifier',
+    'PatternRegimeState',
+    'PatternParameters',
     
     # Containers
     'ClassifierContainer',
-    'AdaptiveWeightContainer'
+    'AdaptiveWeightContainer',
+    'EnhancedClassifierContainer',
+    'create_classifier_hierarchy'
 ]

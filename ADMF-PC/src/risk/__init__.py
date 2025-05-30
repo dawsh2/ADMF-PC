@@ -37,6 +37,7 @@ from .position_sizing import (
 )
 from .risk_limits import (
     MaxPositionLimit,
+    MaxExposureLimit,
     MaxDrawdownLimit,
     VaRLimit,
     ConcentrationLimit,
@@ -81,6 +82,7 @@ __all__ = [
     "KellyCriterionSizer",
     "VolatilityBasedSizer",
     "MaxPositionLimit",
+    "MaxExposureLimit",
     "MaxDrawdownLimit",
     "VaRLimit",
     "ConcentrationLimit",

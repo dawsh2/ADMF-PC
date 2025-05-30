@@ -38,6 +38,15 @@ class FillType(Enum):
     PARTIAL = auto()
 
 
+class FillStatus(Enum):
+    """Fill status enumeration."""
+    PENDING = auto()
+    FILLED = auto()
+    PARTIAL = auto()
+    REJECTED = auto()
+    CANCELLED = auto()
+
+
 @dataclass
 class Order:
     """Order representation."""
@@ -71,6 +80,7 @@ class Fill:
     commission: float
     slippage: float
     fill_type: FillType
+    status: FillStatus
     executed_at: datetime
     metadata: Dict[str, Any] = None
     

@@ -8,9 +8,19 @@ of containers with appropriate component configurations.
 from __future__ import annotations
 from typing import Dict, Any, Optional, List, Type
 import logging
+from datetime import datetime
 
 from .universal import UniversalScopedContainer, ContainerType
 from .lifecycle import ContainerLifecycleManager
+from .naming import (
+    ContainerNamingStrategy,
+    ContainerType as NamingContainerType,
+    Phase,
+    ClassifierType,
+    RiskProfile,
+    create_backtest_container_id,
+    create_optimization_container_id
+)
 
 
 logger = logging.getLogger(__name__)
@@ -119,7 +129,10 @@ class ContainerFactory:
         strategy_spec: Dict[str, Any],
         shared_services: Optional[Dict[str, Any]] = None,
         container_id: Optional[str] = None,
-        additional_components: Optional[List[Dict[str, Any]]] = None
+        additional_components: Optional[List[Dict[str, Any]]] = None,
+        phase: Optional[Phase] = None,
+        classifier: Optional[ClassifierType] = None,
+        risk_profile: Optional[RiskProfile] = None
     ) -> str:
         """
         Create a container for backtesting.
@@ -129,10 +142,22 @@ class ContainerFactory:
             shared_services: Shared services
             container_id: Optional container ID
             additional_components: Extra components to add
+            phase: Workflow phase
+            classifier: Classifier type
+            risk_profile: Risk profile
             
         Returns:
             Container ID
         """
+        # Generate structured container ID if not provided
+        if container_id is None:
+            container_id = create_backtest_container_id(
+                phase=phase or Phase.COMPUTATION,
+                classifier=classifier or ClassifierType.NONE,
+                risk_profile=risk_profile or RiskProfile.BALANCED,
+                metadata={'strategy': strategy_spec.get('name', 'unknown')}
+            )
+        
         # Get base components
         components = self._container_configs[ContainerType.BACKTEST.value]['components'].copy()
         
@@ -164,7 +189,9 @@ class ContainerFactory:
         self,
         strategy_spec: Dict[str, Any],
         trial_id: str,
-        shared_services: Optional[Dict[str, Any]] = None
+        shared_services: Optional[Dict[str, Any]] = None,
+        phase: Optional[Phase] = None,
+        classifier: Optional[ClassifierType] = None
     ) -> str:
         """
         Create a container for optimization trial.
@@ -173,11 +200,19 @@ class ContainerFactory:
             strategy_spec: Strategy specification
             trial_id: Optimization trial ID
             shared_services: Shared services
+            phase: Workflow phase
+            classifier: Classifier type
             
         Returns:
             Container ID
         """
-        container_id = f"opt_trial_{trial_id}"
+        # Generate structured container ID
+        container_id = create_optimization_container_id(
+            phase=phase or Phase.PHASE1_GRID_SEARCH,
+            trial_number=int(trial_id.split('_')[-1]) if '_' in trial_id else 0,
+            classifier=classifier or ClassifierType.NONE,
+            metadata={'strategy': strategy_spec.get('name', 'unknown')}
+        )
         
         # Get base components
         components = self._container_configs[ContainerType.OPTIMIZATION.value]['components'].copy()

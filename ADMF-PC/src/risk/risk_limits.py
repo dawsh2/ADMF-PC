@@ -114,6 +114,8 @@ class MaxPositionLimit(BaseRiskLimit):
         # Check percentage limit
         if self.max_position_percent:
             portfolio_value = portfolio_state.get_total_value()
+            if portfolio_value == 0:
+                return False, "Cannot calculate position percentage with zero portfolio value"
             position_percent = new_position_value / portfolio_value
             
             if position_percent > self.max_position_percent:
@@ -389,6 +391,8 @@ class ConcentrationLimit(BaseRiskLimit):
         else:
             new_value = current_value - order_value
         
+        if portfolio_value == 0:
+            return False, "Cannot calculate concentration with zero portfolio value"
         new_concentration = abs(new_value) / portfolio_value
         
         # Check single position limit

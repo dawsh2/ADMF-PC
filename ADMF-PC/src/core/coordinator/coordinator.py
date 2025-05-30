@@ -16,13 +16,17 @@ from ..infrastructure import MonitoringCapability, ErrorHandlingCapability
 from ..logging import StructuredLogger
 from ..components import ComponentFactory
 
-from .types import (
-    WorkflowConfig, WorkflowResult, ExecutionContext,
+from .simple_types import (
+    WorkflowConfig, ExecutionContext,
     WorkflowType, WorkflowPhase
 )
+
+# Import WorkflowResult from __init__ where it's defined without pydantic
+from . import WorkflowResult
 from .infrastructure import InfrastructureSetup
 from .managers import WorkflowManagerFactory
 from .protocols import WorkflowManager
+from .execution_modes import ExecutionModeHandler
 
 
 logger = logging.getLogger(__name__)
@@ -96,7 +100,9 @@ class Coordinator:
         
     async def execute_workflow(
         self,
-        config: Union[WorkflowConfig, Dict[str, Any]]
+        config: Union[WorkflowConfig, Dict[str, Any]],
+        mode_override: Optional[str] = None,
+        mode_args: Optional[Dict[str, Any]] = None
     ) -> WorkflowResult:
         """
         Execute a workflow with the given configuration.
@@ -165,17 +171,25 @@ class Coordinator:
                     validation_result['errors']
                 )
                 
-            # Set up shared infrastructure
-            await self._setup_shared_infrastructure(config, context)
-            
-            # Get appropriate manager
-            manager = self.manager_factory.create_manager(
-                config.workflow_type,
-                container_id
-            )
-            
-            # Execute workflow in its container
-            result = await manager.execute(config, context)
+            # Check for special execution modes
+            if mode_override in ['signal-generation', 'signal-replay']:
+                # Handle special modes
+                result = await self._execute_special_mode(
+                    mode_override, config, mode_args or {}
+                )
+            else:
+                # Standard workflow execution
+                # Set up shared infrastructure
+                await self._setup_shared_infrastructure(config, context)
+                
+                # Get appropriate manager
+                manager = self.manager_factory.create_manager(
+                    config.workflow_type,
+                    container_id
+                )
+                
+                # Execute workflow in its container
+                result = await manager.execute(config, context)
             
             # Log completion
             self.logger.info(
@@ -492,6 +506,55 @@ class Coordinator:
                     details=event.payload
                 )
             
+    async def _execute_special_mode(
+        self,
+        mode: str,
+        config: WorkflowConfig,
+        mode_args: Dict[str, Any]
+    ) -> WorkflowResult:
+        """Execute special modes (signal generation/replay)."""
+        # Convert config to dict for the handler
+        base_config = config.dict()
+        
+        # Merge data config
+        if config.data_config:
+            base_config['data'] = config.data_config
+        
+        try:
+            if mode == 'signal-generation':
+                result_data = await ExecutionModeHandler.run_signal_generation(
+                    base_config=base_config,
+                    **mode_args
+                )
+            elif mode == 'signal-replay':
+                result_data = await ExecutionModeHandler.run_signal_replay(
+                    base_config=base_config,
+                    **mode_args
+                )
+            else:
+                raise ValueError(f"Unknown special mode: {mode}")
+            
+            # Create workflow result
+            result = WorkflowResult(
+                workflow_id=str(uuid.uuid4()),
+                workflow_type=WorkflowType.BACKTEST,  # Use backtest as default
+                success=result_data.get('success', True),
+                results=result_data
+            )
+            result.finalize()
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Special mode execution failed: {e}")
+            result = WorkflowResult(
+                workflow_id=str(uuid.uuid4()),
+                workflow_type=WorkflowType.BACKTEST,
+                success=False,
+                errors=[str(e)]
+            )
+            result.finalize()
+            return result
+    
     async def shutdown(self) -> None:
         """Shutdown the coordinator and clean up resources."""
         self.logger.info("Shutting down Coordinator")

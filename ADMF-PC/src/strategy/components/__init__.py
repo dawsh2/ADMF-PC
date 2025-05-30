@@ -32,6 +32,13 @@ from .signal_replay import (
     WeightedSignalAggregator
 )
 
+from .indicator_hub import (
+    IndicatorHub,
+    IndicatorConfig,
+    IndicatorType,
+    IndicatorValue
+)
+
 
 __all__ = [
     # Indicators
@@ -43,6 +50,12 @@ __all__ = [
     "create_ema",
     "create_rsi",
     "create_atr",
+    
+    # Indicator Hub
+    "IndicatorHub",
+    "IndicatorConfig",
+    "IndicatorType",
+    "IndicatorValue",
     
     # Classifiers
     "MarketRegime",

@@ -1,10 +1,11 @@
 """Market simulation for slippage and commission models."""
 
-from typing import Optional, Protocol, Dict, Any
+from typing import Optional, Protocol, Dict, Any, List, Tuple
 from dataclasses import dataclass
 import random
 from datetime import datetime
 import uuid
+from decimal import Decimal
 
 from .protocols import Order, Fill, OrderSide, OrderType, FillType
 import logging
@@ -311,3 +312,55 @@ class MarketSimulator:
         return self.commission_model.calculate_commission(
             order, fill_price, order.quantity
         )
+
+
+class PercentageSlippageModel(SlippageModel):
+    """Slippage model based on percentage of order size."""
+    
+    def __init__(self, base_slippage_pct: Decimal = Decimal("0.001")):
+        """Initialize percentage slippage model.
+        
+        Args:
+            base_slippage_pct: Base slippage percentage (0.001 = 0.1%)
+        """
+        self.base_slippage_pct = base_slippage_pct
+    
+    def calculate_slippage(
+        self,
+        order: Order,
+        market_price: Decimal,
+        market_data: Dict[str, Any]
+    ) -> Decimal:
+        """Calculate percentage-based slippage."""
+        return market_price * self.base_slippage_pct
+
+
+class TieredCommissionModel(CommissionModel):
+    """Commission model with tiered rates based on volume."""
+    
+    def __init__(self, tiers: List[Tuple[Decimal, Decimal]]):
+        """Initialize tiered commission model.
+        
+        Args:
+            tiers: List of (volume_threshold, rate) tuples
+        """
+        self.tiers = sorted(tiers, key=lambda x: x[0])
+    
+    def calculate_commission(
+        self,
+        order: Order,
+        fill_price: Decimal,
+        fill_quantity: Decimal
+    ) -> Decimal:
+        """Calculate commission based on volume tier."""
+        volume = fill_price * fill_quantity
+        
+        # Find applicable tier
+        rate = self.tiers[0][1]  # Default to first tier
+        for threshold, tier_rate in self.tiers:
+            if volume >= threshold:
+                rate = tier_rate
+            else:
+                break
+        
+        return max(volume * rate, Decimal("1.0"))  # Minimum $1

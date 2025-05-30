@@ -1,0 +1,201 @@
+# Multi-pass regime-aware optimization configuration
+# This implements the complex optimization workflow without writing any code!
+
+name: Regime-Aware Multi-Pass Optimization
+type: optimization
+description: Optimize parameters per regime, then optimize ensemble weights
+
+# Base configuration for all passes
+base_config:
+  data:
+    symbols: ["SPY", "QQQ", "IWM", "TLT"]  # Include bonds for regime diversity
+    start_date: "2018-01-01"
+    end_date: "2023-12-31"
+    frequency: "1h"
+    source: yahoo
+  
+  portfolio:
+    initial_capital: 100000
+    commission:
+      type: percentage
+      value: 0.001
+
+  # Multiple strategies to optimize
+  strategies:
+    - name: trend_following
+      type: moving_average_crossover
+      enabled: true
+      
+    - name: mean_reversion
+      type: mean_reversion_strategy
+      enabled: true
+      
+    - name: momentum
+      type: momentum_strategy  
+      enabled: true
+
+# Multi-pass optimization configuration
+optimization:
+  method: multi_pass_regime
+  
+  # Pass 1: Grid search with regime tracking
+  pass_1_grid_search:
+    method: grid_search
+    track_regimes: true  # Track regime classification for each trade
+    
+    # Regime classifiers to use
+    regime_classifiers:
+      - name: volatility_regime
+        type: volatility_classifier
+        parameters:
+          lookback: 20
+          thresholds: [0.01, 0.02, 0.03]  # Low, medium, high volatility
+          
+      - name: trend_regime
+        type: trend_classifier
+        parameters:
+          lookback: 50
+          thresholds: [-0.02, 0.02]  # Down, sideways, up
+    
+    # Parameters to optimize for each strategy
+    parameter_space:
+      # Trend following parameters
+      trend_following.fast_period:
+        type: int
+        min: 5
+        max: 20
+        step: 5
+      trend_following.slow_period:
+        type: int
+        min: 20
+        max: 60
+        step: 10
+        
+      # Mean reversion parameters  
+      mean_reversion.lookback:
+        type: int
+        min: 10
+        max: 40
+        step: 10
+      mean_reversion.entry_std:
+        type: float
+        min: 1.5
+        max: 3.0
+        step: 0.5
+        
+      # Momentum parameters
+      momentum.lookback_period:
+        type: int
+        min: 10
+        max: 30
+        step: 5
+      momentum.entry_threshold:
+        type: float
+        min: 0.01
+        max: 0.04
+        step: 0.01
+    
+    # Simple objective for parameter search
+    objectives:
+      - metric: sharpe_ratio
+        direction: maximize
+    
+    # Store signals for reuse
+    save_signals: true
+    signal_output_path: "signals/regime_optimization_signals.json"
+  
+  # Pass 2: Regime analysis 
+  pass_2_regime_analysis:
+    analyzer: RegimeAnalyzer
+    input_signals: "signals/regime_optimization_signals.json"
+    
+    # Analyze best parameters per regime
+    analysis:
+      group_by: ["regime_classifier", "regime_state", "strategy"]
+      metrics: ["sharpe_ratio", "win_rate", "profit_factor"]
+      min_samples: 30  # Minimum trades per regime to consider
+    
+    # Output optimal parameters per regime
+    output_path: "results/optimal_params_per_regime.json"
+  
+  # Pass 3: Weight optimization using regime-optimal parameters
+  pass_3_weight_optimization:
+    method: ensemble_optimization
+    use_saved_signals: true  # Reuse signals from Pass 1
+    signal_input_path: "signals/regime_optimization_signals.json"
+    regime_params_path: "results/optimal_params_per_regime.json"
+    
+    # Optimize ensemble weights per regime
+    weight_space:
+      # Weight ranges for each strategy in each regime
+      per_regime_weights:
+        type: simplex  # Weights sum to 1.0
+        strategies: ["trend_following", "mean_reversion", "momentum"]
+        
+    # Multi-objective for weight optimization
+    objectives:
+      - metric: risk_adjusted_return
+        direction: maximize
+        weight: 0.6
+      - metric: max_drawdown
+        direction: minimize
+        weight: 0.4
+    
+    # Constraints
+    constraints:
+      - type: min_weight
+        value: 0.0  # Allow zero allocation
+      - type: max_weight
+        value: 0.7  # No strategy > 70%
+    
+    # Output optimal weights per regime
+    output_path: "results/optimal_weights_per_regime.json"
+
+# Validation configuration
+validation:
+  # Run optimized adaptive strategy on test set
+  test_dataset: test  # Uses --dataset test
+  
+  # Verify correct parameter application at regime changes
+  verify_regime_switches: true
+  log_regime_transitions: true
+  
+  # Compare with non-adaptive baseline
+  baseline_comparison:
+    enabled: true
+    baseline_type: equal_weight  # Equal weight all strategies
+  
+  # Performance metrics to track
+  metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+    - regime_consistency  # Performance consistency within regimes
+    - adaptation_efficiency  # How well we adapt to regime changes
+
+# Analysis and reporting
+analysis:
+  # Detailed regime analysis
+  regime_analysis:
+    show_regime_distribution: true
+    show_parameter_evolution: true
+    show_weight_evolution: true
+    regime_transition_matrix: true
+  
+  # Performance attribution
+  attribution:
+    by_regime: true
+    by_strategy: true
+    by_regime_classifier: true
+  
+  # Export results
+  export:
+    format: html
+    include_interactive_plots: true
+    path: "results/regime_aware_optimization_report.html"
+
+# Execution settings
+parallel: true
+max_workers: 8  # Use 8 cores for grid search
+checkpoint_enabled: true  # Save progress for long optimization
+checkpoint_interval: 100  # Save every 100 evaluations

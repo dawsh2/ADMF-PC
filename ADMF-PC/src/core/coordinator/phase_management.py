@@ -23,7 +23,7 @@ import logging
 
 from ..containers import UniversalScopedContainer
 from ..events import Event, EventType
-from .types import WorkflowPhase
+from .simple_types import WorkflowPhase
 from .protocols import ResultStreamer, CheckpointManager
 
 logger = logging.getLogger(__name__)

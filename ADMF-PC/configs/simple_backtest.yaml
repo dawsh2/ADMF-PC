@@ -1,0 +1,55 @@
+# Simple backtest configuration for testing
+# No code required - just configuration!
+
+name: Simple MA Crossover Test
+type: backtest
+description: Test basic moving average crossover strategy
+
+# Data configuration
+data:
+  symbols: ["SPY"]  # Start with single symbol
+  start_date: "2023-01-01"
+  end_date: "2023-06-30"  # 6 months for quick testing
+  frequency: "1d"
+  source: yahoo  # Would use Yahoo Finance data loader
+
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  currency: USD
+  commission:
+    type: fixed
+    value: 1.0  # $1 per trade
+
+# Strategy configuration
+strategies:
+  - name: simple_ma
+    type: moving_average_crossover
+    enabled: true
+    allocation: 1.0  # 100% allocation
+    parameters:
+      fast_period: 10
+      slow_period: 30
+      ma_type: SMA  # Simple Moving Average
+
+# Risk management
+risk:
+  position_sizers:
+    - name: fixed_size
+      type: fixed
+      size: 10000  # $10k per position
+  
+  limits:
+    - type: position
+      max_position: 10000  # Max $10k per position
+    - type: exposure
+      max_exposure_pct: 100  # Can be fully invested
+
+# Analysis configuration
+analysis:
+  metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+  save_results: true
+  output_format: json

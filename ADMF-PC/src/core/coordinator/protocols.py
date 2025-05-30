@@ -1,10 +1,17 @@
 """
 Coordinator protocols for manager interfaces.
 """
-from typing import Protocol, Dict, Any, Optional
+from typing import Protocol, Dict, Any, Optional, List
 from abc import abstractmethod
+from pathlib import Path
 
-from .types import WorkflowConfig, WorkflowResult, ExecutionContext, PhaseResult
+# Use simple types to avoid circular imports
+try:
+    from .types import WorkflowConfig, WorkflowResult, ExecutionContext, PhaseResult
+except ImportError:
+    from .simple_types import WorkflowConfig, ExecutionContext
+    WorkflowResult = Any
+    PhaseResult = Any
 
 
 class WorkflowManager(Protocol):
@@ -45,6 +52,63 @@ class PhaseExecutor(Protocol):
     @abstractmethod
     def validate_inputs(self, inputs: Dict[str, Any]) -> bool:
         """Validate phase inputs."""
+        ...
+
+
+class ResultStreamer(Protocol):
+    """Protocol for streaming results during execution."""
+    
+    @abstractmethod
+    def write_result(self, result: Dict[str, Any]) -> None:
+        """Write a single result."""
+        ...
+        
+    @abstractmethod
+    def write_batch(self, results: List[Dict[str, Any]]) -> None:
+        """Write a batch of results."""
+        ...
+        
+    @abstractmethod
+    def flush(self) -> None:
+        """Flush any buffered results."""
+        ...
+        
+    @abstractmethod
+    def close(self) -> None:
+        """Close the streamer."""
+        ...
+
+
+class CheckpointManager(Protocol):
+    """Protocol for managing workflow checkpoints."""
+    
+    @abstractmethod
+    def save_checkpoint(
+        self,
+        workflow_id: str,
+        phase: str,
+        state: Dict[str, Any]
+    ) -> Path:
+        """Save a checkpoint."""
+        ...
+        
+    @abstractmethod
+    def load_checkpoint(
+        self,
+        workflow_id: str,
+        phase: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Load a checkpoint."""
+        ...
+        
+    @abstractmethod
+    def list_checkpoints(self, workflow_id: str) -> List[Dict[str, Any]]:
+        """List available checkpoints."""
+        ...
+        
+    @abstractmethod
+    def delete_checkpoint(self, workflow_id: str, phase: Optional[str] = None) -> bool:
+        """Delete a checkpoint."""
         ...
 
 

@@ -61,6 +61,17 @@ from .factory import (
     ContainerFactory
 )
 
+from .naming import (
+    ContainerNamingStrategy,
+    ContainerType as NamingContainerType,
+    Phase,
+    ClassifierType,
+    RiskProfile,
+    create_backtest_container_id,
+    create_optimization_container_id,
+    create_signal_analysis_container_id
+)
+
 
 __all__ = [
     # Universal container
@@ -78,5 +89,15 @@ __all__ = [
     "get_lifecycle_manager",
     
     # Factory
-    "ContainerFactory"
+    "ContainerFactory",
+    
+    # Naming strategy
+    "ContainerNamingStrategy",
+    "NamingContainerType",
+    "Phase",
+    "ClassifierType",
+    "RiskProfile",
+    "create_backtest_container_id",
+    "create_optimization_container_id",
+    "create_signal_analysis_container_id"
 ]

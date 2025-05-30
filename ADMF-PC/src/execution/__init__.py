@@ -6,15 +6,26 @@ from .protocols import (
     ExecutionEngine,
     MarketSimulator,
     ExecutionCapability,
+    OrderStatus,
+    FillStatus,
 )
 from .backtest_broker import BacktestBroker
 from .backtest_broker_refactored import BacktestBrokerRefactored
 from .order_manager import OrderManager
 from .execution_engine import DefaultExecutionEngine
-from .market_simulation import MarketSimulator, SlippageModel, CommissionModel
+from .market_simulation import (
+    MarketSimulator,
+    SlippageModel,
+    CommissionModel,
+    PercentageSlippageModel,
+    TieredCommissionModel
+)
 from .execution_context import ExecutionContext
 from .capabilities import ExecutionCapabilities
-# from .backtest_engine import UnifiedBacktestEngine, BacktestConfig, BacktestResults
+from .backtest_engine import UnifiedBacktestEngine, BacktestConfig, BacktestResults
+from .signal_generation_engine import SignalGenerationContainer, SignalGenerationContainerFactory
+from .signal_replay_engine import SignalReplayContainer, SignalReplayContainerFactory
+from .analysis import SignalAnalysisEngine, SignalAnalysisResult, AnalysisType
 
 __all__ = [
     # Protocols
@@ -23,6 +34,8 @@ __all__ = [
     "ExecutionEngine",
     "MarketSimulator",
     "ExecutionCapability",
+    "OrderStatus",
+    "FillStatus",
     # Implementations
     "BacktestBroker",
     "BacktestBrokerRefactored",
@@ -31,10 +44,20 @@ __all__ = [
     "MarketSimulator",
     "SlippageModel",
     "CommissionModel",
+    "PercentageSlippageModel",
+    "TieredCommissionModel",
     "ExecutionContext",
     "ExecutionCapabilities",
     # Backtesting
-    # "UnifiedBacktestEngine",
-    # "BacktestConfig",
-    # "BacktestResults",
+    "UnifiedBacktestEngine",
+    "BacktestConfig",
+    "BacktestResults",
+    # Signal Analysis
+    "SignalGenerationContainer",
+    "SignalGenerationContainerFactory",
+    "SignalReplayContainer",
+    "SignalReplayContainerFactory",
+    "SignalAnalysisEngine",
+    "SignalAnalysisResult",
+    "AnalysisType",
 ]

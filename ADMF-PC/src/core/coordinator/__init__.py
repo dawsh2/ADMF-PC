@@ -13,14 +13,43 @@ Now includes enhanced phase management with:
 - Walk-forward validation support
 """
 
-from .coordinator import Coordinator
-from .types import (
+# Delayed imports to avoid circular dependencies
+def get_coordinator():
+    from .coordinator import Coordinator
+    return Coordinator
+
+# Import simple types that don't have dependencies
+from .simple_types import (
     WorkflowConfig,
     WorkflowType,
     WorkflowPhase,
-    WorkflowResult,
     ExecutionContext
 )
+
+# Import types only if needed
+try:
+    from .types import WorkflowResult
+except ImportError:
+    # Use a simple dataclass if pydantic not available
+    from dataclasses import dataclass, field
+    from typing import Dict, Any, List, Optional
+    from datetime import datetime
+    
+    @dataclass
+    class WorkflowResult:
+        workflow_id: str
+        workflow_type: WorkflowType
+        success: bool = True
+        results: Dict[str, Any] = field(default_factory=dict)
+        errors: List[str] = field(default_factory=list)
+        warnings: List[str] = field(default_factory=list)
+        metadata: Dict[str, Any] = field(default_factory=dict)
+        duration_seconds: Optional[float] = None
+        _start_time: Optional[datetime] = field(default=None, init=False)
+        
+        def finalize(self):
+            if self._start_time:
+                self.duration_seconds = (datetime.now() - self._start_time).total_seconds()
 from .phase_management import (
     PhaseTransition,
     ContainerNamingStrategy,
@@ -42,7 +71,7 @@ from .multi_symbol_architecture import (
 )
 
 __all__ = [
-    'Coordinator',
+    'get_coordinator',  # Changed from Coordinator to avoid circular import
     'WorkflowConfig',
     'WorkflowType',
     'WorkflowPhase',

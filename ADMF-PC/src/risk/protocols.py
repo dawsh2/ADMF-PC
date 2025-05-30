@@ -10,6 +10,7 @@ from enum import Enum
 from ..core.components.protocols import Component, Capability
 
 
+
 class OrderType(Enum):
     """Order type enumeration."""
     MARKET = "market"
@@ -313,3 +314,57 @@ class RiskLimitCapability(RiskCapability):
 class PortfolioTrackingCapability(RiskCapability):
     """Capability for portfolio state tracking."""
     pass
+
+
+# Add missing protocols for backward compatibility
+class RiskManager(Protocol):
+    """Protocol for risk management components."""
+    
+    @abstractmethod
+    def check_risk_limits(self, signal: Signal, portfolio_state: Any) -> bool:
+        """Check if a signal passes risk limits."""
+        ...
+    
+    @abstractmethod
+    def calculate_position_size(self, signal: Signal, portfolio_state: Any) -> Decimal:
+        """Calculate appropriate position size."""
+        ...
+    
+    @abstractmethod
+    def get_risk_metrics(self) -> RiskMetrics:
+        """Get current risk metrics."""
+        ...
+    
+    @abstractmethod
+    def update_risk_state(self, position: Position) -> None:
+        """Update risk state with new position."""
+        ...
+
+
+class PortfolioManager(Protocol):
+    """Protocol for portfolio management components."""
+    
+    @abstractmethod
+    def get_portfolio_value(self) -> Decimal:
+        """Get total portfolio value."""
+        ...
+    
+    @abstractmethod
+    def get_cash_balance(self) -> Decimal:
+        """Get available cash balance."""
+        ...
+    
+    @abstractmethod
+    def get_positions(self) -> Dict[str, Position]:
+        """Get all open positions."""
+        ...
+    
+    @abstractmethod
+    def update_position(self, symbol: str, position: Position) -> None:
+        """Update or add a position."""
+        ...
+    
+    @abstractmethod
+    def close_position(self, symbol: str) -> Optional[Position]:
+        """Close a position and return it."""
+        ...

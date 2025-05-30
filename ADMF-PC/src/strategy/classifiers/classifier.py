@@ -238,7 +238,7 @@ class MultiIndicatorClassifier:
         """Calculate scores for each class based on indicators."""
         scores = {}
         
-        for class, class_rules in self.thresholds.items():
+        for class_name, class_rules in self.thresholds.items():
             score = 0.0
             
             for indicator_name, rules in self.indicators_config.items():
@@ -249,12 +249,12 @@ class MultiIndicatorClassifier:
                 weight = self.weights.get(indicator_name, 1.0)
                 
                 # Check if indicator supports this class
-                if class in rules:
-                    rule = rules[class]
+                if class_name in rules:
+                    rule = rules[class_name]
                     if self._evaluate_rule(value, rule):
                         score += weight
             
-            scores[class] = score
+            scores[class_name] = score
         
         return scores
     
@@ -316,3 +316,128 @@ class MultiIndicatorClassifier:
         self._current_class = None
         self._confidence = 0.0
         self._class_scores.clear()
+
+
+# Add missing classes for compatibility
+from enum import Enum
+from dataclasses import dataclass
+
+
+class RegimeState(Enum):
+    """Market regime states."""
+    TRENDING_UP = "trending_up"
+    TRENDING_DOWN = "trending_down"
+    RANGING = "ranging"
+    HIGH_VOLATILITY = "high_volatility"
+    LOW_VOLATILITY = "low_volatility"
+    UNKNOWN = "unknown"
+
+
+@dataclass
+class RegimeContext:
+    """Context information for a regime."""
+    state: RegimeState
+    confidence: float
+    start_time: datetime
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+
+
+class RegimeClassifier:
+    """
+    Classifier specifically for market regimes.
+    
+    This is a simplified version that wraps MultiIndicatorClassifier
+    for regime detection.
+    """
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        """Initialize regime classifier."""
+        self.config = config or {}
+        
+        # Map regime states to classes
+        self.regime_mapping = {
+            'TRENDING_UP': RegimeState.TRENDING_UP,
+            'TRENDING_DOWN': RegimeState.TRENDING_DOWN,
+            'RANGING': RegimeState.RANGING,
+            'HIGH_VOLATILITY': RegimeState.HIGH_VOLATILITY,
+            'LOW_VOLATILITY': RegimeState.LOW_VOLATILITY
+        }
+        
+        # Create underlying classifier
+        classifier_config = {
+            'indicators': self.config.get('indicators', {
+                'trend': {'weight': 0.4},
+                'volatility': {'weight': 0.3},
+                'momentum': {'weight': 0.3}
+            }),
+            'thresholds': self.config.get('thresholds', {
+                'TRENDING_UP': {'trend': {'min': 0.5}},
+                'TRENDING_DOWN': {'trend': {'max': -0.5}},
+                'RANGING': {'trend': {'min': -0.2, 'max': 0.2}},
+                'HIGH_VOLATILITY': {'volatility': {'min': 0.7}},
+                'LOW_VOLATILITY': {'volatility': {'max': 0.3}}
+            })
+        }
+        
+        self.classifier = MultiIndicatorClassifier(classifier_config)
+        self._current_regime = RegimeState.UNKNOWN
+        self._regime_history = deque(maxlen=100)
+    
+    def classify(self, data: Dict[str, Any]) -> RegimeState:
+        """Classify current market regime."""
+        # Use underlying classifier
+        market_class = self.classifier.classify(data)
+        
+        # Map to regime state
+        if market_class and market_class in self.regime_mapping:
+            regime = self.regime_mapping[market_class]
+        else:
+            regime = RegimeState.UNKNOWN
+            
+        self._current_regime = regime
+        self._regime_history.append({
+            'timestamp': data.get('timestamp', datetime.now()),
+            'regime': regime,
+            'confidence': self.classifier.confidence
+        })
+        
+        return regime
+    
+    def get_current_regime(self) -> RegimeState:
+        """Get current regime state."""
+        return self._current_regime
+    
+    def get_regime_context(self) -> RegimeContext:
+        """Get full regime context."""
+        # Find when current regime started
+        start_time = datetime.now()
+        for i in range(len(self._regime_history) - 1, -1, -1):
+            if self._regime_history[i]['regime'] != self._current_regime:
+                if i < len(self._regime_history) - 1:
+                    start_time = self._regime_history[i + 1]['timestamp']
+                break
+        
+        return RegimeContext(
+            state=self._current_regime,
+            confidence=self.classifier.confidence,
+            start_time=start_time,
+            metadata={
+                'class_scores': self.classifier._class_scores,
+                'history_length': len(self._regime_history)
+            }
+        )
+    
+    @property
+    def confidence(self) -> float:
+        """Current classification confidence."""
+        return self.classifier.confidence
+    
+    def reset(self) -> None:
+        """Reset classifier state."""
+        self.classifier.reset()
+        self._current_regime = RegimeState.UNKNOWN
+        self._regime_history.clear()

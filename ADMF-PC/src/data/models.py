@@ -9,8 +9,20 @@ from __future__ import annotations
 from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass, field
 from datetime import datetime
-import numpy as np
-import pandas as pd
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None
+
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
+    pd = None
+
 from enum import Enum
 
 
@@ -312,3 +324,58 @@ class TimeSeriesData:
             "timestamp": self.timestamps[idx],
             **{col: values[idx] for col, values in self.data.items()}
         }
+
+
+@dataclass
+class MarketData:
+    """
+    Container for market data used throughout the system.
+    
+    This is a simple wrapper that can hold either DataFrame or TimeSeriesData.
+    """
+    symbol: str
+    timeframe: Union[str, Timeframe]
+    data: Union['pd.DataFrame', TimeSeriesData, Dict[str, Any]]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    @property
+    def is_dataframe(self) -> bool:
+        """Check if data is a DataFrame."""
+        return HAS_PANDAS and isinstance(self.data, pd.DataFrame)
+    
+    @property
+    def is_timeseries(self) -> bool:
+        """Check if data is TimeSeriesData."""
+        return isinstance(self.data, TimeSeriesData)
+    
+    def to_dataframe(self) -> 'pd.DataFrame':
+        """Convert to DataFrame if possible."""
+        if self.is_dataframe:
+            return self.data
+        elif self.is_timeseries:
+            return self.data.to_dataframe()
+        else:
+            # Assume dict format
+            if HAS_PANDAS:
+                return pd.DataFrame(self.data)
+            else:
+                raise RuntimeError("pandas not available")
+    
+    def get_bars(self, start_idx: int = 0, end_idx: Optional[int] = None) -> List[Bar]:
+        """Get bars from the data."""
+        if self.is_dataframe:
+            df = self.data.iloc[start_idx:end_idx]
+            bars = []
+            for idx, row in df.iterrows():
+                bars.append(Bar(
+                    timestamp=idx,
+                    open=row.get('open', 0),
+                    high=row.get('high', 0),
+                    low=row.get('low', 0),
+                    close=row.get('close', 0),
+                    volume=row.get('volume', 0)
+                ))
+            return bars
+        else:
+            # Handle other formats
+            return []
