@@ -1,1 +1,0 @@
-# ADMF-PC core package
