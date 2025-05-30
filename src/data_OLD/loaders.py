@@ -1,22 +1,59 @@
 """
-Data loaders using Protocol+Composition - NO INHERITANCE!
+Data loaders for ADMF-PC.
 
-Simple classes that implement DataLoader protocol through duck typing.
-Enhanced through capabilities, not inheritance.
+This module provides various data loading implementations for different
+data sources and formats.
 """
 
+from __future__ import annotations
 from typing import Dict, List, Optional, Any, Union
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from abc import ABC, abstractmethod
+import logging
 
-from .models import Bar, Timeframe, ValidationResult
+from .models import Bar, Timeframe
+from ..core.logging import StructuredLogger
 
 
-class SimpleCSVLoader:
+class DataLoader(ABC):
+    """Abstract base class for data loaders."""
+    
+    @abstractmethod
+    def load(self, symbol: str, **kwargs) -> pd.DataFrame:
+        """
+        Load data for a symbol.
+        
+        Args:
+            symbol: Symbol to load data for
+            **kwargs: Additional loader-specific parameters
+            
+        Returns:
+            DataFrame with OHLCV data
+        """
+        pass
+    
+    @abstractmethod
+    def validate(self, df: pd.DataFrame) -> bool:
+        """
+        Validate loaded data.
+        
+        Args:
+            df: DataFrame to validate
+            
+        Returns:
+            True if valid
+        """
+        pass
+
+
+class CSVLoader(DataLoader):
     """
-    Simple CSV loader - NO INHERITANCE!
-    Implements DataLoader protocol through duck typing.
+    Loads market data from CSV files.
+    
+    Supports various CSV formats and performs data validation
+    and normalization.
     """
     
     def __init__(
@@ -25,9 +62,18 @@ class SimpleCSVLoader:
         date_column: str = "Date",
         date_format: Optional[str] = None
     ):
+        """
+        Initialize CSV loader.
+        
+        Args:
+            data_dir: Directory containing CSV files
+            date_column: Name of date column
+            date_format: Date parsing format (None for auto)
+        """
         self.data_dir = Path(data_dir)
         self.date_column = date_column
         self.date_format = date_format
+        self._logger = StructuredLogger("CSVLoader")
         
         # Column mappings for normalization
         self.column_mappings = {
@@ -38,14 +84,16 @@ class SimpleCSVLoader:
             "volume": ["volume", "Volume", "VOLUME", "v", "V"]
         }
     
-    # Implements DataLoader protocol
     def load(self, symbol: str, **kwargs) -> pd.DataFrame:
-        """Load data from CSV file - implements protocol method."""
+        """Load data from CSV file."""
+        # Find CSV file
         csv_path = self._find_csv_file(symbol)
         if not csv_path:
             raise FileNotFoundError(f"No CSV file found for {symbol}")
         
-        # Load CSV
+        self._logger.info(f"Loading data from {csv_path}")
+        
+        # Load CSV with various options
         df = self._load_csv_with_options(csv_path)
         
         # Normalize columns
@@ -54,7 +102,7 @@ class SimpleCSVLoader:
         # Parse dates
         df = self._parse_dates(df)
         
-        # Validate
+        # Validate data
         if not self.validate(df):
             raise ValueError(f"Invalid data in {csv_path}")
         
@@ -64,10 +112,16 @@ class SimpleCSVLoader:
         # Handle missing data
         df = self._handle_missing_data(df)
         
+        self._logger.info(
+            f"Loaded {len(df)} rows for {symbol}",
+            start=df.index[0],
+            end=df.index[-1]
+        )
+        
         return df
     
     def validate(self, df: pd.DataFrame) -> bool:
-        """Validate OHLCV data - implements protocol method."""
+        """Validate OHLCV data."""
         try:
             # Check required columns
             required = ["open", "high", "low", "close", "volume"]
@@ -75,7 +129,7 @@ class SimpleCSVLoader:
                 return False
             
             # Check data types
-            for col in required:
+            for col in ["open", "high", "low", "close", "volume"]:
                 if not pd.api.types.is_numeric_dtype(df[col]):
                     return False
             
@@ -89,19 +143,33 @@ class SimpleCSVLoader:
                 (df["volume"] < 0)
             )
             
-            return not invalid_bars.any()
+            if invalid_bars.any():
+                self._logger.warning(
+                    f"Found {invalid_bars.sum()} invalid bars"
+                )
+                return False
             
-        except Exception:
+            # Check for duplicate dates
+            if df.index.duplicated().any():
+                self._logger.warning("Found duplicate dates")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self._logger.error(f"Validation error: {e}")
             return False
     
-    # Private helper methods - no inheritance complexity
     def _find_csv_file(self, symbol: str) -> Optional[Path]:
         """Find CSV file for symbol."""
+        # Try various naming conventions
         patterns = [
             f"{symbol}.csv",
             f"{symbol.lower()}.csv",
             f"{symbol.upper()}.csv",
-            f"{symbol}_daily.csv"
+            f"{symbol}.CSV",
+            f"{symbol}_daily.csv",
+            f"{symbol}_1d.csv"
         ]
         
         for pattern in patterns:
@@ -113,17 +181,29 @@ class SimpleCSVLoader:
     
     def _load_csv_with_options(self, path: Path) -> pd.DataFrame:
         """Load CSV with various parsing options."""
+        # Try different delimiters
         for delimiter in [",", ";", "\t", "|"]:
             try:
-                df = pd.read_csv(path, delimiter=delimiter, engine="python")
-                if len(df.columns) >= 5:
+                df = pd.read_csv(
+                    path,
+                    delimiter=delimiter,
+                    thousands=",",
+                    decimal=".",
+                    engine="python"
+                )
+                
+                if len(df.columns) >= 5:  # Minimum for OHLCV
                     return df
+                    
             except Exception:
                 continue
+        
+        # Default load
         return pd.read_csv(path)
     
     def _normalize_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Normalize column names."""
+        """Normalize column names to standard format."""
+        # Create mapping from actual to standard names
         column_map = {}
         
         for standard, variants in self.column_mappings.items():
@@ -132,6 +212,7 @@ class SimpleCSVLoader:
                     column_map[col] = standard
                     break
         
+        # Rename columns
         df = df.rename(columns=column_map)
         
         # Keep only required columns plus date
@@ -139,46 +220,67 @@ class SimpleCSVLoader:
         
         # Find date column
         date_cols = [col for col in df.columns if "date" in col.lower() or "time" in col.lower()]
-        if date_cols and date_cols[0] != self.date_column:
-            df = df.rename(columns={date_cols[0]: self.date_column})
-            keep_cols.append(self.date_column)
+        if date_cols:
+            keep_cols.append(date_cols[0])
+            if date_cols[0] != self.date_column:
+                df = df.rename(columns={date_cols[0]: self.date_column})
         
+        # Filter columns
         available_cols = [col for col in keep_cols if col in df.columns]
-        return df[available_cols]
+        df = df[available_cols]
+        
+        return df
     
     def _parse_dates(self, df: pd.DataFrame) -> pd.DataFrame:
         """Parse date column and set as index."""
         if self.date_column in df.columns:
+            # Parse dates
             if self.date_format:
-                df[self.date_column] = pd.to_datetime(df[self.date_column], format=self.date_format)
+                df[self.date_column] = pd.to_datetime(
+                    df[self.date_column],
+                    format=self.date_format
+                )
             else:
-                df[self.date_column] = pd.to_datetime(df[self.date_column])
+                df[self.date_column] = pd.to_datetime(
+                    df[self.date_column]
+                )
+            
+            # Set as index
             df.set_index(self.date_column, inplace=True)
         else:
+            # Try to infer from index
             if not isinstance(df.index, pd.DatetimeIndex):
+                # Assume index is dates
                 df.index = pd.to_datetime(df.index)
         
         return df
     
     def _handle_missing_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Handle missing data points."""
-        # Forward fill for price data
+        # Forward fill for price data (more appropriate than interpolation)
         price_cols = ["open", "high", "low", "close"]
         df[price_cols] = df[price_cols].ffill()
         
         # Zero fill for volume
         df["volume"] = df["volume"].fillna(0)
         
-        # Drop remaining NaN rows
+        # Drop any remaining rows with NaN
+        initial_len = len(df)
         df = df.dropna()
+        
+        if len(df) < initial_len:
+            self._logger.warning(
+                f"Dropped {initial_len - len(df)} rows with missing data"
+            )
         
         return df
 
 
-class MemoryEfficientCSVLoader:
+class MemoryOptimizedCSVLoader(CSVLoader):
     """
-    Memory-efficient CSV loader - NO INHERITANCE!
-    Simple class enhanced through capabilities.
+    Memory-efficient CSV loader for large datasets.
+    
+    Uses chunked reading and data type optimization.
     """
     
     def __init__(
@@ -187,24 +289,37 @@ class MemoryEfficientCSVLoader:
         chunk_size: int = 10000,
         optimize_types: bool = True
     ):
-        self.data_dir = Path(data_dir)
+        """
+        Initialize memory-optimized loader.
+        
+        Args:
+            data_dir: Directory containing CSV files
+            chunk_size: Rows to read per chunk
+            optimize_types: Whether to optimize data types
+        """
+        super().__init__(data_dir)
         self.chunk_size = chunk_size
         self.optimize_types = optimize_types
-        self.base_loader = SimpleCSVLoader(data_dir)
     
     def load(self, symbol: str, **kwargs) -> pd.DataFrame:
         """Load data with memory optimization."""
-        csv_path = self.base_loader._find_csv_file(symbol)
+        csv_path = self._find_csv_file(symbol)
         if not csv_path:
             raise FileNotFoundError(f"No CSV file found for {symbol}")
         
+        # Read in chunks
         chunks = []
         
-        for chunk in pd.read_csv(csv_path, chunksize=self.chunk_size):
+        for chunk in pd.read_csv(
+            csv_path,
+            chunksize=self.chunk_size,
+            parse_dates=[self.date_column],
+            index_col=self.date_column
+        ):
             # Normalize columns
-            chunk = self.base_loader._normalize_columns(chunk)
+            chunk = self._normalize_columns(chunk)
             
-            # Optimize types
+            # Optimize types if requested
             if self.optimize_types:
                 chunk = self._optimize_data_types(chunk)
             
@@ -214,19 +329,17 @@ class MemoryEfficientCSVLoader:
         df = pd.concat(chunks, ignore_index=False)
         
         # Validate
-        if not self.base_loader.validate(df):
+        if not self.validate(df):
             raise ValueError(f"Invalid data in {csv_path}")
         
+        # Sort by date
         df.sort_index(inplace=True)
+        
         return df
-    
-    def validate(self, df: pd.DataFrame) -> bool:
-        """Delegate to base loader."""
-        return self.base_loader.validate(df)
     
     def _optimize_data_types(self, df: pd.DataFrame) -> pd.DataFrame:
         """Optimize data types for memory efficiency."""
-        # Price data - use float32
+        # Price data - use float32 instead of float64
         for col in ["open", "high", "low", "close"]:
             if col in df.columns:
                 df[col] = df[col].astype(np.float32)
@@ -242,19 +355,37 @@ class MemoryEfficientCSVLoader:
         return df
 
 
-class MultiFileLoader:
+class MultiFileLoader(DataLoader):
     """
-    Multi-file loader - NO INHERITANCE!
-    Composes other loaders instead of inheriting.
+    Loads data from multiple files and concatenates them.
+    
+    Useful for loading data split across multiple time periods.
     """
     
-    def __init__(self, base_loader_class=SimpleCSVLoader, **loader_kwargs):
-        self.base_loader = base_loader_class(**loader_kwargs)
+    def __init__(self, base_loader: DataLoader):
+        """
+        Initialize multi-file loader.
+        
+        Args:
+            base_loader: Underlying loader for individual files
+        """
+        self.base_loader = base_loader
+        self._logger = StructuredLogger("MultiFileLoader")
     
     def load(self, symbol: str, file_pattern: str = "{symbol}_{year}.csv") -> pd.DataFrame:
-        """Load data from multiple files matching pattern."""
+        """
+        Load data from multiple files matching pattern.
+        
+        Args:
+            symbol: Symbol to load
+            file_pattern: Pattern for file names
+            
+        Returns:
+            Combined DataFrame
+        """
         dfs = []
         
+        # Try loading files for recent years
         import datetime
         current_year = datetime.datetime.now().year
         
@@ -262,69 +393,36 @@ class MultiFileLoader:
             filename = file_pattern.format(symbol=symbol, year=year)
             
             try:
-                # Try to load with modified symbol name
-                df = self.base_loader.load(filename.replace('.csv', ''))
+                df = self.base_loader.load(filename)
                 dfs.append(df)
+                self._logger.info(f"Loaded {len(df)} rows from {filename}")
             except FileNotFoundError:
+                # File doesn't exist for this year
                 continue
-            except Exception:
-                continue
+            except Exception as e:
+                self._logger.warning(f"Failed to load {filename}: {e}")
         
         if not dfs:
             raise FileNotFoundError(f"No data files found for {symbol}")
         
         # Combine all dataframes
         combined = pd.concat(dfs)
+        
+        # Remove duplicates (in case of overlapping data)
         combined = combined[~combined.index.duplicated(keep='last')]
+        
+        # Sort by date
         combined.sort_index(inplace=True)
+        
+        self._logger.info(
+            f"Loaded total of {len(combined)} rows for {symbol}",
+            files=len(dfs),
+            start=combined.index[0],
+            end=combined.index[-1]
+        )
         
         return combined
     
     def validate(self, df: pd.DataFrame) -> bool:
-        """Delegate to base loader."""
+        """Validate combined data."""
         return self.base_loader.validate(df)
-
-
-class DatabaseLoader:
-    """
-    Example database loader - NO INHERITANCE!
-    Shows how to implement DataLoader protocol for different data sources.
-    """
-    
-    def __init__(self, connection_string: str):
-        self.connection_string = connection_string
-        # In real implementation, would set up database connection
-    
-    def load(self, symbol: str, **kwargs) -> pd.DataFrame:
-        """Load data from database - implements DataLoader protocol."""
-        # Placeholder implementation
-        query = f"SELECT * FROM market_data WHERE symbol = '{symbol}'"
-        # df = pd.read_sql(query, self.connection)
-        # For now, just raise
-        raise NotImplementedError("Database loader not yet implemented")
-    
-    def validate(self, df: pd.DataFrame) -> bool:
-        """Validate database data."""
-        # Same validation as CSV
-        required = ["open", "high", "low", "close", "volume"]
-        return all(col in df.columns for col in required)
-
-
-# Data loader factory - creates loaders without inheritance
-def create_data_loader(loader_type: str, **config) -> Any:
-    """
-    Factory function to create data loaders.
-    No inheritance needed - just returns appropriate class.
-    """
-    loaders = {
-        'csv': SimpleCSVLoader,
-        'memory_csv': MemoryEfficientCSVLoader,
-        'multi_file': MultiFileLoader,
-        'database': DatabaseLoader
-    }
-    
-    loader_class = loaders.get(loader_type)
-    if not loader_class:
-        raise ValueError(f"Unknown loader type: {loader_type}")
-    
-    return loader_class(**config)
