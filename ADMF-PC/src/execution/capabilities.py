@@ -5,10 +5,10 @@ from dataclasses import dataclass, field
 
 from .protocols import ExecutionCapability, OrderType, Order
 from ..core.infrastructure.capabilities import Capability
-from ..core.logging.structured import get_logger
+import logging
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass

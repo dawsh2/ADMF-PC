@@ -6,7 +6,7 @@ scanning for classes that implement the required protocols.
 """
 
 from __future__ import annotations
-from typing import List, Set, Type, Any, Optional, Dict, Callable
+from typing import List, Set, Type, Any, Optional, Dict, Callable, Union
 import importlib
 import inspect
 import pkgutil

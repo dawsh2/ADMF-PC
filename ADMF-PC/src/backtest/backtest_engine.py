@@ -1,9 +1,25 @@
 """
 Backtest engine for ADMF-PC.
 
-Handles the execution of trading strategies against historical data,
-separate from the Coordinator's orchestration responsibilities.
+DEPRECATED: This module has been moved to src.execution.backtest_engine
+Please use src.execution.UnifiedBacktestEngine instead.
+
+The backtest functionality now lives in the execution module to:
+- Eliminate duplicate position tracking
+- Use consistent execution paths
+- Integrate with the risk module
+- Provide decimal precision
+
+See MIGRATION_GUIDE_BACKTEST.md for migration instructions.
 """
+
+import warnings
+
+warnings.warn(
+    "The backtest module is deprecated. Use src.execution.UnifiedBacktestEngine instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 from typing import Dict, Any, List, Optional, Set
 from datetime import datetime

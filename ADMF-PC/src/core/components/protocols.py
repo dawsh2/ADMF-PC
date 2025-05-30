@@ -105,7 +105,7 @@ class Optimizable(Protocol):
 class SignalGenerator(Protocol):
     """Protocol for components that generate trading signals."""
     
-    def generate_signal(self, data: Any) -> Optional[Dict[str, Any]]:
+    def generate_signal(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Generate a trading signal from market data."""
         ...
 
@@ -144,7 +144,7 @@ class RiskManager(Protocol):
 class OrderExecutor(Protocol):
     """Protocol for order execution components."""
     
-    def submit_order(self, order: Dict[str, Any]) -> str:
+    def submit_order(self, order: Dict[str, Any]) -> Dict[str, Any]:
         """Submit an order for execution."""
         ...
     
@@ -152,7 +152,7 @@ class OrderExecutor(Protocol):
         """Cancel a pending order."""
         ...
     
-    def get_order_status(self, order_id: str) -> Dict[str, Any]:
+    def get_order_status(self, order_id: str) -> OrderStatus:
         """Get the status of an order."""
         ...
 
@@ -161,7 +161,7 @@ class OrderExecutor(Protocol):
 class Portfolio(Protocol):
     """Protocol for portfolio tracking components."""
     
-    def get_positions(self) -> Dict[str, Any]:
+    def get_positions(self) -> Dict[str, PositionPayload]:
         """Get current positions."""
         ...
     
@@ -196,7 +196,7 @@ class Monitorable(Protocol):
         """Get component metrics."""
         ...
     
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> Dict[str, Any]:  # TODO: Use HealthStatus protocol
         """Get component health status."""
         ...
 

@@ -8,10 +8,8 @@ from threading import RLock
 
 from ..core.containers.universal import UniversalScopedContainer
 from ..core.events.types import EventType, Event
-from ..core.coordinator.types import ExecutionContext
-from ..core.logging.structured import get_logger
+import logging
 from ..core.components.protocols import Capability
-from ..strategy.protocols import StrategyProtocol
 
 from .protocols import (
     RiskPortfolioProtocol,
@@ -59,7 +57,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         """
         super().__init__(container_id=name, container_type="risk_portfolio")
         self.name = name  # Store name separately
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         
         # Core components
         self._portfolio_state = PortfolioState(
@@ -73,7 +71,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         
         # Risk limits and strategies
         self._risk_limits: List[RiskLimitProtocol] = []
-        self._strategies: Dict[str, StrategyProtocol] = {}
+        self._strategies: Dict[str, Any] = {}
         
         # Thread safety (used when execution context requires it)
         self._lock = RLock()
@@ -122,7 +120,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         
         await super().stop()
     
-    def add_strategy(self, strategy: StrategyProtocol) -> None:
+    def add_strategy(self, strategy: Any) -> None:
         """Add a strategy component.
         
         Args:
@@ -163,7 +161,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         Returns:
             List of approved orders
         """
-        context = self.get_execution_context()
+        context = None  # self.get_execution_context() - not available in UniversalScopedContainer
         
         if context and context.is_concurrent:
             with self._lock:
@@ -256,7 +254,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
             "commission": Decimal
         }
         """
-        context = self.get_execution_context()
+        context = None  # self.get_execution_context() - not available in UniversalScopedContainer
         
         if context and context.is_concurrent:
             with self._lock:
@@ -407,8 +405,8 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
     def _emit_event(self, event_type: EventType, data: Event) -> None:
         """Emit event through container event system."""
         # Use parent container's event system if available
-        if self._parent_container and hasattr(self._parent_container, 'publish_event'):
-            self._parent_container.publish_event(event_type, data)
+        if self.parent and hasattr(self.parent, 'publish_event'):
+            self.parent.publish_event(event_type, data)
         else:
             # Log event if no event system available
             self.logger.debug(

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from decimal import Decimal
 import logging
 
-from ..core.infrastructure.capabilities import Capability
+from ..core.components.protocols import Capability
 from .risk_portfolio import RiskPortfolioContainer
 from .position_sizing import (
     FixedPositionSizer,
