@@ -164,6 +164,10 @@ class Bar:
         )
 
 
+# Alias for backward compatibility
+MarketData = Bar
+
+
 @dataclass
 class Tick:
     """Represents a single tick - simple dataclass, no inheritance."""

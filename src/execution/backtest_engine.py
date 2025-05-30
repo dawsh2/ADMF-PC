@@ -127,15 +127,20 @@ class UnifiedBacktestEngine:
         # Backtest broker (uses risk module's portfolio state)
         self.broker = BacktestBrokerRefactored(
             portfolio_state=self.risk_portfolio.get_portfolio_state(),
-            initial_capital=self.config.initial_capital
+            initial_cash=self.config.initial_capital
         )
         
         # Market simulator
+        from .market_simulation import FixedSlippageModel, PercentCommissionModel
+        slippage_model = FixedSlippageModel(slippage_percent=float(self.config.slippage))
+        commission_model = PercentCommissionModel(
+            commission_percent=float(self.config.commission),
+            min_commission=0.0  # No minimum commission for testing
+        )
+        
         self.market_simulator = MarketSimulator(
-            slippage_model="percentage",
-            slippage_params={"percentage": float(self.config.slippage)},
-            commission_model="percentage", 
-            commission_params={"percentage": float(self.config.commission)}
+            slippage_model=slippage_model,
+            commission_model=commission_model
         )
         
         # Order manager

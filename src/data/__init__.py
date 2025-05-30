@@ -34,6 +34,8 @@ Example Usage:
     ```
 """
 
+from typing import Any
+
 from .protocols import (
     # Core protocols - NO ABC anywhere!
     DataProvider,
@@ -112,7 +114,7 @@ from .capabilities import (
 
 def create_enhanced_data_handler(
     handler_type: str = 'historical',
-    capabilities: List[str] = None,
+    capabilities: list[str] = None,
     **config
 ) -> Any:
     """
@@ -139,7 +141,7 @@ def create_enhanced_data_handler(
 
 def create_enhanced_data_loader(
     loader_type: str = 'csv',
-    capabilities: List[str] = None,
+    capabilities: list[str] = None,
     **config
 ) -> Any:
     """
@@ -166,7 +168,7 @@ def create_enhanced_data_loader(
 
 def create_enhanced_streamer(
     streamer_type: str = 'historical',
-    capabilities: List[str] = None,
+    capabilities: list[str] = None,
     **config
 ) -> Any:
     """

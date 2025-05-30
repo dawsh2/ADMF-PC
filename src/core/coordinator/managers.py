@@ -900,8 +900,19 @@ class WorkflowManagerFactory:
             WorkflowType.VALIDATION: ValidationManager
         }
         
-    def create_manager(self, workflow_type: WorkflowType, container_id: str) -> WorkflowManager:
+    def create_manager(
+        self, 
+        workflow_type: WorkflowType, 
+        container_id: str,
+        use_composable: bool = False
+    ) -> WorkflowManager:
         """Create a manager for the workflow type."""
+        
+        # Check if composable containers are requested
+        if use_composable:
+            return self._create_composable_manager(workflow_type, container_id)
+        
+        # Traditional manager creation
         manager_class = self._managers.get(workflow_type)
         
         if not manager_class:
@@ -913,3 +924,18 @@ class WorkflowManagerFactory:
             return BacktestWorkflowManager(container_id, self.shared_services)
             
         return manager_class(self.container_manager, container_id)
+    
+    def _create_composable_manager(
+        self, 
+        workflow_type: WorkflowType, 
+        container_id: str
+    ) -> WorkflowManager:
+        """Create composable workflow manager."""
+        
+        try:
+            from .composable_workflow_manager import ComposableWorkflowManager
+            return ComposableWorkflowManager(container_id, self.shared_services)
+        except ImportError as e:
+            logger.error(f"Cannot create composable manager: {e}")
+            # Fall back to traditional manager
+            return self.create_manager(workflow_type, container_id, use_composable=False)

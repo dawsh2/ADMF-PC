@@ -6,7 +6,6 @@ requiring inheritance, enabling flexible composition.
 """
 
 from typing import Protocol, runtime_checkable, Dict, Any, List, Optional, Tuple, Callable
-from abc import abstractmethod
 
 
 @runtime_checkable
@@ -18,7 +17,6 @@ class Optimizer(Protocol):
     according to an objective function.
     """
     
-    @abstractmethod
     def optimize(self, 
                 evaluate_func: Callable[[Dict[str, Any]], float],
                 parameter_space: Dict[str, Any],
@@ -38,17 +36,14 @@ class Optimizer(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_best_parameters(self) -> Optional[Dict[str, Any]]:
         """Get best parameters found so far."""
         ...
     
-    @abstractmethod
     def get_best_score(self) -> Optional[float]:
         """Get best score achieved."""
         ...
     
-    @abstractmethod
     def get_optimization_history(self) -> List[Dict[str, Any]]:
         """
         Get history of all trials.
@@ -68,7 +63,6 @@ class Objective(Protocol):
     from backtest or evaluation results.
     """
     
-    @abstractmethod
     def calculate(self, results: Dict[str, Any]) -> float:
         """
         Calculate objective value from results.
@@ -81,7 +75,6 @@ class Objective(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_direction(self) -> str:
         """
         Get optimization direction.
@@ -91,7 +84,6 @@ class Objective(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_requirements(self) -> List[str]:
         """
         Get required fields in results dict.
@@ -101,7 +93,6 @@ class Objective(Protocol):
         """
         ...
     
-    @abstractmethod
     def is_better(self, score1: float, score2: float) -> bool:
         """
         Compare two scores.
@@ -121,12 +112,10 @@ class Constraint(Protocol):
     can adjust invalid parameters to satisfy requirements.
     """
     
-    @abstractmethod
     def is_satisfied(self, params: Dict[str, Any]) -> bool:
         """Check if parameters satisfy constraint."""
         ...
     
-    @abstractmethod
     def validate_and_adjust(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
         Validate and optionally adjust parameters.
@@ -139,7 +128,6 @@ class Constraint(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_description(self) -> str:
         """Get human-readable description of constraint."""
         ...
@@ -154,7 +142,6 @@ class ParameterSpace(Protocol):
     including types, ranges, and valid values.
     """
     
-    @abstractmethod
     def get_dimensions(self) -> Dict[str, Any]:
         """
         Get parameter dimensions.
@@ -164,7 +151,6 @@ class ParameterSpace(Protocol):
         """
         ...
     
-    @abstractmethod
     def sample(self, n_samples: int, method: str = 'random') -> List[Dict[str, Any]]:
         """
         Sample parameter combinations.
@@ -178,12 +164,10 @@ class ParameterSpace(Protocol):
         """
         ...
     
-    @abstractmethod
     def is_valid(self, params: Dict[str, Any]) -> bool:
         """Check if parameters are within space."""
         ...
     
-    @abstractmethod
     def get_size(self) -> Optional[int]:
         """
         Get total size of parameter space.
@@ -203,7 +187,6 @@ class OptimizationWorkflow(Protocol):
     potentially with multiple stages and components.
     """
     
-    @abstractmethod
     async def run(self) -> Dict[str, Any]:
         """
         Execute the workflow.
@@ -213,22 +196,18 @@ class OptimizationWorkflow(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_stages(self) -> List[str]:
         """Get list of workflow stages."""
         ...
     
-    @abstractmethod
     def get_current_stage(self) -> Optional[str]:
         """Get currently executing stage."""
         ...
     
-    @abstractmethod
     def cancel(self) -> None:
         """Cancel the running workflow."""
         ...
     
-    @abstractmethod
     def get_progress(self) -> Dict[str, Any]:
         """
         Get workflow progress.
@@ -248,7 +227,6 @@ class RegimeAnalyzer(Protocol):
     for each market regime.
     """
     
-    @abstractmethod
     def analyze_trades(self, 
                       trades: List[Dict[str, Any]], 
                       regime_history: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -264,17 +242,14 @@ class RegimeAnalyzer(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_regime_metrics(self, regime: str) -> Dict[str, float]:
         """Get performance metrics for specific regime."""
         ...
     
-    @abstractmethod
     def get_best_parameters_by_regime(self) -> Dict[str, Dict[str, Any]]:
         """Get optimal parameters for each regime."""
         ...
     
-    @abstractmethod
     def get_regime_statistics(self) -> Dict[str, Dict[str, Any]]:
         """
         Get statistics for each regime.
@@ -294,7 +269,6 @@ class OptimizationContainer(Protocol):
     optimization trials with proper state management.
     """
     
-    @abstractmethod
     def create_trial_instance(self, 
                             parameters: Dict[str, Any],
                             trial_id: str) -> Tuple[str, Any]:
@@ -310,7 +284,6 @@ class OptimizationContainer(Protocol):
         """
         ...
     
-    @abstractmethod
     def run_trial(self,
                  parameters: Dict[str, Any],
                  evaluator: Callable) -> Dict[str, Any]:
@@ -326,12 +299,10 @@ class OptimizationContainer(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_trial_results(self, trial_id: str) -> Optional[Dict[str, Any]]:
         """Get results for specific trial."""
         ...
     
-    @abstractmethod
     def cleanup_trial(self, trial_id: str) -> None:
         """Clean up resources for completed trial."""
         ...
@@ -346,7 +317,6 @@ class ParameterSampler(Protocol):
     using various strategies.
     """
     
-    @abstractmethod
     def sample(self, 
               parameter_space: Dict[str, Any],
               n_samples: int,
@@ -364,7 +334,6 @@ class ParameterSampler(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_next_sample(self,
                        parameter_space: Dict[str, Any],
                        history: List[Dict[str, Any]]) -> Dict[str, Any]:

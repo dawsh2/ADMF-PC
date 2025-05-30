@@ -26,6 +26,7 @@ from .backtest_engine import UnifiedBacktestEngine, BacktestConfig, BacktestResu
 from .signal_generation_engine import SignalGenerationContainer, SignalGenerationContainerFactory
 from .signal_replay_engine import SignalReplayContainer, SignalReplayContainerFactory
 from .analysis import SignalAnalysisEngine, SignalAnalysisResult, AnalysisType
+from . import containers  # Import to trigger container registration
 
 __all__ = [
     # Protocols

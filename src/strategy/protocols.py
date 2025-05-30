@@ -7,7 +7,6 @@ protocols to gain different capabilities.
 """
 
 from typing import Protocol, runtime_checkable, Dict, Any, Optional, List, Tuple
-from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 
@@ -30,7 +29,6 @@ class Strategy(Protocol):
     can be used as a strategy.
     """
     
-    @abstractmethod
     def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Generate trading signal from market data.
@@ -50,7 +48,6 @@ class Strategy(Protocol):
         ...
     
     @property
-    @abstractmethod
     def name(self) -> str:
         """Strategy name for identification."""
         ...
@@ -65,7 +62,6 @@ class Indicator(Protocol):
     by strategies to make trading decisions.
     """
     
-    @abstractmethod
     def calculate(self, value: float, timestamp: Optional[datetime] = None) -> Optional[float]:
         """
         Calculate indicator value for new data point.
@@ -79,7 +75,6 @@ class Indicator(Protocol):
         """
         ...
     
-    @abstractmethod
     def update(self, value: float, timestamp: Optional[datetime] = None) -> None:
         """
         Update indicator state without returning value.
@@ -88,18 +83,15 @@ class Indicator(Protocol):
         ...
     
     @property
-    @abstractmethod
     def value(self) -> Optional[float]:
         """Current indicator value."""
         ...
     
     @property
-    @abstractmethod
     def ready(self) -> bool:
         """Whether indicator has enough data to produce values."""
         ...
     
-    @abstractmethod
     def reset(self) -> None:
         """Reset indicator state."""
         ...
@@ -114,7 +106,6 @@ class Feature(Protocol):
     raw data, indicators, or other features.
     """
     
-    @abstractmethod
     def extract(self, data: Dict[str, Any]) -> Dict[str, float]:
         """
         Extract feature values from market data.
@@ -128,12 +119,10 @@ class Feature(Protocol):
         ...
     
     @property
-    @abstractmethod
     def feature_names(self) -> List[str]:
         """Names of features this extractor produces."""
         ...
     
-    @abstractmethod
     def reset(self) -> None:
         """Reset feature extractor state."""
         ...
@@ -148,7 +137,6 @@ class Rule(Protocol):
     market conditions and produces trading decisions.
     """
     
-    @abstractmethod
     def evaluate(self, data: Dict[str, Any]) -> Tuple[bool, float]:
         """
         Evaluate rule against market data.
@@ -164,13 +152,11 @@ class Rule(Protocol):
         ...
     
     @property
-    @abstractmethod
     def name(self) -> str:
         """Rule name for identification."""
         ...
     
     @property
-    @abstractmethod
     def weight(self) -> float:
         """Rule weight for ensemble strategies."""
         ...
@@ -185,7 +171,6 @@ class SignalAggregator(Protocol):
     into a single actionable signal.
     """
     
-    @abstractmethod
     def aggregate(self, signals: List[Tuple[Dict[str, Any], float]]) -> Optional[Dict[str, Any]]:
         """
         Aggregate multiple weighted signals.
@@ -199,7 +184,6 @@ class SignalAggregator(Protocol):
         ...
     
     @property
-    @abstractmethod
     def min_signals(self) -> int:
         """Minimum number of signals required."""
         ...
@@ -214,7 +198,6 @@ class Classifier(Protocol):
     labels (e.g., trending, ranging, volatile).
     """
     
-    @abstractmethod
     def classify(self, data: Dict[str, Any]) -> str:
         """
         Classify current market conditions.
@@ -228,18 +211,15 @@ class Classifier(Protocol):
         ...
     
     @property
-    @abstractmethod
     def current_class(self) -> Optional[str]:
         """Current classification."""
         ...
     
     @property
-    @abstractmethod
     def confidence(self) -> float:
         """Confidence in current classification (0-1)."""
         ...
     
-    @abstractmethod
     def reset(self) -> None:
         """Reset classifier state."""
         ...
@@ -254,7 +234,6 @@ class RegimeAdaptive(Protocol):
     detected market regimes.
     """
     
-    @abstractmethod
     def on_regime_change(self, new_regime: str, metadata: Dict[str, Any]) -> None:
         """
         Handle regime change notification.
@@ -265,7 +244,6 @@ class RegimeAdaptive(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_active_parameters(self) -> Dict[str, Any]:
         """Get currently active parameters for current regime."""
         ...
@@ -280,7 +258,6 @@ class Optimizable(Protocol):
     in optimization workflows.
     """
     
-    @abstractmethod
     def get_parameter_space(self) -> Dict[str, Any]:
         """
         Get parameter space for optimization.
@@ -293,17 +270,14 @@ class Optimizable(Protocol):
         """
         ...
     
-    @abstractmethod
     def set_parameters(self, params: Dict[str, Any]) -> None:
         """Apply parameter values."""
         ...
     
-    @abstractmethod
     def get_parameters(self) -> Dict[str, Any]:
         """Get current parameter values."""
         ...
     
-    @abstractmethod
     def validate_parameters(self, params: Dict[str, Any]) -> Tuple[bool, str]:
         """
         Validate parameter values.
@@ -323,17 +297,14 @@ class StrategyContainer(Protocol):
     isolation for parallel execution.
     """
     
-    @abstractmethod
     def create_strategy(self, spec: Dict[str, Any]) -> Any:
         """Create strategy instance from specification."""
         ...
     
-    @abstractmethod
     def initialize_strategy(self, strategy: Any) -> None:
         """Initialize strategy with container context."""
         ...
     
-    @abstractmethod
     def reset_strategy(self) -> None:
         """Reset strategy state for new run."""
         ...
@@ -347,12 +318,10 @@ class PerformanceTracker(Protocol):
     Used for optimization and analysis of trading results.
     """
     
-    @abstractmethod
     def record_trade(self, trade: Dict[str, Any], regime: Optional[str] = None) -> None:
         """Record a completed trade with optional regime context."""
         ...
     
-    @abstractmethod
     def get_metrics(self, regime: Optional[str] = None) -> Dict[str, float]:
         """
         Get performance metrics, optionally filtered by regime.
@@ -362,7 +331,6 @@ class PerformanceTracker(Protocol):
         """
         ...
     
-    @abstractmethod
     def get_regime_analysis(self) -> Dict[str, Dict[str, float]]:
         """Get performance metrics broken down by regime."""
         ...

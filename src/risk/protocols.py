@@ -8,21 +8,7 @@ from typing import Protocol, Optional, Dict, List, Any, Set
 from enum import Enum
 
 from ..core.components.protocols import Component, Capability
-
-
-
-class OrderType(Enum):
-    """Order type enumeration."""
-    MARKET = "market"
-    LIMIT = "limit"
-    STOP = "stop"
-    STOP_LIMIT = "stop_limit"
-
-
-class OrderSide(Enum):
-    """Order side enumeration."""
-    BUY = "buy"
-    SELL = "sell"
+from ..execution.protocols import OrderType, OrderSide
 
 
 class SignalType(Enum):
