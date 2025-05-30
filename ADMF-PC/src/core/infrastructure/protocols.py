@@ -36,7 +36,7 @@ class Monitorable(Protocol):
         ...
     
     @abstractmethod
-    def get_health_status(self) -> 'HealthStatus':
+    def get_health_status(self) -> Dict[str, Any]:
         """Get health check status."""
         ...
 
@@ -66,7 +66,7 @@ class ErrorAware(Protocol):
         ...
     
     @abstractmethod
-    def get_error_policy(self) -> 'ErrorPolicy':
+    def get_error_policy(self) -> Dict[str, Any]:
         """Get component's error handling policy."""
         ...
 
@@ -91,11 +91,11 @@ class Validatable(Protocol):
     """Protocol for components that can be validated."""
     
     @abstractmethod
-    def validate(self) -> 'ValidationResult':
+    def validate(self) -> Dict[str, Any]:
         """Validate component state/configuration."""
         ...
     
     @abstractmethod
-    def get_validation_rules(self) -> List['ValidationRule']:
+    def get_validation_rules(self) -> List[Dict[str, Any]]:
         """Get component's validation rules."""
         ...

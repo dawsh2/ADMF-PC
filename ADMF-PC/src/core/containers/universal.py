@@ -150,11 +150,15 @@ class UniversalScopedContainer:
         # Register in dependency container
         if isinstance(spec.class_name, type):
             # Direct type reference
+            metadata: Dict[str, Any] = {
+                'singleton': True,
+                'params': dict(spec.params)
+            }
             self._dependency_container.register_type(
                 spec.name,
                 spec.class_name,
                 dependencies=spec.dependencies,
-                metadata={'params': spec.params}  # Store params in metadata
+                metadata=metadata
             )
         else:
             # String reference - will be resolved later
@@ -204,12 +208,14 @@ class UniversalScopedContainer:
             )
         
         # Create context for component
-        context = {
-            'container': self._dependency_container,
-            'container_id': self.container_id,
-            'event_bus': self._event_bus,
-            **self._shared_services
+        context: Dict[str, Any] = {
+            'component_id': spec.name,
+            'config': spec.config,
+            'dependencies': spec.dependencies
         }
+        # Add shared services to context
+        for key, value in self._shared_services.items():
+            context[key] = value
         
         # Resolve through dependency container (which will use factory)
         component = self._dependency_container.resolve(name)
@@ -359,21 +365,22 @@ class UniversalScopedContainer:
     
     def get_stats(self) -> Dict[str, Any]:
         """Get container statistics."""
-        return {
+        stats: Dict[str, Any] = {
             'container_id': self.container_id,
             'container_type': self.container_type,
             'state': self._state.name,
             'created_at': self.metadata.created_at.isoformat(),
-            'started_at': self.metadata.started_at.isoformat() if self.metadata.started_at else None,
-            'stopped_at': self.metadata.stopped_at.isoformat() if self.metadata.stopped_at else None,
             'component_count': len(self._component_specs),
             'initialized_count': len(self._initialized_components),
-            'event_stats': self._event_bus.get_stats(),
-            'state_history': [
-                (state.name, timestamp.isoformat())
-                for state, timestamp in self._state_history
-            ]
+            'event_stats': self._event_bus.get_stats()
         }
+        
+        if self.metadata.started_at:
+            stats['started_at'] = self.metadata.started_at.isoformat()
+        if self.metadata.stopped_at:
+            stats['stopped_at'] = self.metadata.stopped_at.isoformat()
+            
+        return stats
     
     # Private methods
     

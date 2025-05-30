@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Dict, Any, Optional, List
 
-from ..core.logging.structured import get_logger
+import logging
 
 from .protocols import (
     SignalProcessorProtocol,
@@ -25,7 +25,7 @@ class SignalProcessor(SignalProcessorProtocol):
     
     def __init__(self):
         """Initialize signal processor."""
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self._processed_signals = 0
         self._approved_orders = 0
         self._rejected_signals = 0
@@ -278,7 +278,7 @@ class SignalAggregator:
                 - "first": Take first signal only
         """
         self.aggregation_method = aggregation_method
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
     
     def aggregate_signals(
         self,

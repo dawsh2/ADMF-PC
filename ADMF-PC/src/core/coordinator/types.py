@@ -30,7 +30,7 @@ class ExecutionContext(BaseModel):
     workflow_type: WorkflowType
     start_time: datetime = Field(default_factory=datetime.now)
     metadata: Dict[str, Any] = Field(default_factory=dict)
-    shared_resources: Dict[str, Any] = Field(default_factory=dict)
+    shared_resources: Dict[str, Any] = Field(default_factory=dict)  # TODO: Create SharedResources TypedDict
     current_phase: Optional[WorkflowPhase] = None
     completed_phases: Set[WorkflowPhase] = Field(default_factory=set)
     
@@ -53,7 +53,7 @@ class WorkflowConfig(BaseModel):
     data_config: Dict[str, Any] = Field(default_factory=dict)
     infrastructure_config: Dict[str, Any] = Field(default_factory=dict)
     
-    # Type-specific configuration
+    # Type-specific configuration  
     optimization_config: Optional[Dict[str, Any]] = None
     backtest_config: Optional[Dict[str, Any]] = None
     live_config: Optional[Dict[str, Any]] = None
@@ -93,10 +93,10 @@ class PhaseResult(BaseModel):
     """Result from a workflow phase."""
     phase: WorkflowPhase
     success: bool
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: Dict[str, Any] = Field(default_factory=dict)  # TODO: Create PhaseData TypedDict
     errors: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
-    metrics: Dict[str, Any] = Field(default_factory=dict)
+    metrics: Dict[str, Any] = Field(default_factory=dict)  # TODO: Use ComponentMetrics
     duration_seconds: Optional[float] = None
 
 

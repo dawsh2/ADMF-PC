@@ -18,8 +18,8 @@ from typing import Dict, List, Any, Optional, Set, Callable
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
-from ..core.logging.structured import get_logger
-from ..core.events.types import EventType, EventData
+import logging
+from ..core.events.types import EventType, Event
 from ..core.events.event_bus import EventBus
 
 from .protocols import (
@@ -61,7 +61,7 @@ class SignalFlowManager:
             enable_aggregation: Enable signal aggregation
             aggregation_method: Method for aggregating signals
         """
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.event_bus = event_bus
         
         # Configuration
@@ -311,11 +311,10 @@ class SignalFlowManager:
         """Emit event through event bus."""
         if self.event_bus:
             self.event_bus.publish(
-                EventType.CUSTOM,
-                EventData(
-                    event_type=EventType.CUSTOM,
+                Event(
+                    event_type=EventType.SYSTEM,
                     source_id="SignalFlowManager",
-                    data={
+                    payload={
                         "type": event_type,
                         **data
                     }
@@ -332,7 +331,7 @@ class MultiSymbolSignalFlow:
         Args:
             event_bus: Event bus for publishing events
         """
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.event_bus = event_bus
         
         # Flow managers per classifier

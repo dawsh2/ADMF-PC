@@ -182,21 +182,13 @@ def create_market_event(
 
 
 def create_signal_event(
-    symbol: str,
-    signal_type: str,
-    strength: float,
+    signal_payload: Dict[str, Any],
     timestamp: datetime,
     source_id: Optional[str] = None,
-    container_id: Optional[str] = None,
-    **kwargs
+    container_id: Optional[str] = None
 ) -> Event:
     """Create a trading signal event."""
-    payload = {
-        "symbol": symbol,
-        "signal_type": signal_type,
-        "strength": strength,
-        **kwargs
-    }
+    payload = signal_payload
     
     return Event(
         event_type=EventType.SIGNAL,
@@ -232,20 +224,14 @@ def create_system_event(
 
 def create_error_event(
     error: Exception,
-    context: str,
+    error_context: Dict[str, Any],
     source_id: Optional[str] = None,
-    container_id: Optional[str] = None,
-    **kwargs
+    container_id: Optional[str] = None
 ) -> Event:
     """Create an error event from an exception."""
     return Event(
         event_type=EventType.ERROR,
-        payload={
-            "error_type": type(error).__name__,
-            "error_message": str(error),
-            "context": context,
-            **kwargs
-        },
+        payload=error_context,
         timestamp=datetime.now(),
         source_id=source_id,
         container_id=container_id,

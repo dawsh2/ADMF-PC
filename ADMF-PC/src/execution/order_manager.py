@@ -10,10 +10,10 @@ from .protocols import (
     Order, OrderStatus, OrderProcessor, Fill,
     OrderType, OrderSide
 )
-from ..core.logging.structured import get_logger
+import logging
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class OrderManager:

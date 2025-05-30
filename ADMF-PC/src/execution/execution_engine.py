@@ -13,10 +13,10 @@ from .order_manager import OrderManager
 from .market_simulation import MarketSimulator
 from .execution_context import ExecutionContext
 from ..core.events.types import Event, EventType
-from ..core.logging.structured import get_logger
+import logging
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class DefaultExecutionEngine:

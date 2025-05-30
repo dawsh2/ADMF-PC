@@ -15,7 +15,7 @@ from typing import Dict, Any, Optional, List, Tuple, Set
 from collections import defaultdict, deque
 from enum import IntEnum
 
-from ..core.logging.structured import get_logger
+import logging
 
 from .protocols import (
     SignalProcessorProtocol,
@@ -44,7 +44,7 @@ class SignalRouter:
     
     def __init__(self):
         """Initialize signal router."""
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self._processors: Dict[str, SignalProcessorProtocol] = {}
         self._strategy_processors: Dict[str, SignalProcessorProtocol] = {}
         self._signal_type_processors: Dict[SignalType, SignalProcessorProtocol] = {}
@@ -129,7 +129,7 @@ class SignalValidator:
         Args:
             max_signal_age: Maximum age of signal in seconds
         """
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.max_signal_age = max_signal_age
         self._validation_rules: List[Tuple[str, callable]] = []
         self._add_default_rules()
@@ -276,7 +276,7 @@ class SignalCache:
             cache_duration: How long to cache signals (seconds)
             max_cache_size: Maximum number of signals to cache
         """
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.cache_duration = cache_duration
         self.max_cache_size = max_cache_size
         
@@ -391,7 +391,7 @@ class SignalPrioritizer:
     
     def __init__(self):
         """Initialize signal prioritizer."""
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self._priority_rules: List[Tuple[str, callable]] = []
         self._add_default_rules()
     

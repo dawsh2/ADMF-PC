@@ -8,11 +8,13 @@ from .protocols import (
     ExecutionCapability,
 )
 from .backtest_broker import BacktestBroker
+from .backtest_broker_refactored import BacktestBrokerRefactored
 from .order_manager import OrderManager
 from .execution_engine import DefaultExecutionEngine
 from .market_simulation import MarketSimulator, SlippageModel, CommissionModel
 from .execution_context import ExecutionContext
 from .capabilities import ExecutionCapabilities
+from .backtest_engine import UnifiedBacktestEngine, BacktestConfig, BacktestResults
 
 __all__ = [
     # Protocols
@@ -23,6 +25,7 @@ __all__ = [
     "ExecutionCapability",
     # Implementations
     "BacktestBroker",
+    "BacktestBrokerRefactored",
     "OrderManager",
     "DefaultExecutionEngine",
     "MarketSimulator",
@@ -30,4 +33,8 @@ __all__ = [
     "CommissionModel",
     "ExecutionContext",
     "ExecutionCapabilities",
+    # Backtesting
+    "UnifiedBacktestEngine",
+    "BacktestConfig",
+    "BacktestResults",
 ]

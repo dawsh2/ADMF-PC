@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from datetime import datetime
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from dataclasses import dataclass, field
 import statistics
 
