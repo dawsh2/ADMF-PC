@@ -91,6 +91,25 @@ from .discovery import (
     auto_discover_components
 )
 
+# Add ComponentSpec for backward compatibility
+from dataclasses import dataclass
+from typing import Dict, Any, List, Optional
+
+@dataclass
+class ComponentSpec:
+    """Specification for creating a component."""
+    component_type: str
+    component_id: str
+    config: Dict[str, Any]
+    capabilities: List[str] = None
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.capabilities is None:
+            self.capabilities = []
+        if self.metadata is None:
+            self.metadata = {}
+
 
 __all__ = [
     # Protocols
@@ -133,5 +152,8 @@ __all__ = [
     "ComponentScanner",
     "ComponentFinder",
     "discover_components",
-    "auto_discover_components"
+    "auto_discover_components",
+    
+    # Specs
+    "ComponentSpec"
 ]

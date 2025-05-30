@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from .protocols import (
     Broker, Order, Fill, OrderStatus,
-    OrderSide, OrderType, FillType
+    OrderSide, OrderType, FillType, FillStatus
 )
 from .market_simulation import MarketSimulator
 import logging
@@ -39,23 +39,34 @@ class BacktestBrokerRefactored:
     
     def __init__(
         self,
-        portfolio_state: PortfolioStateProtocol,
+        initial_cash: Optional[Decimal] = None,
+        risk_portfolio_container: Optional[Any] = None,
+        portfolio_state: Optional[PortfolioStateProtocol] = None,
         market_simulator: Optional[MarketSimulator] = None
     ):
         """Initialize backtest broker with reference to portfolio state.
         
         Args:
+            initial_cash: Initial cash (used if risk_portfolio_container provided)
+            risk_portfolio_container: Risk portfolio container (alternative to portfolio_state)
             portfolio_state: The authoritative portfolio state from Risk module
             market_simulator: Market simulator for realistic fills
         """
-        self.portfolio_state = portfolio_state
+        # Handle different initialization patterns
+        if risk_portfolio_container is not None:
+            self.portfolio_state = risk_portfolio_container.get_portfolio_state()
+        elif portfolio_state is not None:
+            self.portfolio_state = portfolio_state
+        else:
+            raise ValueError("Either risk_portfolio_container or portfolio_state must be provided")
+        
         self.market_simulator = market_simulator
         self.order_tracker = OrderTracker()
         self._order_lock = asyncio.Lock()
         
         logger.info(
             "Initialized BacktestBroker with portfolio state",
-            initial_capital=str(portfolio_state.get_cash_balance())
+            initial_capital=str(self.portfolio_state.get_cash_balance())
         )
     
     async def submit_order(self, order: Order) -> str:
@@ -314,4 +325,69 @@ class BacktestBrokerRefactored:
     def _calculate_commission(self, quantity: float, price: float) -> float:
         """Calculate commission for a trade."""
         # Simple fixed + per share model
-        return 1.0 + (0.005 * quantity)  # $1 + $0.005/share
+        return 1.0 + (0.005 * quantity)  # $1 + $0.005/share    
+    def simulate_fill(self, order: Order, market_price: Decimal) -> Optional[Fill]:
+        """Simulate fill execution for an order.
+        
+        Args:
+            order: Order to fill
+            market_price: Current market price
+            
+        Returns:
+            Fill object if successful, None otherwise
+        """
+        # Simple fill simulation - in production would use MarketSimulator
+        if order.order_id not in self.order_tracker.orders:
+            logger.warning(f"Order {order.order_id} not found")
+            return None
+        
+        # Calculate fill price based on order type
+        fill_price = market_price
+        if order.order_type == OrderType.LIMIT and order.price:
+            # For limit orders, check if market price allows execution
+            if order.side == OrderSide.BUY and market_price > order.price:
+                return None  # Market price too high for buy limit
+            elif order.side == OrderSide.SELL and market_price < order.price:
+                return None  # Market price too low for sell limit
+            fill_price = Decimal(str(order.price))
+        
+        # Simple slippage calculation
+        slippage = market_price * Decimal("0.0001")  # 0.01% slippage
+        if order.side == OrderSide.BUY:
+            fill_price += slippage
+        else:
+            fill_price -= slippage
+        
+        # Calculate commission
+        commission = max(order.quantity * fill_price * Decimal("0.001"), Decimal("1.0"))  # 0.1% or $1 minimum
+        
+        # Create fill
+        fill = Fill(
+            fill_id=f"FILL-{uuid.uuid4().hex[:8]}",
+            order_id=order.order_id,
+            symbol=order.symbol,
+            side=order.side,
+            quantity=order.quantity,
+            price=float(fill_price),
+            commission=float(commission),
+            slippage=float(slippage),
+            fill_type=FillType.FULL,
+            status=FillStatus.FILLED,
+            executed_at=datetime.now(),
+            metadata={
+                "market_price": float(market_price),
+                "simulated": True
+            }
+        )
+        
+        # Update order status
+        self.order_tracker.order_status[order.order_id] = OrderStatus.FILLED
+        self.order_tracker.fills.append(fill)
+        
+        logger.info(
+            f"Simulated fill: {order.side.name} {fill.quantity} {order.symbol} "
+            f"@ {fill.price:.2f} (market: {market_price:.2f}, "
+            f"slippage: {slippage:.4f}, commission: {commission:.2f})"
+        )
+        
+        return fill

@@ -5,6 +5,7 @@ import asyncio
 from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 import logging
+from datetime import datetime
 
 from .types import (
     WorkflowConfig, WorkflowResult, ExecutionContext,
@@ -882,9 +883,18 @@ class WorkflowManagerFactory:
     def __init__(self, container_manager: Any, shared_services: Dict[str, Any]):
         self.container_manager = container_manager
         self.shared_services = shared_services
+        
+        # Use simple backtest manager to avoid circular imports
+        try:
+            from .backtest_manager import BacktestWorkflowManager
+            backtest_manager_class = BacktestWorkflowManager
+        except ImportError:
+            from .simple_backtest_manager import SimpleBacktestWorkflowManager
+            backtest_manager_class = SimpleBacktestWorkflowManager
+        
         self._managers = {
             WorkflowType.OPTIMIZATION: OptimizationManager,
-            WorkflowType.BACKTEST: BacktestManager,
+            WorkflowType.BACKTEST: backtest_manager_class,
             WorkflowType.LIVE_TRADING: LiveTradingManager,
             WorkflowType.ANALYSIS: AnalysisManager,
             WorkflowType.VALIDATION: ValidationManager
@@ -896,5 +906,10 @@ class WorkflowManagerFactory:
         
         if not manager_class:
             raise ValueError(f"No manager for workflow type: {workflow_type}")
+            
+        # Special handling for BacktestWorkflowManager
+        if workflow_type == WorkflowType.BACKTEST:
+            from .backtest_manager import BacktestWorkflowManager
+            return BacktestWorkflowManager(container_id, self.shared_services)
             
         return manager_class(self.container_manager, container_id)

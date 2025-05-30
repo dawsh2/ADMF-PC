@@ -1,0 +1,19 @@
+backtest:
+  initial_capital: 100000
+data:
+  end_date: '2023-01-31'
+  start_date: '2023-01-01'
+  symbols:
+  - AAPL
+parameters:
+  output_dir: output/test_backtest
+risk:
+  max_position_size: 0.02
+  max_total_exposure: 0.1
+strategies:
+- class: MomentumStrategy
+  name: test_momentum
+  parameters:
+    fast_period: 5
+    slow_period: 10
+workflow_type: backtest

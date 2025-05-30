@@ -1,0 +1,72 @@
+# Simple backtest using synthetic data
+# Tests with the rule: Buy at $90, Sell at $100
+
+name: Synthetic Data Rule Test
+workflow_type: backtest
+description: Test simple price threshold strategy on synthetic data
+
+# Data configuration - will use --bars 100 for quick testing
+data:
+  source: csv
+  file_path: data/SYNTH_1min.csv
+  symbols: ["SYNTH"]
+  # No date range needed - will use --bars argument
+  frequency: "1min"
+  
+# Portfolio configuration
+portfolio:
+  initial_capital: 10000
+  currency: USD
+  commission:
+    type: fixed
+    value: 0  # No commission for clean testing
+
+# Simple threshold strategy matching our synthetic data rule
+strategies:
+  - name: threshold_strategy
+    type: price_threshold
+    enabled: true
+    allocation: 1.0
+    parameters:
+      buy_threshold: 90.0   # Buy when price <= $90
+      sell_threshold: 100.0  # Sell when price >= $100
+      position_type: long_only
+      
+# Minimal risk management for testing
+risk:
+  position_sizers:
+    - name: all_in
+      type: fixed
+      size: 10000  # Use full capital
+  
+  limits:
+    - type: position
+      max_position: 10000  # Full position allowed
+
+# Backtest configuration
+backtest:
+  start_date: null  # Will use all data or limited by --bars
+  end_date: null
+  initial_capital: 10000
+  commission: 0.0
+  slippage: 0.0
+  # Include strategy configuration here for simple backtest manager
+  strategies:
+    - name: threshold_strategy
+      type: price_threshold
+      parameters:
+        buy_threshold: 90.0
+        sell_threshold: 100.0
+  portfolio:
+    initial_capital: 10000
+
+# Analysis
+analysis:
+  metrics:
+    - total_trades
+    - win_rate
+    - total_return
+    - avg_trade_return
+  print_trades: true  # Show all trades for verification
+  save_results: true
+  output_format: json

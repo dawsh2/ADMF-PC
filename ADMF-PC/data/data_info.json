@@ -1,0 +1,12 @@
+{
+  "generated": "2025-05-29T19:09:34.720177",
+  "description": "Synthetic market data for testing ADMF-PC",
+  "files": {
+    "SPY_1min.csv": "5000 bars of 1-minute SPY data",
+    "SPY_1h.csv": "2000 bars of hourly SPY data",
+    "QQQ_1h.csv": "2000 bars of hourly QQQ data",
+    "IWM_1h.csv": "2000 bars of hourly IWM data",
+    "TLT_1h.csv": "2000 bars of hourly TLT data"
+  },
+  "trading_rule": "Buy when price <= 90, Sell when price >= 100"
+}

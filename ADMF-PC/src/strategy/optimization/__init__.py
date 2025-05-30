@@ -58,14 +58,17 @@ from .containers import (
     RegimeAwareOptimizationContainer
 )
 
-# Workflows
-from .workflows import (
-    ContainerizedComponentOptimizer,
-    SequentialOptimizationWorkflow,
-    RegimeBasedOptimizationWorkflow,
-    PhaseAwareOptimizationWorkflow,
-    create_phase_aware_workflow
-)
+# Workflows - commented out to break circular import
+# These can be imported directly when needed:
+# from src.strategy.optimization.workflows import ...
+#
+# from .workflows import (
+#     ContainerizedComponentOptimizer,
+#     SequentialOptimizationWorkflow,
+#     RegimeBasedOptimizationWorkflow,
+#     PhaseAwareOptimizationWorkflow,
+#     create_phase_aware_workflow
+# )
 
 # Optimizers
 from .optimizers import (
@@ -121,12 +124,12 @@ __all__ = [
     "RegimeTracker",
     "RegimeAwareOptimizationContainer",
     
-    # Workflows
-    "ContainerizedComponentOptimizer",
-    "SequentialOptimizationWorkflow",
-    "RegimeBasedOptimizationWorkflow",
-    "PhaseAwareOptimizationWorkflow",
-    "create_phase_aware_workflow",
+    # Workflows - commented out to break circular import
+    # "ContainerizedComponentOptimizer",
+    # "SequentialOptimizationWorkflow",
+    # "RegimeBasedOptimizationWorkflow",
+    # "PhaseAwareOptimizationWorkflow",
+    # "create_phase_aware_workflow",
     
     # Optimizers
     "GridOptimizer",

@@ -59,6 +59,11 @@ from .loaders import (
     MultiFileLoader
 )
 
+from .streamer import (
+    DataStreamer,
+    HistoricalDataStreamer
+)
+
 
 __all__ = [
     # Models
@@ -77,5 +82,9 @@ __all__ = [
     "DataLoader",
     "CSVLoader",
     "MemoryOptimizedCSVLoader",
-    "MultiFileLoader"
+    "MultiFileLoader",
+    
+    # Streamers
+    "DataStreamer",
+    "HistoricalDataStreamer"
 ]

@@ -45,6 +45,7 @@ class ContainerBootstrap:
             config_path: Path to bootstrap configuration
             component_paths: Paths to scan for components
         """
+        self.config_path = config_path
         self.config = self._load_config(config_path) if config_path else {}
         self.component_paths = component_paths or []
         
@@ -55,6 +56,9 @@ class ContainerBootstrap:
         
         # Shared services that will be available to all containers
         self.shared_services: Dict[str, Any] = {}
+        
+        # Coordinator instance (created later)
+        self._coordinator = None
         
         logger.info("ContainerBootstrap initialized")
     
@@ -175,6 +179,69 @@ class ContainerBootstrap:
         """Add a shared service."""
         self.shared_services[name] = service
         logger.debug(f"Added shared service: {name}")
+    
+    def create_coordinator(self) -> 'Coordinator':
+        """
+        Create and return the Coordinator instance.
+        
+        Returns:
+            Configured Coordinator instance
+        """
+        if self._coordinator is None:
+            # Import here to avoid circular imports
+            from ..coordinator import get_coordinator
+            
+            Coordinator = get_coordinator()
+            self._coordinator = Coordinator(
+                shared_services=self.shared_services,
+                config_path=self.config_path
+            )
+            
+            logger.info("Coordinator created via Bootstrap")
+            
+        return self._coordinator
+    
+    def get_coordinator(self) -> Optional['Coordinator']:
+        """
+        Get the existing Coordinator instance.
+        
+        Returns:
+            Coordinator instance if created, None otherwise
+        """
+        return self._coordinator
+    
+    async def execute_workflow(
+        self,
+        workflow_config: Dict[str, Any],
+        mode_override: Optional[str] = None,
+        mode_args: Optional[Dict[str, Any]] = None
+    ) -> Any:
+        """
+        Execute a workflow using the coordinator.
+        
+        Args:
+            workflow_config: Workflow configuration
+            mode_override: Optional mode override
+            mode_args: Mode-specific arguments
+            
+        Returns:
+            Workflow result
+        """
+        coordinator = self.create_coordinator()
+        
+        result = await coordinator.execute_workflow(
+            config=workflow_config,
+            mode_override=mode_override,
+            mode_args=mode_args
+        )
+        
+        return result
+    
+    async def shutdown(self) -> None:
+        """Shutdown the bootstrap and coordinator."""
+        if self._coordinator:
+            await self._coordinator.shutdown()
+            logger.info("Coordinator shutdown via Bootstrap")
     
     # Private methods
     

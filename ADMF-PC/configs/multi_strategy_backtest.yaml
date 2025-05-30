@@ -1,0 +1,90 @@
+# Multi-strategy backtest with different allocations
+# Demonstrates portfolio of strategies without coding
+
+name: Multi-Strategy Portfolio Backtest
+type: backtest
+description: Run multiple strategies with risk-weighted allocation
+
+# Data configuration
+data:
+  symbols: ["SPY", "QQQ", "IWM"]  # Major index ETFs
+  start_date: "2022-01-01"
+  end_date: "2023-12-31"
+  frequency: "1d"
+  source: yahoo
+
+# Portfolio configuration
+portfolio:
+  initial_capital: 250000
+  currency: USD
+  commission:
+    type: percentage
+    value: 0.001  # 0.1% commission
+
+# Multiple strategies with allocations
+strategies:
+  # Conservative MA strategy
+  - name: conservative_ma
+    type: moving_average_crossover
+    enabled: true
+    allocation: 0.4  # 40% allocation
+    parameters:
+      fast_period: 20
+      slow_period: 50
+      ma_type: EMA
+  
+  # Aggressive MA strategy
+  - name: aggressive_ma
+    type: moving_average_crossover
+    enabled: true
+    allocation: 0.3  # 30% allocation
+    parameters:
+      fast_period: 5
+      slow_period: 20
+      ma_type: SMA
+  
+  # Momentum strategy
+  - name: momentum
+    type: momentum_strategy
+    enabled: true
+    allocation: 0.3  # 30% allocation
+    parameters:
+      lookback_period: 20
+      entry_threshold: 0.02
+      exit_threshold: -0.01
+
+# Risk management across all strategies
+risk:
+  position_sizers:
+    - name: risk_parity
+      type: volatility
+      risk_per_trade: 1.0  # 1% risk per trade
+      lookback_period: 20
+  
+  limits:
+    - type: position
+      max_position: 50000  # Max $50k per position
+    - type: exposure
+      max_exposure_pct: 90  # Max 90% invested
+    - type: drawdown
+      max_drawdown_pct: 15  # Reduce on 15% drawdown
+      reduce_at_pct: 10
+    - type: concentration
+      max_position_pct: 25  # No position > 25% of portfolio
+
+# Analysis
+analysis:
+  metrics:
+    - total_return
+    - annualized_return
+    - sharpe_ratio
+    - sortino_ratio
+    - max_drawdown
+    - win_rate
+    - profit_factor
+  attribution:
+    by_strategy: true  # Show performance by strategy
+    by_symbol: true    # Show performance by symbol
+  export:
+    format: html
+    path: results/multi_strategy_backtest.html

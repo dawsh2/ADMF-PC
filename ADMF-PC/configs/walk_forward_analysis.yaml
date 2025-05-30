@@ -1,0 +1,110 @@
+# Walk-forward analysis configuration
+# Test strategy robustness without coding the walk-forward logic
+
+name: Walk-Forward Strategy Validation
+type: optimization  # Uses optimization with walk-forward
+description: Validate strategy performance with rolling optimization windows
+
+# Base configuration
+base_config:
+  data:
+    symbols: ["SPY", "QQQ"]
+    start_date: "2018-01-01"
+    end_date: "2023-12-31"  # 6 years of data
+    frequency: "1d"
+    source: yahoo
+  
+  portfolio:
+    initial_capital: 100000
+    commission:
+      type: percentage
+      value: 0.001
+  
+  strategies:
+    - name: adaptive_momentum
+      type: momentum_strategy
+      # Parameters will be optimized in each window
+
+# Walk-forward specific configuration
+optimization:
+  method: walk_forward
+  
+  # Walk-forward windows
+  walk_forward:
+    optimization_window: 252  # 1 year of trading days
+    test_window: 63          # 3 months test
+    step_size: 63            # Roll forward quarterly
+    min_periods: 126         # Need at least 6 months for optimization
+  
+  # Parameters to optimize in each window
+  parameter_space:
+    lookback_period:
+      type: int
+      min: 10
+      max: 60
+      step: 5
+    
+    entry_threshold:
+      type: float
+      min: 0.01
+      max: 0.05
+      step: 0.005
+    
+    exit_threshold:
+      type: float
+      min: -0.02
+      max: 0.0
+      step: 0.005
+    
+    volatility_filter:
+      type: choice
+      choices: [true, false]
+  
+  # Optimization objective for each window
+  objectives:
+    - metric: risk_adjusted_return  # Sharpe ratio
+      direction: maximize
+  
+  # Use fewer trials per window for speed
+  n_trials: 50
+  n_jobs: 4
+
+# Risk management (applies to all windows)
+risk:
+  position_sizers:
+    - name: adaptive_sizing
+      type: volatility
+      risk_per_trade: 1.5
+      lookback_period: 20
+  
+  limits:
+    - type: drawdown
+      max_drawdown_pct: 20
+      reduce_at_pct: 15
+    - type: daily_loss
+      max_daily_loss_pct: 3.0
+
+# Special walk-forward analysis
+analysis:
+  # Aggregate metrics across all windows
+  aggregate_metrics:
+    - mean_return
+    - std_return
+    - sharpe_ratio
+    - max_drawdown
+    - consistency_score  # How often profitable
+  
+  # Show parameter stability
+  parameter_analysis:
+    show_evolution: true  # How parameters change over time
+    stability_score: true  # How stable optimal parameters are
+  
+  # Out-of-sample performance
+  oos_analysis:
+    compare_is_oos: true  # In-sample vs out-of-sample
+    degradation_analysis: true  # Performance degradation
+  
+  export:
+    format: html
+    include_charts: true
+    path: results/walk_forward_analysis.html

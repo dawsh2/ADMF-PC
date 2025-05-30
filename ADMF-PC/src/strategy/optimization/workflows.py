@@ -13,15 +13,24 @@ import json
 from pathlib import Path
 
 from ...core.containers import ContainerLifecycleManager, UniversalScopedContainer
-from ...core.coordinator import (
-    Coordinator,
-    PhaseTransition,
-    ContainerNamingStrategy,
-    ResultAggregator,
-    StrategyIdentity,
-    CheckpointManager,
-    WalkForwardValidator
-)
+# Import phase management types directly to avoid circular import
+try:
+    from ...core.coordinator.phase_management import (
+        PhaseTransition,
+        ContainerNamingStrategy,
+        ResultAggregator,
+        StrategyIdentity,
+        CheckpointManager,
+        WalkForwardValidator
+    )
+except ImportError:
+    # Define stubs if phase management not available
+    PhaseTransition = None
+    ContainerNamingStrategy = None
+    ResultAggregator = None
+    StrategyIdentity = None
+    CheckpointManager = None
+    WalkForwardValidator = None
 from ..protocols import Strategy, Classifier
 from ..components.signal_replay import SignalCapture, SignalReplayer
 from .containers import OptimizationContainer, RegimeAwareOptimizationContainer
@@ -469,7 +478,7 @@ class PhaseAwareOptimizationWorkflow:
     """
     
     def __init__(self,
-                 coordinator: Coordinator,
+                 coordinator: Any,  # Coordinator type
                  workflow_config: Dict[str, Any]):
         """
         Initialize phase-aware workflow.
@@ -915,7 +924,7 @@ class PhaseAwareOptimizationWorkflow:
 
 # Factory function
 def create_phase_aware_workflow(
-    coordinator: Coordinator,
+    coordinator: Any,  # Coordinator type
     config: Dict[str, Any]
 ) -> PhaseAwareOptimizationWorkflow:
     """Create enhanced workflow with phase management."""
