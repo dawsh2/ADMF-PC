@@ -72,9 +72,7 @@ class SignalProcessor(SignalProcessorProtocol):
             
             if size <= 0:
                 self.logger.warning(
-                    "signal_rejected_zero_size",
-                    signal=signal,
-                    reason="Position size is zero or negative"
+                    f"Signal rejected - Zero size - Signal: {signal}, Reason: Position size is zero or negative"
                 )
                 self._rejected_signals += 1
                 return None
@@ -88,10 +86,7 @@ class SignalProcessor(SignalProcessorProtocol):
                 passes, reason = limit.check_limit(order, portfolio_state, market_data)
                 if not passes:
                     self.logger.warning(
-                        "signal_rejected_risk_limit",
-                        signal=signal,
-                        limit=type(limit).__name__,
-                        reason=reason
+                        f"Signal rejected - Risk limit - Signal: {signal}, Limit: {type(limit).__name__}, Reason: {reason}"
                     )
                     self._rejected_signals += 1
                     return None
@@ -115,21 +110,14 @@ class SignalProcessor(SignalProcessorProtocol):
             
             self._approved_orders += 1
             self.logger.info(
-                "signal_processed",
-                signal_type=signal.signal_type.value,
-                symbol=signal.symbol,
-                order_id=order.order_id,
-                quantity=str(order.quantity),
-                risk_checks=len(risk_checks_passed)
+                f"Signal processed - Type: {signal.signal_type.value}, Symbol: {signal.symbol}, Order ID: {order.order_id}, Quantity: {order.quantity}, Risk checks: {len(risk_checks_passed)}"
             )
             
             return order
             
         except Exception as e:
             self.logger.error(
-                "signal_processing_error",
-                signal=signal,
-                error=str(e)
+                f"Signal processing error - Signal: {signal}, Error: {str(e)}"
             )
             self._rejected_signals += 1
             return None
@@ -150,7 +138,7 @@ class SignalProcessor(SignalProcessorProtocol):
         """
         # Check signal strength
         if signal.strength == 0:
-            self.logger.debug("signal_rejected_zero_strength", signal=signal)
+            self.logger.debug(f"Signal rejected - Zero strength - Signal: {signal}")
             return False
         
         # Check position logic
@@ -159,9 +147,7 @@ class SignalProcessor(SignalProcessorProtocol):
         # Exit signal but no position
         if signal.signal_type == SignalType.EXIT and not position:
             self.logger.debug(
-                "signal_rejected_no_position",
-                signal=signal,
-                reason="Exit signal but no position"
+                f"Signal rejected - No position - Signal: {signal}, Reason: Exit signal but no position"
             )
             return False
         
@@ -173,9 +159,7 @@ class SignalProcessor(SignalProcessorProtocol):
                 return True
             else:
                 self.logger.debug(
-                    "signal_rejected_conflicting_position",
-                    signal=signal,
-                    current_position=str(position.quantity)
+                    f"Signal rejected - Conflicting position - Signal: {signal}, Current position: {position.quantity}"
                 )
                 return False
         

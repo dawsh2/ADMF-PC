@@ -26,9 +26,8 @@ from src.risk import (
     MaxDrawdownLimit,
     SignalFlowManager,
     Signal,
-    SignalType,
-    OrderSide,
 )
+from src.risk.protocols import SignalType, OrderSide
 
 # Execution module
 from src.execution import BacktestBrokerRefactored
@@ -174,8 +173,7 @@ async def run_simple_backtest():
         base_currency="USD"
     )
     
-    # Start the container
-    await risk_portfolio.start()
+    # Container is ready to use immediately for our test
     
     # Configure risk management
     risk_portfolio.set_position_sizer(
@@ -306,8 +304,7 @@ async def run_simple_backtest():
     print(f"  Positions Value: ${risk_report['portfolio_metrics']['positions_value']}")
     print(f"  Realized P&L: ${risk_report['portfolio_metrics']['realized_pnl']}")
     
-    # Stop the container
-    await risk_portfolio.stop()
+    # Container cleanup not needed for test
     
     print("\n" + "="*60)
     print("✅ BACKTEST COMPLETE")

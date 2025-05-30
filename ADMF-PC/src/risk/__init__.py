@@ -17,6 +17,8 @@ Key components:
 
 from .protocols import (
     RiskPortfolioProtocol,
+    SignalType,
+    OrderSide,
     PositionSizerProtocol,
     RiskLimitProtocol,
     PortfolioStateProtocol,
@@ -67,6 +69,8 @@ __all__ = [
     "SignalProcessorProtocol",
     # Types
     "Signal",
+    "SignalType",
+    "OrderSide",
     "Order",
     "Position",
     "RiskMetrics",

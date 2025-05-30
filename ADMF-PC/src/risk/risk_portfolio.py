@@ -107,16 +107,14 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         """Start the container."""
         await super().start()
         self.logger.info(
-            "risk_portfolio_started",
-            initial_capital=str(self._portfolio_state.get_cash_balance()),
-            base_currency=self._portfolio_state._base_currency
+            f"Risk portfolio started - Initial capital: {self._portfolio_state.get_cash_balance()}, Base currency: {self._portfolio_state._base_currency}"
         )
     
     async def stop(self) -> None:
         """Stop the container."""
         # Generate final risk report
         final_report = self.get_risk_report()
-        self.logger.info("risk_portfolio_stopping", risk_report=final_report)
+        self.logger.info(f"Risk portfolio stopping - Final report: {final_report}")
         
         await super().stop()
     
@@ -130,9 +128,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         self._strategies[strategy_id] = strategy
         
         self.logger.info(
-            "strategy_added",
-            strategy_id=strategy_id,
-            strategy_type=type(strategy).__name__
+            f"Strategy added - ID: {strategy_id}, Type: {type(strategy).__name__}"
         )
     
     def remove_strategy(self, strategy_id: str) -> None:
@@ -143,7 +139,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         """
         if strategy_id in self._strategies:
             del self._strategies[strategy_id]
-            self.logger.info("strategy_removed", strategy_id=strategy_id)
+            self.logger.info(f"Strategy removed - ID: {strategy_id}")
     
     def process_signals(
         self,
@@ -213,25 +209,16 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
                     )
                     
                     self.logger.info(
-                        "order_created",
-                        order_id=order.order_id,
-                        symbol=order.symbol,
-                        side=order.side.value,
-                        quantity=str(order.quantity),
-                        risk_checks=order.risk_checks_passed
+                        f"Order created - ID: {order.order_id}, Symbol: {order.symbol}, Side: {order.side.value}, Quantity: {order.quantity}, Risk checks: {order.risk_checks_passed}"
                     )
                 else:
                     self.logger.warning(
-                        "signal_rejected",
-                        signal=signal,
-                        reason="Failed risk checks or sizing"
+                        f"Signal rejected - Signal: {signal}, Reason: Failed risk checks or sizing"
                     )
                     
             except Exception as e:
                 self.logger.error(
-                    "signal_processing_error",
-                    signal=signal,
-                    error=str(e)
+                    f"Signal processing error - Signal: {signal}, Error: {str(e)}"
                 )
         
         return orders
@@ -304,18 +291,12 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
                 )
                 
                 self.logger.info(
-                    "fill_processed",
-                    symbol=fill["symbol"],
-                    side=fill["side"],
-                    quantity=str(fill["quantity"]),
-                    price=str(fill["price"])
+                    f"Fill processed - Symbol: {fill['symbol']}, Side: {fill['side']}, Quantity: {fill['quantity']}, Price: {fill['price']}"
                 )
                 
             except Exception as e:
                 self.logger.error(
-                    "fill_processing_error",
-                    fill=fill,
-                    error=str(e)
+                    f"Fill processing error - Fill: {fill}, Error: {str(e)}"
                 )
     
     def update_market_data(self, market_data: Dict[str, Any]) -> None:
@@ -340,9 +321,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         """Add a risk limit."""
         self._risk_limits.append(limit)
         self.logger.info(
-            "risk_limit_added",
-            limit_type=type(limit).__name__,
-            limit_info=limit.get_limit_info()
+            f"Risk limit added - Type: {type(limit).__name__}, Info: {limit.get_limit_info()}"
         )
     
     def remove_risk_limit(self, limit_type: type) -> None:
@@ -352,16 +331,14 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
             if not isinstance(limit, limit_type)
         ]
         self.logger.info(
-            "risk_limit_removed",
-            limit_type=limit_type.__name__
+            f"Risk limit removed - Type: {limit_type.__name__}"
         )
     
     def set_position_sizer(self, sizer: PositionSizerProtocol) -> None:
         """Set position sizing strategy."""
         self._position_sizer = sizer
         self.logger.info(
-            "position_sizer_set",
-            sizer_type=type(sizer).__name__
+            f"Position sizer set - Type: {type(sizer).__name__}"
         )
     
     def get_risk_report(self) -> Dict[str, Any]:
@@ -410,7 +387,5 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         else:
             # Log event if no event system available
             self.logger.debug(
-                "event_emitted",
-                event_type=event_type.value,
-                data=data
+                f"Event emitted - Type: {event_type.value}, Data: {data}"
             )
