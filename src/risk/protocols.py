@@ -33,7 +33,7 @@ class Signal:
     
     def __post_init__(self):
         """Validate signal strength."""
-        if not -1 <= self.strength <= 1:
+        if not Decimal('-1') <= self.strength <= Decimal('1'):
             raise ValueError(f"Signal strength must be between -1 and 1, got {self.strength}")
 
 

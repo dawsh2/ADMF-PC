@@ -1,0 +1,24 @@
+# Test configuration to verify Decimal/float fix
+backtest:
+  initial_capital: 100000
+data:
+  end_date: '2024-03-26'
+  start_date: '2024-03-25'
+  symbols:
+  - SPY
+  file_path: data/SPY_1m.csv
+parameters:
+  output_dir: output/test_decimal_fix
+risk:
+  max_position_size: 0.02
+  max_total_exposure: 0.1
+strategies:
+- class: MomentumStrategy
+  name: test_momentum
+  parameters:
+    lookback_period: 20
+    momentum_threshold: 0.0005
+    rsi_period: 14
+    rsi_oversold: 30
+    rsi_overbought: 70
+workflow_type: backtest

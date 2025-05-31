@@ -370,31 +370,47 @@ class RiskPortfolioContainer(Component, Lifecycle, EventCapable):
         """Get current portfolio state."""
         return self._resolver.get_portfolio_state()
     
-    def update_fills(self, fills: List[Dict[str, Any]]) -> None:
+    def update_fills(self, fills: List[Any]) -> None:
         """Update portfolio with executed fills."""
         portfolio_state = self._resolver.get_portfolio_state()
         
         for fill in fills:
             try:
                 # Update portfolio state
-                quantity_delta = fill["quantity"]
-                if fill["side"] == "sell":
+                quantity_delta = Decimal(str(fill.quantity))
+                if fill.side.value == "sell":
                     quantity_delta = -quantity_delta
                 
                 position = portfolio_state.update_position(
-                    symbol=fill["symbol"],
+                    symbol=fill.symbol,
                     quantity_delta=quantity_delta,
-                    price=fill["price"],
-                    timestamp=fill["timestamp"]
+                    price=Decimal(str(fill.price)),  # Convert price to Decimal for consistency
+                    timestamp=fill.executed_at
                 )
                 
                 # Update cash for commission
-                commission = fill.get("commission", Decimal(0))
+                commission = getattr(fill, "commission", 0)
                 if commission:
-                    portfolio_state._cash_balance -= commission
+                    commission_decimal = Decimal(str(commission))
+                    portfolio_state._cash_balance -= commission_decimal
+                    # Track total commission paid - ensure both are Decimal
+                    if not hasattr(portfolio_state, '_commission_paid'):
+                        portfolio_state._commission_paid = Decimal(0)
+                    # Debug logging to understand the type mismatch
+                    current_commission_paid = portfolio_state._commission_paid
+                    self.logger.debug(
+                        f"Commission debug - current_commission_paid type: {type(current_commission_paid)}, "
+                        f"value: {current_commission_paid}, commission_decimal type: {type(commission_decimal)}, "
+                        f"value: {commission_decimal}"
+                    )
+                    # Ensure both the attribute and commission are Decimal before adding
+                    if not isinstance(current_commission_paid, Decimal):
+                        current_commission_paid = Decimal(str(current_commission_paid))
+                        portfolio_state._commission_paid = current_commission_paid
+                    portfolio_state._commission_paid = current_commission_paid + commission_decimal
                 
                 # Move order to history
-                order_id = fill.get("order_id")
+                order_id = getattr(fill, "order_id", None)
                 if order_id and order_id in self._active_orders:
                     order = self._active_orders.pop(order_id)
                     self._order_history.append(order)
@@ -410,8 +426,8 @@ class RiskPortfolioContainer(Component, Lifecycle, EventCapable):
                 )
                 
                 self.logger.info(
-                    f"Fill processed - Symbol: {fill['symbol']}, Side: {fill['side']}, "
-                    f"Quantity: {fill['quantity']}, Price: {fill['price']}"
+                    f"Fill processed - Symbol: {fill.symbol}, Side: {fill.side.value}, "
+                    f"Quantity: {fill.quantity}, Price: {fill.price}"
                 )
                 
             except Exception as e:

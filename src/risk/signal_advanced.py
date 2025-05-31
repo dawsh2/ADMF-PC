@@ -444,7 +444,9 @@ class SignalPrioritizer:
         """Priority based on signal strength."""
         # Stronger signals get higher priority
         # Invert strength so higher strength = lower score
-        return 1.0 - abs(signal.strength)
+        # Convert Decimal to float for priority calculation
+        signal_strength = float(signal.strength) if isinstance(signal.strength, Decimal) else signal.strength
+        return 1.0 - abs(signal_strength)
     
     def _prioritize_exits(self, signal: Signal) -> float:
         """Prioritize exit signals."""

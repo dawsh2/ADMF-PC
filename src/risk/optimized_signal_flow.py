@@ -244,7 +244,7 @@ class HighPerformanceSignalCache:
             signal.symbol,
             signal.signal_type.value,
             signal.side.value,
-            int(signal.strength * 1000)  # Convert to int for hashing
+            int(float(signal.strength) * 1000)  # Convert to int for hashing
         )
         return str(hash(key_tuple))
     

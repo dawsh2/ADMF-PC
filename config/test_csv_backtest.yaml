@@ -1,0 +1,21 @@
+backtest:
+  initial_capital: 100000
+data:
+  source: csv  # Use CSV data source
+  file_path: /Users/daws/ADMF-PC/data/SPY_1m.csv  # Direct path to our CSV file
+  symbols:
+    - SPY
+  max_bars: 10  # Limit to 10 bars for testing
+parameters:
+  output_dir: output/test_backtest
+risk:
+  max_position_size: 0.02
+  max_total_exposure: 0.1
+strategies:
+- class: MomentumStrategy
+  name: test_momentum
+  parameters:
+    lookback_period: 20
+    momentum_threshold: 0.0005
+    rsi_period: 14
+workflow_type: backtest

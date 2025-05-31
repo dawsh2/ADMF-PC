@@ -1,6 +1,6 @@
 """Refactored backtest broker that uses Risk module's portfolio state as single source of truth."""
 
-import asyncio
+import threading
 from typing import Dict, Optional, Any, List
 from datetime import datetime
 import uuid
@@ -62,17 +62,17 @@ class BacktestBrokerRefactored:
         
         self.market_simulator = market_simulator
         self.order_tracker = OrderTracker()
-        self._order_lock = asyncio.Lock()
+        self._order_lock = threading.Lock()
         
         logger.info(
             f"Initialized BacktestBroker with portfolio state, initial_capital={self.portfolio_state.get_cash_balance()}"
         )
     
-    async def submit_order(self, order: Order) -> str:
+    def submit_order(self, order: Order) -> str:
         """Submit order for execution."""
-        async with self._order_lock:
+        with self._order_lock:
             # Validate order against portfolio state
-            if not await self._validate_order(order):
+            if not self._validate_order(order):
                 logger.warning(
                     f"Order validation failed - ID: {order.order_id}, reason: Insufficient funds or position"
                 )
@@ -90,7 +90,7 @@ class BacktestBrokerRefactored:
             
             return order.order_id
     
-    async def _validate_order(self, order: Order) -> bool:
+    def _validate_order(self, order: Order) -> bool:
         """Validate order against portfolio state."""
         # Convert to Decimal for consistency
         quantity = Decimal(str(order.quantity))
@@ -111,9 +111,9 @@ class BacktestBrokerRefactored:
                 return False
             return quantity <= abs(position.quantity)
     
-    async def cancel_order(self, order_id: str) -> bool:
+    def cancel_order(self, order_id: str) -> bool:
         """Cancel pending order."""
-        async with self._order_lock:
+        with self._order_lock:
             if order_id not in self.order_tracker.orders:
                 logger.warning(f"Order not found for cancellation: {order_id}")
                 return False
@@ -127,11 +127,11 @@ class BacktestBrokerRefactored:
             logger.info(f"Order cancelled - ID: {order_id}")
             return True
     
-    async def get_order_status(self, order_id: str) -> OrderStatus:
+    def get_order_status(self, order_id: str) -> OrderStatus:
         """Get current order status."""
         return self.order_tracker.order_status.get(order_id, OrderStatus.REJECTED)
     
-    async def get_positions(self) -> Dict[str, Any]:
+    def get_positions(self) -> Dict[str, Any]:
         """Get current positions from portfolio state.
         
         Returns positions in a format compatible with execution module.
@@ -151,7 +151,7 @@ class BacktestBrokerRefactored:
             for symbol, pos in positions.items()
         }
     
-    async def get_account_info(self) -> Dict[str, Any]:
+    def get_account_info(self) -> Dict[str, Any]:
         """Get account information from portfolio state."""
         metrics = self.portfolio_state.get_risk_metrics()
         positions = self.portfolio_state.get_all_positions()
@@ -171,13 +171,13 @@ class BacktestBrokerRefactored:
             "realized_pnl": float(metrics.realized_pnl)
         }
     
-    async def execute_fill(self, fill: Fill) -> bool:
+    def execute_fill(self, fill: Fill) -> bool:
         """Execute fill - just records it, portfolio state handles position updates.
         
         The fill should be processed by Risk module's portfolio state.
         This method just tracks the fill for execution history.
         """
-        async with self._order_lock:
+        with self._order_lock:
             order = self.order_tracker.orders.get(fill.order_id)
             if not order:
                 logger.error(f"Order not found for fill: {fill.order_id}")
@@ -193,13 +193,8 @@ class BacktestBrokerRefactored:
                 self.order_tracker.order_status[fill.order_id] = OrderStatus.PARTIAL
             
             logger.info(
-                "fill_recorded",
-                fill_id=fill.fill_id,
-                order_id=fill.order_id,
-                side=order.side.name,
-                quantity=fill.quantity,
-                symbol=order.symbol,
-                price=fill.price
+                f"Fill recorded - ID: {fill.fill_id}, order: {fill.order_id}, "
+                f"side: {order.side.name}, quantity: {fill.quantity}, symbol: {order.symbol}, price: {fill.price}"
             )
             
             # Note: The actual position update should be done by calling
@@ -255,7 +250,7 @@ class BacktestBrokerRefactored:
             )
         }
     
-    async def process_pending_orders(self, market_data: Dict[str, float]) -> List[Fill]:
+    def process_pending_orders(self, market_data: Dict[str, float]) -> List[Fill]:
         """Process pending orders with current market data.
         
         This method simulates order execution based on market data.
@@ -263,7 +258,7 @@ class BacktestBrokerRefactored:
         """
         fills_to_process = []
         
-        async with self._order_lock:
+        with self._order_lock:
             for order_id, order in self.order_tracker.orders.items():
                 status = self.order_tracker.order_status.get(order_id)
                 
@@ -306,7 +301,7 @@ class BacktestBrokerRefactored:
                     )
                     
                     # Execute fill (just records it)
-                    await self.execute_fill(fill)
+                    self.execute_fill(fill)
                     fills_to_process.append(fill)
         
         return fills_to_process

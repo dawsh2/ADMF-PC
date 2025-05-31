@@ -175,8 +175,8 @@ class MomentumStrategy:
                     strength=Decimal(str(min(momentum / (self.momentum_threshold * 2), 1.0))),
                     timestamp=timestamp,
                     metadata={
-                        'momentum': momentum,
-                        'rsi': rsi,
+                        'momentum': float(momentum),
+                        'rsi': float(rsi),
                         'reason': 'Positive momentum with room to run'
                     }
                 )
@@ -192,8 +192,8 @@ class MomentumStrategy:
                     strength=Decimal(str(min(abs(momentum) / (self.momentum_threshold * 2), 1.0))),
                     timestamp=timestamp,
                     metadata={
-                        'momentum': momentum,
-                        'rsi': rsi,
+                        'momentum': float(momentum),
+                        'rsi': float(rsi),
                         'reason': 'Negative momentum with room to fall'
                     }
                 )
@@ -209,8 +209,8 @@ class MomentumStrategy:
                     strength=Decimal('0.5'),  # Lower confidence for reversal
                     timestamp=timestamp,
                     metadata={
-                        'momentum': momentum,
-                        'rsi': rsi,
+                        'momentum': float(momentum),
+                        'rsi': float(rsi),
                         'reason': 'Oversold reversal signal'
                     }
                 )
@@ -226,8 +226,8 @@ class MomentumStrategy:
                     strength=Decimal('0.5'),  # Lower confidence for reversal
                     timestamp=timestamp,
                     metadata={
-                        'momentum': momentum,
-                        'rsi': rsi,
+                        'momentum': float(momentum),
+                        'rsi': float(rsi),
                         'reason': 'Overbought reversal signal'
                     }
                 )

@@ -157,7 +157,7 @@ class ComposableWorkflowManager:
         # Strategy configuration - check multiple locations
         strategies = []
         
-        # Check top-level strategies
+        # Check top-level strategies attribute
         if hasattr(config, 'strategies') and config.strategies:
             strategies.extend(config.strategies)
         
@@ -169,6 +169,21 @@ class ComposableWorkflowManager:
         optimization_config = config.optimization_config or {}
         if optimization_config.get('strategies'):
             strategies.extend(optimization_config.get('strategies', []))
+        
+        logger.info(f"Found {len(strategies)} strategies from config")
+        for i, strategy in enumerate(strategies):
+            logger.info(f"  Strategy {i+1}: {strategy}")
+        
+        # CRITICAL: Automatic Indicator Inference
+        # This is the missing piece that breaks the architecture!
+        required_indicators = self._infer_indicators_from_strategies(strategies)
+        logger.info(f"Inferred {len(required_indicators)} indicators from strategies: {required_indicators}")
+        
+        # Add indicator configuration with inferred indicators
+        container_config['indicator'] = {
+            'required_indicators': list(required_indicators),
+            'cache_size': 1000
+        }
         
         # Pass ALL strategies to composition engine for indicator inference
         if strategies:
@@ -518,10 +533,8 @@ class ComposableWorkflowManager:
             # Start execution
             await root_container.start()
             
-            # Wait for completion
-            # For data streaming workflows, wait longer to let data processing complete
-            # TODO: This should listen for completion events instead of fixed time
-            await asyncio.sleep(5.0)  # Give time for data streaming to complete
+            # Wait for completion based on workflow type
+            await self._wait_for_completion(root_container, config)
             
             # Collect results
             container_status = root_container.get_status()
@@ -550,6 +563,118 @@ class ComposableWorkflowManager:
         except Exception as e:
             logger.error(f"Container execution failed: {e}")
             raise e
+    
+    async def _wait_for_completion(self, root_container: ComposableContainerProtocol, config: WorkflowConfig) -> None:
+        """Wait for container execution to complete intelligently."""
+        
+        # For backtest workflows, detect when data streaming completes
+        if config.workflow_type == WorkflowType.BACKTEST:
+            await self._wait_for_data_streaming_completion(root_container)
+        else:
+            # For other workflows, use a shorter default wait
+            await asyncio.sleep(1.0)
+    
+    async def _wait_for_data_streaming_completion(self, root_container: ComposableContainerProtocol) -> None:
+        """Wait for data streaming to complete by monitoring DataContainer state."""
+        
+        # Much simpler approach - just wait a bit for data to finish streaming, then check
+        # if container is still actively publishing events
+        await asyncio.sleep(2.0)  # Give time for initial data processing
+        
+        # Find the DataContainer (root should be DataContainer)
+        data_container = root_container
+        if data_container.metadata.role.value != 'data':
+            logger.warning("Root container is not DataContainer, using default completion detection")
+            await asyncio.sleep(1.0)
+            return
+        
+        # Monitor for completion with shorter intervals
+        max_additional_wait = 5.0  # Maximum additional wait time
+        check_interval = 0.2  # Check every 200ms
+        idle_threshold = 1.0  # Consider complete if idle for 1 second
+        
+        start_time = asyncio.get_event_loop().time()
+        last_events_published = 0
+        stable_count = 0
+        
+        while True:
+            current_time = asyncio.get_event_loop().time()
+            
+            # Check timeout
+            if current_time - start_time > max_additional_wait:
+                logger.info(f"Container completion detection finished after max wait time")
+                break
+            
+            # Get current event count
+            status = data_container.get_status()
+            metrics = status.get('metrics', {})
+            events_published = metrics.get('events_published', 0)
+            
+            # Check if event publishing has stopped
+            if events_published == last_events_published:
+                stable_count += 1
+                # If stable for multiple checks, consider complete
+                if stable_count >= (idle_threshold / check_interval):
+                    logger.info(f"Data streaming complete (no new events for {stable_count * check_interval:.1f}s)")
+                    break
+            else:
+                # Reset stability counter
+                stable_count = 0
+                last_events_published = events_published
+            
+            await asyncio.sleep(check_interval)
+    
+    def _infer_indicators_from_strategies(self, strategies: List[Dict[str, Any]]) -> Set[str]:
+        """Infer required indicators from strategy configurations.
+        
+        This is the core indicator inference logic that automatically determines
+        what indicators are needed based on strategy configurations.
+        """
+        required_indicators = set()
+        
+        for strategy_config in strategies:
+            strategy_class = strategy_config.get('class', strategy_config.get('type'))
+            strategy_params = strategy_config.get('parameters', {})
+            
+            if strategy_class in ['MomentumStrategy', 'momentum']:
+                # MomentumStrategy needs SMA for momentum and RSI for signals
+                lookback_period = strategy_params.get('lookback_period', 20)
+                rsi_period = strategy_params.get('rsi_period', 14)
+                
+                required_indicators.add(f'SMA_{lookback_period}')
+                required_indicators.add('RSI')
+                
+                logger.info(f"MomentumStrategy requires: SMA_{lookback_period}, RSI")
+                
+            elif strategy_class in ['MeanReversionStrategy', 'mean_reversion']:
+                # MeanReversionStrategy typically needs Bollinger Bands, RSI
+                period = strategy_params.get('period', 20)
+                required_indicators.add(f'BB_{period}')
+                required_indicators.add('RSI')
+                
+                logger.info(f"MeanReversionStrategy requires: BB_{period}, RSI")
+                
+            elif strategy_class in ['moving_average_crossover', 'momentum_crossover']:
+                # For crossover strategies, infer from parameter names
+                for param_name, param_value in strategy_params.items():
+                    if 'fast_period' in param_name:
+                        required_indicators.add(f'SMA_{param_value}')
+                    elif 'slow_period' in param_name:
+                        required_indicators.add(f'SMA_{param_value}')
+                    elif 'rsi_period' in param_name:
+                        required_indicators.add('RSI')
+                        
+            else:
+                # Default indicators for unknown strategies
+                logger.warning(f"Unknown strategy class {strategy_class}, using default indicators")
+                required_indicators.update(['SMA_20', 'RSI'])
+        
+        # If no strategies found, add default indicators to prevent empty indicator hub
+        if not required_indicators:
+            logger.warning("No strategies found, using default indicators")
+            required_indicators.update(['SMA_20', 'RSI'])
+            
+        return required_indicators
     
     def _get_container_structure(self, container: ComposableContainerProtocol) -> Dict[str, Any]:
         """Get hierarchical structure of container."""

@@ -328,7 +328,10 @@ class SignalAggregator:
                     weight = weights[signal.strategy_id]
                 
                 total_weight += weight
-                weighted_strength += signal.strength * weight
+                # Ensure both signal.strength and weight are Decimal for arithmetic
+                signal_strength = Decimal(str(signal.strength)) if not isinstance(signal.strength, Decimal) else signal.strength
+                weight_decimal = Decimal(str(weight)) if not isinstance(weight, Decimal) else weight
+                weighted_strength += signal_strength * weight_decimal
             
             if total_weight == 0:
                 return None
@@ -368,10 +371,10 @@ class SignalAggregator:
             
             if buy_count > sell_count:
                 side = OrderSide.BUY
-                strength = Decimal(buy_count) / len(signals)
+                strength = Decimal(buy_count) / Decimal(len(signals))
             elif sell_count > buy_count:
                 side = OrderSide.SELL
-                strength = Decimal(sell_count) / len(signals)
+                strength = Decimal(sell_count) / Decimal(len(signals))
             else:
                 return None  # Tie
             
@@ -402,8 +405,9 @@ class SignalAggregator:
                 if signal_side != first_side:
                     return None  # Not unanimous
             
-            # Average strength of all signals
-            avg_strength = sum(abs(s.strength) for s in signals) / len(signals)
+            # Average strength of all signals - ensure all strengths are Decimal
+            total_strength = sum(Decimal(str(abs(s.strength))) for s in signals)
+            avg_strength = total_strength / Decimal(len(signals))
             
             template = max(signals, key=lambda s: s.timestamp)
             

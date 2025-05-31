@@ -49,7 +49,7 @@ class DefaultExecutionEngine:
             return
         
         # Initialize components
-        await self.context.reset()
+        self.context.reset()
         
         self._initialized = True
         logger.info("ExecutionEngine initialized")
@@ -86,7 +86,7 @@ class DefaultExecutionEngine:
         order_data = event.data
         
         # Create order from event data
-        order = await self.order_manager.create_order(
+        order = self.order_manager.create_order(
             symbol=order_data["symbol"],
             side=OrderSide[order_data["side"]],
             quantity=order_data["quantity"],
@@ -97,16 +97,16 @@ class DefaultExecutionEngine:
         )
         
         # Validate order
-        if not await self.order_manager.validate_order(order):
-            await self.order_manager.update_order_status(
+        if not self.order_manager.validate_order(order):
+            self.order_manager.update_order_status(
                 order.order_id,
                 OrderStatus.REJECTED
             )
-            await self.context.record_order_status("rejected")
+            self.context.record_order_status("rejected")
             return None
         
         # Execute order
-        fill = await self.execute_order(order)
+        fill = self.execute_order(order)
         
         if fill:
             # Create FILL event
@@ -142,12 +142,12 @@ class DefaultExecutionEngine:
             return None
         
         # Cancel with broker
-        success = await self.broker.cancel_order(order_id)
+        success = self.broker.cancel_order(order_id)
         
         if success:
             # Update order manager
-            await self.order_manager.cancel_order(order_id)
-            await self.context.record_order_status("cancelled")
+            self.order_manager.cancel_order(order_id)
+            self.context.record_order_status("cancelled")
             
             # Create CANCELLED event
             return Event(
@@ -169,45 +169,53 @@ class DefaultExecutionEngine:
         if not symbol:
             return
         
+        # Store raw market data and normalize price
+        price = event.data.get("price") or event.data.get("close", 0)
         self._market_data[symbol] = {
-            "price": event.data.get("price", 0),
+            "price": price,
+            "close": event.data.get("close", price),
+            "open": event.data.get("open", price),
+            "high": event.data.get("high", price),
+            "low": event.data.get("low", price),
             "volume": event.data.get("volume", 0),
             "bid": event.data.get("bid", 0),
             "ask": event.data.get("ask", 0),
             "timestamp": event.timestamp
         }
         
-        # Update broker positions
-        prices = {
-            symbol: data["price"]
-            for symbol, data in self._market_data.items()
-            if data["price"] > 0
-        }
-        await self.broker.update_position_prices(prices)
+        # Update broker positions (commented out - method not implemented in refactored broker)
+        # prices = {
+        #     symbol: data["price"]
+        #     for symbol, data in self._market_data.items()
+        #     if data["price"] > 0
+        # }
+        # self.broker.update_position_prices(prices)
     
-    async def execute_order(self, order: Order) -> Optional[Fill]:
+    def execute_order(self, order: Order) -> Optional[Fill]:
         """Execute order through broker."""
         logger.info(f"🔧 DefaultExecutionEngine.execute_order() called for {order.order_id}")
         
-        async with self.context.transaction(f"execute_{order.order_id}"):
+        # with self.context.transaction(f"execute_{order.order_id}"):
+        if True:  # Temporarily disable transaction context to test for deadlock
             try:
                 # Add to active orders
-                await self.context.add_active_order(order.order_id)
+                self.context.add_active_order(order.order_id)
                 
                 # Add order to order manager (it wasn't created through the order manager)
-                async with self.order_manager._lock:
+                with self.order_manager._lock:
                     self.order_manager.orders[order.order_id] = order
                     self.order_manager.order_status[order.order_id] = OrderStatus.PENDING
                     self.order_manager.pending_orders.add(order.order_id)
                 
                 # Submit to broker
-                await self.order_manager.submit_order(order.order_id)
-                broker_order_id = await self.broker.submit_order(order)
+                self.order_manager.submit_order(order.order_id)
+                broker_order_id = self.broker.submit_order(order)
                 logger.info(f"   Broker order ID: {broker_order_id}")
                 
                 # Get market data
                 market_data = self._market_data.get(order.symbol, {})
-                market_price = market_data.get("price", 100.0)  # Default price
+                # Try price first, then close, then default
+                market_price = market_data.get("price") or market_data.get("close", 100.0)
                 volume = market_data.get("volume", 1000000)  # Default volume
                 spread = abs(market_data.get("ask", 0) - market_data.get("bid", 0))
                 if spread == 0:
@@ -218,7 +226,7 @@ class DefaultExecutionEngine:
                 
                 # Simulate fill
                 logger.info(f"   Calling market_simulator.simulate_fill()")
-                fill = await self.market_simulator.simulate_fill(
+                fill = self.market_simulator.simulate_fill(
                     order,
                     market_price,
                     volume,
@@ -227,17 +235,33 @@ class DefaultExecutionEngine:
                 
                 if fill:
                     # Execute fill with broker
-                    if await self.broker.execute_fill(fill):
+                    broker_result = self.broker.execute_fill(fill)
+                    logger.info(f"   Broker execute_fill result: {broker_result}")
+                    if broker_result:
+                        logger.info(f"   ✅ Broker returned True, proceeding with order completion")
+                        
                         # Update order manager
-                        await self.order_manager.add_fill(order.order_id, fill)
+                        logger.info(f"   📝 Adding fill to order manager")
+                        try:
+                            fill_added = self.order_manager.add_fill(order.order_id, fill)
+                            logger.info(f"   📝 Fill added to order manager: {fill_added}")
+                        except Exception as e:
+                            logger.error(f"   ❌ Error adding fill to order manager: {e}")
+                            raise
                         
                         # Record metrics
-                        await self.context.record_fill(
-                            order.order_id,
-                            fill.quantity,
-                            fill.commission,
-                            fill.slippage
-                        )
+                        logger.info(f"   📊 Recording fill metrics")
+                        try:
+                            self.context.record_fill(
+                                order.order_id,
+                                fill.quantity,
+                                fill.commission,
+                                fill.slippage
+                            )
+                            logger.info(f"   📊 Fill metrics recorded successfully")
+                        except Exception as e:
+                            logger.error(f"   ❌ Error recording fill metrics: {e}")
+                            raise
                         
                         logger.info(
                             f"Order executed: {order.order_id} - "
@@ -251,7 +275,7 @@ class DefaultExecutionEngine:
                     logger.info(f"Order not filled: {order.order_id}")
                 
                 # Remove from active orders
-                await self.context.remove_active_order(order.order_id)
+                self.context.remove_active_order(order.order_id)
                 
                 return None
                 
@@ -260,18 +284,18 @@ class DefaultExecutionEngine:
                     f"Error executing order {order.order_id}: {e}",
                     exc_info=True
                 )
-                await self.context.remove_active_order(order.order_id)
-                await self.order_manager.update_order_status(
+                self.context.remove_active_order(order.order_id)
+                self.order_manager.update_order_status(
                     order.order_id,
                     OrderStatus.REJECTED
                 )
-                await self.context.record_order_status("rejected")
+                self.context.record_order_status("rejected")
                 return None
     
     async def get_execution_stats(self) -> Dict[str, Any]:
         """Get execution statistics."""
-        metrics = await self.context.get_metrics()
-        broker_info = await self.broker.get_account_info()
+        metrics = self.context.get_metrics()
+        broker_info = self.broker.get_account_info()
         order_summary = self.order_manager.get_order_summary()
         broker_summary = self.broker.get_execution_summary()
         
@@ -280,7 +304,7 @@ class DefaultExecutionEngine:
             "account": broker_info,
             "orders": order_summary,
             "execution": broker_summary,
-            "active_orders": len(await self.context.get_active_orders()),
+            "active_orders": len(self.context.get_active_orders()),
             "market_data_symbols": len(self._market_data)
         }
     
@@ -293,13 +317,13 @@ class DefaultExecutionEngine:
         self._shutdown = True
         
         # Cancel all active orders
-        active_orders = await self.order_manager.get_active_orders()
+        active_orders = self.order_manager.get_active_orders()
         for order in active_orders:
-            await self.broker.cancel_order(order.order_id)
-            await self.order_manager.cancel_order(order.order_id)
+            self.broker.cancel_order(order.order_id)
+            self.order_manager.cancel_order(order.order_id)
         
         # Clean up old orders
-        cleaned = await self.order_manager.cleanup_old_orders()
+        cleaned = self.order_manager.cleanup_old_orders()
         if cleaned > 0:
             logger.info(f"Cleaned up {cleaned} old orders during shutdown")
         

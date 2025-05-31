@@ -419,7 +419,7 @@ class ImprovedMarketSimulator(Component, Lifecycle, MarketSimulatorProtocol):
         # Apply slippage to fill price
         final_fill_price = fill_price + slippage
         
-        # Create fill
+        # Create fill - keep commission as Decimal to avoid conversion issues
         fill = Fill(
             fill_id=str(uuid.uuid4()),
             order_id=order.order_id,
@@ -427,7 +427,7 @@ class ImprovedMarketSimulator(Component, Lifecycle, MarketSimulatorProtocol):
             side=order.side,
             quantity=float(fill_quantity),
             price=float(final_fill_price),
-            commission=float(commission),
+            commission=commission,  # Keep as Decimal for consistent type handling
             slippage=float(slippage),
             fill_type=(
                 FillType.FULL if fill_quantity >= Decimal(str(order.quantity))

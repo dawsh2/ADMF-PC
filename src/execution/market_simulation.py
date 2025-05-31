@@ -7,7 +7,7 @@ from datetime import datetime
 import uuid
 from decimal import Decimal
 
-from .protocols import Order, Fill, OrderSide, OrderType, FillType
+from .protocols import Order, Fill, OrderSide, OrderType, FillType, FillStatus
 import logging
 
 
@@ -175,7 +175,7 @@ class MarketSimulator:
         
         logger.info("Initialized MarketSimulator")
     
-    async def simulate_fill(
+    def simulate_fill(
         self,
         order: Order,
         market_price: float,
@@ -219,6 +219,9 @@ class MarketSimulator:
         commission = self.commission_model.calculate_commission(
             order, fill_price, fill_quantity
         )
+        # Convert commission to Decimal to match Fill object expectations
+        from decimal import Decimal
+        commission = Decimal(str(commission))
         
         # Create fill
         fill = Fill(
@@ -230,7 +233,8 @@ class MarketSimulator:
             price=fill_price,
             commission=commission,
             slippage=slippage,
-            fill_type=FillType.FULL if fill_quantity >= order.quantity else FillType.PARTIAL,
+            fill_type=FillType.FULL if fill_quantity >= float(order.quantity) else FillType.PARTIAL,
+            status=FillStatus.FILLED,
             executed_at=datetime.now(),
             metadata={
                 "market_price": market_price,
@@ -296,23 +300,25 @@ class MarketSimulator:
     
     def _calculate_fill_quantity(self, order: Order, volume: float) -> float:
         """Calculate fill quantity based on available liquidity."""
+        order_quantity = float(order.quantity)
+        
         if not self.partial_fill_enabled:
-            return order.quantity
+            return order_quantity
         
         # Simulate available liquidity
         if volume <= 0:
             # No volume data, assume full fill
-            return order.quantity
+            return order_quantity
         
         # Can fill up to certain percentage of volume
-        max_fill = min(order.quantity, volume * 0.1)  # Max 10% of volume
+        max_fill = min(order_quantity, volume * 0.1)  # Max 10% of volume
         
         # Random partial fill
         if random.random() < 0.2:  # 20% chance of partial fill
             fill_percent = random.uniform(0.5, 0.95)
             return max_fill * fill_percent
         
-        return min(order.quantity, max_fill)
+        return min(order_quantity, max_fill)
     
     def calculate_slippage(
         self,

@@ -1,9 +1,10 @@
 """Execution protocols and interfaces."""
 
-from typing import Protocol, Optional, Dict, Any, List
+from typing import Protocol, Optional, Dict, Any, List, Union
 from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum, auto
+from decimal import Decimal
 
 from ..core.events.types import Event
 
@@ -77,7 +78,7 @@ class Fill:
     side: OrderSide
     quantity: float
     price: float
-    commission: float
+    commission: Union[float, Decimal]  # Support both float and Decimal for type safety
     slippage: float
     fill_type: FillType
     status: FillStatus

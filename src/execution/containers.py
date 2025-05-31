@@ -453,7 +453,7 @@ class IndicatorContainer(BaseComposableContainer):
         await super().process_event(event)
         
         if event.event_type == EventType.BAR:
-            logger.debug(f"IndicatorContainer received BAR event")
+            logger.info(f"📊 IndicatorContainer received BAR event")
             
             # Always forward BAR events to children
             self.publish_event(event, target_scope="children")
@@ -784,8 +784,10 @@ class ExecutionContainer(BaseComposableContainer):
                             market_data_cache = getattr(self.execution_engine.execution_engine, '_market_data', {})
                             logger.info(f"📊 Market data cache: {list(market_data_cache.keys())}")
                         
-                        # Execute order (this generates a fill)
-                        fill = await self.execution_engine.execution_engine.execute_order(order)
+                        # Execute order (this generates a fill) - run in thread to avoid blocking
+                        import asyncio
+                        loop = asyncio.get_event_loop()
+                        fill = await loop.run_in_executor(None, self.execution_engine.execution_engine.execute_order, order)
                         
                         if fill:
                             fills.append(fill)
@@ -813,19 +815,30 @@ class ExecutionContainer(BaseComposableContainer):
                         timestamp=event.timestamp
                     )
                     
-                    # Find RiskContainer sibling and send FILL event directly
+                    # Send FILL event to parent (RiskContainer)
                     logger.info(f"📤 ExecutionContainer publishing FILL event with {len(fills)} fills to RiskContainer")
-                    # Get parent and find RiskContainer sibling
+                    
                     if hasattr(self, '_parent_container') and self._parent_container:
-                        risk_containers = self._parent_container.find_containers_by_role(ContainerRole.RISK)
-                        if risk_containers:
-                            for risk_container in risk_containers:
-                                risk_container.event_bus.publish(fill_event)
-                                logger.info(f"   📨 Sent FILL event to RiskContainer {risk_container.metadata.container_id}")
+                        parent = self._parent_container
+                        # Check if parent is RiskContainer
+                        if parent.metadata.role == ContainerRole.RISK:
+                            parent.event_bus.publish(fill_event)
+                            logger.info(f"   📨 Sent FILL event to parent RiskContainer {parent.metadata.container_id}")
                         else:
-                            logger.warning("⚠️ No RiskContainer found to send FILL event")
+                            # If parent is not RiskContainer, search in parent's parent (shouldn't happen in current architecture)
+                            logger.warning(f"⚠️ Parent is {parent.metadata.role.value}, not RISK. Searching for RiskContainer...")
+                            if hasattr(parent, '_parent_container') and parent._parent_container:
+                                risk_containers = parent._parent_container.find_containers_by_role(ContainerRole.RISK)
+                                if risk_containers:
+                                    for risk_container in risk_containers:
+                                        risk_container.event_bus.publish(fill_event)
+                                        logger.info(f"   📨 Sent FILL event to RiskContainer {risk_container.metadata.container_id}")
+                                else:
+                                    logger.warning("⚠️ No RiskContainer found in grandparent")
+                            else:
+                                logger.warning("⚠️ No grandparent container to search")
                     else:
-                        logger.warning("⚠️ ExecutionContainer has no parent to find RiskContainer")
+                        logger.warning("⚠️ ExecutionContainer has no parent container")
                     return fill_event
             
             elif event.event_type == EventType.BAR:
@@ -927,7 +940,7 @@ class RiskContainer(BaseComposableContainer):
             logger.info(f"💼 Portfolio Update - Cash: ${cash_balance:.2f}, Positions: {len(positions)}")
             for symbol, position in positions.items():
                 if position.quantity != 0:  # Only log non-zero positions
-                    logger.info(f"   📈 Position: {symbol} {position.quantity} shares @ ${position.avg_price:.2f}")
+                    logger.info(f"   📈 Position: {symbol} {position.quantity} shares @ ${position.average_price:.2f}")
         
         elif event.event_type == EventType.SIGNAL and self.risk_manager:
             signals = event.payload.get('signals', [])

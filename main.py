@@ -192,12 +192,17 @@ def build_workflow_config(args: argparse.Namespace, base_config: Dict[str, Any])
     # Determine execution mode
     mode = args.mode or base_config.get('workflow_type', 'backtest')
     
+    # Extract strategies from base config and add to backtest config
+    backtest_config = base_config.get('backtest', {}).copy()
+    if 'strategies' in base_config:
+        backtest_config['strategies'] = base_config['strategies']
+        
     # Create workflow config
     workflow_config = WorkflowConfig(
         workflow_type=WorkflowType(mode if mode in ['backtest', 'optimization', 'live'] else 'backtest'),
         parameters=base_config.get('parameters', {}),
         data_config=base_config.get('data', {}),
-        backtest_config=base_config.get('backtest', {}),
+        backtest_config=backtest_config,
         optimization_config=base_config.get('optimization', {}),
         analysis_config=base_config.get('analysis', {})
     )
@@ -276,10 +281,15 @@ async def main():
     # Execute workflow through coordinator - force composable mode
     try:
         from src.core.coordinator.coordinator import ExecutionMode
+        print("🚀 Starting workflow execution...")
+        import time
+        start_time = time.time()
         result = await coordinator.execute_workflow(
             workflow_config, 
             execution_mode=ExecutionMode.COMPOSABLE
         )
+        elapsed = time.time() - start_time
+        print(f"✅ Workflow execution completed in {elapsed:.2f} seconds")
     except Exception as e:
         # If coordinator fails, try using the composition engine directly for testing
         logger.warning(f"Coordinator execution failed: {e}")

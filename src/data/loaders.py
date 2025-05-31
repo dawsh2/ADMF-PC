@@ -152,11 +152,11 @@ class SimpleCSVLoader:
             if self.date_format:
                 df[self.date_column] = pd.to_datetime(df[self.date_column], format=self.date_format)
             else:
-                df[self.date_column] = pd.to_datetime(df[self.date_column])
+                df[self.date_column] = pd.to_datetime(df[self.date_column], utc=True)
             df.set_index(self.date_column, inplace=True)
         else:
             if not isinstance(df.index, pd.DatetimeIndex):
-                df.index = pd.to_datetime(df.index)
+                df.index = pd.to_datetime(df.index, utc=True)
         
         return df
     

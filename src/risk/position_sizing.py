@@ -69,8 +69,9 @@ class FixedPositionSizer(BasePositionSizer):
         Returns:
             Fixed position size
         """
-        # Adjust size based on signal strength
-        adjusted_size = self.size * abs(signal.strength)
+        # Adjust size based on signal strength - ensure Decimal arithmetic
+        signal_strength = Decimal(str(signal.strength)) if not isinstance(signal.strength, Decimal) else signal.strength
+        adjusted_size = self.size * abs(signal_strength)
         return self._apply_constraints(adjusted_size)
 
 
@@ -123,8 +124,9 @@ class PercentagePositionSizer(BasePositionSizer):
         # Calculate base position value
         position_value = portfolio_value * self.percentage
         
-        # Adjust for signal strength
-        position_value *= abs(signal.strength)
+        # Adjust for signal strength - ensure Decimal arithmetic
+        signal_strength = Decimal(str(signal.strength)) if not isinstance(signal.strength, Decimal) else signal.strength
+        position_value *= abs(signal_strength)
         
         # Check leverage constraints
         if not self.use_leverage:
@@ -201,8 +203,9 @@ class KellyCriterionSizer(BasePositionSizer):
         # Apply maximum constraint
         kelly_percentage = min(kelly_percentage, self.max_percentage)
         
-        # Adjust for signal strength
-        kelly_percentage *= abs(signal.strength)
+        # Adjust for signal strength - ensure Decimal arithmetic
+        signal_strength = Decimal(str(signal.strength)) if not isinstance(signal.strength, Decimal) else signal.strength
+        kelly_percentage *= abs(signal_strength)
         
         # Get portfolio value and price
         portfolio_value = portfolio_state.get_total_value()
@@ -280,8 +283,9 @@ class VolatilityBasedSizer(BasePositionSizer):
         # Apply maximum constraint
         position_percentage = min(position_percentage, self.max_percentage)
         
-        # Adjust for signal strength
-        position_percentage *= abs(signal.strength)
+        # Adjust for signal strength - ensure Decimal arithmetic
+        signal_strength = Decimal(str(signal.strength)) if not isinstance(signal.strength, Decimal) else signal.strength
+        position_percentage *= abs(signal_strength)
         
         # Get portfolio value and price
         portfolio_value = portfolio_state.get_total_value()
@@ -375,7 +379,8 @@ class ATRBasedSizer(BasePositionSizer):
         if position_value > max_value:
             shares = max_value / price
         
-        # Adjust for signal strength
-        shares *= abs(signal.strength)
+        # Adjust for signal strength - ensure Decimal arithmetic
+        signal_strength = Decimal(str(signal.strength)) if not isinstance(signal.strength, Decimal) else signal.strength
+        shares *= abs(signal_strength)
         
         return self._apply_constraints(shares)

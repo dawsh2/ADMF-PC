@@ -1,6 +1,6 @@
 """Order lifecycle management."""
 
-import asyncio
+import threading
 from typing import Dict, Optional, List, Set
 from datetime import datetime, timedelta
 import uuid
@@ -27,11 +27,11 @@ class OrderManager:
         self.pending_orders: Set[str] = set()
         self.active_orders: Set[str] = set()
         self.max_order_age = max_order_age
-        self._lock = asyncio.Lock()
+        self._lock = threading.RLock()  # Use reentrant lock to prevent deadlock
         
         logger.info("Initialized OrderManager")
     
-    async def create_order(
+    def create_order(
         self,
         symbol: str,
         side: OrderSide,
@@ -54,7 +54,7 @@ class OrderManager:
             metadata=metadata or {}
         )
         
-        async with self._lock:
+        with self._lock:
             self.orders[order_id] = order
             self.order_status[order_id] = OrderStatus.PENDING
             self.pending_orders.add(order_id)
@@ -66,9 +66,9 @@ class OrderManager:
         
         return order
     
-    async def submit_order(self, order_id: str) -> bool:
+    def submit_order(self, order_id: str) -> bool:
         """Submit order for execution."""
-        async with self._lock:
+        with self._lock:
             if order_id not in self.orders:
                 logger.error(f"Order not found: {order_id}")
                 return False
@@ -87,13 +87,13 @@ class OrderManager:
             logger.info(f"Order submitted: {order_id}")
             return True
     
-    async def update_order_status(
+    def update_order_status(
         self,
         order_id: str,
         status: OrderStatus
     ) -> bool:
         """Update order status."""
-        async with self._lock:
+        with self._lock:
             if order_id not in self.orders:
                 logger.error(f"Order not found: {order_id}")
                 return False
@@ -112,9 +112,9 @@ class OrderManager:
             logger.info(f"Order {order_id} status: {old_status} -> {status}")
             return True
     
-    async def add_fill(self, order_id: str, fill: Fill) -> bool:
+    def add_fill(self, order_id: str, fill: Fill) -> bool:
         """Add fill to order."""
-        async with self._lock:
+        with self._lock:
             if order_id not in self.orders:
                 logger.error(f"Order not found: {order_id}")
                 return False
@@ -126,9 +126,9 @@ class OrderManager:
             total_filled = sum(f.quantity for f in self.order_fills[order_id])
             
             if total_filled >= order.quantity:
-                await self.update_order_status(order_id, OrderStatus.FILLED)
+                self.update_order_status(order_id, OrderStatus.FILLED)
             else:
-                await self.update_order_status(order_id, OrderStatus.PARTIAL)
+                self.update_order_status(order_id, OrderStatus.PARTIAL)
             
             logger.info(
                 f"Fill added to order {order_id}: "
@@ -136,9 +136,9 @@ class OrderManager:
             )
             return True
     
-    async def cancel_order(self, order_id: str) -> bool:
+    def cancel_order(self, order_id: str) -> bool:
         """Cancel order."""
-        async with self._lock:
+        with self._lock:
             if order_id not in self.orders:
                 logger.error(f"Order not found: {order_id}")
                 return False
@@ -150,41 +150,41 @@ class OrderManager:
                 )
                 return False
             
-            await self.update_order_status(order_id, OrderStatus.CANCELLED)
+            self.update_order_status(order_id, OrderStatus.CANCELLED)
             logger.info(f"Order cancelled: {order_id}")
             return True
     
-    async def get_order(self, order_id: str) -> Optional[Order]:
+    def get_order(self, order_id: str) -> Optional[Order]:
         """Get order by ID."""
         return self.orders.get(order_id)
     
-    async def get_order_status(self, order_id: str) -> Optional[OrderStatus]:
+    def get_order_status(self, order_id: str) -> Optional[OrderStatus]:
         """Get order status."""
         return self.order_status.get(order_id)
     
-    async def get_order_fills(self, order_id: str) -> List[Fill]:
+    def get_order_fills(self, order_id: str) -> List[Fill]:
         """Get fills for order."""
         return self.order_fills.get(order_id, [])
     
-    async def get_active_orders(self) -> List[Order]:
+    def get_active_orders(self) -> List[Order]:
         """Get all active orders."""
-        async with self._lock:
+        with self._lock:
             return [
                 self.orders[order_id]
                 for order_id in self.active_orders
                 if order_id in self.orders
             ]
     
-    async def get_pending_orders(self) -> List[Order]:
+    def get_pending_orders(self) -> List[Order]:
         """Get all pending orders."""
-        async with self._lock:
+        with self._lock:
             return [
                 self.orders[order_id]
                 for order_id in self.pending_orders
                 if order_id in self.orders
             ]
     
-    async def validate_order(self, order: Order) -> bool:
+    def validate_order(self, order: Order) -> bool:
         """Validate order before processing."""
         # Basic validation
         if order.quantity <= 0:
@@ -203,9 +203,9 @@ class OrderManager:
         
         return True
     
-    async def cleanup_old_orders(self) -> int:
+    def cleanup_old_orders(self) -> int:
         """Clean up old completed orders."""
-        async with self._lock:
+        with self._lock:
             now = datetime.now()
             orders_to_remove = []
             

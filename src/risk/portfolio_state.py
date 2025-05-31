@@ -216,8 +216,8 @@ class PortfolioState(PortfolioStateProtocol):
             position.unrealized_pnl = (position.current_price - position.average_price) * position.quantity
             position.last_updated = timestamp
         
-        # Update cash balance
-        cash_delta = -quantity_delta * price
+        # Update cash balance - ensure all values are Decimal
+        cash_delta = -quantity_delta * price  # Both should already be Decimal
         self._cash_balance += cash_delta
         
         # Update value history

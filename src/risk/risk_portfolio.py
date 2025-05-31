@@ -249,29 +249,29 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
         else:
             self._update_fills_impl(fills)
     
-    def _update_fills_impl(self, fills: List[Dict[str, Any]]) -> None:
+    def _update_fills_impl(self, fills: List[Any]) -> None:
         """Implementation of fill updates."""
         for fill in fills:
             try:
                 # Update portfolio state
-                quantity_delta = fill["quantity"]
-                if fill["side"] == "sell":
+                quantity_delta = fill.quantity
+                if fill.side.value == "sell":
                     quantity_delta = -quantity_delta
                 
                 position = self._portfolio_state.update_position(
-                    symbol=fill["symbol"],
+                    symbol=fill.symbol,
                     quantity_delta=quantity_delta,
-                    price=fill["price"],
-                    timestamp=fill["timestamp"]
+                    price=fill.price,
+                    timestamp=fill.executed_at
                 )
                 
                 # Update cash for commission
-                commission = fill.get("commission", Decimal(0))
+                commission = getattr(fill, "commission", 0)
                 if commission:
-                    self._portfolio_state._cash_balance -= commission
+                    self._portfolio_state._cash_balance -= Decimal(str(commission))
                 
                 # Move order to history
-                order_id = fill.get("order_id")
+                order_id = getattr(fill, "order_id", None)
                 if order_id and order_id in self._active_orders:
                     order = self._active_orders.pop(order_id)
                     self._order_history.append(order)
@@ -291,7 +291,7 @@ class RiskPortfolioContainer(UniversalScopedContainer, RiskPortfolioProtocol):
                 )
                 
                 self.logger.info(
-                    f"Fill processed - Symbol: {fill['symbol']}, Side: {fill['side']}, Quantity: {fill['quantity']}, Price: {fill['price']}"
+                    f"Fill processed - Symbol: {fill.symbol}, Side: {fill.side.value}, Quantity: {fill.quantity}, Price: {fill.price}"
                 )
                 
             except Exception as e:
