@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "generated_at": "2025-05-31T18:54:07.073021",
+    "tool_version": "1.0.0",
+    "validation_standard": "COMPLEXITY_CHECKLIST.md Step 0"
+  },
+  "summary": {
+    "total_files": 1,
+    "passed_files": 1,
+    "failed_files": 0,
+    "pass_rate": 1.0,
+    "average_score": 0.8,
+    "grade": "B"
+  },
+  "check_statistics": {
+    "architecture_refs": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    },
+    "class_structure": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    },
+    "syntax": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    },
+    "docstrings": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    },
+    "type_annotations": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    },
+    "file_header": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    },
+    "logging_setup": {
+      "passed": 1,
+      "total": 1,
+      "pass_rate": 1.0
+    }
+  },
+  "issue_breakdown": {
+    "error_types": {},
+    "warning_types": {
+      "Other Issues": 27,
+      "Docstring Issues": 1,
+      "Logging Setup Issues": 2
+    },
+    "total_errors": 0,
+    "total_warnings": 30
+  },
+  "detailed_results": [
+    {
+      "filepath": "src/core/logging/structured.py",
+      "passed": true,
+      "errors": [],
+      "warnings": [
+        "File not reviewed in 120 days - consider updating",
+        "Class 'ContainerLogger' docstring should reference relevant architecture documents",
+        "Function 'setup_logging' missing Returns documentation",
+        "Function 'setup_logging' missing usage example",
+        "Function 'format' missing usage example",
+        "Function 'trace' missing Returns documentation",
+        "Function 'trace' missing usage example",
+        "Function 'debug' missing Returns documentation",
+        "Function 'debug' missing usage example",
+        "Function 'info' missing Returns documentation",
+        "Function 'info' missing usage example",
+        "Function 'warning' missing Returns documentation",
+        "Function 'warning' missing usage example",
+        "Function 'error' missing Returns documentation",
+        "Function 'error' missing usage example",
+        "Function 'critical' missing Returns documentation",
+        "Function 'critical' missing usage example",
+        "Function 'exception' missing Returns documentation",
+        "Function 'exception' missing usage example",
+        "Function 'correlation_context' missing Returns documentation",
+        "Function 'correlation_context' missing usage example",
+        "Function 'bind' missing usage example",
+        "Function 'log_event_flow' missing Returns documentation",
+        "Function 'log_state_change' missing Returns documentation",
+        "Function 'log_performance_metric' missing Returns documentation",
+        "Function 'log_validation_result' missing Returns documentation",
+        "Function 'decorator' missing Returns documentation",
+        "Function 'wrapper' missing Returns documentation",
+        "Class 'LogLevel' should have __init__ method",
+        "Class 'LogContext' should have __init__ method"
+      ],
+      "score": 0.8,
+      "checks_performed": {
+        "file_header": true,
+        "syntax": true,
+        "docstrings": true,
+        "type_annotations": true,
+        "class_structure": true,
+        "architecture_refs": true,
+        "logging_setup": true
+      }
+    }
+  ],
+  "recommendations": []
+}

@@ -1,0 +1,16 @@
+class {ClassName}:
+    """
+    {class_description}
+    
+    This {class_type} implements {architecture_pattern} as described in
+    {architecture_ref}#{section_reference}.
+    
+    Architecture Context:
+        - Part of: {component_hierarchy}
+        - Receives: {input_events} from {source_component}
+        - Emits: {output_events} to {destination_component}
+        - Logs to: {logging_namespace}
+    
+    Example:
+        {example_usage}
+    """

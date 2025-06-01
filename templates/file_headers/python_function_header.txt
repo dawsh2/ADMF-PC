@@ -1,0 +1,18 @@
+def {function_name}({parameters}) -> {return_type}:
+    """
+    {function_description}
+    
+    {architecture_context_if_applicable}
+    
+    Args:
+        {parameter_documentation}
+        
+    Returns:
+        {return_documentation}
+        
+    Raises:
+        {exception_documentation}
+    
+    Example:
+        {usage_example}
+    """

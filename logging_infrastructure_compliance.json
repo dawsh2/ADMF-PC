@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "generated_at": "2025-05-31T19:36:40.609444",
+    "tool_version": "1.0.0",
+    "validation_standard": "COMPLEXITY_CHECKLIST.md Step 0"
+  },
+  "summary": {
+    "total_files": 3,
+    "passed_files": 3,
+    "failed_files": 0,
+    "pass_rate": 1.0,
+    "average_score": 0.919047619047619,
+    "grade": "A"
+  },
+  "check_statistics": {
+    "logging_setup": {
+      "passed": 3,
+      "total": 3,
+      "pass_rate": 1.0
+    },
+    "file_header": {
+      "passed": 3,
+      "total": 3,
+      "pass_rate": 1.0
+    },
+    "type_annotations": {
+      "passed": 2,
+      "total": 3,
+      "pass_rate": 0.6666666666666666
+    },
+    "docstrings": {
+      "passed": 3,
+      "total": 3,
+      "pass_rate": 1.0
+    },
+    "syntax": {
+      "passed": 3,
+      "total": 3,
+      "pass_rate": 1.0
+    },
+    "architecture_refs": {
+      "passed": 3,
+      "total": 3,
+      "pass_rate": 1.0
+    },
+    "class_structure": {
+      "passed": 3,
+      "total": 3,
+      "pass_rate": 1.0
+    }
+  },
+  "issue_breakdown": {
+    "error_types": {},
+    "warning_types": {
+      "Logging Setup Issues": 2,
+      "Other Issues": 3
+    },
+    "total_errors": 0,
+    "total_warnings": 5
+  },
+  "detailed_results": [
+    {
+      "filepath": "src/core/logging/__init__.py",
+      "passed": true,
+      "errors": [],
+      "warnings": [
+        "Consider adding structured logging methods for better observability: ['log_performance_metric', 'log_validation_result']"
+      ],
+      "score": 0.8371428571428571,
+      "checks_performed": {
+        "file_header": true,
+        "syntax": true,
+        "docstrings": true,
+        "type_annotations": false,
+        "class_structure": true,
+        "architecture_refs": true,
+        "logging_setup": true
+      }
+    },
+    {
+      "filepath": "src/core/logging/event_logger.py",
+      "passed": true,
+      "errors": [],
+      "warnings": [
+        "Class 'EventTypes' should have __init__ method",
+        "Consider adding structured logging methods for better observability: ['log_event_flow', 'log_state_change', 'log_performance_metric', 'log_validation_result']"
+      ],
+      "score": 0.96,
+      "checks_performed": {
+        "file_header": true,
+        "syntax": true,
+        "docstrings": true,
+        "type_annotations": true,
+        "class_structure": true,
+        "architecture_refs": true,
+        "logging_setup": true
+      }
+    },
+    {
+      "filepath": "src/core/logging/structured.py",
+      "passed": true,
+      "errors": [],
+      "warnings": [
+        "Class 'LogLevel' should have __init__ method",
+        "Class 'LogContext' should have __init__ method"
+      ],
+      "score": 0.96,
+      "checks_performed": {
+        "file_header": true,
+        "syntax": true,
+        "docstrings": true,
+        "type_annotations": true,
+        "class_structure": true,
+        "architecture_refs": true,
+        "logging_setup": true
+      }
+    }
+  ],
+  "recommendations": []
+}
