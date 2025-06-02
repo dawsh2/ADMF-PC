@@ -607,3 +607,11 @@ The architecture enables a new paradigm for quantitative research where complex 
 ---
 
 *ADMF-PC demonstrates that sophisticated quantitative trading systems can be built through architectural elegance rather than component complexity. By standardizing execution environments while maintaining component flexibility, implementing straightforward coordination with deterministic behavior, and providing configuration-driven workflow abstraction, the framework enables research that is both powerful and reproducible. The key insight is that complexity should emerge from composition rather than being embedded in individual components—a principle that proves remarkably effective for quantitative trading research.*
+
+---
+
+## 🎯 Continue Your Journey
+
+**From Onboarding**: [← Back to Concepts](onboarding/CONCEPTS.md) | [Next: Your First Task →](onboarding/FIRST_TASK.md)
+
+**New to ADMF-PC?** Return to [Onboarding Hub](onboarding/README.md) to continue your learning journey.

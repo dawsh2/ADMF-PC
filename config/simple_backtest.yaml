@@ -7,11 +7,9 @@ description: Test basic moving average crossover strategy
 
 # Data configuration
 data:
-  symbols: ["SPY"]  # Start with single symbol
-  start_date: "2023-01-01"
-  end_date: "2023-06-30"  # 6 months for quick testing
-  frequency: "1d"
-  source: yahoo  # Would use Yahoo Finance data loader
+  source: csv  # Use CSV data loader
+  file_path: "data/SPY_1m.csv"  # Use existing data file
+  max_bars: 50  # Limit to 50 bars for testing
 
 # Portfolio configuration
 portfolio:
@@ -23,14 +21,15 @@ portfolio:
 
 # Strategy configuration
 strategies:
-  - name: simple_ma
-    type: moving_average_crossover
+  - name: simple_momentum
+    type: momentum
     enabled: true
     allocation: 1.0  # 100% allocation
     parameters:
-      fast_period: 10
-      slow_period: 30
-      ma_type: SMA  # Simple Moving Average
+      lookback_period: 20
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
 
 # Risk management
 risk:

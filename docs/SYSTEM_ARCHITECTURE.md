@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-ADMF-PC (Adaptive Dynamic Market Framework - Protocol Components) is a sophisticated config-driven trading infrastructure that combines six key innovations into a unified architecture: **Config-Driven + Protocol + Composition + Coordinator + Composable Containers + Parallelization + Standardized Backtest Patterns**.
+ADMF-PC (Adaptive Decision Making Framework - Protocol Components) is a sophisticated config-driven trading infrastructure that combines six key innovations into a unified architecture: **Config-Driven + Protocol + Composition + Coordinator + Composable Containers + Parallelization + Standardized Backtest Patterns**.
 
 This system transforms algorithmic trading from a rigid framework into a flexible research and production platform that can adapt to any market condition or trading approach.
 

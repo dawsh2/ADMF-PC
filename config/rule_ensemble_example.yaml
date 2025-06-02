@@ -1,0 +1,58 @@
+# Rule-Based Ensemble Configuration
+# Demonstrates rule-based signal aggregation within a single StrategyContainer
+
+type: backtest
+name: "Rule-Based Signal Ensemble"
+
+# Data configuration
+data:
+  source: "csv"
+  file_path: "data/SPY_1m.csv"
+  symbols: ["SPY"]
+  frequency: "1m"
+  max_bars: 100
+
+# Rule ensemble configuration
+strategy:
+  type: "rule_ensemble"  # Use rule ensemble mode
+  
+  # Multiple rules that evaluate indicators and generate signals
+  rules:
+    - name: "rsi_oversold"
+      condition: "RSI < 30"
+      weight: 0.4
+      signal_direction: "BUY"
+      
+    - name: "rsi_overbought"
+      condition: "RSI > 70"
+      weight: 0.4
+      signal_direction: "SELL"
+      
+    - name: "momentum_breakout"
+      condition: "SMA_10 > SMA_20 AND momentum > 0.001"
+      weight: 0.3
+      signal_direction: "BUY"
+      
+    - name: "momentum_breakdown"
+      condition: "SMA_10 < SMA_20 AND momentum < -0.001"
+      weight: 0.3
+      signal_direction: "SELL"
+
+  # Rule aggregation configuration
+  aggregation:
+    method: "majority_voting"
+    min_rules_consensus: 2
+    confidence_threshold: 0.6
+
+# Risk and execution settings (same as above)
+risk:
+  initial_capital: 100000
+  max_position_size_pct: 5.0
+
+portfolio:
+  allocation_method: "equal_weight"
+  initial_capital: 100000
+
+execution:
+  mode: "backtest"
+  commission: 0.001

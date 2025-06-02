@@ -289,8 +289,11 @@ class DataFlowProtocol(Protocol):
         ...
 
 
-# Base Implementation Helper
-class BaseComposableContainer:
+# Import hybrid event interface
+from ..events.hybrid_interface import HybridContainerInterface
+
+# Base Implementation Helper  
+class BaseComposableContainer(HybridContainerInterface):
     """
     Base implementation providing common container functionality.
     
@@ -305,8 +308,12 @@ class BaseComposableContainer:
         container_id: str = None,
         limits: ContainerLimits = None
     ):
+        # Initialize hybrid interface first
+        container_id_final = container_id or str(uuid.uuid4())
+        HybridContainerInterface.__init__(self, container_id_final)
+        
         self._metadata = ContainerMetadata(
-            container_id=container_id or str(uuid.uuid4()),
+            container_id=container_id_final,
             role=role,
             name=name,
             config=config or {}
@@ -324,6 +331,10 @@ class BaseComposableContainer:
             'start_time': None,
             'last_activity': None
         }
+        
+        # Configure external communication if specified in config
+        if config and ('events' in config or 'external_events' in config):
+            self.configure_external_communication(config)
     
     @property
     def metadata(self) -> ContainerMetadata:
@@ -357,6 +368,10 @@ class BaseComposableContainer:
         # Update parent ID in metadata
         if hasattr(child, '_metadata'):
             child._metadata.parent_id = self._metadata.container_id
+        
+        # Use hybrid interface for automatic communication setup
+        if hasattr(child, 'container_id'):
+            super().add_child_container(child)
     
     def remove_child_container(self, container_id: str) -> bool:
         """Remove child container by ID."""
@@ -502,6 +517,9 @@ class BaseComposableContainer:
         
         # Clear children
         self._child_containers.clear()
+        
+        # Unregister from event router
+        self.unregister_from_router()
         
         # Dispose self
         await self._dispose_self()

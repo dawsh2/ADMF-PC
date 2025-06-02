@@ -1,51 +1,51 @@
 """
-Market classification components.
+Market classification components for Step 3.
 
-This module provides classifiers and containers for adaptive trading
-based on market conditions. Classification is a general concept that
-includes regime detection, market state identification, and other
-forms of market categorization.
+This module provides classifiers and containers for regime detection
+and adaptive trading based on market conditions.
 """
 
-from .classifier import (
-    TrendVolatilityClassifier,
-    MultiIndicatorClassifier,
-    RegimeClassifier,
+# Step 3 Components
+from .regime_types import (
+    MarketRegime,
+    RegimeChangeEvent,
     RegimeState,
-    RegimeContext
+    ClassificationFeatures,
+    ClassifierConfig
 )
+
+from .classifier import (
+    ClassifierProtocol,
+    BaseClassifier,
+    DummyClassifier
+)
+
+from .pattern_classifier import PatternClassifier
 
 from .classifier_container import (
     ClassifierContainer,
-    AdaptiveWeightContainer
-)
-
-from .hmm_classifier import HMMClassifier, HMMRegimeState, HMMParameters
-from .pattern_classifier import PatternClassifier, PatternRegimeState, PatternParameters
-from .enhanced_classifier_container import (
-    EnhancedClassifierContainer,
-    create_classifier_hierarchy
+    create_test_classifier_container,
+    create_conservative_classifier_container
 )
 
 __all__ = [
-    # Base classes
-    'RegimeClassifier',
+    # Types and Events
+    'MarketRegime',
+    'RegimeChangeEvent', 
     'RegimeState',
-    'RegimeContext',
+    'ClassificationFeatures',
+    'ClassifierConfig',
     
-    # Classifiers
-    'TrendVolatilityClassifier',
-    'MultiIndicatorClassifier',
-    'HMMClassifier',
-    'HMMRegimeState',
-    'HMMParameters',
+    # Base Classes
+    'ClassifierProtocol',
+    'BaseClassifier',
+    'DummyClassifier',
+    
+    # Implementations
     'PatternClassifier',
-    'PatternRegimeState',
-    'PatternParameters',
     
     # Containers
     'ClassifierContainer',
-    'AdaptiveWeightContainer',
-    'EnhancedClassifierContainer',
-    'create_classifier_hierarchy'
+    'create_test_classifier_container',
+    'create_conservative_classifier_container'
 ]

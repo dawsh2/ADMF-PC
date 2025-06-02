@@ -101,7 +101,11 @@ class SimpleCSVLoader:
             f"{symbol}.csv",
             f"{symbol.lower()}.csv",
             f"{symbol.upper()}.csv",
-            f"{symbol}_daily.csv"
+            f"{symbol}_daily.csv",
+            f"{symbol}_1m.csv",
+            f"{symbol}_5m.csv",
+            f"{symbol}_15m.csv",
+            f"{symbol}_hourly.csv"
         ]
         
         for pattern in patterns:

@@ -1,19 +1,24 @@
+type: backtest
+name: test_simple_backtest
 backtest:
   initial_capital: 100000
 data:
   end_date: '2023-01-31'
   start_date: '2023-01-01'
   symbols:
-  - AAPL
+  - SPY
+  frequency: 1d
 parameters:
   output_dir: output/test_backtest
+portfolio:
+  allocation_method: equal_weight
+  initial_capital: 100000
 risk:
   max_position_size: 0.02
   max_total_exposure: 0.1
 strategies:
-- class: MomentumStrategy
+- type: momentum
   name: test_momentum
   parameters:
-    fast_period: 5
-    slow_period: 10
-workflow_type: backtest
+    lookback_period: 10
+    rsi_period: 14

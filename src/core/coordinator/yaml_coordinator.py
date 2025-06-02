@@ -13,7 +13,6 @@ from .coordinator import Coordinator
 from .types import WorkflowConfig, WorkflowResult, WorkflowType
 from .yaml_interpreter import YAMLInterpreter, YAMLWorkflowBuilder
 from ..config import ConfigSchemaValidator, ValidationResult
-from ..containers import ContainerCapability
 from ..components import ComponentRegistry
 
 

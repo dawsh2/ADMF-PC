@@ -18,6 +18,8 @@ from ..containers.composition_engine import get_global_composition_engine
 from ..containers.composable import (
     ComposableContainerProtocol, ContainerRole, ContainerPattern
 )
+from ..events.routing import EventRouter, EventScope
+from ..events.routing.debugging import EventFlowVisualizer, EventRoutingMonitor
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +39,8 @@ class ComposableWorkflowManager:
         self.shared_services = shared_services or {}
         self.composition_engine = get_global_composition_engine()
         self.active_containers: Dict[str, ComposableContainerProtocol] = {}
+        self.event_router: Optional[EventRouter] = None
+        self.event_monitor: Optional[EventRoutingMonitor] = None
         
     async def execute(
         self,
@@ -73,13 +77,28 @@ class ComposableWorkflowManager:
         patterns = []
         
         if config.workflow_type == WorkflowType.BACKTEST:
-            # Single backtest - determine complexity level
-            if self._is_simple_backtest(config):
+            # Check for explicit pattern specification
+            explicit_pattern = getattr(config, 'pattern', None)
+            if explicit_pattern:
+                # Use the explicitly specified pattern
+                patterns.append({
+                    'name': explicit_pattern,
+                    'config': self._build_pattern_config(config, explicit_pattern)
+                })
+            elif self._is_multi_strategy_backtest(config):
+                # Multi-strategy backtest - use simple_backtest with ensemble config
+                patterns.append({
+                    'name': 'simple_backtest',
+                    'config': self._build_simple_backtest_config(config)
+                })
+            elif self._is_simple_backtest(config):
+                # Simple single strategy backtest
                 patterns.append({
                     'name': 'simple_backtest',
                     'config': self._build_simple_backtest_config(config)
                 })
             else:
+                # Full backtest with classifiers/advanced features
                 patterns.append({
                     'name': 'full_backtest',
                     'config': self._build_full_backtest_config(config)
@@ -142,8 +161,32 @@ class ComposableWorkflowManager:
         has_risk_profiles = bool(optimization_config.get('risk_profiles'))
         has_portfolios = bool(optimization_config.get('portfolios'))
         
-        # Simple if only basic strategy configuration
-        return not (has_classifiers or has_risk_profiles or has_portfolios)
+        # Check for multiple strategies
+        has_multiple_strategies = self._has_multiple_strategies(config)
+        
+        # Simple if only basic strategy configuration and single strategy
+        return not (has_classifiers or has_risk_profiles or has_portfolios or has_multiple_strategies)
+    
+    def _is_multi_strategy_backtest(self, config: WorkflowConfig) -> bool:
+        """Determine if this is a multi-strategy backtest."""
+        return self._has_multiple_strategies(config)
+    
+    def _has_multiple_strategies(self, config: WorkflowConfig) -> bool:
+        """Check if config specifies multiple strategies."""
+        strategies = []
+        
+        # Check top-level strategies attribute
+        if hasattr(config, 'strategies') and config.strategies:
+            strategies.extend(config.strategies)
+        
+        # Check backtest.strategies section
+        backtest_config = getattr(config, 'backtest_config', {})
+        if backtest_config and 'strategies' in backtest_config:
+            backtest_strategies = backtest_config['strategies']
+            if isinstance(backtest_strategies, list):
+                strategies.extend(backtest_strategies)
+        
+        return len(strategies) > 1
     
     def _build_simple_backtest_config(self, config: WorkflowConfig) -> Dict[str, Any]:
         """Build config for simple backtest pattern."""
@@ -188,12 +231,63 @@ class ComposableWorkflowManager:
         # Pass ALL strategies to composition engine for indicator inference
         if strategies:
             container_config['strategies'] = strategies
-            # Also set primary strategy for backward compatibility
-            strategy_config = strategies[0]  # Use first strategy
-            container_config['strategy'] = {
-                'type': strategy_config.get('type', 'momentum'),
-                'parameters': strategy_config.get('parameters', {})
-            }
+            
+            # Configure strategy container - automatically detects single vs multi-strategy
+            if len(strategies) > 1:
+                # Multiple strategies - pass all strategies for automatic sub-container creation
+                container_config['strategy'] = {
+                    'strategies': strategies,  # StrategyContainer will auto-create sub-containers
+                    'aggregation': {
+                        'method': config.parameters.get('signal_aggregation', {}).get('method', 'weighted_voting'),
+                        'min_confidence': config.parameters.get('signal_aggregation', {}).get('min_confidence', 0.6)
+                    }
+                }
+            else:
+                # Single strategy - use traditional config
+                strategy_config = strategies[0]
+                container_config['strategy'] = {
+                    'type': strategy_config.get('type', 'momentum'),
+                    'parameters': strategy_config.get('parameters', {})
+                }
+        
+        # Risk configuration
+        risk_config = {}
+        if hasattr(config, 'parameters') and config.parameters.get('risk'):
+            risk_config.update(config.parameters['risk'])
+        if config.backtest_config and config.backtest_config.get('risk'):
+            risk_config.update(config.backtest_config['risk'])
+        if config.optimization_config and config.optimization_config.get('risk'):
+            risk_config.update(config.optimization_config['risk'])
+        
+        # Add initial_capital to risk config
+        initial_capital = None
+        if config.backtest_config and config.backtest_config.get('initial_capital'):
+            initial_capital = config.backtest_config['initial_capital']
+        elif hasattr(config, 'parameters') and config.parameters.get('portfolio', {}).get('initial_capital'):
+            initial_capital = config.parameters['portfolio']['initial_capital']
+        elif hasattr(config, 'parameters') and config.parameters.get('initial_capital'):
+            initial_capital = config.parameters['initial_capital']
+        
+        if initial_capital:
+            risk_config['initial_capital'] = initial_capital
+        
+        if risk_config:
+            container_config['risk'] = risk_config
+            logger.info(f"Added risk config to simple_backtest: {risk_config}")
+        
+        # Portfolio configuration
+        portfolio_config = {}
+        if hasattr(config, 'parameters') and config.parameters.get('portfolio'):
+            portfolio_config.update(config.parameters['portfolio'])
+        if config.backtest_config and config.backtest_config.get('portfolio'):
+            portfolio_config.update(config.backtest_config['portfolio'])
+        
+        if initial_capital and 'initial_capital' not in portfolio_config:
+            portfolio_config['initial_capital'] = initial_capital
+            
+        if portfolio_config:
+            container_config['portfolio'] = portfolio_config
+            logger.info(f"Added portfolio config to simple_backtest: {portfolio_config}")
         
         # Execution configuration
         if config.backtest_config:
@@ -396,19 +490,42 @@ class ComposableWorkflowManager:
         logger.info(f"Executing single pattern: {pattern_name}")
         
         try:
+            # Create event router for this workflow if not exists
+            if not self.event_router:
+                self.event_router = EventRouter(
+                    enable_debugging=context.debug_mode if hasattr(context, 'debug_mode') else False
+                )
+                self.event_monitor = EventRoutingMonitor(self.event_router)
+            
             # Compose container pattern
             root_container = self.composition_engine.compose_pattern(
                 pattern_name=pattern_name,
                 config_overrides=pattern_config
             )
             
+            # Register all containers with event router
+            await self._register_containers_with_router(root_container)
+            
             # Store container
             container_key = f"{context.workflow_id}_{pattern_name}"
             self.active_containers[container_key] = root_container
             
+            # Validate event topology
+            validation = self.event_router.validate_topology()
+            if not validation.is_valid:
+                logger.warning(f"Event topology validation issues: {validation.errors}")
+            
+            # Generate debug visualization if enabled
+            if context.debug_mode if hasattr(context, 'debug_mode') else False:
+                await self._generate_event_visualization(context.workflow_id)
+            
             # Execute pattern
             result = await self._execute_container(root_container, config, context)
             result.metadata['container_pattern'] = pattern_name
+            
+            # Add event routing metrics to result
+            if self.event_monitor:
+                result.metadata['event_routing_metrics'] = self.event_router.get_metrics()
             
             return result
             
@@ -536,8 +653,14 @@ class ComposableWorkflowManager:
             # Wait for completion based on workflow type
             await self._wait_for_completion(root_container, config)
             
+            # Position closure is now handled by END_OF_BACKTEST event in containers
+            # No need for explicit force close here
+            
             # Collect results
             container_status = root_container.get_status()
+            
+            # Extract comprehensive backtest data
+            backtest_data = self._extract_backtest_data(root_container)
             
             # Create result
             container_state = root_container.state.value
@@ -551,7 +674,8 @@ class ComposableWorkflowManager:
                     'container_status': container_status,
                     'container_structure': self._get_container_structure(root_container),
                     'metrics': container_status.get('metrics', {}),
-                    'final_state': container_state
+                    'final_state': container_state,
+                    'backtest_data': backtest_data  # Add actual backtest results
                 }
             )
             
@@ -691,6 +815,238 @@ class ComposableWorkflowManager:
         
         return structure
     
+    def _extract_backtest_data(self, root_container) -> Dict[str, Any]:
+        """Extract comprehensive backtest data from containers"""
+        backtest_data = {
+            'trades': [],
+            'portfolio_value': 0,
+            'positions': {},
+            'performance_metrics': {},
+            'signals_generated': 0,
+            'bars_processed': 0
+        }
+        
+        try:
+            # Find the risk container (which has portfolio state)
+            risk_container = self._find_container_by_role(root_container, 'risk')
+            if risk_container:
+                logger.info(f"Found risk container: {type(risk_container)}")
+                
+                # Extract portfolio state from risk container
+                portfolio_extracted = False
+                
+                # Try multiple paths to get portfolio state from risk container
+                # First try: risk_manager attribute (RiskPortfolioContainer)
+                if hasattr(risk_container, 'risk_manager') and risk_container.risk_manager:
+                    risk_manager = risk_container.risk_manager
+                    logger.info(f"Found risk_manager: {type(risk_manager)}")
+                    
+                    if hasattr(risk_manager, 'get_portfolio_state'):
+                        state = risk_manager.get_portfolio_state()
+                        logger.info(f"Portfolio state object: {type(state)}")
+                        
+                        # Use proper method calls instead of attributes
+                        cash = 0
+                        total_portfolio_value = 0
+                        positions = {}
+                        position_value = 0
+                        
+                        # Get cash balance using method call
+                        if hasattr(state, 'get_cash_balance'):
+                            cash = float(state.get_cash_balance())
+                            logger.info(f"Cash balance: ${cash}")
+                        
+                        # Get total portfolio value using method call
+                        if hasattr(state, 'get_total_value'):
+                            total_portfolio_value = float(state.get_total_value())
+                            logger.info(f"Total portfolio value: ${total_portfolio_value}")
+                        
+                        # Get positions using method call
+                        if hasattr(state, 'get_all_positions'):
+                            all_positions = state.get_all_positions()
+                            logger.info(f"Found {len(all_positions)} positions")
+                            
+                            for symbol, position in all_positions.items():
+                                # Position objects use 'quantity', not 'shares'
+                                if hasattr(position, 'quantity') and position.quantity != 0:
+                                    shares = float(position.quantity)
+                                    avg_price = float(position.average_price) if hasattr(position, 'average_price') else 0
+                                    current_price = float(position.current_price) if hasattr(position, 'current_price') else avg_price
+                                    market_value = shares * current_price
+                                    position_value += market_value
+                                    
+                                    positions[symbol] = {
+                                        'shares': shares,
+                                        'avg_price': avg_price,
+                                        'current_price': current_price,
+                                        'market_value': market_value
+                                    }
+                                    logger.info(f"Position {symbol}: {shares} shares @ ${current_price} = ${market_value}")
+                        
+                        backtest_data['portfolio_value'] = total_portfolio_value
+                        backtest_data['cash'] = cash
+                        backtest_data['position_value'] = position_value
+                        backtest_data['positions'] = positions
+                        portfolio_extracted = True
+                        
+                        logger.info(f"Portfolio extracted from risk_manager - Total: ${total_portfolio_value} (cash: ${cash}, positions: ${position_value})")
+                
+                # Second try: risk_portfolio attribute (legacy)
+                if not portfolio_extracted and hasattr(risk_container, 'risk_portfolio') and risk_container.risk_portfolio:
+                    risk_portfolio = risk_container.risk_portfolio
+                    logger.info(f"Found risk_portfolio: {type(risk_portfolio)}")
+                    
+                    if hasattr(risk_portfolio, 'get_portfolio_state'):
+                        state = risk_portfolio.get_portfolio_state()
+                        logger.info(f"Portfolio state - total_value: {getattr(state, 'total_value', 'N/A')}, cash: {getattr(state, 'cash', 'N/A')}")
+                        
+                        # Get current market prices from last trades for position valuation
+                        current_prices = {}
+                        
+                        # Calculate portfolio value with proper position valuation
+                        cash = float(state.cash) if hasattr(state, 'cash') else 0
+                        position_value = 0
+                        positions = {}
+                        
+                        if hasattr(state, 'positions') and state.positions:
+                            # Need current prices to value positions - get from state's price cache
+                            if hasattr(state, 'get_current_prices'):
+                                current_prices = state.get_current_prices()
+                                logger.info(f"Current prices from portfolio state: {current_prices}")
+                            
+                            for symbol, position in state.positions.items():
+                                if hasattr(position, 'shares') and position.shares != 0:
+                                    shares = float(position.shares)
+                                    avg_price = float(position.avg_price) if hasattr(position, 'avg_price') else 0
+                                    current_price = current_prices.get(symbol, avg_price)  # Use avg_price as fallback
+                                    market_value = shares * current_price
+                                    position_value += market_value
+                                    
+                                    positions[symbol] = {
+                                        'shares': shares,
+                                        'avg_price': avg_price,
+                                        'current_price': current_price,
+                                        'market_value': market_value
+                                    }
+                                    logger.info(f"Position {symbol}: {shares} shares @ ${current_price} = ${market_value}")
+                        
+                        total_portfolio_value = cash + position_value
+                        backtest_data['portfolio_value'] = total_portfolio_value
+                        backtest_data['cash'] = cash
+                        backtest_data['position_value'] = position_value
+                        backtest_data['positions'] = positions
+                        portfolio_extracted = True
+                        
+                        logger.info(f"Portfolio extracted from risk container - Total: ${total_portfolio_value} (cash: ${cash}, positions: ${position_value})")
+                
+                # Fallback: try portfolio_container
+                if not portfolio_extracted and hasattr(risk_container, 'portfolio_container') and risk_container.portfolio_container:
+                    portfolio = risk_container.portfolio_container
+                    logger.info(f"Trying portfolio_container: {type(portfolio)}")
+                    
+                    # Get portfolio state if available
+                    if hasattr(portfolio, 'get_status'):
+                        portfolio_status = portfolio.get_status()
+                        backtest_data['portfolio_value'] = portfolio_status.get('portfolio_value', 0)
+                        backtest_data['positions'] = portfolio_status.get('positions', {})
+                        portfolio_extracted = True
+                        logger.info(f"Portfolio extracted from portfolio_container: ${backtest_data['portfolio_value']}")
+                
+                if not portfolio_extracted:
+                    logger.warning("Could not extract portfolio state from risk container")
+            else:
+                logger.warning("No risk container found for portfolio extraction")
+            
+            # Find execution container for trade data
+            execution_container = self._find_container_by_role(root_container, 'execution')
+            if execution_container:
+                exec_status = execution_container.get_status()
+                logger.info(f"Execution container status: {exec_status}")
+                
+                # Try to get broker data from execution engine
+                if hasattr(execution_container, 'execution_engine') and execution_container.execution_engine:
+                    engine = execution_container.execution_engine
+                    logger.info(f"Found execution engine: {type(engine)}")
+                    
+                    if hasattr(engine, 'broker') and engine.broker:
+                        broker = engine.broker
+                        logger.info(f"Found broker: {type(broker)}")
+                        
+                        # Get fills/trades from broker order tracker
+                        fills_found = False
+                        if hasattr(broker, 'order_tracker') and broker.order_tracker:
+                            if hasattr(broker.order_tracker, 'fills') and broker.order_tracker.fills:
+                                logger.info(f"Found {len(broker.order_tracker.fills)} fills in broker.order_tracker")
+                                trades = []
+                                for fill in broker.order_tracker.fills:
+                                    trade = {
+                                        'timestamp': str(fill.timestamp) if hasattr(fill, 'timestamp') else '',
+                                        'symbol': fill.symbol if hasattr(fill, 'symbol') else '',
+                                        'side': str(fill.side) if hasattr(fill, 'side') else '',
+                                        'quantity': float(fill.quantity) if hasattr(fill, 'quantity') else 0,
+                                        'price': float(fill.price) if hasattr(fill, 'price') else 0,
+                                        'commission': float(fill.commission) if hasattr(fill, 'commission') else 0
+                                    }
+                                    trades.append(trade)
+                                    logger.info(f"Extracted trade: {trade}")
+                                backtest_data['trades'] = trades
+                                fills_found = True
+                        
+                        # Also try direct fills attribute as fallback
+                        if not fills_found and hasattr(broker, 'fills') and broker.fills:
+                            logger.info(f"Found {len(broker.fills)} fills in broker.fills")
+                            trades = []
+                            for fill in broker.fills:
+                                trade = {
+                                    'timestamp': str(fill.timestamp) if hasattr(fill, 'timestamp') else '',
+                                    'symbol': fill.symbol if hasattr(fill, 'symbol') else '',
+                                    'side': str(fill.side) if hasattr(fill, 'side') else '',
+                                    'quantity': float(fill.quantity) if hasattr(fill, 'quantity') else 0,
+                                    'price': float(fill.price) if hasattr(fill, 'price') else 0,
+                                    'commission': float(fill.commission) if hasattr(fill, 'commission') else 0
+                                }
+                                trades.append(trade)
+                                logger.info(f"Extracted trade: {trade}")
+                            backtest_data['trades'] = trades
+                            fills_found = True
+                        
+                        if not fills_found:
+                            logger.warning("No fills found in broker.order_tracker.fills or broker.fills")
+                    else:
+                        logger.warning("No broker found in execution engine")
+                else:
+                    logger.warning("No execution engine found in execution container")
+                
+                # Note: Portfolio value is extracted from risk container above
+                # Execution container only handles trade execution, not portfolio state
+            
+            # Get data container metrics
+            data_container = root_container  # Root should be data container
+            if data_container:
+                data_status = data_container.get_status()
+                metrics = data_status.get('metrics', {})
+                backtest_data['bars_processed'] = metrics.get('events_published', 0)
+            
+            logger.info(f"Extracted backtest data: {len(backtest_data.get('trades', []))} trades, {backtest_data.get('bars_processed', 0)} bars")
+            
+        except Exception as e:
+            logger.error(f"Error extracting backtest data: {e}")
+        
+        return backtest_data
+    
+    def _find_container_by_role(self, container, role: str):
+        """Recursively find container by role"""
+        if hasattr(container, 'metadata') and container.metadata.role.value == role:
+            return container
+        
+        if hasattr(container, 'child_containers'):
+            for child in container.child_containers:
+                result = self._find_container_by_role(child, role)
+                if result:
+                    return result
+        
+        return None
+    
     async def validate_config(self, config: WorkflowConfig) -> Dict[str, Any]:
         """Validate workflow configuration for composable execution."""
         
@@ -739,3 +1095,73 @@ class ComposableWorkflowManager:
             'container_patterns': True,
             'event_bus': True
         }
+    
+    async def _register_containers_with_router(
+        self, 
+        root_container: ComposableContainerProtocol
+    ) -> None:
+        """Recursively register all containers with the event router."""
+        
+        # Register root container
+        root_container.register_with_router(self.event_router)
+        logger.debug(f"Registered container {root_container.metadata.name} with event router")
+        
+        # Build container hierarchy for scope resolution
+        hierarchy = {}
+        
+        def build_hierarchy(container: ComposableContainerProtocol, parent_id: Optional[str] = None):
+            container_id = container.metadata.container_id
+            children_ids = [child.metadata.container_id for child in container.child_containers]
+            
+            hierarchy[container_id] = {
+                'parent_id': parent_id,
+                'children_ids': children_ids,
+                'role': container.metadata.role.value,
+                'name': container.metadata.name
+            }
+            
+            # Recursively process children
+            for child in container.child_containers:
+                build_hierarchy(child, container_id)
+        
+        # Build the hierarchy starting from root
+        build_hierarchy(root_container)
+        
+        # Set hierarchy in router for scope resolution
+        self.event_router.set_container_hierarchy(hierarchy)
+        
+        # Recursively register all child containers
+        async def register_children(container: ComposableContainerProtocol):
+            for child in container.child_containers:
+                child.register_with_router(self.event_router)
+                logger.debug(f"Registered child container {child.metadata.name} with event router")
+                await register_children(child)
+        
+        await register_children(root_container)
+        
+        logger.info(f"Registered {len(hierarchy)} containers with event router")
+    
+    async def _generate_event_visualization(self, workflow_id: str) -> None:
+        """Generate event flow visualization for debugging."""
+        
+        try:
+            from ..events.routing.debugging import EventFlowVisualizer
+            
+            visualizer = EventFlowVisualizer(self.event_router)
+            
+            # Generate Mermaid diagram
+            mermaid_path = f"debug/{workflow_id}_event_flow.mmd"
+            visualizer.save_visualization(mermaid_path, format="mermaid")
+            logger.info(f"Generated Mermaid event flow diagram: {mermaid_path}")
+            
+            # Generate DOT diagram
+            dot_path = f"debug/{workflow_id}_event_flow.dot"
+            visualizer.save_visualization(dot_path, format="dot")
+            logger.info(f"Generated Graphviz event flow diagram: {dot_path}")
+            
+            # Log topology summary
+            topology = self.event_router.get_topology()
+            logger.info(f"Event topology: {len(topology['nodes'])} nodes, {len(topology['edges'])} edges")
+            
+        except Exception as e:
+            logger.warning(f"Failed to generate event visualization: {e}")

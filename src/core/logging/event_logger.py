@@ -159,7 +159,7 @@ def log_bar_event(logger: logging.Logger, symbol: str, timestamp: Any, price: fl
         bar_info = f" ({bar_num})" if bar_num else ""
         log_event(logger, EventTypes.BAR, f"{symbol} @ {timestamp}{bar_info} - Price: {price:.4f}")
 
-def log_indicator_event(logger: logging.Logger, symbol: str, indicator: str, value: float) -> None:
+def log_indicator_event(logger: logging.Logger, symbol: str, indicator: str, value) -> None:
     """
     Log an INDICATOR event for technical analysis.
     
@@ -167,16 +167,25 @@ def log_indicator_event(logger: logging.Logger, symbol: str, indicator: str, val
         logger: Logger instance to use
         symbol: Trading symbol (e.g., "SPY")
         indicator: Indicator name (e.g., "SMA_20", "RSI")
-        value: Calculated indicator value
+        value: Calculated indicator value (float or dict)
         
     Returns:
         None
         
     Example:
         log_indicator_event(logger, "SPY", "RSI_14", 65.4)
+        log_indicator_event(logger, "SPY", "BB_20", {"upper": 520, "middle": 510, "lower": 500})
     """ 
     if should_log_event(EventTypes.INDICATOR):
-        log_event(logger, EventTypes.INDICATOR, f"{symbol} {indicator} = {value:.4f}")
+        if isinstance(value, dict):
+            # Format dict values for Bollinger Bands etc
+            value_str = ", ".join(f"{k}={v:.2f}" if isinstance(v, (int, float)) else f"{k}={v}" 
+                                for k, v in value.items())
+            log_event(logger, EventTypes.INDICATOR, f"{symbol} {indicator} = {{{value_str}}}")
+        elif isinstance(value, (int, float)):
+            log_event(logger, EventTypes.INDICATOR, f"{symbol} {indicator} = {value:.4f}")
+        else:
+            log_event(logger, EventTypes.INDICATOR, f"{symbol} {indicator} = {value}")
 
 def log_signal_event(logger: logging.Logger, signal) -> None:
     """

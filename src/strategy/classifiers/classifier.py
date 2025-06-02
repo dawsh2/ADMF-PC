@@ -1,443 +1,343 @@
 """
-Market condition classifiers that use indicators to classify market states.
+File: src/strategy/classifiers/classifier.py
+Status: ACTIVE
+Architecture Ref: SYSTEM_ARCHITECTURE_v5.md#classifier-protocol
+Step: 3 - Classifier Container
+Dependencies: abc, typing, dataclasses
 
-These classifiers subscribe to indicator updates from the IndicatorHub
-and classify the market into different states or conditions.
+Base classifier protocol and abstract implementation.
+Defines the interface for market regime classifiers.
 """
 
-from typing import Dict, Any, Optional, List, Deque
-from datetime import datetime, timedelta
+from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import Protocol, Dict, Any, Optional, List
+from datetime import datetime
 from collections import deque
-import logging
 
-from ...core.events import Event
-from ..protocols import Classifier
+from .regime_types import (
+    MarketRegime, 
+    RegimeState, 
+    ClassificationFeatures,
+    ClassifierConfig
+)
+from ...data.models import Bar
 
 
-logger = logging.getLogger(__name__)
-
-
-class TrendVolatilityClassifier:
+class ClassifierProtocol(Protocol):
     """
-    Classifies market conditions based on trend and volatility.
+    Protocol for market regime classifiers.
     
-    Classifications:
-    - TRENDING_UP: Strong upward trend with normal volatility
-    - TRENDING_DOWN: Strong downward trend with normal volatility
-    - RANGE_BOUND: No clear trend, normal volatility
-    - HIGH_VOLATILITY: Any trend with high volatility
+    Defines the interface that all classifiers must implement
+    for regime detection and state management.
     """
     
-    def __init__(self, 
-                 trend_ma_fast: str = "MA_20",
-                 trend_ma_slow: str = "MA_50", 
-                 volatility_indicator: str = "ATR_14",
-                 volatility_threshold: float = 1.5,
-                 min_class_duration: int = 5):
+    def update(self, bar: Bar) -> None:
         """
-        Initialize classifier.
+        Update classifier with new market data.
         
         Args:
-            trend_ma_fast: Name of fast MA indicator for trend
-            trend_ma_slow: Name of slow MA indicator for trend
-            volatility_indicator: Name of volatility indicator (e.g., ATR)
-            volatility_threshold: Multiplier for high volatility detection
-            min_class_duration: Minimum bars before class can change
+            bar: New market data bar
         """
-        self.trend_ma_fast = trend_ma_fast
-        self.trend_ma_slow = trend_ma_slow
-        self.volatility_indicator = volatility_indicator
-        self.volatility_threshold = volatility_threshold
-        self.min_class_duration = min_class_duration
-        
-        # State
-        self._current_class: Optional[str] = None
-        self._confidence: float = 0.0
-        self._class_start_time: Optional[datetime] = None
-        self._class_duration: int = 0
-        
-        # History for stability
-        self._volatility_history: Deque[float] = deque(maxlen=20)
-        self._avg_volatility: Optional[float] = None
-        
-        # Capabilities
-        self._events = None
+        ...
     
-    def setup_subscriptions(self) -> None:
-        """Subscribe to indicator updates."""
-        if self._events:
-            self._events.subscribe('INDICATOR_UPDATE', self.on_indicator_update)
-    
-    def on_indicator_update(self, event: Event) -> None:
-        """Process indicator update and classify class."""
-        data = event.payload
-        indicators = data.get('indicators', {})
+    def classify(self) -> MarketRegime:
+        """
+        Classify current market regime.
         
-        # Extract required indicators
-        fast_ma = indicators.get(self.trend_ma_fast)
-        slow_ma = indicators.get(self.trend_ma_slow)
-        volatility = indicators.get(self.volatility_indicator)
-        
-        # Need all indicators to classify
-        if fast_ma is None or slow_ma is None or volatility is None:
-            return
-        
-        # Update volatility history
-        self._volatility_history.append(volatility)
-        if len(self._volatility_history) >= 10:
-            self._avg_volatility = sum(self._volatility_history) / len(self._volatility_history)
-        
-        # Classify class
-        new_class = self._classify_conditions(fast_ma, slow_ma, volatility)
-        
-        # Update class if changed and duration met
-        if new_class != self._current_class:
-            if self._class_duration >= self.min_class_duration:
-                self._change_class(new_class, data.get('timestamp'))
-            else:
-                # Reduce confidence if we want to change but can't yet
-                self._confidence *= 0.9
-        else:
-            # Increase confidence if class is stable
-            self._confidence = min(1.0, self._confidence + 0.1)
-            self._class_duration += 1
-    
-    def _classify_conditions(self, fast_ma: float, slow_ma: float, volatility: float) -> str:
-        """Classify class based on indicators."""
-        # Determine if high volatility
-        is_high_vol = False
-        if self._avg_volatility is not None:
-            is_high_vol = volatility > self._avg_volatility * self.volatility_threshold
-        
-        # If high volatility, that overrides trend
-        if is_high_vol:
-            return "HIGH_VOLATILITY"
-        
-        # Determine trend
-        trend_strength = (fast_ma - slow_ma) / slow_ma
-        
-        if trend_strength > 0.02:  # 2% above
-            return "TRENDING_UP"
-        elif trend_strength < -0.02:  # 2% below
-            return "TRENDING_DOWN"
-        else:
-            return "RANGE_BOUND"
-    
-    def _change_class(self, new_class: str, timestamp: Optional[datetime]) -> None:
-        """Change to new class."""
-        old_class = self._current_class
-        self._current_class = new_class
-        self._class_start_time = timestamp
-        self._class_duration = 0
-        self._confidence = 0.5  # Start with moderate confidence
-        
-        logger.info(f"Classification change: {old_class} -> {new_class}")
-        
-        # Emit classification change event
-        if self._events and self._events.event_bus:
-            class_data = {
-                'classifier': 'TrendVolatilityClassifier',
-                'old_class': old_class,
-                'new_class': new_class,
-                'timestamp': timestamp,
-                'confidence': self._confidence
-            }
-            event = Event('CLASSIFICATION_CHANGE', class_data)
-            self._events.event_bus.publish(event)
-    
-    def classify(self, data: Dict[str, Any]) -> str:
-        """Classify current market class."""
-        # This method is called directly with indicator data
-        fast_ma = data.get(self.trend_ma_fast)
-        slow_ma = data.get(self.trend_ma_slow)
-        volatility = data.get(self.volatility_indicator)
-        
-        if fast_ma is None or slow_ma is None or volatility is None:
-            return "UNKNOWN"
-        
-        return self._classify_conditions(fast_ma, slow_ma, volatility)
-    
-    @property
-    def current_class(self) -> Optional[str]:
-        """Current classified class."""
-        return self._current_class
+        Returns:
+            Current market regime classification
+        """
+        ...
     
     @property
     def confidence(self) -> float:
-        """Confidence in current classification (0-1)."""
-        return self._confidence
+        """Get classification confidence (0.0 to 1.0)."""
+        ...
+    
+    @property
+    def is_ready(self) -> bool:
+        """Check if classifier has enough data to classify."""
+        ...
     
     def reset(self) -> None:
         """Reset classifier state."""
-        self._current_class = None
-        self._confidence = 0.0
-        self._class_start_time = None
-        self._class_duration = 0
-        self._volatility_history.clear()
-        self._avg_volatility = None
+        ...
 
 
-class MultiIndicatorClassifier:
+class BaseClassifier(ABC):
     """
-    Advanced classifier using multiple indicators for class detection.
+    Abstract base class for market regime classifiers.
     
-    Uses a scoring system based on multiple indicators to classify
-    market conditions more robustly.
+    Provides common functionality and enforces the classifier interface.
+    Handles feature extraction, state management, and logging.
     """
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: ClassifierConfig):
         """
-        Initialize with configuration.
+        Initialize base classifier.
         
-        Config should contain:
-        - indicators: Dict mapping indicator names to their class rules
-        - weights: Dict of indicator weights for scoring
-        - thresholds: Dict of score thresholds for each class
+        Args:
+            config: Classifier configuration
         """
         self.config = config
-        self.indicators_config = config.get('indicators', {})
-        self.weights = config.get('weights', {})
-        self.thresholds = config.get('thresholds', {})
+        self.config.validate()
         
-        # State
-        self._current_class: Optional[str] = None
-        self._confidence: float = 0.0
-        self._class_scores: Dict[str, float] = {}
+        # State management
+        self._confidence = 0.0
+        self._current_regime = MarketRegime.UNKNOWN
+        self._is_ready = False
         
-        # Capabilities
-        self._events = None
-    
-    def setup_subscriptions(self) -> None:
-        """Subscribe to indicator updates."""
-        if self._events:
-            self._events.subscribe('INDICATOR_UPDATE', self.on_indicator_update)
-    
-    def on_indicator_update(self, event: Event) -> None:
-        """Process indicator update and classify class."""
-        data = event.payload
-        indicators = data.get('all_indicators', {})
+        # Data windows
+        self.bar_history = deque(maxlen=config.lookback_period)
+        self.feature_history = deque(maxlen=config.feature_window)
         
-        # Calculate scores for each class
-        class_scores = self._calculate_class_scores(indicators)
-        self._class_scores = class_scores
+        # Feature calculation state
+        self._last_price = None
+        self._volume_sma = 0.0
+        self._volume_count = 0
         
-        # Find class with highest score
-        if class_scores:
-            best_class = max(class_scores.items(), key=lambda x: x[1])
-            new_class = best_class[0]
-            score = best_class[1]
-            
-            # Update confidence based on score strength
-            self._confidence = min(1.0, score / 100.0)
-            
-            # Change class if different
-            if new_class != self._current_class:
-                self._change_class(new_class, data.get('timestamp'))
-    
-    def _calculate_class_scores(self, indicators: Dict[str, float]) -> Dict[str, float]:
-        """Calculate scores for each class based on indicators."""
-        scores = {}
+        # Classification history
+        self.regime_history: List[RegimeState] = []
         
-        for class_name, class_rules in self.thresholds.items():
-            score = 0.0
-            
-            for indicator_name, rules in self.indicators_config.items():
-                if indicator_name not in indicators:
-                    continue
-                
-                value = indicators[indicator_name]
-                weight = self.weights.get(indicator_name, 1.0)
-                
-                # Check if indicator supports this class
-                if class_name in rules:
-                    rule = rules[class_name]
-                    if self._evaluate_rule(value, rule):
-                        score += weight
-            
-            scores[class_name] = score
-        
-        return scores
-    
-    def _evaluate_rule(self, value: float, rule: Dict[str, Any]) -> bool:
-        """Evaluate if a value satisfies a rule."""
-        if 'min' in rule and value < rule['min']:
-            return False
-        if 'max' in rule and value > rule['max']:
-            return False
-        if 'above' in rule and value <= rule['above']:
-            return False
-        if 'below' in rule and value >= rule['below']:
-            return False
-        
-        return True
-    
-    def _change_class(self, new_class: str, timestamp: Optional[datetime]) -> None:
-        """Change to new class."""
-        old_class = self._current_class
-        self._current_class = new_class
-        
-        logger.info(f"Classification change: {old_class} -> {new_class}")
-        
-        # Emit classification change event
-        if self._events and self._events.event_bus:
-            class_data = {
-                'classifier': 'MultiIndicatorClassifier',
-                'old_class': old_class,
-                'new_class': new_class,
-                'timestamp': timestamp,
-                'confidence': self._confidence,
-                'scores': self._class_scores
-            }
-            event = Event('CLASSIFICATION_CHANGE', class_data)
-            self._events.event_bus.publish(event)
-    
-    def classify(self, data: Dict[str, Any]) -> str:
-        """Classify current market class."""
-        scores = self._calculate_class_scores(data)
-        
-        if scores:
-            best_class = max(scores.items(), key=lambda x: x[1])
-            return best_class[0]
-        
-        return "UNKNOWN"
-    
-    @property
-    def current_class(self) -> Optional[str]:
-        """Current classified class."""
-        return self._current_class
-    
     @property
     def confidence(self) -> float:
-        """Confidence in current classification (0-1)."""
+        """Get current classification confidence."""
         return self._confidence
     
-    def reset(self) -> None:
-        """Reset classifier state."""
-        self._current_class = None
-        self._confidence = 0.0
-        self._class_scores.clear()
-
-
-# Add missing classes for compatibility
-from enum import Enum
-from dataclasses import dataclass
-
-
-class RegimeState(Enum):
-    """Market regime states."""
-    TRENDING_UP = "trending_up"
-    TRENDING_DOWN = "trending_down"
-    RANGING = "ranging"
-    HIGH_VOLATILITY = "high_volatility"
-    LOW_VOLATILITY = "low_volatility"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class RegimeContext:
-    """Context information for a regime."""
-    state: RegimeState
-    confidence: float
-    start_time: datetime
-    metadata: Dict[str, Any] = None
-    
-    def __post_init__(self):
-        if self.metadata is None:
-            self.metadata = {}
-
-
-class RegimeClassifier:
-    """
-    Classifier specifically for market regimes.
-    
-    This is a simplified version that wraps MultiIndicatorClassifier
-    for regime detection.
-    """
-    
-    def __init__(self, config: Dict[str, Any] = None):
-        """Initialize regime classifier."""
-        self.config = config or {}
-        
-        # Map regime states to classes
-        self.regime_mapping = {
-            'TRENDING_UP': RegimeState.TRENDING_UP,
-            'TRENDING_DOWN': RegimeState.TRENDING_DOWN,
-            'RANGING': RegimeState.RANGING,
-            'HIGH_VOLATILITY': RegimeState.HIGH_VOLATILITY,
-            'LOW_VOLATILITY': RegimeState.LOW_VOLATILITY
-        }
-        
-        # Create underlying classifier
-        classifier_config = {
-            'indicators': self.config.get('indicators', {
-                'trend': {'weight': 0.4},
-                'volatility': {'weight': 0.3},
-                'momentum': {'weight': 0.3}
-            }),
-            'thresholds': self.config.get('thresholds', {
-                'TRENDING_UP': {'trend': {'min': 0.5}},
-                'TRENDING_DOWN': {'trend': {'max': -0.5}},
-                'RANGING': {'trend': {'min': -0.2, 'max': 0.2}},
-                'HIGH_VOLATILITY': {'volatility': {'min': 0.7}},
-                'LOW_VOLATILITY': {'volatility': {'max': 0.3}}
-            })
-        }
-        
-        self.classifier = MultiIndicatorClassifier(classifier_config)
-        self._current_regime = RegimeState.UNKNOWN
-        self._regime_history = deque(maxlen=100)
-    
-    def classify(self, data: Dict[str, Any]) -> RegimeState:
-        """Classify current market regime."""
-        # Use underlying classifier
-        market_class = self.classifier.classify(data)
-        
-        # Map to regime state
-        if market_class and market_class in self.regime_mapping:
-            regime = self.regime_mapping[market_class]
-        else:
-            regime = RegimeState.UNKNOWN
-            
-        self._current_regime = regime
-        self._regime_history.append({
-            'timestamp': data.get('timestamp', datetime.now()),
-            'regime': regime,
-            'confidence': self.classifier.confidence
-        })
-        
-        return regime
-    
-    def get_current_regime(self) -> RegimeState:
-        """Get current regime state."""
+    @property
+    def current_regime(self) -> MarketRegime:
+        """Get current regime classification."""
         return self._current_regime
     
-    def get_regime_context(self) -> RegimeContext:
-        """Get full regime context."""
-        # Find when current regime started
-        start_time = datetime.now()
-        for i in range(len(self._regime_history) - 1, -1, -1):
-            if self._regime_history[i]['regime'] != self._current_regime:
-                if i < len(self._regime_history) - 1:
-                    start_time = self._regime_history[i + 1]['timestamp']
-                break
+    @property
+    def is_ready(self) -> bool:
+        """Check if classifier has enough data."""
+        return self._is_ready
+    
+    def update(self, bar: Bar) -> None:
+        """
+        Update classifier with new bar data.
         
-        return RegimeContext(
-            state=self._current_regime,
-            confidence=self.classifier.confidence,
-            start_time=start_time,
-            metadata={
-                'class_scores': self.classifier._class_scores,
-                'history_length': len(self._regime_history)
-            }
+        Args:
+            bar: New market data bar
+        """
+        # Store bar
+        self.bar_history.append(bar)
+        
+        # Extract features
+        features = self._extract_features(bar)
+        if features:
+            self.feature_history.append(features)
+        
+        # Update readiness
+        self._update_readiness()
+        
+        # Perform classification if ready
+        if self.is_ready:
+            self._update_classification()
+    
+    def _extract_features(self, bar: Bar) -> Optional[ClassificationFeatures]:
+        """
+        Extract features from market bar.
+        
+        Args:
+            bar: Market data bar
+            
+        Returns:
+            Extracted features or None if insufficient data
+        """
+        if len(self.bar_history) < 2:
+            return None
+        
+        prev_bar = self.bar_history[-2]
+        
+        # Calculate basic features
+        returns = (bar.close - prev_bar.close) / prev_bar.close
+        price_range = (bar.high - bar.low) / bar.open
+        
+        # Update volume statistics
+        self._volume_count += 1
+        self._volume_sma = (
+            (self._volume_sma * (self._volume_count - 1) + bar.volume) 
+            / self._volume_count
+        )
+        
+        volume_ratio = bar.volume / max(self._volume_sma, 1.0)
+        
+        # Calculate volatility (rolling std of returns)
+        volatility = self._calculate_volatility()
+        
+        # Calculate momentum
+        momentum = self._calculate_momentum(bar)
+        
+        return ClassificationFeatures(
+            returns=returns,
+            volatility=volatility,
+            volume_ratio=volume_ratio,
+            price_range=price_range,
+            momentum=momentum,
+            timestamp=bar.timestamp,
+            symbol=bar.symbol
         )
     
-    @property
-    def confidence(self) -> float:
-        """Current classification confidence."""
-        return self.classifier.confidence
+    def _calculate_volatility(self) -> float:
+        """Calculate rolling volatility from recent returns."""
+        if len(self.bar_history) < 5:
+            return 0.0
+        
+        recent_bars = list(self.bar_history)[-5:]
+        returns = []
+        
+        for i in range(1, len(recent_bars)):
+            ret = (recent_bars[i].close - recent_bars[i-1].close) / recent_bars[i-1].close
+            returns.append(ret)
+        
+        if not returns:
+            return 0.0
+        
+        # Calculate standard deviation
+        mean_return = sum(returns) / len(returns)
+        variance = sum((r - mean_return) ** 2 for r in returns) / len(returns)
+        
+        return variance ** 0.5
+    
+    def _calculate_momentum(self, bar: Bar) -> float:
+        """Calculate price momentum."""
+        if len(self.bar_history) < 10:
+            return 0.0
+        
+        # Use 10-period momentum
+        old_bar = self.bar_history[-10]
+        momentum = (bar.close - old_bar.close) / old_bar.close
+        
+        return momentum
+    
+    def _update_readiness(self) -> None:
+        """Update classifier readiness state."""
+        min_bars_needed = max(self.config.lookback_period // 4, 10)
+        self._is_ready = len(self.bar_history) >= min_bars_needed
+    
+    def _update_classification(self) -> None:
+        """Update classification and confidence."""
+        new_regime = self.classify()
+        new_confidence = self._calculate_confidence()
+        
+        # Check for regime change
+        if (new_regime != self._current_regime and 
+            new_confidence >= self.config.min_confidence):
+            
+            self._handle_regime_change(new_regime, new_confidence)
+        
+        self._current_regime = new_regime
+        self._confidence = new_confidence
+    
+    def _handle_regime_change(self, new_regime: MarketRegime, confidence: float) -> None:
+        """Handle regime change event."""
+        current_time = datetime.now()
+        if self.bar_history:
+            current_time = self.bar_history[-1].timestamp
+        
+        # Create new regime state
+        regime_state = RegimeState(
+            regime=new_regime,
+            confidence=confidence,
+            started_at=current_time,
+            last_updated=current_time,
+            duration_bars=1,
+            features=self.feature_history[-1].to_dict() if self.feature_history else {}
+        )
+        
+        self.regime_history.append(regime_state)
+        
+        # Keep only recent history
+        if len(self.regime_history) > 50:
+            self.regime_history = self.regime_history[-50:]
+    
+    @abstractmethod
+    def classify(self) -> MarketRegime:
+        """
+        Perform regime classification.
+        
+        Must be implemented by concrete classifiers.
+        
+        Returns:
+            Classified market regime
+        """
+        pass
+    
+    @abstractmethod
+    def _calculate_confidence(self) -> float:
+        """
+        Calculate classification confidence.
+        
+        Must be implemented by concrete classifiers.
+        
+        Returns:
+            Confidence level (0.0 to 1.0)
+        """
+        pass
     
     def reset(self) -> None:
-        """Reset classifier state."""
-        self.classifier.reset()
-        self._current_regime = RegimeState.UNKNOWN
-        self._regime_history.clear()
+        """Reset classifier to initial state."""
+        self.bar_history.clear()
+        self.feature_history.clear()
+        self.regime_history.clear()
+        
+        self._confidence = 0.0
+        self._current_regime = MarketRegime.UNKNOWN
+        self._is_ready = False
+        self._last_price = None
+        self._volume_sma = 0.0
+        self._volume_count = 0
+    
+    def get_state(self) -> Dict[str, Any]:
+        """
+        Get current classifier state.
+        
+        Returns:
+            Dictionary containing classifier state information
+        """
+        return {
+            'classifier_type': self.__class__.__name__,
+            'current_regime': self._current_regime.value,
+            'confidence': self._confidence,
+            'is_ready': self._is_ready,
+            'bars_processed': len(self.bar_history),
+            'features_extracted': len(self.feature_history),
+            'regime_changes': len(self.regime_history),
+            'last_regime_change': (
+                self.regime_history[-1].started_at.isoformat() 
+                if self.regime_history else None
+            )
+        }
+    
+    def get_recent_regimes(self, count: int = 5) -> List[RegimeState]:
+        """
+        Get recent regime states.
+        
+        Args:
+            count: Number of recent regimes to return
+            
+        Returns:
+            List of recent regime states
+        """
+        return self.regime_history[-count:] if self.regime_history else []
+
+
+class DummyClassifier(BaseClassifier):
+    """
+    Dummy classifier for testing purposes.
+    
+    Always returns UNKNOWN regime with low confidence.
+    Useful for testing classifier infrastructure without
+    complex classification logic.
+    """
+    
+    def classify(self) -> MarketRegime:
+        """Always return UNKNOWN regime."""
+        return MarketRegime.UNKNOWN
+    
+    def _calculate_confidence(self) -> float:
+        """Always return low confidence."""
+        return 0.1 if self.is_ready else 0.0

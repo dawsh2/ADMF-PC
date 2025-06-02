@@ -1,0 +1,62 @@
+# Multi-Strategy Test Configuration with Sensitive Thresholds
+# Tests the new sub-container architecture with thresholds that will generate trades
+
+workflow:
+  type: "backtest"
+  name: "Multi-Strategy Sensitive Test"
+
+data:
+  source: "csv"
+  file_path: "data/SPY_1m.csv"
+  symbols: ["SPY"]
+  max_bars: 100
+
+strategies:
+  - name: "momentum_strategy"
+    type: "momentum"
+    enabled: true
+    allocation: 0.6
+    weight: 1.0
+    parameters:
+      lookback_period: 20
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
+      momentum_threshold: 0.0001  # Very sensitive - was 0.0005
+  
+  - name: "mean_reversion_strategy"
+    type: "mean_reversion"
+    enabled: true
+    allocation: 0.4
+    weight: 0.8
+    parameters:
+      lookback_period: 15
+      entry_threshold: 0.5  # Very sensitive - was 2.0
+      exit_threshold: 0.1   # Very sensitive - was 0.5
+
+signal_aggregation:
+  method: "weighted_voting"
+  min_confidence: 0.3  # Lower threshold - was 0.5
+
+risk:
+  initial_capital: 100000
+  position_sizers:
+    - name: "fixed_size"
+      type: "fixed"
+      size: 5000
+  limits:
+    - type: "position"
+      max_position: 5000
+    - type: "exposure"
+      max_exposure_pct: 80
+
+backtest:
+  initial_capital: 100000
+  commission:
+    type: "fixed"
+    value: 1.0
+  currency: "USD"
+
+output:
+  path: "results/multi_strategy_sensitive/"
+  generate_report: true

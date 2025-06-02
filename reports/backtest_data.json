@@ -1,0 +1,107 @@
+{
+  "container_status": {
+    "metadata": {
+      "container_id": "e8ad9497-0f04-4270-9971-c88d2eec6cf2",
+      "role": "data",
+      "name": "DataContainer",
+      "parent_id": null,
+      "created_at": "2025-06-01T18:10:22.473571",
+      "tags": []
+    },
+    "state": "running",
+    "metrics": {
+      "events_processed": 0,
+      "events_published": 50,
+      "start_time": "2025-06-01T18:10:22.580078",
+      "last_activity": "2025-06-01T18:10:22.955786"
+    },
+    "child_containers": 2,
+    "limits": {
+      "max_memory_mb": null,
+      "max_cpu_percent": null,
+      "max_execution_time_minutes": null,
+      "max_child_containers": null,
+      "max_events_per_second": null
+    }
+  },
+  "container_structure": {
+    "id": "e8ad9497-0f04-4270-9971-c88d2eec6cf2",
+    "role": "data",
+    "name": "DataContainer",
+    "state": "running",
+    "children": [
+      {
+        "id": "75363910-4f34-4e18-9bbf-48465fadc627",
+        "role": "indicator",
+        "name": "IndicatorContainer",
+        "state": "running",
+        "children": []
+      },
+      {
+        "id": "c08607fa-71af-4de7-b9bd-ee0345f5eec5",
+        "role": "risk",
+        "name": "RiskContainer",
+        "state": "running",
+        "children": [
+          {
+            "id": "411079fe-06f6-4f66-b632-29724b6e444f",
+            "role": "portfolio",
+            "name": "PortfolioContainer",
+            "state": "running",
+            "children": [
+              {
+                "id": "9eb7710d-c282-4e15-99c7-683fbf3a666c",
+                "role": "strategy",
+                "name": "StrategyContainer",
+                "state": "running",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "28f5a358-01b9-4835-863d-294491ee0df4",
+            "role": "execution",
+            "name": "ExecutionContainer",
+            "state": "running",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "metrics": {
+    "events_processed": 0,
+    "events_published": 50,
+    "start_time": "2025-06-01T18:10:22.580078",
+    "last_activity": "2025-06-01T18:10:22.955786"
+  },
+  "final_state": "running",
+  "execution_time": 0,
+  "workflow_id": "20553ca6-969c-446f-8cd6-45f0305d25b1",
+  "backtest_data": {
+    "trades": [
+      {
+        "timestamp": "",
+        "symbol": "SPY",
+        "side": "OrderSide.BUY",
+        "quantity": 191.81,
+        "price": 521.610675,
+        "commission": 100.05014357175
+      }
+    ],
+    "portfolio_value": 99899.94985642825,
+    "positions": {
+      "SPY": {
+        "shares": 191.81,
+        "avg_price": 521.610675,
+        "current_price": 521.610675,
+        "market_value": 100050.14357175
+      }
+    },
+    "performance_metrics": {},
+    "signals_generated": 0,
+    "bars_processed": 50,
+    "cash": -150.19371532175,
+    "position_value": 100050.14357175
+  }
+}

@@ -274,7 +274,7 @@
 
   High-Level System Architecture Discovery
 
-  ADMF-PC = Adaptive Dynamic Market Framework - Protocol Components
+  ADMF-PC = Adaptive Decision Making Framework - Protocol Components
 
   This is a sophisticated event-driven trading system with the following key characteristics:
 
@@ -331,7 +331,7 @@
 
   🎯 ADMF-PC System Architecture Discovery
 
-  ADMF-PC = Adaptive Dynamic Market Framework - Protocol Components
+  ADMF-PC = Adaptive Decision Making Framework - Protocol Components
 
   This is a sophisticated event-driven algorithmic trading system with some genuinely innovative architectural patterns.
 

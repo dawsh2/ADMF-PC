@@ -1,6 +1,6 @@
 # ADMF-PC Core Concepts: Coordinator and Containers
 
-This document outlines the core concepts of the ADMF-PC (Adaptive Dynamic Market Framework - Protocol Components) system, focusing on its coordinator, composable containers, and workflow composition, as detailed in the `src/core/coordinator` and `src/core/containers` modules.
+This document outlines the core concepts of the ADMF-PC (Adaptive Decision Making Framework - Protocol Components) system, focusing on its coordinator, composable containers, and workflow composition, as detailed in the `src/core/coordinator` and `src/core/containers` modules.
 
 ## I. Coordinator
 

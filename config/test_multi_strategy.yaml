@@ -1,0 +1,97 @@
+# Multi-Strategy Ensemble Backtest
+# Test ensemble of momentum and mean reversion strategies
+
+name: Multi-Strategy Ensemble Backtest
+workflow_type: backtest
+description: Test ensemble of momentum and mean reversion strategies
+
+# Data configuration
+data:
+  source: csv
+  file_path: data/SPY_1m.csv
+  symbols: ["SPY"]
+  frequency: "1min"
+  max_bars: 100  # Limit for testing
+  
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  currency: USD
+  commission:
+    type: percentage
+    value: 0.001  # 0.1% commission
+    
+# Multiple strategies configuration
+strategies:
+  - name: momentum_strategy
+    type: momentum
+    enabled: true
+    allocation: 0.5
+    weight: 0.6  # Weight for signal aggregation
+    parameters:
+      lookback_period: 20
+      momentum_threshold: 0.0002
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
+      
+  - name: mean_reversion_strategy
+    type: mean_reversion
+    enabled: true
+    allocation: 0.5
+    weight: 0.4  # Weight for signal aggregation
+    parameters:
+      lookback_period: 20
+      entry_threshold: 2.0  # 2 std devs
+      exit_threshold: 0.5   # 0.5 std devs
+      
+# Signal aggregation configuration
+signal_aggregation:
+  method: weighted_voting
+  min_confidence: 0.6
+      
+# Risk management
+risk:
+  position_sizers:
+    - name: percentage_sizer
+      type: percentage
+      size: 0.02  # 2% risk per trade
+  
+  limits:
+    - type: max_position_value
+      value: 20000  # Max $20k per position
+    - type: max_total_exposure  
+      value: 0.8    # Max 80% of capital deployed
+
+# Backtest configuration
+backtest:
+  initial_capital: 100000
+  commission: 0.001
+  slippage: 0.0005
+  start_date: null
+  end_date: null
+  
+# Analysis configuration
+analysis:
+  metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+    - win_rate
+    - total_trades
+  print_trades: true
+  save_results: true
+  output_format: json
+
+# Reporting configuration
+reporting:
+  enabled: true
+  report_type: comprehensive
+  output_dir: "reports"
+  formats:
+    - html
+  include_charts:
+    - equity_curve
+    - drawdown
+    - trade_analysis
+  auto_open: false

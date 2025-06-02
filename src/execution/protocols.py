@@ -7,20 +7,7 @@ from enum import Enum, auto
 from decimal import Decimal
 
 from ..core.events.types import Event
-
-
-class OrderType(Enum):
-    """Order type enumeration."""
-    MARKET = auto()
-    LIMIT = auto()
-    STOP = auto()
-    STOP_LIMIT = auto()
-
-
-class OrderSide(Enum):
-    """Order side enumeration."""
-    BUY = auto()
-    SELL = auto()
+from ..core.types import OrderType, OrderSide
 
 
 class OrderStatus(Enum):

@@ -1,7 +1,7 @@
 # ADMF-PC Backtest Architecture & Standardization
 
 ## Overview
-The ADMF-PC (Adaptive Dynamic Market Framework - Protocol Components) system implements a sophisticated multi-symbol trading architecture with nested container hierarchy, protocol-based design, and complete separation of concerns between orchestration and execution.
+The ADMF-PC (Adaptive Decision Making Framework - Protocol Components) system implements a sophisticated multi-symbol trading architecture with nested container hierarchy, protocol-based design, and complete separation of concerns between orchestration and execution.
 
 ## Architectural Motivations
 

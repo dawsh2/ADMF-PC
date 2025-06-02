@@ -27,11 +27,24 @@ from ..core.logging.event_logger import (
 
 logger = get_event_logger(__name__)
 
+# Import signal aggregation for ensemble container
+try:
+    from ..strategy.signal_aggregation import (
+        WeightedVotingAggregator, Direction, TradingSignal, 
+        AggregatedSignal, ConsensusSignal
+    )
+except ImportError:
+    # Fallback if signal aggregation not available
+    WeightedVotingAggregator = None
+
 
 class DataContainer(BaseComposableContainer):
     """Container for data streaming and management."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
+        # Configure external communication for broadcasting data
+        self._configure_data_broadcasting(config)
+        
         super().__init__(
             role=ContainerRole.DATA,
             name="DataContainer",
@@ -40,6 +53,30 @@ class DataContainer(BaseComposableContainer):
         )
         self.data_loader: Optional[DataLoader] = None
         self._streaming_task: Optional[asyncio.Task] = None
+    
+    def _configure_data_broadcasting(self, config: Dict[str, Any]) -> None:
+        """Configure external Event Router communication for data broadcasting"""
+        if 'external_events' not in config:
+            config['external_events'] = {}
+        
+        ext_config = config['external_events']
+        
+        # Configure publications for broadcasting data events
+        if 'publishes' not in ext_config:
+            ext_config['publishes'] = []
+        
+        ext_config['publishes'].extend([
+            {
+                'events': ['BAR'],
+                'scope': 'GLOBAL',  # Broadcast to all subscribers
+                'tier': 'fast'     # Use Fast Tier for high-frequency data
+            },
+            {
+                'events': ['SYSTEM'],
+                'scope': 'GLOBAL',  # System events to all containers
+                'tier': 'reliable' # Use Reliable Tier for critical events
+            }
+        ])
         
     async def _initialize_self(self) -> None:
         """Initialize data container."""
@@ -102,7 +139,64 @@ class DataContainer(BaseComposableContainer):
                 await self._streaming_task
             except asyncio.CancelledError:
                 pass
+        
+        # Broadcast end-of-backtest event for position closure
+        await self._broadcast_end_of_backtest()
+        
         logger.info("Data streaming stopped")
+    
+    async def _broadcast_end_of_backtest(self) -> None:
+        """Broadcast end-of-backtest event to trigger position closure."""
+        try:
+            from ..core.events.types import Event, EventType
+            
+            # Get the last bar price for position closure
+            last_bar_price = getattr(self, '_last_bar_price', None)
+            
+            end_event = Event(
+                event_type=EventType.SYSTEM,  # Use SYSTEM event type
+                payload={
+                    'action': 'END_OF_BACKTEST',
+                    'last_prices': last_bar_price or {},
+                    'timestamp': datetime.now().isoformat()
+                },
+                timestamp=datetime.now()
+            )
+            
+            # Broadcast to ALL containers in hierarchy (not just direct children)
+            await self._broadcast_to_all_containers(end_event)
+            logger.info("📢 Broadcasted END_OF_BACKTEST event")
+            
+        except Exception as e:
+            logger.error(f"Failed to broadcast end-of-backtest event: {e}")
+    
+    async def _broadcast_to_all_containers(self, event: Event) -> None:
+        """Recursively broadcast event to all containers in the hierarchy."""
+        # Send to self first
+        if hasattr(self, 'process_event'):
+            try:
+                await self.process_event(event)
+            except Exception as e:
+                logger.error(f"Error processing END_OF_BACKTEST in {self.metadata.name}: {e}")
+        
+        # Recursively send to all child containers
+        for child in self.child_containers:
+            await self._broadcast_to_child_and_descendants(child, event)
+    
+    async def _broadcast_to_child_and_descendants(self, container, event: Event) -> None:
+        """Recursively broadcast event to a container and all its descendants."""
+        try:
+            # Send to this container
+            if hasattr(container, 'process_event'):
+                await container.process_event(event)
+                logger.debug(f"Sent END_OF_BACKTEST to {container.metadata.name}")
+            
+            # Recursively send to its children
+            if hasattr(container, 'child_containers'):
+                for child in container.child_containers:
+                    await self._broadcast_to_child_and_descendants(child, event)
+        except Exception as e:
+            logger.error(f"Error broadcasting END_OF_BACKTEST to {container.metadata.name}: {e}")
     
     async def _stream_data(self) -> None:
         """Stream data to child containers using proper data models."""
@@ -145,6 +239,11 @@ class DataContainer(BaseComposableContainer):
                     
                     # Stream data bar by bar using proper data models
                     bar_count = 0
+                    
+                    # Initialize last price tracking
+                    if not hasattr(self, '_last_bar_price'):
+                        self._last_bar_price = {}
+                    
                     for timestamp, row in df.iterrows():
                         bar_count += 1
                         if bar_count <= 5 or bar_count % 10 == 0:  # Log first 5 bars and every 10th bar
@@ -185,8 +284,13 @@ class DataContainer(BaseComposableContainer):
                             timestamp=timestamp
                         )
                         
-                        # Publish to children
-                        self.publish_event(event, target_scope="children")
+                        # Track last price for end-of-backtest position closure
+                        self._last_bar_price[symbol] = float(row['close'])
+                        
+                        # Broadcast BAR events via Event Router Fast Tier for selective subscriptions
+                        logger.debug(f"📡 DataContainer broadcasting BAR event for {symbol} via Fast Tier")
+                        from ..core.events.hybrid_interface import CommunicationTier
+                        self.publish_external(event, tier=CommunicationTier.FAST)
                         
                         # Yield control to allow other tasks to run
                         await asyncio.sleep(0.001)  # Small delay to simulate streaming
@@ -210,6 +314,29 @@ class IndicatorContainer(BaseComposableContainer):
     """Container for shared indicator computation."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
+        # Add event routing configuration
+        if 'events' not in config:
+            config['events'] = {}
+        
+        # Declare what events this container publishes and subscribes to
+        config['events']['publishes'] = config['events'].get('publishes', []) + [
+            {
+                'events': ['BAR'],
+                'scope': 'CHILDREN'  # Forward BAR events to children
+            },
+            {
+                'events': ['INDICATORS'],
+                'scope': 'GLOBAL'  # Send INDICATORS to specific subscribers
+            }
+        ]
+        
+        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+            {
+                'events': ['BAR'],
+                'scope': 'UPWARD'  # Receive BAR events from DataContainer ancestor
+            }
+        ]
+        
         super().__init__(
             role=ContainerRole.INDICATOR,
             name="IndicatorContainer", 
@@ -455,7 +582,7 @@ class IndicatorContainer(BaseComposableContainer):
         if event.event_type == EventType.BAR:
             logger.info(f"📊 IndicatorContainer received BAR event")
             
-            # Always forward BAR events to children
+            # Always forward BAR events to children (using old pattern for broad distribution)
             self.publish_event(event, target_scope="children")
             
             # Process indicators if we have an indicator hub
@@ -518,12 +645,15 @@ class IndicatorContainer(BaseComposableContainer):
                             timestamp=timestamp
                         )
                         
-                        # Send event directly to the subscribed container
-                        # Find the container by ID and send the event directly to its event bus
+                        # Route INDICATOR event to subscribing container
+                        # This is a workaround for cross-hierarchy event delivery since each
+                        # container has its own isolated event bus
                         target_container = self._find_container_by_id(container_id)
                         if target_container:
-                            target_container.event_bus.publish(indicator_event)
-                            logger.info(f"📤 Sent INDICATOR event to {target_container.metadata.name} ({container_id})")
+                            # Deliver event directly to target container's process_event method
+                            # This maintains the event-driven pattern while working around isolation
+                            await target_container.process_event(indicator_event)
+                            logger.info(f"📤 Routed INDICATOR event to {target_container.metadata.name} ({container_id})")
                         else:
                             logger.warning(f"Could not find subscribed container {container_id} for INDICATOR event")
         
@@ -538,40 +668,181 @@ class IndicatorContainer(BaseComposableContainer):
 
 
 class StrategyContainer(BaseComposableContainer):
-    """Container for strategy execution."""
+    """Container for strategy execution that automatically creates sub-containers for multiple strategies."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
+        # Configure external communication via Event Router
+        self._configure_external_events(config)
+        
         super().__init__(
             role=ContainerRole.STRATEGY,
             name="StrategyContainer",
             config=config,
             container_id=container_id
         )
+        # Strategy execution components
         self.strategy: Optional[Strategy] = None
+        self.signal_aggregator = None
+        
+        # State management
         self._current_indicators: Dict[str, Any] = {}
+        self._current_market_data: Dict[str, Any] = {}  # Store latest market data
+        
+        # Determine if this is multi-strategy
+        self.strategies_config = self._get_strategies_config()
+        self.is_multi_strategy = len(self.strategies_config) > 1
+    
+    def _configure_external_events(self, config: Dict[str, Any]) -> None:
+        """Configure external Event Router communication"""
+        if 'external_events' not in config:
+            config['external_events'] = {}
+        
+        ext_config = config['external_events']
+        
+        # Configure publications (what this container publishes externally)
+        if 'publishes' not in ext_config:
+            ext_config['publishes'] = []
+        
+        ext_config['publishes'].extend([
+            {
+                'events': ['SIGNAL'],
+                'scope': 'PARENT',  # Send to PortfolioContainer
+                'tier': 'standard'
+            }
+        ])
+        
+        # Configure subscriptions (what this container subscribes to externally)
+        if 'subscribes' not in ext_config:
+            ext_config['subscribes'] = []
+        
+        ext_config['subscribes'].extend([
+            {
+                'source': 'data_container',
+                'events': ['BAR'],
+                'tier': 'fast',
+                'filters': {}  # Will be configured per instance
+            },
+            {
+                'source': 'indicator_container',
+                'events': ['INDICATORS'],
+                'tier': 'standard',
+                'filters': {'subscriber': config.get('container_id', 'strategy_container')}
+            }
+        ])
+    
+    def _get_strategies_config(self) -> List[Dict[str, Any]]:
+        """Extract strategies configuration from various config formats."""
+        # Check for direct strategies list
+        if 'strategies' in self._metadata.config:
+            return self._metadata.config['strategies']
+        
+        # Check for single strategy config (convert to list)
+        if 'type' in self._metadata.config:
+            return [{
+                'name': 'primary_strategy',
+                'type': self._metadata.config['type'],
+                'parameters': self._metadata.config.get('parameters', {}),
+                'weight': 1.0
+            }]
+        
+        # Fallback to empty list
+        return []
         
     async def _initialize_self(self) -> None:
-        """Initialize strategy."""
-        strategy_type = self._metadata.config.get('type', 'momentum')
-        strategy_params = self._metadata.config.get('parameters', {})
+        """Initialize strategy system - single strategy or sub-containers for multiple."""
+        if self.is_multi_strategy:
+            await self._initialize_multi_strategy()
+        else:
+            await self._initialize_single_strategy()
+        
+        logger.info(f"StrategyContainer initialized ({'multi-strategy' if self.is_multi_strategy else 'single-strategy'})")
+    
+    async def _initialize_single_strategy(self) -> None:
+        """Initialize single strategy."""
+        if not self.strategies_config:
+            raise ValueError("No strategy configuration found")
+        
+        strategy_config = self.strategies_config[0]  # Use first strategy for single mode
+        strategy_type = strategy_config.get('type', 'momentum')
+        strategy_params = strategy_config.get('parameters', {})
         
         # Create strategy instance
-        if strategy_type == 'momentum':
-            from ..strategy.strategies.momentum import MomentumStrategy
-            self.strategy = MomentumStrategy(**strategy_params)
-        elif strategy_type == 'mean_reversion':
-            from ..strategy.strategies.mean_reversion import MeanReversionStrategy
-            self.strategy = MeanReversionStrategy(**strategy_params)
-        else:
-            raise ValueError(f"Unknown strategy type: {strategy_type}")
+        self.strategy = self._create_strategy_instance(strategy_type, strategy_params)
+        if not self.strategy:
+            raise ValueError(f"Failed to create strategy of type: {strategy_type}")
         
-        logger.info(f"StrategyContainer initialized with {strategy_type} strategy")
+        logger.info(f"Single strategy initialized: {strategy_type}")
+    
+    async def _initialize_multi_strategy(self) -> None:
+        """Initialize multiple strategies as sub-containers."""
+        aggregation_config = self._metadata.config.get('aggregation', {})
+        
+        # Initialize signal aggregator for consensus
+        aggregation_method = aggregation_config.get('method', 'weighted_voting')
+        min_confidence = aggregation_config.get('min_confidence', 0.6)
+        
+        if WeightedVotingAggregator and aggregation_method == 'weighted_voting':
+            self.signal_aggregator = WeightedVotingAggregator(
+                min_confidence=min_confidence,
+                container_id=self.metadata.container_id
+            )
+        
+        # Create sub-containers for each strategy
+        for i, strategy_config in enumerate(self.strategies_config):
+            strategy_name = strategy_config.get('name', f"strategy_{i+1}")
+            
+            # Create sub-container for this strategy
+            sub_container_config = {
+                'type': strategy_config.get('type', 'momentum'),
+                'parameters': strategy_config.get('parameters', {}),
+                'weight': strategy_config.get('weight', 1.0),
+                'allocation': strategy_config.get('allocation', 1.0)
+            }
+            
+            sub_container = StrategyContainer(
+                config=sub_container_config,
+                container_id=f"{self.metadata.container_id}_{strategy_name}"
+            )
+            sub_container._metadata.name = f"Strategy_{strategy_name}"
+            
+            # Add as child container
+            self.add_child_container(sub_container)
+            
+            logger.info(f"Created sub-container for strategy: {strategy_name} ({strategy_config.get('type')})")
+        
+        logger.info(f"Multi-strategy initialized with {len(self.strategies_config)} sub-containers")
+    
+    def _create_strategy_instance(self, strategy_type: str, strategy_params: Dict[str, Any]) -> Optional[Strategy]:
+        """Factory method to create strategy instances."""
+        try:
+            if strategy_type == 'momentum':
+                from ..strategy.strategies.momentum import MomentumStrategy
+                return MomentumStrategy(**strategy_params)
+            elif strategy_type == 'mean_reversion':
+                from ..strategy.strategies.mean_reversion import MeanReversionStrategy
+                return MeanReversionStrategy(**strategy_params)
+            else:
+                logger.warning(f"Unknown strategy type: {strategy_type}")
+                return None
+        except Exception as e:
+            logger.error(f"Failed to create strategy {strategy_type}: {e}")
+            return None
     
     def get_required_indicators(self) -> Set[str]:
-        """Get indicators required by this strategy."""
-        if self.strategy and hasattr(self.strategy, 'get_required_indicators'):
-            return self.strategy.get_required_indicators()
-        return set()
+        """Get indicators required by this strategy or sub-containers."""
+        required_indicators = set()
+        
+        if self.is_multi_strategy:
+            # Collect indicators from all sub-containers
+            for child in self.child_containers:
+                if hasattr(child, 'get_required_indicators'):
+                    required_indicators.update(child.get_required_indicators())
+        else:
+            # Single strategy - get indicators from our strategy
+            if self.strategy and hasattr(self.strategy, 'get_required_indicators'):
+                required_indicators.update(self.strategy.get_required_indicators())
+        
+        return required_indicators
     
     async def process_event(self, event: Event) -> Optional[Event]:
         """Process events and generate signals."""
@@ -579,107 +850,122 @@ class StrategyContainer(BaseComposableContainer):
         
         logger.info(f"StrategyContainer received event: {event.event_type}")
         
-        if event.event_type == EventType.INDICATORS:
-            # Update current indicators
-            subscriber = event.payload.get('subscriber')
-            logger.info(f"StrategyContainer received INDICATORS event, subscriber: {subscriber}, my_id: {self.metadata.container_id}")
-            if subscriber == self.metadata.container_id:
-                indicators = event.payload.get('indicators', {})
-                self._current_indicators.update(indicators)
-                logger.info(f"StrategyContainer updated indicators: {indicators}")
-                
-                # Generate signals immediately when we receive updated indicators
-                # (since StrategyContainer may not receive BAR events directly)
-                if self.strategy and self._current_indicators:
-                    timestamp = event.payload.get('timestamp')
-                    await self._generate_signals_from_indicators(timestamp)
+        if self.is_multi_strategy:
+            # Multi-strategy: forward events to sub-containers and collect signals
+            if event.event_type == EventType.SIGNAL:
+                # Collect signals from sub-containers for aggregation
+                await self._handle_sub_container_signal(event)
             else:
-                logger.debug(f"INDICATORS event not for me (subscriber: {subscriber})")
-        
-        elif event.event_type == EventType.BAR and self.strategy:
-            # Generate signals using current indicators
-            market_data = event.payload.get('market_data', {})
-            timestamp = event.payload.get('timestamp')
-            
-            logger.debug(f"StrategyContainer processing BAR at {timestamp}")
-            logger.debug(f"Available indicators: {self._current_indicators}")
-            
-            # Combine market data with indicators
-            strategy_input = {
-                'market_data': market_data,
-                'indicators': self._current_indicators,
-                'timestamp': timestamp
-            }
-            
-            # Generate signals
-            signals = self.strategy.generate_signals(strategy_input)
-            
-            if signals:
-                for signal in signals:
-                    log_signal_event(logger, signal)
-                
-                signal_event = Event(
-                    event_type=EventType.SIGNAL,
-                    payload={
-                        'timestamp': timestamp,
-                        'signals': signals,
-                        'market_data': market_data,
-                        'source': self.metadata.container_id
-                    },
-                    timestamp=timestamp
-                )
-                
-                # Publish to parent (Portfolio, then up to Risk for processing)
-                logger.info(f"🚀 StrategyContainer publishing SIGNAL event to parent (Portfolio→Risk)")
-                self.publish_event(signal_event, target_scope="parent")
-            else:
-                logger.debug(f"No signals generated at {timestamp}")
+                # Forward other events to all sub-containers
+                for child in self.child_containers:
+                    await child.process_event(event)
+        else:
+            # Single strategy: handle events directly
+            if event.event_type == EventType.INDICATORS:
+                await self._handle_indicators_event(event)
+            elif event.event_type == EventType.BAR:
+                await self._handle_bar_event(event)
         
         return None
     
-    async def _generate_signals_from_indicators(self, timestamp) -> None:
-        """Generate signals using current indicators (when no market data available)."""
-        logger.info(f"🎯 StrategyContainer generating signals from indicators at {timestamp}")
-        logger.info(f"Available indicators: {self._current_indicators}")
+    async def _handle_indicators_event(self, event: Event) -> None:
+        """Handle INDICATORS event for single strategy."""
+        subscriber = event.payload.get('subscriber')
         
-        # For indicator-driven signal generation, we need to provide market data
-        # in a format the strategy expects. We can derive basic market data from indicators.
-        market_data = {}
+        # Accept INDICATORS events if:
+        # 1. We're the direct subscriber, OR
+        # 2. We're a sub-container and subscriber is our parent
+        should_process = (
+            subscriber == self.metadata.container_id or
+            (self.parent_container and subscriber == self.parent_container.metadata.container_id)
+        )
         
-        # Try to reconstruct basic market data from indicators
-        for symbol, indicators in self._current_indicators.items():
-            # Use SMA as a proxy for current price if available
-            price = indicators.get('SMA_20') or indicators.get('SMA_10') or indicators.get('close')
+        if should_process:
+            indicators = event.payload.get('indicators', {})
+            self._current_indicators.update(indicators)
+            logger.info(f"StrategyContainer ({self.metadata.name}) updated indicators: {indicators}")
             
-            # If no price is available from indicators, skip this symbol
-            if price is None:
-                logger.debug(f"No price data available for {symbol} from indicators: {list(indicators.keys())} - waiting for SMA_20")
-                continue
-                
-            market_data[symbol] = {
-                'close': price,
-                'price': price,
-                # Add other fields that might be needed
-                'open': price,
-                'high': price,
-                'low': price,
-                'volume': 0
-            }
+            # Generate signals using stored market data
+            timestamp = event.payload.get('timestamp')
+            if self._current_market_data:
+                await self._generate_single_signals(timestamp, self._current_market_data)
+            else:
+                logger.warning("Received indicators but no market data available yet")
+        else:
+            logger.debug(f"INDICATORS event not for me (subscriber: {subscriber}, my_id: {self.metadata.container_id})")
+    
+    async def _handle_bar_event(self, event: Event) -> None:
+        """Handle BAR event for single strategy."""
+        market_data = event.payload.get('market_data', {})
+        timestamp = event.payload.get('timestamp')
         
-        if not market_data:
-            logger.debug("No market data available from indicators, skipping signal generation")
+        # Update current market data
+        self._current_market_data = market_data
+        
+        # Generate signals if we have both market data and indicators
+        if self._current_indicators:
+            await self._generate_single_signals(timestamp, market_data)
+        else:
+            logger.debug("Waiting for indicators before generating signals")
+    
+    async def _handle_sub_container_signal(self, event: Event) -> None:
+        """Collect and aggregate signals from sub-containers."""
+        # For now, just forward the signal up - aggregation can be added later
+        # This maintains the composable design where parent just coordinates
+        signals = event.payload.get('signals', [])
+        if signals:
+            logger.info(f"Multi-strategy container received {len(signals)} signals from sub-container")
+            # Forward to parent (Portfolio -> Risk) via Event Router
+            from ..core.events.routing.protocols import EventScope
+            self.publish_routed_event(event, EventScope.PARENT)
+    
+    async def _generate_single_signals(self, timestamp, market_data: Dict[str, Any]) -> None:
+        """Generate signals from single strategy."""
+        if not self.strategy:
             return
         
-        # Combine market data with indicators
-        strategy_input = {
-            'market_data': market_data,
-            'indicators': self._current_indicators,
-            'timestamp': timestamp
-        }
+        # Prepare strategy input
+        strategy_input = self._prepare_strategy_input(timestamp, market_data)
+        if not strategy_input:
+            return
         
         # Generate signals
         signals = self.strategy.generate_signals(strategy_input)
         
+        if signals:
+            # Use the prepared market data, not the original empty market_data
+            await self._emit_signals(signals, timestamp, strategy_input['market_data'])
+    
+    def _prepare_strategy_input(self, timestamp, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Prepare strategy input, deriving market data from indicators if needed."""
+        # If no market data provided, try to derive from indicators
+        if not market_data:
+            market_data = {}
+            for symbol, indicators in self._current_indicators.items():
+                # Use SMA as proxy for current price if available
+                price = indicators.get('SMA_20') or indicators.get('SMA_10') or indicators.get('close')
+                
+                if price is None:
+                    logger.debug(f"No price data available for {symbol} from indicators")
+                    continue
+                    
+                market_data[symbol] = {
+                    'close': price, 'price': price,
+                    'open': price, 'high': price, 'low': price, 'volume': 0
+                }
+        
+        if not market_data:
+            logger.debug("No market data available, skipping signal generation")
+            return None
+        
+        return {
+            'market_data': market_data,
+            'indicators': self._current_indicators,
+            'timestamp': timestamp
+        }
+    
+    async def _emit_signals(self, signals: List, timestamp, market_data: Dict[str, Any]) -> None:
+        """Emit signals to parent container."""
         if signals:
             for signal in signals:
                 log_signal_event(logger, signal)
@@ -690,23 +976,35 @@ class StrategyContainer(BaseComposableContainer):
                     'timestamp': timestamp,
                     'signals': signals,
                     'market_data': market_data,
-                    'source': self.metadata.container_id
+                    'source': self.metadata.container_id,
+                    'container_type': 'strategy'
                 },
                 timestamp=timestamp
             )
             
-            # Publish to parent (Portfolio, then up to Risk for processing)
-            logger.info(f"🚀 StrategyContainer publishing SIGNAL event to parent (Portfolio→Risk)")
-            self.publish_event(signal_event, target_scope="parent")
+            # Use hybrid communication: internal for parent, external for cross-container
+            if self.parent_container:
+                # Internal: Direct to parent Portfolio via internal event bus
+                logger.info(f"🚀 StrategyContainer publishing SIGNAL to parent via internal bus")
+                self.publish_internal(signal_event, scope="parent")
+            else:
+                # External: Direct to Risk/Portfolio via Event Router
+                logger.info(f"🚀 StrategyContainer publishing SIGNAL via Event Router")
+                from ..core.events.hybrid_interface import CommunicationTier
+                self.publish_external(signal_event, tier=CommunicationTier.STANDARD)
         else:
-            logger.debug(f"No signals generated at {timestamp}")
+            logger.debug(f"No signals to emit at {timestamp}")
     
     def get_capabilities(self) -> Set[str]:
         """Strategy container capabilities."""
         capabilities = super().get_capabilities()
-        if self.strategy:
-            strategy_type = self._metadata.config.get('type', 'unknown')
-            capabilities.add(f"strategy.{strategy_type}")
+        
+        if self.is_multi_strategy:
+            capabilities.add("strategy.multi")
+            capabilities.add("strategy.sub_containers")
+        else:
+            capabilities.add("strategy.single")
+        
         return capabilities
 
 
@@ -714,6 +1012,29 @@ class ExecutionContainer(BaseComposableContainer):
     """Container for order execution and portfolio tracking."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
+        # Add event routing configuration
+        if 'events' not in config:
+            config['events'] = {}
+        
+        # Declare what events this container subscribes to and publishes
+        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+            {
+                'events': ['BAR'],
+                'scope': 'UPWARD'  # Receive BAR events from DataContainer ancestor
+            },
+            {
+                'events': ['ORDER'],
+                'scope': 'SIBLINGS'  # Receive from RiskContainer sibling
+            }
+        ]
+        
+        config['events']['publishes'] = config['events'].get('publishes', []) + [
+            {
+                'events': ['FILL'],
+                'scope': 'SIBLINGS'  # Send to RiskContainer sibling
+            }
+        ]
+        
         super().__init__(
             role=ContainerRole.EXECUTION,
             name="ExecutionContainer",
@@ -739,6 +1060,19 @@ class ExecutionContainer(BaseComposableContainer):
                 )
                 logger.info(f"Created BacktestConfig: {backtest_config}")
                 self.execution_engine = UnifiedBacktestEngine(backtest_config)
+                
+                # CRITICAL: Replace the broker's portfolio state with the one from RiskContainer
+                # This ensures position tracking is synchronized
+                if hasattr(self, '_parent_container') and self._parent_container:
+                    risk_container = self._parent_container
+                    if hasattr(risk_container, 'risk_manager') and risk_container.risk_manager:
+                        shared_portfolio_state = risk_container.risk_manager.get_portfolio_state()
+                        if shared_portfolio_state and hasattr(self.execution_engine, 'broker'):
+                            logger.info("Replacing broker's portfolio state with RiskContainer's portfolio state")
+                            self.execution_engine.broker.portfolio_state = shared_portfolio_state
+                            # Also update the risk_portfolio reference
+                            self.execution_engine.risk_portfolio = risk_container.risk_manager
+                
                 logger.info("UnifiedBacktestEngine created successfully")
             except Exception as e:
                 logger.error(f"Failed to create UnifiedBacktestEngine: {e}")
@@ -815,30 +1149,13 @@ class ExecutionContainer(BaseComposableContainer):
                         timestamp=event.timestamp
                     )
                     
-                    # Send FILL event to parent (RiskContainer)
+                    # Send FILL event to RiskContainer via Event Router
                     logger.info(f"📤 ExecutionContainer publishing FILL event with {len(fills)} fills to RiskContainer")
                     
-                    if hasattr(self, '_parent_container') and self._parent_container:
-                        parent = self._parent_container
-                        # Check if parent is RiskContainer
-                        if parent.metadata.role == ContainerRole.RISK:
-                            parent.event_bus.publish(fill_event)
-                            logger.info(f"   📨 Sent FILL event to parent RiskContainer {parent.metadata.container_id}")
-                        else:
-                            # If parent is not RiskContainer, search in parent's parent (shouldn't happen in current architecture)
-                            logger.warning(f"⚠️ Parent is {parent.metadata.role.value}, not RISK. Searching for RiskContainer...")
-                            if hasattr(parent, '_parent_container') and parent._parent_container:
-                                risk_containers = parent._parent_container.find_containers_by_role(ContainerRole.RISK)
-                                if risk_containers:
-                                    for risk_container in risk_containers:
-                                        risk_container.event_bus.publish(fill_event)
-                                        logger.info(f"   📨 Sent FILL event to RiskContainer {risk_container.metadata.container_id}")
-                                else:
-                                    logger.warning("⚠️ No RiskContainer found in grandparent")
-                            else:
-                                logger.warning("⚠️ No grandparent container to search")
-                    else:
-                        logger.warning("⚠️ ExecutionContainer has no parent container")
+                    from ..core.events.routing.protocols import EventScope
+                    self.publish_routed_event(fill_event, EventScope.SIBLINGS)
+                    logger.info(f"   📨 Sent FILL event to RiskContainer via Event Router")
+                    
                     return fill_event
             
             elif event.event_type == EventType.BAR:
@@ -850,9 +1167,105 @@ class ExecutionContainer(BaseComposableContainer):
                 if market_data and hasattr(self.execution_engine, 'execution_engine'):
                     # Update market data cache in execution engine
                     self.execution_engine.execution_engine._market_data.update(market_data)
-                    logger.debug(f"Updated execution engine market data: {list(market_data.keys())}")
+            
+            elif event.event_type == EventType.SYSTEM:
+                # Handle system events like END_OF_BACKTEST
+                action = event.payload.get('action')
+                if action == 'END_OF_BACKTEST':
+                    logger.info("🏁 Received END_OF_BACKTEST event - closing all positions")
+                    await self._close_all_positions(event.payload.get('last_prices', {}))
                 
         return None
+    
+    async def _close_all_positions(self, last_prices: Dict[str, float]) -> None:
+        """Force close all open positions at end of backtest."""
+        try:
+            if not self.execution_engine:
+                logger.warning("No execution engine available for position closure")
+                return
+            
+            # Get positions from RiskContainer (parent) instead of broker
+            # since that's where the actual portfolio state is maintained
+            if not hasattr(self, '_parent_container') or not self._parent_container:
+                logger.warning("No parent container to get positions from")
+                return
+            
+            # Find RiskContainer parent and get positions from its portfolio state
+            risk_container = self._parent_container
+            if not hasattr(risk_container, 'risk_manager') or not risk_container.risk_manager:
+                logger.warning("No risk manager available to get positions")
+                return
+            
+            portfolio_state = risk_container.risk_manager.get_portfolio_state()
+            if not portfolio_state:
+                logger.warning("No portfolio state available")
+                return
+            
+            # Get all current positions from portfolio state
+            positions = portfolio_state.get_all_positions()
+            if not positions:
+                logger.info("No positions to close")
+                return
+            
+            logger.info(f"Closing {len(positions)} positions at end of backtest")
+            
+            # Generate market orders to close each position
+            from .protocols import Order, OrderSide, OrderType
+            import uuid
+            
+            close_orders = []
+            for symbol, position in positions.items():
+                # Position is a Position object from portfolio state
+                quantity = abs(float(position.quantity)) if hasattr(position, 'quantity') else 0
+                if quantity > 0:
+                    # Determine side to close position
+                    current_quantity = float(position.quantity) if hasattr(position, 'quantity') else 0
+                    close_side = OrderSide.SELL if current_quantity > 0 else OrderSide.BUY
+                    
+                    # Use last price if available, otherwise use current price from position
+                    close_price = last_prices.get(symbol)
+                    if not close_price and hasattr(position, 'current_price'):
+                        close_price = float(position.current_price)
+                    if not close_price and hasattr(position, 'average_price'):
+                        close_price = float(position.average_price)
+                    
+                    if close_price and close_price > 0:
+                        close_order = Order(
+                            order_id=str(uuid.uuid4()),
+                            symbol=symbol,
+                            side=close_side,
+                            order_type=OrderType.MARKET,
+                            quantity=quantity,
+                            price=close_price,
+                            created_at=datetime.now()
+                        )
+                        close_orders.append(close_order)
+                        logger.info(f"Generated close order: {symbol} {close_side.name} {quantity} @ {close_price}")
+                    else:
+                        logger.warning(f"No valid price found for closing position {symbol}")
+                else:
+                    logger.debug(f"Position {symbol} has zero quantity, skipping")
+            
+            # Execute close orders immediately
+            if close_orders:
+                for order in close_orders:
+                    try:
+                        fill = await asyncio.get_event_loop().run_in_executor(
+                            None, self.execution_engine.execution_engine.execute_order, order
+                        )
+                        if fill:
+                            logger.info(f"✅ Position closed: {order.symbol} - Fill: {fill.fill_id}")
+                        else:
+                            logger.warning(f"❌ Failed to close position: {order.symbol}")
+                    except Exception as e:
+                        logger.error(f"Error closing position {order.symbol}: {e}")
+                
+                logger.info(f"🏁 End-of-backtest position closure completed: {len(close_orders)} orders processed")
+            
+        except Exception as e:
+            logger.error(f"Error in position closure: {e}")
+            import traceback
+            traceback.print_exc()
     
     def get_capabilities(self) -> Set[str]:
         """Execution container capabilities."""
@@ -866,6 +1279,25 @@ class RiskContainer(BaseComposableContainer):
     """Container for risk management and position sizing."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
+        # Add event routing configuration
+        if 'events' not in config:
+            config['events'] = {}
+        
+        # Declare what events this container publishes and subscribes to
+        config['events']['publishes'] = config['events'].get('publishes', []) + [
+            {
+                'events': ['ORDER'],
+                'scope': 'SIBLINGS'  # Send to ExecutionContainer sibling
+            }
+        ]
+        
+        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+            {
+                'events': ['FILL'],
+                'scope': 'SIBLINGS'  # Receive from ExecutionContainer sibling
+            }
+        ]
+        
         super().__init__(
             role=ContainerRole.RISK,
             name="RiskContainer",
@@ -885,7 +1317,32 @@ class RiskContainer(BaseComposableContainer):
         
         # Initialize risk manager with proper parameters
         component_id = f"risk_{self.metadata.container_id}"
-        initial_capital = Decimal(str(self._metadata.config.get('initial_capital', 100000)))
+        
+        # Try to get initial_capital from multiple locations in config
+        initial_capital = None
+        
+        # Try direct config first
+        initial_capital = self._metadata.config.get('initial_capital')
+        
+        # Try parent container config if available
+        if not initial_capital and hasattr(self, '_parent_container') and self._parent_container:
+            parent_config = getattr(self._parent_container, '_metadata', {}).config or {}
+            initial_capital = parent_config.get('initial_capital')
+        
+        # Try backtest section if available (common location)
+        if not initial_capital:
+            initial_capital = self._metadata.config.get('backtest', {}).get('initial_capital')
+        
+        # Try portfolio section if available
+        if not initial_capital:
+            initial_capital = self._metadata.config.get('portfolio', {}).get('initial_capital')
+            
+        # Default fallback
+        if not initial_capital:
+            initial_capital = 100000
+            
+        initial_capital = Decimal(str(initial_capital))
+        logger.info(f"RiskContainer using initial_capital: ${initial_capital}")
         
         self.risk_manager = RiskPortfolioContainer(
             component_id=component_id,
@@ -948,7 +1405,15 @@ class RiskContainer(BaseComposableContainer):
             
             logger.info(f"🔥 RiskContainer received SIGNAL event with {len(signals)} signals")
             for signal in signals:
-                logger.info(f"   📊 Signal: {signal.symbol} {signal.side} strength={signal.strength}")
+                # Handle both dict and object signal formats
+                if hasattr(signal, 'symbol'):
+                    logger.info(f"   📊 Signal: {signal.symbol} {signal.side} strength={signal.strength}")
+                else:
+                    # Signal is a dict
+                    symbol = signal.get('symbol', 'UNKNOWN')
+                    side = signal.get('direction', signal.get('side', 'UNKNOWN'))
+                    strength = signal.get('strength', 0)
+                    logger.info(f"   📊 Signal: {symbol} {side} strength={strength}")
             
             # Debug: Check market data format
             logger.info(f"   💰 Market data keys: {list(market_data.keys())}")
@@ -968,8 +1433,42 @@ class RiskContainer(BaseComposableContainer):
             
             logger.info(f"   💱 Transformed prices: {transformed_market_data['prices']}")
             
+            # Convert dict signals to Signal objects for risk manager
+            signal_objects = []
+            for signal in signals:
+                if hasattr(signal, 'symbol'):
+                    # Already a Signal object
+                    signal_objects.append(signal)
+                else:
+                    # Convert dict to Signal object
+                    from ..risk.protocols import Signal as RiskSignal, SignalType
+                    from ..execution.protocols import OrderSide
+                    
+                    # Map direction string to OrderSide enum
+                    direction = signal.get('direction', signal.get('side', 'BUY'))
+                    if isinstance(direction, str):
+                        side = OrderSide.BUY if direction.upper() in ['BUY', 'LONG'] else OrderSide.SELL
+                    else:
+                        side = direction
+                    
+                    # Map signal type string to enum
+                    sig_type_str = signal.get('signal_type', 'entry')
+                    signal_type = SignalType(sig_type_str) if isinstance(sig_type_str, str) else sig_type_str
+                    
+                    signal_obj = RiskSignal(
+                        signal_id=signal.get('signal_id', f"consensus_{signal.get('symbol', 'UNKNOWN')}_{event.timestamp}"),
+                        strategy_id=signal.get('strategy_id', 'consensus'),
+                        symbol=signal.get('symbol', 'UNKNOWN'),
+                        signal_type=signal_type,
+                        side=side,
+                        strength=signal.get('strength', 1.0),
+                        timestamp=event.timestamp,
+                        metadata=signal.get('metadata', {})
+                    )
+                    signal_objects.append(signal_obj)
+            
             # Process signals through risk management
-            orders = self.risk_manager.process_signals(signals, transformed_market_data)
+            orders = self.risk_manager.process_signals(signal_objects, transformed_market_data)
             
             logger.info(f"📋 RiskContainer processed signals, generated {len(orders)} orders")
             
@@ -987,19 +1486,11 @@ class RiskContainer(BaseComposableContainer):
                     timestamp=event.timestamp
                 )
                 
-                # Find ExecutionContainer sibling and send ORDER event directly
-                logger.info(f"📤 RiskContainer publishing ORDER event to ExecutionContainer")
-                # Get parent and find ExecutionContainer sibling
-                if hasattr(self, '_parent_container') and self._parent_container:
-                    execution_containers = self._parent_container.find_containers_by_role(ContainerRole.EXECUTION)
-                    if execution_containers:
-                        for exec_container in execution_containers:
-                            exec_container.event_bus.publish(order_event)
-                            logger.info(f"   📨 Sent ORDER event to ExecutionContainer {exec_container.metadata.container_id}")
-                    else:
-                        logger.warning("⚠️ No ExecutionContainer found to send ORDER event")
-                else:
-                    logger.warning("⚠️ RiskContainer has no parent to find ExecutionContainer")
+                # Publish ORDER event to ExecutionContainer via Event Router
+                logger.info(f"📤 RiskContainer publishing ORDER event to ExecutionContainer via Event Router")
+                from ..core.events.routing.protocols import EventScope
+                self.publish_routed_event(order_event, EventScope.SIBLINGS)
+                logger.info(f"   📨 Sent ORDER event to ExecutionContainer via Event Router")
                 
                 return order_event
             # No orders generated - no logging needed for normal operation
@@ -1018,6 +1509,33 @@ class PortfolioContainer(BaseComposableContainer):
     """Container for portfolio allocation and management."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
+        # Add event routing configuration
+        if 'events' not in config:
+            config['events'] = {}
+        
+        # Declare what events this container publishes and subscribes to
+        config['events']['publishes'] = config['events'].get('publishes', []) + [
+            {
+                'events': ['BAR', 'INDICATORS'],
+                'scope': 'CHILDREN'  # Forward to StrategyContainer
+            },
+            {
+                'events': ['SIGNAL'],
+                'scope': 'PARENT'  # Send to RiskContainer
+            }
+        ]
+        
+        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+            {
+                'events': ['BAR', 'INDICATORS'],
+                'scope': 'UPWARD'  # Receive from any ancestor (DataContainer/IndicatorContainer)
+            },
+            {
+                'events': ['SIGNAL'],
+                'scope': 'CHILDREN'  # Receive from StrategyContainer
+            }
+        ]
+        
         super().__init__(
             role=ContainerRole.PORTFOLIO,
             name="PortfolioContainer",
@@ -1043,6 +1561,11 @@ class PortfolioContainer(BaseComposableContainer):
     async def process_event(self, event: Event) -> Optional[Event]:
         """Process signals and apply portfolio allocation."""
         await super().process_event(event)
+        
+        # Forward BAR and INDICATOR events to children (StrategyContainer)
+        if event.event_type in [EventType.BAR, EventType.INDICATORS]:
+            logger.debug(f"PortfolioContainer forwarding {event.event_type} to children")
+            self.publish_event(event, target_scope="children")
         
         if event.event_type == EventType.SIGNAL and self.allocation_manager:
             signals = event.payload.get('signals', [])
@@ -1070,8 +1593,9 @@ class PortfolioContainer(BaseComposableContainer):
                     timestamp=event.timestamp
                 )
                 
-                # Forward to parent (risk container)
-                self.publish_event(allocated_event, target_scope="parent")
+                # Forward to parent (risk container) via Event Router
+                from ..core.events.routing.protocols import EventScope
+                self.publish_routed_event(allocated_event, EventScope.PARENT)
                 
                 return allocated_event
         
@@ -1320,78 +1844,7 @@ class SignalLogContainer(BaseComposableContainer):
         return capabilities
 
 
-class EnsembleContainer(BaseComposableContainer):
-    """Container for ensemble signal optimization."""
-    
-    def __init__(self, config: Dict[str, Any], container_id: str = None):
-        super().__init__(
-            role=ContainerRole.ENSEMBLE,
-            name="EnsembleContainer",
-            config=config,
-            container_id=container_id
-        )
-        self.ensemble_optimizer = None
-        
-    async def _initialize_self(self) -> None:
-        """Initialize ensemble optimizer."""
-        weight_config = self._metadata.config.get('weight_config', {})
-        optimization_method = self._metadata.config.get('method', 'equal_weight')
-        
-        # Simple ensemble optimizer
-        self.ensemble_optimizer = {
-            'method': optimization_method,
-            'weights': weight_config.get('weights', {}),
-            'signal_buffer': []
-        }
-        
-        logger.info(f"EnsembleContainer initialized with {optimization_method} method")
-    
-    async def process_event(self, event: Event) -> Optional[Event]:
-        """Process and combine signals using ensemble weights."""
-        await super().process_event(event)
-        
-        if event.event_type == EventType.SIGNAL:
-            signals = event.payload.get('signals', [])
-            timestamp = event.payload.get('timestamp')
-            
-            # Apply ensemble weights to signals
-            weighted_signals = []
-            for signal in signals:
-                strategy_id = signal.get('strategy_id', 'default')
-                weight = self.ensemble_optimizer['weights'].get(strategy_id, 1.0)
-                
-                weighted_signal = signal.copy()
-                weighted_signal['ensemble_weight'] = weight
-                weighted_signal['original_strength'] = signal.get('strength', 1.0)
-                weighted_signal['strength'] = signal.get('strength', 1.0) * weight
-                
-                weighted_signals.append(weighted_signal)
-            
-            if weighted_signals:
-                ensemble_event = Event(
-                    event_type=EventType.SIGNAL,
-                    payload={
-                        'timestamp': timestamp,
-                        'signals': weighted_signals,
-                        'source': self.metadata.container_id,
-                        'ensemble_method': self.ensemble_optimizer['method']
-                    },
-                    timestamp=timestamp
-                )
-                
-                # Forward to children (risk/portfolio containers)
-                self.publish_event(ensemble_event, target_scope="children")
-                
-                return ensemble_event
-        
-        return None
-    
-    def get_capabilities(self) -> Set[str]:
-        """Ensemble container capabilities."""
-        capabilities = super().get_capabilities()
-        capabilities.add("ensemble.optimization")
-        capabilities.add("ensemble.weighting")
-        return capabilities
+# EnsembleContainer removed - functionality moved to enhanced StrategyContainer
 
 
 # Factory functions for container registration
@@ -1440,9 +1893,7 @@ def create_signal_log_container(config: Dict[str, Any], container_id: str = None
     return SignalLogContainer(config, container_id)
 
 
-def create_ensemble_container(config: Dict[str, Any], container_id: str = None) -> EnsembleContainer:
-    """Factory function for ensemble containers."""
-    return EnsembleContainer(config, container_id)
+# create_ensemble_container removed - functionality moved to enhanced StrategyContainer
 
 
 # Register container types with global registry
@@ -1504,11 +1955,7 @@ def register_execution_containers():
         {"signal_log.replay", "signal_log.streaming"}
     )
     
-    register_container_type(
-        ContainerRole.ENSEMBLE,
-        create_ensemble_container,
-        {"ensemble.optimization", "ensemble.weighting"}
-    )
+    # Ensemble functionality moved to enhanced StrategyContainer
 
 
 # Auto-register on import

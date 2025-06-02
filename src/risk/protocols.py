@@ -8,7 +8,7 @@ from typing import Protocol, Optional, Dict, List, Any, Set
 from enum import Enum
 
 from ..core.components.protocols import Component, Capability
-from ..execution.protocols import OrderType, OrderSide
+from ..core.types import OrderType, OrderSide
 
 
 class SignalType(Enum):

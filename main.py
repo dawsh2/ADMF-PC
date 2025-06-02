@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ADMF-PC: Adaptive Dynamic Market Framework - Protocol Components
+ADMF-PC: Adaptive Decision Making Framework - Protocol Components
 
 Main entry point - parses arguments and delegates to Bootstrap.
 """
@@ -48,7 +48,7 @@ class WorkflowConfig:
 def parse_arguments() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description='ADMF-PC: Adaptive Dynamic Market Framework - Protocol Components'
+        description='ADMF-PC: Adaptive Decision Making Framework - Protocol Components'
     )
     
     # Core arguments
@@ -200,7 +200,7 @@ def build_workflow_config(args: argparse.Namespace, base_config: Dict[str, Any])
     # Create workflow config
     workflow_config = WorkflowConfig(
         workflow_type=WorkflowType(mode if mode in ['backtest', 'optimization', 'live'] else 'backtest'),
-        parameters=base_config.get('parameters', {}),
+        parameters=base_config,  # Store entire YAML config for access to all sections including 'reporting'
         data_config=base_config.get('data', {}),
         backtest_config=backtest_config,
         optimization_config=base_config.get('optimization', {}),

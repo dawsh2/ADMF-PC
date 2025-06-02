@@ -251,6 +251,10 @@ class Coordinator:
             result.metadata.update(workflow_result.metadata)
             result.metadata['execution_mode'] = 'traditional'
             
+            # Generate reports if configured
+            if result.success:
+                await self._handle_reporting(config, context, result)
+            
         except ImportError as e:
             result.add_error(f"Traditional workflow manager not available: {e}")
         except Exception as e:
@@ -295,6 +299,10 @@ class Coordinator:
             result.errors.extend(workflow_result.errors)
             result.metadata.update(workflow_result.metadata)
             result.metadata['execution_mode'] = 'composable'
+            
+            # Generate reports if configured
+            if result.success:
+                await self._handle_reporting(config, context, result)
             
         except ImportError as e:
             result.add_error(f"Composable workflow manager not available: {e}")
@@ -539,6 +547,100 @@ class Coordinator:
             await self._container_manager.shutdown()
         
         logger.info("Coordinator shutdown complete")
+    
+    async def _handle_reporting(self, config: WorkflowConfig, context: ExecutionContext, result: CoordinatorResult) -> None:
+        """Handle report generation after successful workflow completion"""
+        try:
+            # Check if reporting is enabled in configuration
+            raw_config = config.parameters
+            reporting_config = raw_config.get('reporting', {})
+            
+            if not reporting_config.get('enabled', False):
+                logger.debug("Reporting disabled, skipping report generation")
+                return
+            
+            # Import reporting integration
+            from ...reporting.coordinator_integration import add_reporting_to_coordinator_workflow
+            
+            # Determine workspace path from reporting config or default
+            output_dir = reporting_config.get('output_dir', 'reports')
+            workspace_path = f'./{output_dir}'
+            
+            # Prepare workflow results for reporting
+            workflow_results = {
+                'container_status': result.data.get('container_status', {}),
+                'container_structure': result.data.get('container_structure', {}),
+                'metrics': result.data.get('metrics', {}),
+                'final_state': result.data.get('final_state', 'unknown'),
+                'execution_time': result.metadata.get('execution_time', 0),
+                'workflow_id': context.workflow_id,
+                'backtest_data': result.data.get('backtest_data', {})  # Include actual backtest data!
+            }
+            
+            # Save backtest data to workspace for reporting
+            self._save_backtest_data_to_workspace(workspace_path, workflow_results)
+            
+            # Generate reports
+            logger.info("🔄 Generating reports...")
+            updated_results = add_reporting_to_coordinator_workflow(
+                config=raw_config,
+                workspace_path=workspace_path,
+                workflow_results=workflow_results
+            )
+            
+            # Update result with reporting information
+            if 'reporting' in updated_results:
+                result.data['reporting'] = updated_results['reporting']
+                result.metadata['reporting_enabled'] = True
+                
+                # Log report generation results
+                reporting_info = updated_results['reporting']
+                if 'error' in reporting_info:
+                    logger.error(f"❌ Report generation failed: {reporting_info['error']}")
+                else:
+                    report_count = reporting_info.get('reports_generated', 0)
+                    logger.info(f"✅ Report generation completed - {report_count} reports created")
+                    
+                    # Log report paths for user
+                    for report_path in reporting_info.get('report_paths', []):
+                        logger.info(f"📄 Report available: {report_path}")
+            
+        except Exception as e:
+            logger.error(f"Report generation failed: {e}")
+            # Don't fail the workflow for reporting errors
+            result.metadata['reporting_error'] = str(e)
+    
+    def _save_backtest_data_to_workspace(self, workspace_path: str, workflow_results: Dict[str, Any]) -> None:
+        """Save backtest data to workspace for reporting"""
+        try:
+            import json
+            from pathlib import Path
+            
+            workspace = Path(workspace_path)
+            workspace.mkdir(parents=True, exist_ok=True)
+            
+            # Save the raw workflow results
+            backtest_file = workspace / 'backtest_data.json'
+            with open(backtest_file, 'w') as f:
+                # Convert datetime objects to strings for JSON serialization
+                serializable_results = self._make_json_serializable(workflow_results)
+                json.dump(serializable_results, f, indent=2)
+            
+            logger.info(f"💾 Saved backtest data to {backtest_file}")
+            
+        except Exception as e:
+            logger.error(f"Failed to save backtest data: {e}")
+    
+    def _make_json_serializable(self, obj):
+        """Convert objects to JSON-serializable format"""
+        if hasattr(obj, 'isoformat'):  # datetime objects
+            return obj.isoformat()
+        elif isinstance(obj, dict):
+            return {key: self._make_json_serializable(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_json_serializable(item) for item in obj]
+        else:
+            return obj
 
 
 # Convenience functions for backward compatibility

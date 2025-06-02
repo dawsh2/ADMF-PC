@@ -1,53 +1,64 @@
-# Risk & Portfolio Module Documentation
+# Risk Module Documentation
 
 ## Overview
 
-The Risk & Portfolio module is a unified component that manages portfolio state and risk controls for multiple trading strategies. It serves as the critical layer between signal generation (strategies) and order execution (backtest engine), ensuring that all trades comply with risk limits and position sizing rules.
+The Risk module manages risk controls and limits for trading strategies. It works in conjunction with separate Portfolio containers to enforce risk constraints while allowing flexible portfolio allocation strategies.
 
 ## Architecture
 
-### Unified Risk & Portfolio Design
+### Risk Container with Separate Portfolio Containers
 
 ```
 Classifier Container
-└── Risk & Portfolio Container (One Unified Component)
-    ├── Portfolio State Management
+└── Risk Container
     ├── Risk Limit Enforcement  
     ├── Signal → Order Conversion
-    └── Multiple Strategy Components
-        ├── Strategy 1 (signals only)
-        ├── Strategy 2 (signals only)
-        └── Strategy N (signals only)
+    └── Portfolio Container Pool
+        ├── Portfolio Container A (Conservative allocation)
+        ├── Portfolio Container B (Aggressive allocation)
+        └── Portfolio Container N (Custom allocation)
 ```
 
-**Key Principle**: Risk & Portfolio are inseparable - you cannot have proper risk management without knowing portfolio state, and you cannot track portfolio state without understanding risk.
+**Key Principle**: Risk and Portfolio are separate concerns - Risk enforces limits and constraints, while Portfolio manages allocation strategies and position tracking. This separation enables testing different portfolio approaches under the same risk framework.
+
+**Note**: While logically separate containers, the current implementation files are co-located under `src/risk/` for convenience. This can be refactored to separate modules later without affecting the container architecture.
 
 ## Core Components
 
-### 1. RiskPortfolioContainer (`risk_portfolio.py`)
+### 1. RiskContainer (`risk_container.py`)
 
-The main unified component that:
-- Manages multiple strategy components as children
-- Maintains global portfolio state across all strategies
+The main risk management component that:
+- Manages multiple portfolio containers as children
+- Enforces risk limits across all portfolios
 - Converts signals to orders (with veto capability)
-- Enforces risk limits at the portfolio level
-- Tracks performance metrics
+- Monitors aggregate exposure and limits
+- Coordinates with separate portfolio containers
 
 ```python
 # Example usage
-risk_portfolio = RiskPortfolioContainer(
-    container_id="conservative_risk",
-    parent_container=classifier_container,
-    initial_capital=Decimal("100000")
+risk_container = RiskContainer(
+    container_id="main_risk",
+    parent_container=classifier_container
 )
 
-# Add position sizing strategies
-risk_portfolio.add_position_sizer("default", PercentagePositionSizer(percentage=Decimal("2")))
-risk_portfolio.add_position_sizer("momentum", VolatilityBasedSizer(risk_per_trade=Decimal("1")))
+# Add portfolio containers with different strategies
+conservative_portfolio = PortfolioContainer(
+    container_id="conservative_portfolio",
+    initial_capital=Decimal("50000"),
+    allocation_strategy="conservative"
+)
+aggressive_portfolio = PortfolioContainer(
+    container_id="aggressive_portfolio", 
+    initial_capital=Decimal("50000"),
+    allocation_strategy="aggressive"
+)
 
-# Add risk limits
-risk_portfolio.add_risk_limit(MaxExposureLimit(max_exposure_pct=Decimal("20")))
-risk_portfolio.add_risk_limit(MaxDrawdownLimit(max_drawdown_pct=Decimal("10")))
+risk_container.add_portfolio(conservative_portfolio)
+risk_container.add_portfolio(aggressive_portfolio)
+
+# Add risk limits that apply to all portfolios
+risk_container.add_risk_limit(MaxExposureLimit(max_exposure_pct=Decimal("20")))
+risk_container.add_risk_limit(MaxDrawdownLimit(max_drawdown_pct=Decimal("10")))
 ```
 
 ### 2. Position Sizing Strategies (`position_sizing.py`)

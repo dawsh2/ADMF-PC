@@ -415,15 +415,9 @@ class RiskPortfolioContainer(Component, Lifecycle, EventCapable):
                     order = self._active_orders.pop(order_id)
                     self._order_history.append(order)
                 
-                # Emit fill event
-                self._emit_event(
-                    EventType.FILL,
-                    {
-                        "type": "fill_processed",
-                        "fill": fill,
-                        "position": position
-                    }
-                )
+                # Note: No need to emit another FILL event here as the original FILL event
+                # from ExecutionContainer has already been processed. Emitting here 
+                # creates duplicate events that the RiskContainer processes again.
                 
                 self.logger.info(
                     f"Fill processed - Symbol: {fill.symbol}, Side: {fill.side.value}, "

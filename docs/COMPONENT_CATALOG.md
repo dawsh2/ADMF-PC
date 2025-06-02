@@ -1,6 +1,6 @@
 # ADMF-PC Component Catalog
 
-This document provides a comprehensive reference of all available components in the ADMF-PC system. These components implement standardized protocols, enabling seamless integration regardless of their internal complexity.
+This document provides a comprehensive reference of all available components in the ADMF-PC system. These components implement standardized protocols, enabling seamless integration regardless of their internal complexity. In the future, this document should be generated automatically from system components, so it's always up to date. If you're reading this, consider if it's a good time do so now. 
 
 ## Trading Strategies
 

@@ -5,7 +5,7 @@ data:
   file_path: /Users/daws/ADMF-PC/data/SPY_1m.csv  # Direct path to our CSV file
   symbols:
     - SPY
-  max_bars: 10  # Limit to 10 bars for testing
+  max_bars: 50  # Limit to 50 bars for testing
 parameters:
   output_dir: output/test_backtest
 risk:
@@ -19,3 +19,6 @@ strategies:
     momentum_threshold: 0.0005
     rsi_period: 14
 workflow_type: backtest
+reporting:
+  enabled: true
+  output_dir: reports

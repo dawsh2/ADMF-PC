@@ -13,7 +13,8 @@ from .protocols import (
 )
 from .market_simulation import MarketSimulator
 import logging
-from ..risk.protocols import PortfolioStateProtocol
+# Remove circular import - use duck typing instead
+# from ..risk.protocols import PortfolioStateProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class BacktestBrokerRefactored:
         self,
         initial_cash: Optional[Decimal] = None,
         risk_portfolio_container: Optional[Any] = None,
-        portfolio_state: Optional[PortfolioStateProtocol] = None,
+        portfolio_state: Optional[Any] = None,  # Use duck typing instead of protocol
         market_simulator: Optional[MarketSimulator] = None
     ):
         """Initialize backtest broker with reference to portfolio state.
