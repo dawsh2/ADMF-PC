@@ -22,6 +22,7 @@ ContainerType = TypeVar('ContainerType', bound='ComposableContainerProtocol')
 
 class ContainerRole(Enum):
     """Standard container roles in the system."""
+    BACKTEST = "backtest"  # Root backtest container for peer containers
     DATA = "data"
     INDICATOR = "indicator" 
     CLASSIFIER = "classifier"

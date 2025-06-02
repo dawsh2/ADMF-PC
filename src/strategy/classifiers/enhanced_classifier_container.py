@@ -301,7 +301,7 @@ class EnhancedClassifierContainer(UniversalScopedContainer):
 
 def create_classifier_hierarchy(
     classifier_type: str,
-    classifier_class: Type[RegimeClassifier],
+    classifier_class: Type[BaseClassifier],
     risk_profiles: Dict[str, Dict[str, Any]],
     shared_services: Optional[Dict[str, Any]] = None
 ) -> EnhancedClassifierContainer:

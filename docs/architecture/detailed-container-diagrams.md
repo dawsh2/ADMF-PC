@@ -387,3 +387,206 @@ Understanding these diagrams helps in:
 - Composing complex systems from simple components
 - Debugging by understanding component relationships
 - Optimizing performance by selecting minimal containers
+
+
+
+
+
+---------
+Alternative Diagram:
+
+# Improved Standard Backtest Container Structure
+
+## Logical Container Hierarchy
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    STANDARD BACKTEST CONTAINER                                │
+│  (Main orchestrator - manages component lifecycle and data flow)              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                          DATA CONTAINER                                 │  │
+│  │  (Responsible for all data ingestion and preprocessing)                 │  │
+│  │                                                                         │  │
+│  │  ┌────────────────┐    ┌─────────────────────────────────────────────┐ │  │
+│  │  │ Historical Data│    │          Indicator Container                 │ │  │
+│  │  │    Streamer    │───▶│  (Encapsulates all indicator computation)    │ │  │
+│  │  └────────────────┘    │                                             │ │  │
+│  │                        │  ┌─────────────────────────────────────┐    │ │  │
+│  │                        │  │        Indicator Hub                │    │ │  │
+│  │                        │  │  • MA, RSI, ATR, MACD, etc.        │    │ │  │
+│  │                        │  │  • Manages computation order       │    │ │  │
+│  │                        │  │  • Handles dependencies            │    │ │  │
+│  │                        │  │  • Caches results efficiently      │    │ │  │
+│  │                        │  └─────────────────────────────────────┘    │ │  │
+│  │                        └─────────────────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│                                         │                                     │
+│                                         │ Enriched Market Data                │
+│                                         ▼                                     │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                      CLASSIFICATION CONTAINER                          │  │
+│  │  (Responsible for market regime identification and signal generation)  │  │
+│  │                                                                         │  │
+│  │  ┌───────────────────────────────┐  ┌─────────────────────────────────┐ │  │
+│  │  │   HMM Classifier Container    │  │  Pattern Classifier Container   │ │  │
+│  │  │                               │  │                                 │ │  │
+│  │  │ ┌───────────────────────────┐ │  │ ┌─────────────────────────────┐ │ │  │
+│  │  │ │   HMM Regime Engine       │ │  │ │  Pattern Recognition Engine │ │ │  │
+│  │  │ │ • State transition logic  │ │  │ │ • Chart pattern detection   │ │ │  │
+│  │  │ │ • Bull/Bear/Neutral       │ │  │ │ • Breakout/Range/Trending   │ │ │  │
+│  │  │ │ • Confidence scoring      │ │  │ │ • Pattern strength scoring  │ │ │  │
+│  │  │ └─────────────┬─────────────┘ │  │ └──────────────┬──────────────┘ │ │  │
+│  │  │               │               │  │                │                │ │  │
+│  │  │               ▼               │  │                ▼                │ │  │
+│  │  │ ┌───────────────────────────┐ │  │ ┌─────────────────────────────┐ │ │  │
+│  │  │ │    Signal Generator       │ │  │ │    Signal Generator         │ │ │  │
+│  │  │ │ • Regime-based signals    │ │  │ │ • Pattern-based signals     │ │ │  │
+│  │  │ │ • Timing and strength     │ │  │ │ • Entry/exit points         │ │ │  │
+│  │  │ └───────────────────────────┘ │  │ └─────────────────────────────┘ │ │  │
+│  │  └───────────────────────────────┘  └─────────────────────────────────┘ │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│                                         │                                     │
+│                                         │ Raw Signals                         │
+│                                         ▼                                     │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                       EXECUTION CONTAINER                              │  │
+│  │  (Responsible for risk management, portfolio allocation, and execution) │  │
+│  │                                                                         │  │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │  │
+│  │  │                    Signal Processing Layer                      │   │  │
+│  │  │  • Signal aggregation and conflict resolution                   │   │  │
+│  │  │  • Signal strength normalization                                │   │  │
+│  │  │  • Timing coordination between classifiers                      │   │  │
+│  │  └─────────────────────────────────────────────────────────────────┘   │  │
+│  │                                         │                               │  │
+│  │                                         ▼                               │  │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │  │
+│  │  │                     Risk Management Layer                       │   │  │
+│  │  │                                                                 │   │  │
+│  │  │  ┌───────────────────────┐    ┌───────────────────────────┐    │   │  │
+│  │  │  │ Conservative Risk     │    │ Balanced Risk             │    │   │  │
+│  │  │  │ Profile Container     │    │ Profile Container         │    │   │  │
+│  │  │  │                       │    │                           │    │   │  │
+│  │  │  │ • Max 2% per position │    │ • Max 3% per position     │    │   │  │
+│  │  │  │ • 10% total exposure  │    │ • 20% total exposure      │    │   │  │
+│  │  │  │ • Stop loss: 1.5%     │    │ • Stop loss: 2%           │    │   │  │
+│  │  │  └───────────────────────┘    └───────────────────────────┘    │   │  │
+│  │  └─────────────────────────────────────────────────────────────────┘   │  │
+│  │                                         │                               │  │
+│  │                                         ▼                               │  │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │  │
+│  │  │                   Portfolio Management Layer                    │   │  │
+│  │  │                                                                 │   │  │
+│  │  │  ┌─────────────────────────┐    ┌─────────────────────────┐    │   │  │
+│  │  │  │ Portfolio A Container   │    │ Portfolio B Container   │    │   │  │
+│  │  │  │ $50K allocation         │    │ $100K allocation        │    │   │  │
+│  │  │  │                         │    │                         │    │   │  │
+│  │  │  │ ┌─────────────────────┐ │    │ ┌─────────────────────┐ │    │   │  │
+│  │  │  │ │ Strategy Container  │ │    │ │ Strategy Container  │ │    │   │  │
+│  │  │  │ │                     │ │    │ │                     │ │    │   │  │
+│  │  │  │ │ Momentum Strategy   │ │    │ │ Pattern Strategy    │ │    │   │  │
+│  │  │  │ │ • AAPL (40%)        │ │    │ │ • SPY (60%)         │ │    │   │  │
+│  │  │  │ │ • GOOGL (30%)       │ │    │ │ • QQQ (40%)         │ │    │   │  │
+│  │  │  │ │ • MSFT (30%)        │ │    │ │                     │ │    │   │  │
+│  │  │  │ └─────────────────────┘ │    │ └─────────────────────┘ │    │   │  │
+│  │  │  └─────────────────────────┘    └─────────────────────────┘    │   │  │
+│  │  └─────────────────────────────────────────────────────────────────┘   │  │
+│  │                                         │                               │  │
+│  │                                         ▼                               │  │
+│  │  ┌─────────────────────────────────────────────────────────────────┐   │  │
+│  │  │                      Execution Engine                          │   │  │
+│  │  │  • Order generation and management                              │   │  │
+│  │  │  • Position tracking and reconciliation                        │   │  │
+│  │  │  • Performance calculation and reporting                       │   │  │
+│  │  │  • Transaction cost modeling                                   │   │  │
+│  │  └─────────────────────────────────────────────────────────────────┘   │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│                                         │                                     │
+│                                         ▼                                     │
+│  ┌────────────────────────────────────────────────────────────────────────┐  │
+│  │                        RESULTS CONTAINER                               │  │
+│  │  (Responsible for data persistence and performance tracking)           │  │
+│  │                                                                         │  │
+│  │  • Real-time performance streaming to disk                             │  │
+│  │  • In-memory caching of key metrics                                    │  │
+│  │  • Aggregated results for coordinator reporting                        │  │
+│  │  • Trade logs and position history                                     │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│                                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Key Improvements
+
+### 1. Clear Separation of Concerns
+- **Data Container**: Handles all data ingestion and preprocessing
+- **Classification Container**: Focuses purely on regime identification and signal generation
+- **Execution Container**: Manages risk, portfolios, and trade execution
+- **Results Container**: Handles persistence and reporting
+
+### 2. Proper Encapsulation
+- **Indicator Container** is now properly contained within the Data Container
+- Each container has a single, well-defined responsibility
+- Clear data flow between containers
+
+### 3. Logical Component Hierarchy
+```
+Main Container
+├── Data Container
+│   ├── Data Streamer
+│   └── Indicator Container
+│       └── Indicator Hub
+├── Classification Container
+│   ├── HMM Classifier Container
+│   │   ├── Regime Engine
+│   │   └── Signal Generator
+│   └── Pattern Classifier Container
+│       ├── Pattern Engine
+│       └── Signal Generator
+├── Execution Container
+│   ├── Signal Processing Layer
+│   ├── Risk Management Layer
+│   ├── Portfolio Management Layer
+│   └── Execution Engine
+└── Results Container
+```
+
+### 4. Benefits of This Structure
+
+**Modularity**: Each container can be developed, tested, and optimized independently
+
+**Reusability**: Containers can be composed differently for different phases
+- Analysis phase: Data + Classification containers only
+- Signal Replay phase: Execution + Results containers only
+
+**Performance**: Clear boundaries allow for targeted optimization
+- Data Container can focus on efficient indicator computation
+- Execution Container can optimize for low-latency trade processing
+
+**Maintainability**: Clear ownership and responsibility boundaries
+
+**Testing**: Each container can be unit tested with mock dependencies
+
+## Container Interface Contracts
+
+```python
+class DataContainer:
+    def get_enriched_data(self) -> EnrichedMarketData:
+        """Returns market data with all computed indicators"""
+        
+class ClassificationContainer:
+    def process_signals(self, data: EnrichedMarketData) -> List[Signal]:
+        """Generates trading signals from market data"""
+        
+class ExecutionContainer:
+    def execute_signals(self, signals: List[Signal]) -> ExecutionResults:
+        """Processes signals through risk management and execution"""
+        
+class ResultsContainer:
+    def store_results(self, results: ExecutionResults) -> None:
+        """Persists execution results and performance metrics"""
+```
+
+This structure provides much clearer boundaries and makes it easier to understand what each component is responsible for.

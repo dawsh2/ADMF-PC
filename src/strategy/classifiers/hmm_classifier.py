@@ -76,7 +76,13 @@ class HMMClassifier(BaseClassifier):
         event_bus: Optional[EventBus] = None
     ):
         """Initialize HMM classifier."""
-        super().__init__(name="hmm_classifier", event_bus=event_bus)
+        # Create a dummy config for the base class
+        from .regime_types import ClassifierConfig
+        config = ClassifierConfig(
+            lookback_period=parameters.lookback_period if parameters else 20,
+            min_confidence=parameters.confidence_threshold if parameters else 0.6
+        )
+        super().__init__(config=config)
         
         self.params = parameters or HMMParameters()
         
@@ -147,7 +153,7 @@ class HMMClassifier(BaseClassifier):
         self,
         market_data: Dict[str, MarketData],
         timestamp: datetime
-    ) -> RegimeContext:
+    ) -> MarketRegime:
         """
         Classify current market regime using HMM.
         
@@ -156,18 +162,15 @@ class HMMClassifier(BaseClassifier):
             timestamp: Current timestamp
             
         Returns:
-            RegimeContext with classification
+            MarketRegime classification
         """
         # Update data buffers
         self._update_buffers(market_data, timestamp)
         
         # Check if we have enough data
         if len(self._price_buffer) < self.params.min_data_points:
-            return self._create_context(
-                RegimeState.UNKNOWN,
-                0.0,
-                "Insufficient data for HMM classification"
-            )
+            from .regime_types import MarketRegime
+            return MarketRegime.UNKNOWN
             
         # Extract features
         features = self._extract_features()
@@ -188,23 +191,20 @@ class HMMClassifier(BaseClassifier):
         # Convert to standard regime
         regime = most_likely_state.to_regime_state()
         
-        # Create context with HMM-specific data
-        context = self._create_context(
-            regime,
-            confidence,
-            f"HMM state: {most_likely_state.value}",
-            additional_data={
-                'hmm_state': most_likely_state.value,
-                'state_probabilities': state_probs.tolist(),
-                'transition_matrix': self._transition_matrix.tolist()
-            }
-        )
+        # Create a simple MarketRegime object for now
+        from .regime_types import MarketRegime
+        if regime == RegimeState.BULL_MARKET:
+            result_regime = MarketRegime.BULL
+        elif regime == RegimeState.BEAR_MARKET:
+            result_regime = MarketRegime.BEAR
+        else:
+            result_regime = MarketRegime.NEUTRAL
         
         # Update model parameters online
         if confidence > self.params.confidence_threshold:
             self._update_model_parameters(features, most_likely_idx)
             
-        return context
+        return result_regime
         
     def _update_buffers(
         self,
@@ -383,3 +383,35 @@ class HMMClassifier(BaseClassifier):
             'current_state': self._current_state.value if self._current_state else None,
             'state_probabilities': self._state_probabilities.tolist() if self._state_probabilities is not None else None
         }
+    
+    def classify(self) -> 'MarketRegime':
+        """
+        Required abstract method implementation.
+        
+        Returns:
+            Current market regime classification
+        """
+        if not self.is_ready or len(self.bar_history) < self.params.min_data_points:
+            from .regime_types import MarketRegime
+            return MarketRegime.UNKNOWN
+        
+        # Use the most recent bar for classification
+        latest_bar = self.bar_history[-1]
+        market_data = {latest_bar.symbol: latest_bar}
+        
+        # Call the main classify_regime method
+        regime_result = self.classify_regime(market_data, latest_bar.timestamp)
+        return regime_result
+    
+    def _calculate_confidence(self) -> float:
+        """
+        Required abstract method implementation.
+        
+        Returns:
+            Classification confidence (0.0 to 1.0)
+        """
+        if self._state_probabilities is None:
+            return 0.0
+        
+        # Return the probability of the most likely state
+        return float(np.max(self._state_probabilities))

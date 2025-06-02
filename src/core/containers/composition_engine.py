@@ -169,11 +169,14 @@ class ContainerRegistry:
         # Simple Backtest Pattern  
         simple_backtest = ContainerPattern(
             name="simple_backtest",
-            description="Simple backtest - coordinator with peer containers: data, indicators, classifier(risk→portfolio→strategy), execution",
+            description="Simple backtest - backtest container with peer containers: data, indicators, classifier(risk→portfolio→strategy), execution",
             structure={
                 "root": {
-                    "role": "data",  # Use data as root for simplicity, but it acts as coordinator
+                    "role": "backtest",  # Use backtest container as root for peer containers
                     "children": {
+                        "data": {
+                            "role": "data"
+                        },
                         "indicators": {
                             "role": "indicator"
                         },

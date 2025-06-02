@@ -38,6 +38,38 @@ except ImportError:
     WeightedVotingAggregator = None
 
 
+class BacktestContainer(BaseComposableContainer):
+    """Backtest container that manages peer containers for backtesting."""
+    
+    def __init__(self, config: Dict[str, Any], container_id: str = None):
+        super().__init__(
+            role=ContainerRole.BACKTEST,
+            name="BacktestContainer",
+            config=config,
+            container_id=container_id
+        )
+        
+    async def _initialize_self(self) -> None:
+        """Initialize backtest container - mainly just coordinates child containers."""
+        logger.info("BacktestContainer initialized")
+    
+    async def start(self) -> None:
+        """Start all child containers in proper order."""
+        await super().start()
+        logger.info("BacktestContainer started - managing peer containers")
+    
+    async def _stop_self(self) -> None:
+        """Stop backtest container - children are stopped by base class."""
+        logger.info("BacktestContainer stopped")
+    
+    def get_capabilities(self) -> Set[str]:
+        """Backtest container capabilities."""
+        capabilities = super().get_capabilities()
+        capabilities.add("backtest.coordination")
+        capabilities.add("backtest.peer_management")
+        return capabilities
+
+
 class DataContainer(BaseComposableContainer):
     """Container for data streaming and management."""
     
@@ -1010,26 +1042,29 @@ class ExecutionContainer(BaseComposableContainer):
     """Container for order execution and portfolio tracking."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
-        # Add event routing configuration
-        if 'events' not in config:
-            config['events'] = {}
+        # Add external event routing configuration for hybrid communication
+        if 'external_events' not in config:
+            config['external_events'] = {}
         
-        # Declare what events this container subscribes to and publishes
-        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+        # Declare what events this container publishes and subscribes to externally
+        config['external_events']['publishes'] = config['external_events'].get('publishes', []) + [
             {
-                'events': ['BAR'],
-                'scope': 'UPWARD'  # Receive BAR events from DataContainer ancestor
-            },
-            {
-                'events': ['ORDER'],
-                'scope': 'SIBLINGS'  # Receive from RiskContainer sibling
+                'events': ['FILL'],
+                'scope': 'GLOBAL',  # Send to RiskContainer via Event Router
+                'tier': 'standard'
             }
         ]
         
-        config['events']['publishes'] = config['events'].get('publishes', []) + [
+        config['external_events']['subscribes'] = config['external_events'].get('subscribes', []) + [
             {
-                'events': ['FILL'],
-                'scope': 'SIBLINGS'  # Send to RiskContainer sibling
+                'source': '*',  # Accept from any source
+                'events': ['ORDER'],
+                'tier': 'standard'
+            },
+            {
+                'source': '*',  # Accept from any source  
+                'events': ['BAR'],
+                'tier': 'fast'
             }
         ]
         
@@ -1292,13 +1327,8 @@ class RiskContainer(BaseComposableContainer):
         
         config['external_events']['subscribes'] = config['external_events'].get('subscribes', []) + [
             {
-                'source': '*',  # Accept from any source
+                'source': '*',  # Accept SIGNAL from StrategyContainer
                 'events': ['SIGNAL'],
-                'tier': 'standard'
-            },
-            {
-                'source': '*',  # Accept from any source  
-                'events': ['FILL'],
                 'tier': 'standard'
             }
         ]
@@ -1518,11 +1548,12 @@ class PortfolioContainer(BaseComposableContainer):
         if 'external_events' not in config:
             config['external_events'] = {}
         
-        # Declare what events this container publishes and subscribes to externally
+        # Portfolio only needs to subscribe to FILL events from ExecutionContainer
+        # It does NOT publish SIGNAL events - those come from Strategy
         config['external_events']['publishes'] = config['external_events'].get('publishes', []) + [
             {
-                'events': ['SIGNAL'],
-                'scope': 'GLOBAL',  # Send to RiskContainer via Event Router
+                'events': ['PORTFOLIO'],  # Portfolio state updates
+                'scope': 'GLOBAL',
                 'tier': 'standard'
             }
         ]
@@ -1530,8 +1561,8 @@ class PortfolioContainer(BaseComposableContainer):
         config['external_events']['subscribes'] = config['external_events'].get('subscribes', []) + [
             {
                 'source': '*',  # Accept from any source
-                'events': ['BAR', 'INDICATORS'],
-                'tier': 'fast'
+                'events': ['FILL'],  # Only listen for fills from execution
+                'tier': 'standard'
             }
         ]
         
@@ -1849,6 +1880,11 @@ class SignalLogContainer(BaseComposableContainer):
 
 
 # Factory functions for container registration
+def create_backtest_container(config: Dict[str, Any], container_id: str = None) -> BacktestContainer:
+    """Factory function for backtest containers."""
+    return BacktestContainer(config, container_id)
+
+
 def create_data_container(config: Dict[str, Any], container_id: str = None) -> DataContainer:
     """Factory function for data containers."""
     return DataContainer(config, container_id)
@@ -1901,6 +1937,12 @@ def create_signal_log_container(config: Dict[str, Any], container_id: str = None
 def register_execution_containers():
     """Register all execution container types."""
     from ..core.containers.composition_engine import register_container_type
+    
+    register_container_type(
+        ContainerRole.BACKTEST,
+        create_backtest_container,
+        {"backtest.coordination", "backtest.peer_management"}
+    )
     
     register_container_type(
         ContainerRole.DATA,
