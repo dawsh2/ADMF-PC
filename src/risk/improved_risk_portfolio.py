@@ -322,7 +322,8 @@ class RiskPortfolioContainer(Component, Lifecycle, EventCapable):
         # Sort signals by priority (exits before entries)
         sorted_signals = sorted(
             signals,
-            key=lambda s: 0 if s.signal_type.value in ["exit", "risk_exit"] else 1
+            key=lambda s: 0 if (hasattr(s.signal_type, 'value') and s.signal_type.value in ["exit", "risk_exit"]) or 
+                             (isinstance(s.signal_type, str) and s.signal_type in ["exit", "risk_exit"]) else 1
         )
         
         for signal in sorted_signals:

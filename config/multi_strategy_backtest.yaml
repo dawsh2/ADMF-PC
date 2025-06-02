@@ -7,11 +7,9 @@ description: Run multiple strategies with risk-weighted allocation
 
 # Data configuration
 data:
-  symbols: ["SPY", "QQQ", "IWM"]  # Major index ETFs
-  start_date: "2022-01-01"
-  end_date: "2023-12-31"
-  frequency: "1d"
-  source: yahoo
+  symbols: ["SPY"]  # Use SPY from our available data
+  source: csv
+  file_path: data/SPY_1m.csv
 
 # Portfolio configuration
 portfolio:

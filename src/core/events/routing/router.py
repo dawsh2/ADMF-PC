@@ -170,11 +170,19 @@ class EventRouter(EventRouterProtocol):
         # Determine event type string
         event_type_str = str(event.event_type)
         
+        # Debug logging for SIGNAL events
+        if event_type_str == "SIGNAL":
+            logger.info(f"🔍 Event Router: Routing {event_type_str} from {source_id}")
+            logger.info(f"   📋 Routing table keys: {list(self._routing_table.keys())}")
+            route_key = (source_id, event_type_str)
+            potential_subscribers = self._routing_table.get(route_key, set())
+            logger.info(f"   🎯 Route key: {route_key}, potential subscribers: {potential_subscribers}")
+        
         # Find publication info for scope
         publication = self._find_publication(source_id, event_type_str)
         if not publication:
-            if self._debug_mode:
-                logger.debug(f"No publication found for {source_id}:{event_type_str}")
+            if self._debug_mode or event_type_str == "SIGNAL":
+                logger.info(f"❌ No publication found for {source_id}:{event_type_str}")
             return
             
         # Use publication scope unless overridden

@@ -109,8 +109,9 @@ class SignalProcessor(SignalProcessorProtocol):
             )
             
             self._approved_orders += 1
+            signal_type_str = signal.signal_type.value if hasattr(signal.signal_type, 'value') else str(signal.signal_type)
             self.logger.info(
-                f"Signal processed - Type: {signal.signal_type.value}, Symbol: {signal.symbol}, Order ID: {order.order_id}, Quantity: {order.quantity}, Risk checks: {len(risk_checks_passed)}"
+                f"Signal processed - Type: {signal_type_str}, Symbol: {signal.symbol}, Order ID: {order.order_id}, Quantity: {order.quantity}, Risk checks: {len(risk_checks_passed)}"
             )
             
             return order
@@ -145,14 +146,15 @@ class SignalProcessor(SignalProcessorProtocol):
         position = portfolio_state.get_position(signal.symbol)
         
         # Exit signal but no position
-        if signal.signal_type == SignalType.EXIT and not position:
+        signal_type = signal.signal_type.value if hasattr(signal.signal_type, 'value') else signal.signal_type
+        if signal_type in ["exit", "risk_exit"] and not position:
             self.logger.debug(
                 f"Signal rejected - No position - Signal: {signal}, Reason: Exit signal but no position"
             )
             return False
         
         # Entry signal but already have position (unless rebalancing)
-        if signal.signal_type == SignalType.ENTRY and position and position.quantity != 0:
+        if signal_type in ["entry", "entry_long", "entry_short"] and position and position.quantity != 0:
             # Allow if it's adding to position in same direction
             if (position.quantity > 0 and signal.side == OrderSide.BUY) or \
                (position.quantity < 0 and signal.side == OrderSide.SELL):
@@ -228,7 +230,7 @@ class SignalProcessor(SignalProcessorProtocol):
             timestamp=datetime.now(),
             metadata={
                 "signal_strength": str(signal.strength),
-                "signal_type": signal.signal_type.value,
+                "signal_type": signal.signal_type.value if hasattr(signal.signal_type, 'value') else str(signal.signal_type),
                 "strategy_id": signal.strategy_id,
                 **signal.metadata
             }

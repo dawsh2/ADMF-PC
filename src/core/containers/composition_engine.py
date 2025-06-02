@@ -169,26 +169,31 @@ class ContainerRegistry:
         # Simple Backtest Pattern  
         simple_backtest = ContainerPattern(
             name="simple_backtest",
-            description="Simple backtest - data → indicators (functional) → risk manages portfolio/strategy and execution",
+            description="Simple backtest - coordinator with peer containers: data, indicators, classifier(risk→portfolio→strategy), execution",
             structure={
                 "root": {
-                    "role": "data",
+                    "role": "data",  # Use data as root for simplicity, but it acts as coordinator
                     "children": {
                         "indicators": {
                             "role": "indicator"
                         },
-                        "risk": {
-                            "role": "risk",
+                        "classifier": {
+                            "role": "classifier",
                             "children": {
-                                "portfolio": {
-                                    "role": "portfolio",
+                                "risk": {
+                                    "role": "risk",
                                     "children": {
-                                        "strategy": {"role": "strategy"}
+                                        "portfolio": {
+                                            "role": "portfolio",
+                                            "children": {
+                                                "strategy": {"role": "strategy"}
+                                            }
+                                        }
                                     }
-                                },
-                                "execution": {"role": "execution"}
+                                }
                             }
-                        }
+                        },
+                        "execution": {"role": "execution"}
                     }
                 }
             },

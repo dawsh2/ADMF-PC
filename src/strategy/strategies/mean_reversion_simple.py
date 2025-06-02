@@ -106,7 +106,7 @@ class MeanReversionStrategy:
             logger.info(f"   📊 Z-score: {z_score:.2f}")
             
             # Entry signals
-            if z_score < -self.entry_threshold and (not rsi or rsi < 30):
+            if z_score < -self.entry_threshold:
                 # Price is below lower band - potential buy
                 signal = RiskSignal(
                     signal_id=f"mr_{symbol}_{timestamp}",
@@ -126,7 +126,7 @@ class MeanReversionStrategy:
                 self._position = 'long'
                 logger.info(f"   🟢 BUY signal: z_score={z_score:.2f}, RSI={rsi}")
                 
-            elif z_score > self.entry_threshold and (not rsi or rsi > 70):
+            elif z_score > self.entry_threshold:
                 # Price is above upper band - potential sell
                 signal = RiskSignal(
                     signal_id=f"mr_{symbol}_{timestamp}",

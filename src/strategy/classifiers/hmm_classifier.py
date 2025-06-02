@@ -13,7 +13,8 @@ import logging
 
 from ...core.events import Event, EventType, EventBus
 from ...data.models import MarketData
-from .classifier import RegimeClassifier, RegimeState, RegimeContext
+from .classifier import BaseClassifier
+from .regime_types import MarketRegime, RegimeState
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ class HMMParameters:
     min_data_points: int = 50
 
 
-class HMMClassifier(RegimeClassifier):
+class HMMClassifier(BaseClassifier):
     """
     Hidden Markov Model classifier for regime detection.
     

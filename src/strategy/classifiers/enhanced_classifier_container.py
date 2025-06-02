@@ -13,7 +13,8 @@ from ...core.components import ComponentSpec
 from ...core.events import Event, EventType
 from ...risk.protocols import RiskManager, PortfolioManager
 from ..protocols import Strategy, Signal
-from .classifier import RegimeClassifier, RegimeContext, RegimeState
+from .classifier import BaseClassifier
+from .regime_types import MarketRegime, RegimeState
 
 
 class EnhancedClassifierContainer(UniversalScopedContainer):
@@ -31,7 +32,7 @@ class EnhancedClassifierContainer(UniversalScopedContainer):
         self,
         container_id: Optional[str] = None,
         classifier_type: str = "hmm",
-        classifier_class: Optional[Type[RegimeClassifier]] = None,
+        classifier_class: Optional[Type[BaseClassifier]] = None,
         shared_services: Optional[Dict[str, Any]] = None
     ):
         """
@@ -54,7 +55,7 @@ class EnhancedClassifierContainer(UniversalScopedContainer):
         )
         
         self.classifier_type = classifier_type
-        self.classifier: Optional[RegimeClassifier] = None
+        self.classifier: Optional[BaseClassifier] = None
         
         # Risk & Portfolio sub-containers by risk profile
         self.risk_portfolio_containers: Dict[str, UniversalScopedContainer] = {}
@@ -66,7 +67,7 @@ class EnhancedClassifierContainer(UniversalScopedContainer):
         if classifier_class:
             self._create_classifier(classifier_class)
             
-    def _create_classifier(self, classifier_class: Type[RegimeClassifier]) -> None:
+    def _create_classifier(self, classifier_class: Type[BaseClassifier]) -> None:
         """Create the regime classifier."""
         spec = ComponentSpec(
             name=f"{self.classifier_type}_classifier",

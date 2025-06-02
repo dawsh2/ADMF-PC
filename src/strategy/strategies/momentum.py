@@ -32,7 +32,8 @@ class MomentumStrategy:
                  momentum_threshold: float = 0.0005,  # Lowered from 0.02 to 0.0005 for minute data
                  rsi_period: int = 14,
                  rsi_oversold: float = 30,
-                 rsi_overbought: float = 70):
+                 rsi_overbought: float = 70,
+                 signal_cooldown: float = 300):
         """
         Initialize momentum strategy.
         
@@ -42,6 +43,7 @@ class MomentumStrategy:
             rsi_period: RSI calculation period
             rsi_oversold: RSI oversold threshold
             rsi_overbought: RSI overbought threshold
+            signal_cooldown: Signal cooldown in seconds
         """
         # Parameters
         self.lookback_period = lookback_period
@@ -54,7 +56,7 @@ class MomentumStrategy:
         self.price_history: List[float] = []
         self.rsi_values: List[float] = []
         self.last_signal_time: Optional[datetime] = None
-        self.signal_cooldown = 300  # 5 minutes in seconds (reduced for testing)
+        self.signal_cooldown = signal_cooldown  # Configurable cooldown
         
         # Internal calculation state
         self._gains: List[float] = []

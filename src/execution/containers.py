@@ -314,26 +314,24 @@ class IndicatorContainer(BaseComposableContainer):
     """Container for shared indicator computation."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
-        # Add event routing configuration
-        if 'events' not in config:
-            config['events'] = {}
+        # Add external event routing configuration for hybrid interface
+        if 'external_events' not in config:
+            config['external_events'] = {}
         
-        # Declare what events this container publishes and subscribes to
-        config['events']['publishes'] = config['events'].get('publishes', []) + [
-            {
-                'events': ['BAR'],
-                'scope': 'CHILDREN'  # Forward BAR events to children
-            },
+        # Declare what events this container publishes and subscribes to via Event Router
+        config['external_events']['publishes'] = config['external_events'].get('publishes', []) + [
             {
                 'events': ['INDICATORS'],
-                'scope': 'GLOBAL'  # Send INDICATORS to specific subscribers
+                'scope': 'GLOBAL',  # Send INDICATORS globally
+                'tier': 'standard'
             }
         ]
         
-        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+        config['external_events']['subscribes'] = config['external_events'].get('subscribes', []) + [
             {
+                'source': '*',  # Subscribe to BAR events from any source (DataContainer will be the only publisher)
                 'events': ['BAR'],
-                'scope': 'UPWARD'  # Receive BAR events from DataContainer ancestor
+                'tier': 'fast'
             }
         ]
         
@@ -717,13 +715,13 @@ class StrategyContainer(BaseComposableContainer):
         
         ext_config['subscribes'].extend([
             {
-                'source': 'data_container',
+                'source': '*',  # Subscribe to BAR events from any source
                 'events': ['BAR'],
                 'tier': 'fast',
                 'filters': {}  # Will be configured per instance
             },
             {
-                'source': 'indicator_container',
+                'source': '*',  # Subscribe to INDICATORS events from any source  
                 'events': ['INDICATORS'],
                 'tier': 'standard',
                 'filters': {'subscriber': config.get('container_id', 'strategy_container')}
@@ -917,7 +915,7 @@ class StrategyContainer(BaseComposableContainer):
             logger.info(f"Multi-strategy container received {len(signals)} signals from sub-container")
             # Forward to parent (Portfolio -> Risk) via Event Router
             from ..core.events.routing.protocols import EventScope
-            self.publish_routed_event(event, EventScope.PARENT)
+            self.publish_external(event)
     
     async def _generate_single_signals(self, timestamp, market_data: Dict[str, Any]) -> None:
         """Generate signals from single strategy."""
@@ -1153,7 +1151,7 @@ class ExecutionContainer(BaseComposableContainer):
                     logger.info(f"📤 ExecutionContainer publishing FILL event with {len(fills)} fills to RiskContainer")
                     
                     from ..core.events.routing.protocols import EventScope
-                    self.publish_routed_event(fill_event, EventScope.SIBLINGS)
+                    self.publish_external(fill_event)
                     logger.info(f"   📨 Sent FILL event to RiskContainer via Event Router")
                     
                     return fill_event
@@ -1279,22 +1277,29 @@ class RiskContainer(BaseComposableContainer):
     """Container for risk management and position sizing."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
-        # Add event routing configuration
-        if 'events' not in config:
-            config['events'] = {}
+        # Add external event routing configuration for hybrid communication
+        if 'external_events' not in config:
+            config['external_events'] = {}
         
-        # Declare what events this container publishes and subscribes to
-        config['events']['publishes'] = config['events'].get('publishes', []) + [
+        # Declare what events this container publishes and subscribes to externally
+        config['external_events']['publishes'] = config['external_events'].get('publishes', []) + [
             {
                 'events': ['ORDER'],
-                'scope': 'SIBLINGS'  # Send to ExecutionContainer sibling
+                'scope': 'GLOBAL',  # Send to ExecutionContainer via Event Router
+                'tier': 'standard'
             }
         ]
         
-        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+        config['external_events']['subscribes'] = config['external_events'].get('subscribes', []) + [
             {
+                'source': '*',  # Accept from any source
+                'events': ['SIGNAL'],
+                'tier': 'standard'
+            },
+            {
+                'source': '*',  # Accept from any source  
                 'events': ['FILL'],
-                'scope': 'SIBLINGS'  # Receive from ExecutionContainer sibling
+                'tier': 'standard'
             }
         ]
         
@@ -1489,7 +1494,7 @@ class RiskContainer(BaseComposableContainer):
                 # Publish ORDER event to ExecutionContainer via Event Router
                 logger.info(f"📤 RiskContainer publishing ORDER event to ExecutionContainer via Event Router")
                 from ..core.events.routing.protocols import EventScope
-                self.publish_routed_event(order_event, EventScope.SIBLINGS)
+                self.publish_external(order_event)
                 logger.info(f"   📨 Sent ORDER event to ExecutionContainer via Event Router")
                 
                 return order_event
@@ -1509,30 +1514,24 @@ class PortfolioContainer(BaseComposableContainer):
     """Container for portfolio allocation and management."""
     
     def __init__(self, config: Dict[str, Any], container_id: str = None):
-        # Add event routing configuration
-        if 'events' not in config:
-            config['events'] = {}
+        # Add external event routing configuration for hybrid communication
+        if 'external_events' not in config:
+            config['external_events'] = {}
         
-        # Declare what events this container publishes and subscribes to
-        config['events']['publishes'] = config['events'].get('publishes', []) + [
-            {
-                'events': ['BAR', 'INDICATORS'],
-                'scope': 'CHILDREN'  # Forward to StrategyContainer
-            },
+        # Declare what events this container publishes and subscribes to externally
+        config['external_events']['publishes'] = config['external_events'].get('publishes', []) + [
             {
                 'events': ['SIGNAL'],
-                'scope': 'PARENT'  # Send to RiskContainer
+                'scope': 'GLOBAL',  # Send to RiskContainer via Event Router
+                'tier': 'standard'
             }
         ]
         
-        config['events']['subscribes'] = config['events'].get('subscribes', []) + [
+        config['external_events']['subscribes'] = config['external_events'].get('subscribes', []) + [
             {
+                'source': '*',  # Accept from any source
                 'events': ['BAR', 'INDICATORS'],
-                'scope': 'UPWARD'  # Receive from any ancestor (DataContainer/IndicatorContainer)
-            },
-            {
-                'events': ['SIGNAL'],
-                'scope': 'CHILDREN'  # Receive from StrategyContainer
+                'tier': 'fast'
             }
         ]
         
@@ -1569,6 +1568,7 @@ class PortfolioContainer(BaseComposableContainer):
         
         if event.event_type == EventType.SIGNAL and self.allocation_manager:
             signals = event.payload.get('signals', [])
+            logger.info(f"📊 PortfolioContainer received SIGNAL event with {len(signals)} signals")
             
             # Apply portfolio allocation to signals
             allocated_signals = []
@@ -1594,8 +1594,9 @@ class PortfolioContainer(BaseComposableContainer):
                 )
                 
                 # Forward to parent (risk container) via Event Router
+                logger.info(f"📤 PortfolioContainer forwarding {len(allocated_signals)} signals to RiskContainer")
                 from ..core.events.routing.protocols import EventScope
-                self.publish_routed_event(allocated_event, EventScope.PARENT)
+                self.publish_external(allocated_event)
                 
                 return allocated_event
         

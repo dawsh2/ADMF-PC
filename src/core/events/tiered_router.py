@@ -18,7 +18,10 @@ from enum import Enum
 from collections import defaultdict, deque
 
 from .types import Event, EventType
-from .routing.protocols import EventRouterProtocol, EventPublication, EventSubscription, EventScope
+from .routing.protocols import (
+    EventRouterProtocol, EventPublication, EventSubscription, 
+    EventScope, EventQoS, EventFilter
+)
 
 
 logger = logging.getLogger(__name__)
@@ -74,6 +77,7 @@ class FastTierRouter:
         # Pre-computed routing tables for speed
         self.routing_cache: Dict[EventType, List[str]] = defaultdict(list)
         self.subscribers: Dict[str, Callable] = {}
+        self.subscriptions: Dict[str, List[EventSubscription]] = defaultdict(list)
         self.filters: Dict[str, Dict[str, Any]] = {}
         
         # Batch processing
@@ -98,11 +102,12 @@ class FastTierRouter:
     def register_subscriber(self, container_id: str, subscriptions: List[EventSubscription], callback: Callable) -> None:
         """Register subscriber with filter optimization"""
         self.subscribers[container_id] = callback
+        self.subscriptions[container_id] = subscriptions
         
         # Pre-process filters for fast lookup
         for sub in subscriptions:
             if sub.filters:
-                self.filters[container_id] = sub.filters
+                self.filters[container_id] = sub.filters.attributes
         
         logger.debug(f"FastTier: Registered subscriber {container_id}")
     
@@ -125,31 +130,34 @@ class FastTierRouter:
             return
         
         batch_start = time.time()
+        batch_count = len(self.batch_buffer)
         
         for event, source, scope, event_start_time in self.batch_buffer:
             try:
-                # Get subscribers for this event type
-                subscribers = self.routing_cache.get(event.event_type, [])
-                
-                for subscriber_id in subscribers:
-                    callback = self.subscribers.get(subscriber_id)
-                    if callback:
-                        # Apply filters if present
-                        if subscriber_id in self.filters:
-                            if not self._apply_filters(event, self.filters[subscriber_id]):
-                                continue
-                        
-                        # Direct callback for speed (no async overhead)
-                        try:
-                            callback(event, source)
+                # Find matching subscriptions
+                for container_id, subscriptions in self.subscriptions.items():
+                    for subscription in subscriptions:
+                        if ((subscription.source == source or subscription.source == '*') and 
+                            event.event_type in subscription.events):
                             
-                            # Record successful delivery
-                            latency_ms = (time.time() - event_start_time) * 1000
-                            self.metrics.record_delivery(latency_ms, True)
-                            
-                        except Exception as e:
-                            logger.error(f"FastTier delivery error to {subscriber_id}: {e}")
-                            self.metrics.record_delivery(0, False)
+                            callback = self.subscribers.get(container_id)
+                            if callback:
+                                # Apply filters if present
+                                if container_id in self.filters:
+                                    if not self._apply_filters(event, self.filters[container_id]):
+                                        continue
+                                
+                                # Direct callback for speed (no async overhead)
+                                try:
+                                    callback(event, source)
+                                    
+                                    # Record successful delivery
+                                    latency_ms = (time.time() - event_start_time) * 1000
+                                    self.metrics.record_delivery(latency_ms, True)
+                                    
+                                except Exception as e:
+                                    logger.error(f"FastTier delivery error to {container_id}: {e}")
+                                    self.metrics.record_delivery(0, False)
             
             except Exception as e:
                 logger.error(f"FastTier routing error for {event.event_type}: {e}")
@@ -160,7 +168,7 @@ class FastTierRouter:
         self.last_flush_time = time.time()
         
         batch_latency = (time.time() - batch_start) * 1000
-        logger.debug(f"FastTier: Flushed batch with {len(self.batch_buffer)} events in {batch_latency:.2f}ms")
+        logger.debug(f"FastTier: Flushed batch with {batch_count} events in {batch_latency:.2f}ms")
     
     async def _batch_processor(self) -> None:
         """Background task to ensure regular batch flushing"""
@@ -279,7 +287,7 @@ class StandardTierRouter:
                 # Find matching subscriptions
                 for container_id, subscriptions in self.subscriptions.items():
                     for subscription in subscriptions:
-                        if (subscription.source == source and
+                        if ((subscription.source == source or subscription.source == '*') and
                             event.event_type in subscription.events):
                             
                             # Apply filters
@@ -415,7 +423,7 @@ class ReliableTierRouter:
                 delivered = False
                 for container_id, subscriptions in self.subscriptions.items():
                     for subscription in subscriptions:
-                        if (subscription.source == source and
+                        if ((subscription.source == source or subscription.source == '*') and
                             event.event_type in subscription.events):
                             
                             callback = self.callbacks.get(container_id)
@@ -504,7 +512,7 @@ class TieredEventRouter(EventRouterProtocol):
             EventType.QUOTE: 'fast',
             EventType.SIGNAL: 'standard',
             EventType.INDICATORS: 'standard',
-            EventType.PORTFOLIO_UPDATE: 'standard',
+            EventType.PORTFOLIO: 'standard',
             EventType.ORDER: 'reliable',
             EventType.FILL: 'reliable',
             EventType.SYSTEM: 'reliable'
@@ -512,8 +520,21 @@ class TieredEventRouter(EventRouterProtocol):
         
         logger.info("TieredEventRouter initialized with fast, standard, and reliable tiers")
     
-    def route_event(self, event: Event, source: str, tier: str = None, scope: Optional[EventScope] = None) -> None:
-        """Route event through appropriate tier"""
+    def route_event(self, source_id: str, event: Event, scope: Optional[EventScope] = None) -> None:
+        """Route event through appropriate tier (EventRouterProtocol interface)"""
+        # Auto-determine tier based on event type
+        tier = self.default_tier_map.get(event.event_type, 'standard')
+        
+        # Route through appropriate tier
+        router = self.tier_routers.get(tier)
+        if router:
+            router.route_event(event, source_id, scope)
+            logger.debug(f"📡 Routed {event.event_type} from {source_id} via {tier} tier")
+        else:
+            logger.error(f"Unknown tier: {tier}")
+    
+    def route_event_with_tier(self, event: Event, source: str, tier: str = None, scope: Optional[EventScope] = None) -> None:
+        """Route event with explicit tier specification (convenience method)"""
         # Auto-determine tier if not specified
         if tier is None:
             tier = self.default_tier_map.get(event.event_type, 'standard')
@@ -529,8 +550,8 @@ class TieredEventRouter(EventRouterProtocol):
     def register_publisher(self, container_id: str, publications: List[EventPublication]) -> None:
         """Register publisher across relevant tiers"""
         for publication in publications:
-            # Determine tier for each publication
-            tier = getattr(publication, 'tier', 'standard')
+            # Determine tier for each publication from metadata
+            tier = publication.metadata.get('tier', 'standard')
             router = self.tier_routers.get(tier, self.standard_tier)
             router.register_publisher(container_id, [publication])
         
@@ -539,8 +560,8 @@ class TieredEventRouter(EventRouterProtocol):
     def register_subscriber(self, container_id: str, subscriptions: List[EventSubscription], callback: Callable) -> None:
         """Register subscriber across relevant tiers"""
         for subscription in subscriptions:
-            # Determine tier for each subscription
-            tier = getattr(subscription, 'tier', 'standard')
+            # Determine tier for each subscription from metadata
+            tier = subscription.metadata.get('tier', 'standard')
             router = self.tier_routers.get(tier, self.standard_tier)
             router.register_subscriber(container_id, [subscription], callback)
         

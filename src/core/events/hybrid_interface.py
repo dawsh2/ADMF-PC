@@ -15,7 +15,10 @@ from datetime import datetime
 from enum import Enum
 
 from .types import Event, EventType
-from .routing.protocols import EventRouterProtocol, EventPublication, EventSubscription, EventScope
+from .routing.protocols import (
+    EventRouterProtocol, EventPublication, EventSubscription, 
+    EventScope, EventQoS, EventFilter
+)
 
 
 logger = logging.getLogger(__name__)
@@ -104,7 +107,7 @@ class HybridContainerInterface:
             EventType.QUOTE: CommunicationTier.FAST,
             EventType.SIGNAL: CommunicationTier.STANDARD,
             EventType.INDICATORS: CommunicationTier.STANDARD,
-            EventType.PORTFOLIO_UPDATE: CommunicationTier.STANDARD,
+            EventType.PORTFOLIO: CommunicationTier.STANDARD,
             EventType.ORDER: CommunicationTier.RELIABLE,
             EventType.FILL: CommunicationTier.RELIABLE,
             EventType.SYSTEM: CommunicationTier.RELIABLE
@@ -146,9 +149,15 @@ class HybridContainerInterface:
         if tier is None:
             tier = self.event_tier_map.get(event.event_type, CommunicationTier.STANDARD)
         
-        # Route through appropriate tier
-        self.external_router.route_event(event, self.container_id, tier.value, scope)
-        logger.debug(f"📡 {self.container_id} published {event.event_type} via {tier.value} tier")
+        # Use the correct EventRouterProtocol interface
+        if hasattr(self.external_router, 'route_event_with_tier'):
+            # Our TieredEventRouter with tier support
+            self.external_router.route_event_with_tier(event, self.container_id, tier.value, scope)
+        else:
+            # Standard EventRouterProtocol interface
+            self.external_router.route_event(self.container_id, event, scope)
+        
+        logger.debug(f"📡 {self.container_id} published {event.event_type} via {tier.value if tier else 'auto'} tier")
     
     def handle_external_event(self, event: Event, source: str) -> None:
         """Handle events routed from other containers"""
@@ -218,10 +227,9 @@ class HybridContainerInterface:
     def _handle_child_event(self, event: Event) -> None:
         """Handle events from child containers"""
         # Check if this event should be forwarded externally
-        event_types_to_forward = {pub.events for pub in self._external_publications}
         flattened_types = set()
-        for event_set in event_types_to_forward:
-            flattened_types.update(event_set)
+        for pub in self._external_publications:
+            flattened_types.update(pub.events)
         
         if event.event_type in flattened_types:
             # Forward to external containers
@@ -278,11 +286,11 @@ class HybridContainerInterface:
                 pub = EventPublication(
                     events=events,
                     scope=EventScope[pub_config.get('scope', 'GLOBAL').upper()],
-                    qos=pub_config.get('qos', 'best_effort'),
+                    qos=EventQoS[pub_config.get('qos', 'BEST_EFFORT').upper()],
                     priority=pub_config.get('priority', 0)
                 )
-                # Add tier information
-                pub.tier = pub_config.get('tier', 'standard')
+                # Add tier information as metadata
+                pub.metadata['tier'] = pub_config.get('tier', 'standard')
                 publications.append(pub)
             
             self._external_publications = publications
@@ -302,15 +310,19 @@ class HybridContainerInterface:
                     else:
                         events.add(event_name)
                 
+                # Create EventFilter if filters are provided
+                event_filter = None
+                if sub_config.get('filters'):
+                    event_filter = EventFilter(attributes=sub_config['filters'])
+                
                 sub = EventSubscription(
                     source=sub_config['source'],
                     events=events,
-                    filters=sub_config.get('filters', {}),
-                    transform=sub_config.get('transform'),
-                    batching=sub_config.get('batching')
+                    filters=event_filter,
+                    transform=sub_config.get('transform')
                 )
-                # Add tier information
-                sub.tier = sub_config.get('tier', 'standard')
+                # Add tier information as metadata
+                sub.metadata['tier'] = sub_config.get('tier', 'standard')
                 subscriptions.append(sub)
             
             self._external_subscriptions = subscriptions
@@ -324,6 +336,17 @@ class HybridContainerInterface:
     def declare_external_subscriptions(self, subscriptions: List[EventSubscription]) -> None:
         """Declare what events this container subscribes to externally"""
         self._external_subscriptions = subscriptions
+    
+    # === Router Management ===
+    
+    def unregister_from_router(self) -> None:
+        """Unregister from event router during cleanup."""
+        if self.external_router:
+            # Check if router has unregister method
+            if hasattr(self.external_router, 'unregister_container'):
+                self.external_router.unregister_container(self.container_id)
+            self.external_router = None
+            logger.info(f"📡 {self.container_id} unregistered from Event Router")
     
     # === Utility Methods ===
     

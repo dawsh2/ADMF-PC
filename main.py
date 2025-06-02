@@ -253,21 +253,28 @@ async def main():
         json_format=args.log_json
     )
     
+    # Load base configuration first
+    with open(args.config, 'r') as f:
+        base_config = yaml.safe_load(f)
+    
     # Create module logger
     import logging
     logger = logging.getLogger(__name__)
     
-    # Configure event-specific logging
+    # Configure event-specific logging from CLI args
     if args.log_events:
         from src.core.logging.event_logger import configure_event_logging
         configure_event_logging(args.log_events)
         logger.info(f"Event-specific logging enabled for: {', '.join(args.log_events)}")
     
-    logger.info("Using new composable container system")
+    # Configure event-specific logging from config file
+    if 'logging' in base_config and 'enabled_events' in base_config['logging']:
+        from src.core.logging.event_logger import configure_event_logging
+        enabled_events = base_config['logging']['enabled_events']
+        configure_event_logging(enabled_events)
+        logger.info(f"Event-specific logging enabled from config for: {', '.join(enabled_events)}")
     
-    # Load base configuration
-    with open(args.config, 'r') as f:
-        base_config = yaml.safe_load(f)
+    logger.info("Using new composable container system")
     
     # Create coordinator using new composable container system
     coordinator = Coordinator(enable_composable_containers=True)

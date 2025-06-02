@@ -11,6 +11,10 @@ data:
   symbols: ["SPY"]
   max_bars: 100
 
+# Enable comprehensive logging for debugging
+logging:
+  enabled_events: ["SIGNAL", "ORDER", "FILL", "PORTFOLIO", "TRADE_LOOP"]
+
 strategies:
   - name: "momentum_strategy"
     type: "momentum"
@@ -20,8 +24,10 @@ strategies:
     parameters:
       lookback_period: 20
       rsi_period: 14
-      rsi_oversold: 30
-      rsi_overbought: 70
+      rsi_oversold: 40  # More sensitive (was 45)
+      rsi_overbought: 60  # More sensitive (was 55)  
+      momentum_threshold: 0.0001  # More sensitive (was 0.0002)
+      signal_cooldown: 60  # 1 minute cooldown for testing (was 300s)
   
   - name: "mean_reversion_strategy"
     type: "mean_reversion"
@@ -30,8 +36,8 @@ strategies:
     weight: 0.8
     parameters:
       lookback_period: 15
-      entry_threshold: 2.0
-      exit_threshold: 0.5
+      entry_threshold: 0.8  # More sensitive (was 1.0)
+      exit_threshold: 0.2   # More sensitive (was 0.5)
 
 signal_aggregation:
   method: "weighted_voting"
