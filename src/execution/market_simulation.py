@@ -44,7 +44,7 @@ class CommissionModel(Protocol):
 @dataclass
 class FixedSlippageModel:
     """Fixed slippage model."""
-    slippage_percent: float = 0.001  # 0.1% default
+    slippage_percent: float = 0.0005  # 0.05% default for liquid stocks (Alpaca typical)
     
     def calculate_slippage(
         self,
@@ -157,6 +157,20 @@ class PercentCommissionModel:
         return max(self.min_commission, commission)
 
 
+@dataclass
+class ZeroCommissionModel:
+    """Zero commission model for brokers like Alpaca."""
+    
+    def calculate_commission(
+        self,
+        order: Order,
+        fill_price: float,
+        fill_quantity: float
+    ) -> float:
+        """Always returns zero commission."""
+        return 0.0
+
+
 class MarketSimulator:
     """Simulates market conditions for order execution."""
     
@@ -164,12 +178,12 @@ class MarketSimulator:
         self,
         slippage_model: Optional[SlippageModel] = None,
         commission_model: Optional[CommissionModel] = None,
-        fill_probability: float = 0.95,
+        fill_probability: float = 0.98,  # 98% default for liquid stocks
         partial_fill_enabled: bool = True
     ):
         """Initialize market simulator."""
         self.slippage_model = slippage_model or FixedSlippageModel()
-        self.commission_model = commission_model or PerShareCommissionModel()
+        self.commission_model = commission_model or ZeroCommissionModel()  # Default to zero commission
         self.fill_probability = fill_probability
         self.partial_fill_enabled = partial_fill_enabled
         

@@ -90,18 +90,26 @@ class ComposableWorkflowManagerPipeline:
             logger.info(f"Added portfolio config to {container_pattern}: {composition_config['portfolio']}")
         
         try:
-            # For simple_backtest, create a custom structure without classifier
+            # For simple_backtest, create a custom structure with proper nesting
             if container_pattern == 'simple_backtest':
-                logger.info("Creating custom simple_backtest structure without classifier")
+                logger.info("Creating custom simple_backtest structure with proper nesting: Risk > Portfolio > Strategy")
                 custom_structure = {
                     "root": {
                         "role": "backtest",
                         "children": {
                             "data": {"role": "data"},
                             "indicators": {"role": "indicator"},
-                            "strategy": {"role": "strategy"},
-                            "risk": {"role": "risk"},
-                            "portfolio": {"role": "portfolio"},
+                            "risk": {
+                                "role": "risk",
+                                "children": {
+                                    "portfolio": {
+                                        "role": "portfolio",
+                                        "children": {
+                                            "strategy": {"role": "strategy"}
+                                        }
+                                    }
+                                }
+                            },
                             "execution": {"role": "execution"}
                         }
                     }
@@ -125,21 +133,46 @@ class ComposableWorkflowManagerPipeline:
                 # The adapters attribute is a list, not a dict
                 for adapter in self.coordinator.communication_layer.adapters:
                     if hasattr(adapter, 'setup_pipeline'):
-                        # Pass ALL containers to adapter, not just pipeline order
-                        # This ensures PortfolioContainer is available for reverse routing
-                        adapter.setup_pipeline(all_containers)
-                        logger.info(f"Updated pipeline adapter with {len(all_containers)} containers (all containers)")
+                        # Store all containers for reverse routing
+                        adapter._pipeline_containers = all_containers
                         
-                        # Then set up specific pipeline connections
+                        # Clear any existing connections
                         adapter.connections.clear()
-                        for i in range(len(pipeline_order) - 1):
-                            adapter.connections.append((pipeline_order[i], pipeline_order[i + 1]))
-                        logger.info(f"Set up {len(adapter.connections)} pipeline connections")
                         
-                        # Start the adapter now that connections are configured
+                        # Find containers by role (including nested ones)
+                        role_map = {}
+                        for container in all_containers:
+                            role = container.metadata.role.value
+                            role_map[role] = container
+                        
+                        # Set up pipeline connections based on information flow
+                        # Data → Indicator → Strategy → Risk → Execution → Portfolio
+                        if 'data' in role_map and 'indicator' in role_map:
+                            adapter.connections.append((role_map['data'], role_map['indicator']))
+                            logger.info(f"Connected: {role_map['data'].metadata.name} → {role_map['indicator'].metadata.name}")
+                        
+                        if 'indicator' in role_map and 'strategy' in role_map:
+                            adapter.connections.append((role_map['indicator'], role_map['strategy']))
+                            logger.info(f"Connected: {role_map['indicator'].metadata.name} → {role_map['strategy'].metadata.name}")
+                        
+                        if 'strategy' in role_map and 'risk' in role_map:
+                            adapter.connections.append((role_map['strategy'], role_map['risk']))
+                            logger.info(f"Connected: {role_map['strategy'].metadata.name} → {role_map['risk'].metadata.name}")
+                        
+                        if 'risk' in role_map and 'execution' in role_map:
+                            adapter.connections.append((role_map['risk'], role_map['execution']))
+                            logger.info(f"Connected: {role_map['risk'].metadata.name} → {role_map['execution'].metadata.name}")
+                        
+                        # Don't create forward connection from execution to portfolio
+                        # Portfolio receives FILL events via reverse routing only
+                        
+                        logger.info(f"Set up {len(adapter.connections)} pipeline connections for nested structure")
+                        
+                        # Now start the adapter with the correct connections
+                        # The adapter's start() method will handle the case where it's already started
                         if hasattr(adapter, 'start'):
                             adapter.start()
-                            logger.info("Started pipeline adapter with configured connections")
+                            logger.info("Started adapter with nested structure connections")
                         break
             
             # Setup monitoring

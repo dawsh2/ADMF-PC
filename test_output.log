@@ -1,0 +1,11 @@
+usage: main.py [-h] --config CONFIG
+               [--mode {backtest,optimization,signal-generation,signal-replay,live}]
+               [--signal-log SIGNAL_LOG] [--signal-output SIGNAL_OUTPUT]
+               [--weights WEIGHTS] [--dataset {train,test,full}] [--bars BARS]
+               [--split-ratio SPLIT_RATIO] [--parallel PARALLEL]
+               [--checkpoint CHECKPOINT] [--output-dir OUTPUT_DIR]
+               [--log-level {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+               [--log-events [{BAR,INDICATOR,SIGNAL,ORDER,FILL,PORTFOLIO,TRADE_LOOP} ...]]
+               [--log-file LOG_FILE] [--log-json] [--verbose] [--dry-run]
+               [--profile]
+main.py: error: the following arguments are required: --config

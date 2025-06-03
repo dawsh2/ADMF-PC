@@ -1,0 +1,129 @@
+# Realistic Alpaca trading configuration
+# Demonstrates zero-commission trading with realistic slippage models
+
+name: Alpaca Realistic Trading Backtest
+type: backtest
+description: Realistic parameters for Alpaca trading with liquid stocks
+
+# Data configuration
+data:
+  source: csv
+  file_path: "data/SPY_1m.csv"
+  symbols: ["SPY"]  # Highly liquid ETF
+  timeframe: "1m"
+
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  currency: USD
+  
+  # Alpaca has zero commission
+  commission:
+    type: zero  # No commission for Alpaca
+    
+  # Realistic slippage for liquid stocks
+  slippage:
+    type: percentage
+    value: 0.0005  # 0.05% for SPY (very liquid)
+    # Note: Less liquid stocks might use 0.0015 (0.15%)
+    
+  # Market simulation parameters
+  market_simulation:
+    fill_probability: 0.98  # 98% for market orders on liquid stocks
+    partial_fill_enabled: true
+    max_volume_participation: 0.10  # Max 10% of volume
+    
+    # Slippage model based on liquidity
+    slippage_models:
+      liquid:  # SPY, QQQ, AAPL, etc.
+        base_slippage_pct: 0.0005  # 0.05%
+        volume_impact_factor: 0.0001
+      medium:  # Mid-cap stocks
+        base_slippage_pct: 0.0010  # 0.10%
+        volume_impact_factor: 0.0002
+      illiquid:  # Small-cap stocks
+        base_slippage_pct: 0.0015  # 0.15%
+        volume_impact_factor: 0.0005
+
+# Strategy configuration
+strategies:
+  - name: momentum_liquid_stocks
+    type: momentum
+    enabled: true
+    allocation: 1.0
+    parameters:
+      lookback_period: 20
+      momentum_threshold: 0.0002
+      rsi_period: 14
+      # Tighter stops for zero-commission trading
+      stop_loss_pct: 0.02  # 2% stop loss
+      take_profit_pct: 0.04  # 4% take profit
+      
+    # Alpaca-specific settings
+    execution:
+      order_type: market  # Market orders for quick fills
+      time_in_force: day  # Day orders only
+      extended_hours: false  # Regular market hours
+
+# Risk management
+risk:
+  position_sizers:
+    - name: percent_equity
+      type: percent_equity
+      size_pct: 10.0  # 10% per position
+      
+  limits:
+    - type: position
+      max_position_pct: 20  # Max 20% in single position
+    - type: exposure
+      max_exposure_pct: 95  # Leave 5% cash buffer
+    - type: daily_trades
+      max_trades: 50  # Alpaca allows high frequency
+
+# Execution settings
+execution:
+  mode: realistic  # Use realistic market simulation
+  latency_ms: 50  # Alpaca typical latency
+  reject_probability: 0.02  # 2% rejection rate
+  
+  # Order handling
+  order_management:
+    cancel_pending_on_signal: true
+    allow_partial_fills: true
+    retry_rejected: false  # Don't retry rejected orders
+
+# Analysis configuration
+analysis:
+  metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+    - win_rate
+    - profit_factor
+    - total_trades
+    - commission_paid  # Should be 0
+    - slippage_paid
+    - avg_trade_duration
+    
+  # Compare with commission scenario
+  comparison:
+    enabled: true
+    commission_scenarios:
+      - name: "traditional_broker"
+        commission_per_trade: 5.0
+        commission_per_share: 0.01
+      - name: "discount_broker"
+        commission_per_trade: 1.0
+        
+  save_results: true
+  output_format: json
+  
+# Reporting
+reporting:
+  generate_html: true
+  include_charts: true
+  charts:
+    - equity_curve
+    - drawdown
+    - trade_distribution
+    - slippage_analysis

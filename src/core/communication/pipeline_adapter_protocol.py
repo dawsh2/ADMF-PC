@@ -37,6 +37,7 @@ class PipelineAdapter:
         self.containers = config.get('containers', [])
         self.connections: List[Tuple[Container, Container]] = []
         self.allow_skip = config.get('allow_skip', False)
+        self._is_started = False
         
         # Validate configuration
         validate_adapter_config(config, ['containers'], 'Pipeline')
@@ -94,6 +95,15 @@ class PipelineAdapter:
         
     def start(self) -> None:
         """Start pipeline operation by setting up subscriptions."""
+        if self._is_started:
+            self.logger.warning(f"Pipeline adapter '{self.name}' is already started")
+            return
+            
+        # Don't start if no connections configured
+        if not self.connections:
+            self.logger.info(f"Pipeline adapter '{self.name}' has no connections, skipping start")
+            return
+            
         # Set up forward connections
         for source, target in self.connections:
             # Create forwarding handler
@@ -110,12 +120,18 @@ class PipelineAdapter:
         # Set up reverse routing for FILL events
         # ExecutionContainer needs to send FILL events back to RiskContainer and PortfolioContainer
         self._setup_reverse_routing()
-            
+        
+        self._is_started = True
         self.logger.info(f"Pipeline adapter '{self.name}' started with forward and reverse routing")
         
     def stop(self) -> None:
         """Stop pipeline operation."""
+        if not self._is_started:
+            self.logger.info(f"Pipeline adapter '{self.name}' is already stopped")
+            return
+            
         # In a real implementation, we'd unsubscribe here
+        self._is_started = False
         self.logger.info(f"Pipeline adapter '{self.name}' stopped")
         
     def handle_event(self, event: Event, source: Container) -> None:
@@ -163,28 +179,30 @@ class PipelineAdapter:
         containers_by_role = {}
         all_containers = []
         
-        # Collect all containers from connections
+        # Helper function to collect all containers including nested ones
+        def collect_all_containers(container, collected=None):
+            if collected is None:
+                collected = []
+            if container not in collected:
+                collected.append(container)
+                if hasattr(container, 'metadata') and hasattr(container.metadata, 'role'):
+                    role = container.metadata.role.value
+                    containers_by_role[role] = container
+                # Recursively collect child containers
+                if hasattr(container, 'child_containers'):
+                    for child in container.child_containers:
+                        collect_all_containers(child, collected)
+            return collected
+        
+        # Collect all containers from connections (including nested)
         for source, target in self.connections:
-            if hasattr(source, 'metadata') and hasattr(source.metadata, 'role'):
-                role = source.metadata.role.value
-                containers_by_role[role] = source
-                if source not in all_containers:
-                    all_containers.append(source)
-            if hasattr(target, 'metadata') and hasattr(target.metadata, 'role'):
-                role = target.metadata.role.value
-                containers_by_role[role] = target
-                if target not in all_containers:
-                    all_containers.append(target)
+            collect_all_containers(source, all_containers)
+            collect_all_containers(target, all_containers)
         
         # Also check containers passed to setup_pipeline that might not be in connections
         if hasattr(self, '_pipeline_containers'):
             for container in self._pipeline_containers:
-                if hasattr(container, 'metadata') and hasattr(container.metadata, 'role'):
-                    role = container.metadata.role.value
-                    if role not in containers_by_role:
-                        containers_by_role[role] = container
-                        if container not in all_containers:
-                            all_containers.append(container)
+                collect_all_containers(container, all_containers)
         
         self.logger.info(f"Found containers by role: {list(containers_by_role.keys())}")
         

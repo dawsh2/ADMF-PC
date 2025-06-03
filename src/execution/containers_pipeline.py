@@ -1087,7 +1087,8 @@ class PortfolioContainer(BaseComposableContainer):
         
         try:
             # Determine quantity delta (positive for buys, negative for sells)
-            quantity_delta = fill.quantity
+            # Ensure all fill values are Decimal for consistency
+            quantity_delta = Decimal(str(fill.quantity))
             
             # Handle different fill.side types robustly
             if hasattr(fill, 'side'):
@@ -1123,30 +1124,33 @@ class PortfolioContainer(BaseComposableContainer):
                 quantity_delta = -quantity_delta
             logger.debug(f"🔍 After adjustment: quantity_delta={quantity_delta}")
             
-            # Update portfolio position
+            # Calculate commission and include it in the effective price
+            commission = Decimal(str(getattr(fill, 'commission', 0)))
+            
+            # For cash flow calculation, we need to include commission
+            # BUY: pay price + commission per share
+            # SELL: receive price - commission per share  
+            effective_price = Decimal(str(fill.price))
+            if side == 'BUY':
+                # When buying, commission increases the effective cost per share
+                effective_price += commission / Decimal(str(fill.quantity))
+            else:
+                # When selling, commission reduces the effective proceeds per share
+                effective_price -= commission / Decimal(str(fill.quantity))
+            
+            # Update portfolio position with effective price that includes commission impact
             position = self.portfolio_state.update_position(
                 symbol=fill.symbol,
                 quantity_delta=quantity_delta,
-                price=fill.price,
+                price=effective_price,
                 timestamp=fill.executed_at
             )
             
-            # Calculate commission for logging (cash update happens in portfolio_state.update_position)
-            commission = Decimal(str(getattr(fill, 'commission', 0)))
+            # Calculate cash change for logging (should match the actual cash flow from effective price)
+            effective_trade_value = Decimal(str(fill.quantity)) * effective_price
+            cash_change = -effective_trade_value if side == 'BUY' else effective_trade_value
             
-            # Apply commission separately since portfolio_state.update_position handles trade cash
-            if commission > 0:
-                if isinstance(self.portfolio_state._cash_balance, Decimal):
-                    self.portfolio_state._cash_balance -= commission
-                else:
-                    self.portfolio_state._cash_balance -= float(commission)
-            
-            # Calculate cash change for logging only (actual update done in portfolio_state)
-            trade_value = Decimal(str(fill.quantity)) * Decimal(str(fill.price))
-            if side == 'BUY':
-                cash_change = -(trade_value + commission)
-            else:
-                cash_change = trade_value - commission
+            # Commission is now properly included in the effective price
             
             logger.info(f"💼 PortfolioContainer updated: {fill.symbol} {side} {fill.quantity} @ {fill.price}")
             logger.info(f"   📈 Position: {position.quantity if position else 'None'} (quantity_delta was {quantity_delta})")
@@ -1195,97 +1199,16 @@ class PortfolioContainer(BaseComposableContainer):
                             positions[symbol].current_price = Decimal(str(price))
     
     async def _handle_system_event(self, event: Event) -> None:
-        """Handle system events like CLOSE_ALL_POSITIONS command."""
-        command = event.payload.get('command')
+        """Handle system events."""
         message = event.payload.get('message')
         
-        if command == 'CLOSE_ALL_POSITIONS':
-            reason = event.payload.get('reason', 'system_close')
-            source = event.payload.get('source', 'unknown')
-            logger.info(f"🏁 PortfolioContainer received CLOSE_ALL_POSITIONS command from {source} for {reason}")
-            await self._close_all_positions_directly(reason)
-        elif message == 'END_OF_DATA':
+        if message == 'END_OF_DATA':
             logger.info("🏁 PortfolioContainer received END_OF_DATA event")
-            # PortfolioContainer doesn't need to do anything special on END_OF_DATA
-            # Position closing is handled by ExecutionContainer via direct communication
+            # PortfolioContainer doesn't handle position closing anymore
+            # Position closing is handled by ExecutionContainer via proper order execution
         else:
             logger.info(f"📋 PortfolioContainer received system event: {event.payload}")
     
-    async def _close_all_positions_directly(self, reason: str = "system_close") -> None:
-        """Close all positions directly by removing them from portfolio."""
-        if not self.portfolio_state:
-            logger.warning("⚠️ No portfolio state available for position closing")
-            return
-        
-        try:
-            positions = self.portfolio_state.get_all_positions()
-            
-            if not positions:
-                logger.info("📊 No open positions to close")
-                return
-            
-            logger.info(f"📊 Closing {len(positions)} positions for {reason}")
-            
-            total_cash_change = Decimal('0')
-            
-            # Close each position by calculating cash impact and removing position
-            for symbol, position in positions.items():
-                if hasattr(position, 'quantity') and position.quantity != 0:
-                    original_quantity = Decimal(str(position.quantity))
-                    
-                    # Calculate cash received from closing position at current price
-                    # Try to get the last market price from market data if available
-                    current_price = position.average_price  # Default to average price
-                    
-                    # Check if we have recent market data for this symbol
-                    if hasattr(self, '_last_market_data') and symbol in self._last_market_data:
-                        market_price = self._last_market_data[symbol].get('close', self._last_market_data[symbol].get('price'))
-                        if market_price:
-                            current_price = Decimal(str(market_price))
-                            logger.info(f"   Using market price ${current_price:.4f} (entry was ${position.average_price:.4f})")
-                    else:
-                        # Otherwise use position's current_price if available
-                        current_price = getattr(position, 'current_price', position.average_price)
-                        if current_price == position.average_price:
-                            logger.warning(f"   ⚠️  No current market price for {symbol}, using entry price ${current_price:.4f}")
-                    
-                    # When closing positions:
-                    # - Long position (qty > 0): SELL to close → receive cash
-                    # - Short position (qty < 0): BUY to close → pay cash
-                    # In both cases: cash_change = position_quantity × price
-                    # (The sign is already correct: positive for long, negative for short)
-                    cash_change = original_quantity * current_price
-                    total_cash_change += cash_change
-                    
-                    logger.info(f"✅ Closed position: {symbol} {original_quantity} shares @ ${current_price}, cash change: ${cash_change:.2f}")
-            
-            # Log cash before update
-            cash_before = self.portfolio_state._cash_balance
-            
-            # Apply total cash change to portfolio
-            if isinstance(self.portfolio_state._cash_balance, Decimal):
-                self.portfolio_state._cash_balance += total_cash_change
-            else:
-                self.portfolio_state._cash_balance += float(total_cash_change)
-            
-            logger.info(f"💰 Cash update: ${cash_before:.2f} + ${total_cash_change:.2f} = ${self.portfolio_state._cash_balance:.2f}")
-            
-            # Note: We're not deducting commission here since this is a special END_OF_DATA close
-            # In a real system, you might want to account for closing commissions
-            
-            # Clear all positions from the portfolio state
-            self.portfolio_state._positions.clear()
-            
-            # Publish updated portfolio state
-            await self._publish_portfolio_update()
-            
-            logger.info(f"🎯 All positions closed successfully for {reason}, total cash change: ${total_cash_change:.2f}")
-            logger.info(f"   💰 Final cash balance: ${self.portfolio_state._cash_balance:.2f}")
-            
-        except Exception as e:
-            logger.error(f"Error closing positions directly: {e}")
-            import traceback
-            logger.error(f"Full traceback: {traceback.format_exc()}")
     
     def get_capabilities(self) -> Set[str]:
         """Portfolio container capabilities."""
@@ -1330,29 +1253,27 @@ class ExecutionContainer(BaseComposableContainer):
         try:
             from ..execution.backtest_engine import UnifiedBacktestEngine
             from ..execution.backtest_broker_refactored import BacktestBrokerRefactored
-            from ..execution.improved_market_simulation import ImprovedMarketSimulator
-            
-            # Create market simulator
-            from ..execution.improved_market_simulation import PercentageSlippageModel, PerShareCommissionModel
+            # Create market simulator using the regular MarketSimulator with deterministic fills
+            from ..execution.market_simulation import MarketSimulator, FixedSlippageModel, PerShareCommissionModel
             
             # Use explicit defaults to avoid conversion issues
             slippage_bps = 5
             commission = 0.005  
-            fill_probability = 0.95
+            fill_probability = 1.0  # Deterministic fills for testing
             initial_capital = 100000
             
-            slippage_model = PercentageSlippageModel(
-                base_slippage_pct=Decimal(str(slippage_bps)) / Decimal('10000')
+            slippage_model = FixedSlippageModel(
+                slippage_percent=slippage_bps / 10000  # Convert basis points to decimal
             )
             commission_model = PerShareCommissionModel(
-                rate_per_share=Decimal(str(commission))
+                commission_per_share=commission
             )
             
-            market_sim = ImprovedMarketSimulator(
-                component_id=f"MarketSim_{self.metadata.container_id}",
+            market_sim = MarketSimulator(
                 slippage_model=slippage_model,
                 commission_model=commission_model,
-                fill_probability=Decimal(str(fill_probability))
+                fill_probability=fill_probability,
+                partial_fill_enabled=False  # Disable partial fills for deterministic results
             )
             
             # Create a simple portfolio state for the broker
@@ -1368,19 +1289,18 @@ class ExecutionContainer(BaseComposableContainer):
                 market_simulator=market_sim
             )
             
-            # Create execution engine with appropriate config
-            from ..execution.backtest_engine import BacktestConfig
+            # Create execution engine directly instead of using UnifiedBacktestEngine
+            # This ensures our ImprovedMarketSimulator with fill_probability=1.0 is used
+            from ..execution.execution_engine import DefaultExecutionEngine
+            from ..execution.order_manager import OrderManager
             
-            config = BacktestConfig(
-                start_date=datetime.now(),  # Will be updated when data starts
-                end_date=datetime.now(),    # Will be updated when data ends
-                initial_capital=Decimal(str(initial_capital)),
-                symbols=['SPY'],  # Default, will be updated from config
-                commission=Decimal(str(commission)),
-                slippage=Decimal(str(slippage_bps)) / Decimal('10000')
+            order_manager = OrderManager()
+            
+            self.execution_engine = DefaultExecutionEngine(
+                broker=self.broker,
+                order_manager=order_manager,
+                market_simulator=market_sim  # Use our configured market simulator
             )
-            
-            self.execution_engine = UnifiedBacktestEngine(config=config)
             
             logger.info("ExecutionContainer initialized with backtest engine")
             
@@ -1402,9 +1322,9 @@ class ExecutionContainer(BaseComposableContainer):
         # Update execution engine's market data if available
         if market_data and hasattr(order, 'symbol') and order.symbol in market_data:
             symbol_data = market_data[order.symbol]
-            if hasattr(self.execution_engine.execution_engine, '_market_data'):
+            if hasattr(self.execution_engine, '_market_data'):
                 # Update the execution engine's market data
-                self.execution_engine.execution_engine._market_data[order.symbol] = {
+                self.execution_engine._market_data[order.symbol] = {
                     'price': symbol_data.get('close', 100.0),
                     'close': symbol_data.get('close', 100.0),
                     'open': symbol_data.get('open', 100.0),
@@ -1416,8 +1336,8 @@ class ExecutionContainer(BaseComposableContainer):
                     'timestamp': event.timestamp
                 }
         
-        # Execute order through the internal execution engine
-        fill = self.execution_engine.execution_engine.execute_order(order)
+        # Execute order through the execution engine
+        fill = self.execution_engine.execute_order(order)
         
         if fill:
             # Emit fill event
@@ -1458,28 +1378,104 @@ class ExecutionContainer(BaseComposableContainer):
             # ExecutionContainer can continue processing any remaining orders
     
     async def _close_all_positions_directly(self, reason: str = "system_close", market_data: Dict[str, Any] = None) -> None:
-        """Send a command to PortfolioContainer to close all positions directly."""
-        logger.info(f"🏁 Closing all positions directly for {reason}")
+        """Generate close orders for all positions through the normal execution engine."""
+        logger.info(f"🏁 Closing all positions via execution engine for {reason}")
         
-        # Use the registered PortfolioContainer
+        # Get current positions from registered PortfolioContainer
         global _PORTFOLIO_CONTAINER_REGISTRY
         portfolio_container = _PORTFOLIO_CONTAINER_REGISTRY
         
-        if portfolio_container and hasattr(portfolio_container, '_close_all_positions_directly'):
-            logger.info(f"📍 Found registered PortfolioContainer: {portfolio_container.metadata.name}")
+        if not portfolio_container or not hasattr(portfolio_container, 'portfolio_state'):
+            logger.warning("⚠️ Could not find registered PortfolioContainer for position closing")
+            return
             
-            # Pass market data to portfolio container if available
-            if market_data and hasattr(portfolio_container, '_last_market_data'):
-                portfolio_container._last_market_data = market_data
-                logger.info(f"📊 Passed current market data to PortfolioContainer: {list(market_data.keys())} symbols")
+        if not portfolio_container.portfolio_state:
+            logger.warning("⚠️ No portfolio state available for position closing")
+            return
             
-            # Call PortfolioContainer's position closing method directly
-            await portfolio_container._close_all_positions_directly(reason)
-            logger.info("✅ Called PortfolioContainer position closing directly")
-        else:
-            logger.warning("⚠️ Could not find registered PortfolioContainer for direct position closing")
+        # Get all current positions
+        positions = portfolio_container.portfolio_state.get_all_positions()
+        
+        if not positions:
+            logger.info("📊 No open positions to close")
+            return
             
-        logger.info("🎯 Position closing process completed")
+        logger.info(f"📊 Found {len(positions)} positions to close via execution engine")
+        
+        # Update market data in execution engine if available
+        if market_data and hasattr(self.execution_engine, '_market_data'):
+            for symbol, data in market_data.items():
+                self.execution_engine._market_data[symbol] = {
+                    'price': data.get('close', data.get('price', 100.0)),
+                    'close': data.get('close', data.get('price', 100.0)),
+                    'open': data.get('open', data.get('price', 100.0)),
+                    'high': data.get('high', data.get('price', 100.0)),
+                    'low': data.get('low', data.get('price', 100.0)),
+                    'volume': data.get('volume', 1000000),
+                    'bid': data.get('close', data.get('price', 100.0)) - 0.01,
+                    'ask': data.get('close', data.get('price', 100.0)) + 0.01,
+                    'timestamp': datetime.now()
+                }
+                logger.info(f"📊 Updated execution engine market data for {len(market_data)} symbols")
+        
+        # Generate close orders for each position
+        close_orders = []
+        for symbol, position in positions.items():
+            if hasattr(position, 'quantity') and position.quantity != 0:
+                # Determine close side (opposite of current position)
+                current_qty = position.quantity
+                close_side = 'SELL' if current_qty > 0 else 'BUY'
+                close_qty = abs(float(current_qty))
+                
+                # Create close order
+                close_order = self._create_close_order(
+                    symbol=symbol,
+                    side=close_side,
+                    quantity=close_qty,
+                    reason=reason
+                )
+                
+                if close_order:
+                    close_orders.append(close_order)
+                    logger.info(f"📋 Created close order: {symbol} {close_side} {close_qty} shares")
+        
+        # Execute all close orders through the normal execution engine
+        logger.info(f"🚀 Executing {len(close_orders)} close orders through execution engine")
+        
+        for order in close_orders:
+            try:
+                # Execute order through the execution engine (with slippage and commission)
+                fill = self.execution_engine.execute_order(order)
+                
+                if fill:
+                    # Emit fill event for portfolio container to process
+                    fill_event = Event(
+                        event_type=EventType.FILL,
+                        payload={
+                            'fill': fill,
+                            'order': order,
+                            'source': self.metadata.container_id,
+                            'close_reason': reason
+                        },
+                        timestamp=fill.executed_at
+                    )
+                    
+                    # Publish fill event via event bus (pipeline adapter will route to portfolio)
+                    self.event_bus.publish(fill_event)
+                    log_fill_event(logger, fill)
+                    
+                    logger.info(f"✅ Executed close order: {order.symbol} {order.side} {order.quantity} @ ${fill.price:.4f}")
+                    logger.info(f"   💸 Commission: ${fill.commission:.2f}, Slippage: ${fill.price - (market_data.get(order.symbol, {}).get('close', fill.price)):.4f}")
+                else:
+                    logger.warning(f"⚠️ Close order execution failed for {order.symbol}")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error executing close order for {order.symbol}: {e}")
+        
+        # Give time for fill events to be processed
+        await asyncio.sleep(0.1)
+        
+        logger.info(f"🎯 Position closing via execution engine completed for {reason}")
     
     
     def _create_close_order(self, symbol: str, side: str, quantity: float, reason: str):

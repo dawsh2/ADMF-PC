@@ -14,6 +14,15 @@ This phase bridges core functionality with advanced features, introducing sophis
 
 ## 📋 Steps in This Phase
 
+### 🚨 [Step 10.0: Critical Codebase Cleanup](step-10.0-codebase-cleanup.md)
+**MANDATORY FIRST STEP - Complete before any other work**
+- Remove ~50+ duplicate implementations
+- Eliminate ALL inheritance-based designs  
+- Consolidate to ONE implementation per concept
+- Migrate 26 files from old container system
+- Fix 5 competing type systems
+- Estimated time: 6 weeks
+
 ### [Step 10.1: Advanced Analytics](step-10.1-advanced-analytics.md)
 **Market microstructure and pattern analysis**
 - Market microstructure metrics (PIN, VPIN, Kyle's λ)
@@ -70,11 +79,28 @@ This phase bridges core functionality with advanced features, introducing sophis
 - Performance attribution charts
 - Custom reporting framework
 
+### [Step 10.8: Event Tracing & Data Mining](step-10.8-event-tracing-data-mining.md)
+**Comprehensive event tracking and pattern discovery**
+- Complete event lineage (signal → order → fill)
+- Pattern discovery and validation
+- Performance attribution analysis
+- Smart event sampling and compression
+- SQL analytics integration
+
+### [Step 10.9: Multi-Portfolio Architecture](step-10.9-multi-portfolio-architecture.md)
+**Support for multiple isolated portfolios**
+- Portfolio namespace isolation
+- Cross-portfolio analytics
+- Correlation monitoring
+- Consolidated reporting
+- Linear performance scaling
+
 ## 🔗 Phase Dependencies
 
 ```mermaid
 graph TD
-    A[Multi-Phase Integration Complete] --> B[Step 10.1: Advanced Analytics]
+    A[Multi-Phase Integration Complete] --> X[Step 10.0: CRITICAL CLEANUP]
+    X --> B[Step 10.1: Advanced Analytics]
     B --> C[Step 10.2: Multi-Asset Support]
     B --> D[Step 10.3: Execution Algorithms]
     C --> E[Step 10.4: Market Making]
@@ -82,7 +108,11 @@ graph TD
     B --> F[Step 10.5: Regime Adaptation]
     F --> G[Step 10.6: Custom Indicators]
     G --> H[Step 10.7: Advanced Visualization]
-    H --> I[Going Beyond Phase]
+    H --> J[Step 10.8: Event Tracing]
+    J --> K[Step 10.9: Multi-Portfolio]
+    K --> I[Going Beyond Phase]
+    
+    style X fill:#ff6666,stroke:#ff0000,stroke-width:4px
 ```
 
 ## ✅ Phase Completion Criteria
@@ -90,6 +120,11 @@ graph TD
 Before moving to Going Beyond:
 
 ### Technical Requirements
+- [ ] **Codebase cleanup complete (Step 10.0)**
+  - [ ] Zero inheritance implementations
+  - [ ] One canonical implementation per concept
+  - [ ] All 26 files migrated from old container system
+  - [ ] Single unified type system
 - [ ] Advanced analytics operational
 - [ ] Multi-asset strategies working
 - [ ] Execution algorithms tested
@@ -264,6 +299,14 @@ Use this checklist to track your progress:
 ```markdown
 ## Intermediate Complexity Progress
 
+### Step 10.0: Critical Codebase Cleanup (MANDATORY FIRST)
+- [ ] Type system consolidated (5 → 1)
+- [ ] Container system migrated (26 files)
+- [ ] All inheritance removed
+- [ ] Duplicate implementations deleted (~50 files)
+- [ ] Adjective prefixes removed from filenames
+- [ ] All tests passing after cleanup
+
 ### Step 10.1: Advanced Analytics
 - [ ] Microstructure analysis implemented
 - [ ] Regime detection working
@@ -319,6 +362,22 @@ Use this checklist to track your progress:
 - [ ] Reports generating
 - [ ] Export features complete
 - [ ] Performance validated
+
+### Step 10.8: Event Tracing & Data Mining
+- [ ] TracedEvent structure implemented
+- [ ] Event store with Parquet backend
+- [ ] Event lineage tracking working
+- [ ] Pattern discovery operational
+- [ ] SQL analytics integrated
+- [ ] Performance overhead < 5%
+
+### Step 10.9: Multi-Portfolio Architecture
+- [ ] Portfolio isolation complete
+- [ ] Multiple portfolios running
+- [ ] Cross-portfolio analytics working
+- [ ] Consolidated reporting functional
+- [ ] Linear performance scaling achieved
+- [ ] No event leakage between portfolios
 
 ### Phase Completion
 - [ ] All steps validated

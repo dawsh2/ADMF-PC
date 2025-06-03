@@ -154,7 +154,8 @@ class ExecutionModuleFactory:
         self,
         portfolio_state: PortfolioStateProtocol,
         module_id: str = "backtest_execution",
-        conservative: bool = False
+        conservative: bool = False,
+        broker_type: str = 'traditional'  # 'traditional', 'alpaca', 'zero_commission'
     ) -> Dict[str, Any]:
         """Create execution module optimized for backtesting.
         
@@ -162,27 +163,59 @@ class ExecutionModuleFactory:
             portfolio_state: Portfolio state from Risk module
             module_id: Unique module identifier
             conservative: Whether to use conservative simulation models
+            broker_type: Type of broker to simulate
             
         Returns:
             Dictionary with execution components optimized for backtesting
         """
-        # Configure for backtesting
-        config = ExecutionModuleConfig(
-            broker_type="backtest",
-            broker_params={
-                'commission_rate': 0.001 if not conservative else 0.002,
-                'slippage_rate': 0.0005 if not conservative else 0.001
-            },
-            simulator_type="conservative" if conservative else "realistic",
-            order_manager_params={
-                'max_order_age_hours': 24,
-                'validation_enabled': True
-            },
-            engine_params={
-                'validate_orders': True,
-                'enable_metrics': True
-            }
-        )
+        # Configure based on broker type
+        if broker_type == 'alpaca' or broker_type == 'zero_commission':
+            config = ExecutionModuleConfig(
+                broker_type="backtest",
+                broker_params={
+                    'commission_rate': 0.0,  # Zero commission
+                    'slippage_rate': 0.0005 if not conservative else 0.001
+                },
+                simulator_type="custom",
+                simulator_params={
+                    'commission_model': 'zero',
+                    'slippage_model': 'percentage',
+                    'slippage_params': {
+                        'base_slippage_pct': Decimal('0.0005') if not conservative else Decimal('0.001')
+                    },
+                    'simulator_params': {
+                        'fill_probability': Decimal('0.98'),
+                        'partial_fill_enabled': True
+                    }
+                },
+                order_manager_params={
+                    'max_order_age_hours': 6.5,  # Market hours
+                    'validation_enabled': True
+                },
+                engine_params={
+                    'validate_orders': True,
+                    'enable_metrics': True,
+                    'alpaca_mode': True
+                }
+            )
+        else:
+            # Traditional broker configuration
+            config = ExecutionModuleConfig(
+                broker_type="backtest",
+                broker_params={
+                    'commission_rate': 0.001 if not conservative else 0.002,
+                    'slippage_rate': 0.0005 if not conservative else 0.001
+                },
+                simulator_type="conservative" if conservative else "realistic",
+                order_manager_params={
+                    'max_order_age_hours': 24,
+                    'validation_enabled': True
+                },
+                engine_params={
+                    'validate_orders': True,
+                    'enable_metrics': True
+                }
+            )
         
         return self.create_execution_module(config, portfolio_state, module_id)
     
@@ -524,6 +557,57 @@ def build_realistic_backtest_config(
         engine_params={
             'validate_orders': True,
             'enable_metrics': True
+        }
+    )
+
+
+def build_alpaca_backtest_config(
+    stock_liquidity: str = 'liquid',  # 'liquid', 'medium', 'illiquid'
+    module_id: str = 'alpaca_execution'
+) -> ExecutionModuleConfig:
+    """Build configuration for Alpaca-style backtesting (zero commission).
+    
+    Args:
+        stock_liquidity: Liquidity level affecting slippage
+        module_id: Module identifier
+        
+    Returns:
+        Configuration for Alpaca-style execution
+    """
+    # Slippage based on liquidity
+    slippage_rates = {
+        'liquid': 0.0005,    # 0.05% for SPY, QQQ, AAPL, etc.
+        'medium': 0.0010,    # 0.10% for mid-cap stocks
+        'illiquid': 0.0015   # 0.15% for small-cap stocks
+    }
+    
+    return ExecutionModuleConfig(
+        broker_type='backtest',
+        broker_params={
+            'commission_rate': 0.0,  # Zero commission
+            'slippage_rate': slippage_rates.get(stock_liquidity, 0.0005)
+        },
+        simulator_type='custom',
+        simulator_params={
+            'slippage_model': 'percentage',
+            'commission_model': 'zero',  # Zero commission model
+            'slippage_params': {
+                'base_slippage_pct': Decimal(str(slippage_rates.get(stock_liquidity, 0.0005)))
+            },
+            'simulator_params': {
+                'fill_probability': Decimal('0.98'),  # 98% for liquid stocks
+                'partial_fill_enabled': True,
+                'max_participation_rate': Decimal('0.10')  # 10% of volume
+            }
+        },
+        order_manager_params={
+            'max_order_age_hours': 6.5,  # Market hours only
+            'validation_enabled': True
+        },
+        engine_params={
+            'validate_orders': True,
+            'enable_metrics': True,
+            'alpaca_mode': True
         }
     )
 

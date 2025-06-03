@@ -266,6 +266,19 @@ class PerShareCommissionModel:
         return commission
 
 
+class ZeroCommissionModel:
+    """Zero commission model for brokers like Alpaca."""
+    
+    def calculate_commission(
+        self,
+        order: Order,
+        fill_price: Decimal,
+        fill_quantity: Decimal
+    ) -> Decimal:
+        """Always returns zero commission."""
+        return Decimal("0.0")
+
+
 class ImprovedMarketSimulator(Component, Lifecycle, MarketSimulatorProtocol):
     """
     Improved market simulator with proper dependency injection.
@@ -737,6 +750,8 @@ def create_market_simulator(
         commission = PerShareCommissionModel(**kwargs.get('commission_params', {}))
     elif commission_model == "tiered":
         commission = TieredCommissionModel(**kwargs.get('commission_params', {}))
+    elif commission_model == "zero":
+        commission = ZeroCommissionModel()
     else:
         raise ValueError(f"Unknown commission model: {commission_model}")
     
@@ -784,5 +799,37 @@ def create_realistic_simulator(component_id: str) -> ImprovedMarketSimulator:
             'fill_probability': Decimal("0.95"),
             'partial_fill_enabled': True,
             'min_fill_ratio': Decimal("0.3")
+        }
+    )
+
+
+def create_alpaca_simulator(component_id: str, stock_liquidity: str = "liquid") -> ImprovedMarketSimulator:
+    """Create Alpaca-style market simulator with zero commission.
+    
+    Args:
+        component_id: Component identifier
+        stock_liquidity: 'liquid', 'medium', or 'illiquid'
+        
+    Returns:
+        Market simulator configured for Alpaca-style execution
+    """
+    # Slippage based on liquidity
+    slippage_rates = {
+        'liquid': Decimal("0.0005"),    # 0.05% for SPY, QQQ, AAPL
+        'medium': Decimal("0.001"),      # 0.10% for mid-cap
+        'illiquid': Decimal("0.0015")    # 0.15% for small-cap
+    }
+    
+    return create_market_simulator(
+        component_id=component_id,
+        slippage_model="percentage",
+        commission_model="zero",  # Zero commission
+        slippage_params={
+            'base_slippage_pct': slippage_rates.get(stock_liquidity, Decimal("0.0005"))
+        },
+        simulator_params={
+            'fill_probability': Decimal("0.98"),  # 98% for liquid stocks
+            'partial_fill_enabled': True,
+            'max_participation_rate': Decimal("0.1")  # 10% of volume
         }
     )

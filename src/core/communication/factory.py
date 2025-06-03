@@ -162,6 +162,15 @@ class AdapterFactory:
         """Start all active adapters."""
         for adapter in self.active_adapters:
             if hasattr(adapter, 'start'):
+                # Skip pipeline adapters that have no connections configured
+                # They will be started later by the workflow manager after configuration
+                if (hasattr(adapter, 'connections') and 
+                    hasattr(adapter, 'config') and 
+                    adapter.config.get('type') == 'pipeline' and 
+                    not adapter.connections):
+                    self.logger.info(f"Skipping start of pipeline adapter '{adapter.name}' - will be started after configuration")
+                    continue
+                    
                 adapter.start()
                 self.logger.info(f"Started adapter: {adapter.name}")
                 

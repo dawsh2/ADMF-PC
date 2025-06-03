@@ -179,6 +179,13 @@ class PortfolioState(PortfolioStateProtocol):
                 self._realized_pnl += realized
                 del self._positions[symbol]
                 
+                # Update cash balance for the closing trade BEFORE returning
+                cash_delta = -quantity_delta * price
+                self._cash_balance += cash_delta
+                
+                # Update value history
+                self._update_value_history()
+                
                 # Return closed position for reference
                 position.quantity = Decimal(0)
                 position.realized_pnl += realized
