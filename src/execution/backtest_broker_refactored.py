@@ -106,11 +106,21 @@ class BacktestBrokerRefactored:
             # For market orders, we'll check during execution
             return True
         else:  # SELL
-            # Check position
+            # Check if we have an existing position
             position = self.portfolio_state.get_position(order.symbol)
-            if not position:
-                return False
-            return quantity <= abs(position.quantity)
+            
+            if position and position.quantity > 0:
+                # We have a LONG position - validate we can sell part/all of it
+                return quantity <= abs(position.quantity)
+            elif position and position.quantity < 0:
+                # We have a SHORT position - selling more would increase the short
+                # Allow this (adding to short position)
+                return True
+            else:
+                # No position exists - this is initiating a SHORT position
+                # Allow short selling (selling without owning first)
+                logger.info(f"Allowing short sale initiation for {order.symbol} - quantity: {quantity}")
+                return True
     
     def cancel_order(self, order_id: str) -> bool:
         """Cancel pending order."""

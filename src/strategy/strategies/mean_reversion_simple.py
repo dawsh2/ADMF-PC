@@ -77,7 +77,9 @@ class MeanReversionStrategy:
             
             # Get indicators
             symbol_indicators = indicators.get(symbol, {})
-            bb_data = symbol_indicators.get('BB_20', {})
+            # Use BB indicator with the lookback period from parameters
+            bb_key = f'BB_{self.lookback_period}'
+            bb_data = symbol_indicators.get(bb_key, {})
             rsi = symbol_indicators.get('RSI')
             
             # Extract Bollinger Bands values

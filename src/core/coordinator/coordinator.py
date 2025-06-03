@@ -26,6 +26,9 @@ from enum import Enum
 from .simple_types import WorkflowConfig, ExecutionContext, WorkflowType, WorkflowPhase
 from .protocols import WorkflowManager
 
+# Communication imports (lazy loaded when needed)
+# from ..communication import EventCommunicationFactory, CommunicationLayer
+
 
 logger = logging.getLogger(__name__)
 
@@ -82,22 +85,35 @@ class Coordinator:
     def __init__(
         self,
         enable_composable_containers: bool = True,
-        shared_services: Optional[Dict[str, Any]] = None
+        shared_services: Optional[Dict[str, Any]] = None,
+        enable_communication: bool = True
     ):
         """Initialize coordinator."""
         self.enable_composable_containers = enable_composable_containers
         self.shared_services = shared_services or {}
+        self.enable_communication = enable_communication
         
         # Lazy-loaded components
         self._composition_engine = None
         self._container_registry = None
         self._workflow_manager_factory = None
         self._container_manager = None
+        self._communication_factory = None
+        self._communication_layer = None
+        self._log_manager = None
         
         # Active workflows tracking
         self.active_workflows: Dict[str, Dict[str, Any]] = {}
         
-        logger.info(f"Coordinator initialized (composable: {enable_composable_containers})")
+        # Coordinator ID for communication
+        self.coordinator_id = f"coordinator_{uuid.uuid4().hex[:8]}"
+        
+        logger.info(f"Coordinator initialized (composable: {enable_composable_containers}, communication: {enable_communication})")
+    
+    @property
+    def communication_layer(self):
+        """Get the communication layer."""
+        return self._communication_layer
     
     async def execute_workflow(
         self,
@@ -273,14 +289,21 @@ class Coordinator:
             return
         
         try:
+            # Ensure pipeline-enabled containers are registered
+            await self._ensure_containers_registered()
+            
             # Lazy import composable workflow manager
             ComposableWorkflowManager = await self._get_composable_workflow_manager()
             
             # Create composable workflow manager
-            manager = ComposableWorkflowManager(
-                container_id=f"workflow_{context.workflow_id}",
-                shared_services=self.shared_services
-            )
+            # Check if this is the pipeline manager (has different constructor)
+            if ComposableWorkflowManager.__name__ == 'ComposableWorkflowManagerPipeline':
+                manager = ComposableWorkflowManager(coordinator=self)
+            else:
+                manager = ComposableWorkflowManager(
+                    container_id=f"workflow_{context.workflow_id}",
+                    shared_services=self.shared_services
+                )
             
             # Store workflow info
             self.active_workflows[context.workflow_id] = {
@@ -290,15 +313,27 @@ class Coordinator:
                 'mode': 'composable'
             }
             
-            # Execute workflow
-            workflow_result = await manager.execute(config, context)
+            # Execute workflow using appropriate method
+            if ComposableWorkflowManager.__name__ == 'ComposableWorkflowManagerPipeline':
+                # Set up communication for pipeline manager
+                await self.setup_communication()
+                workflow_result = await manager.execute_workflow(config)
+            else:
+                workflow_result = await manager.execute(config, context)
             
-            # Convert to coordinator result
-            result.success = workflow_result.success
-            result.data = workflow_result.final_results
-            result.errors.extend(workflow_result.errors)
-            result.metadata.update(workflow_result.metadata)
-            result.metadata['execution_mode'] = 'composable'
+            # Convert to coordinator result - handle different return formats
+            if isinstance(workflow_result, dict):
+                # Pipeline manager returns dict
+                result.success = workflow_result.get('success', True)
+                result.data = workflow_result
+                result.metadata['execution_mode'] = 'composable_pipeline'
+            else:
+                # Regular manager returns WorkflowResult object
+                result.success = workflow_result.success
+                result.data = workflow_result.final_results
+                result.errors.extend(workflow_result.errors)
+                result.metadata.update(workflow_result.metadata)
+                result.metadata['execution_mode'] = 'composable'
             
             # Generate reports if configured
             if result.success:
@@ -414,6 +449,80 @@ class Coordinator:
     
     # Lazy loading methods to avoid deep imports
     
+    async def _get_communication_factory(self):
+        """Lazy load communication factory."""
+        if self._communication_factory is None and self.enable_communication:
+            try:
+                from ..communication import EventCommunicationFactory
+                
+                # Get or create log manager
+                if self._log_manager is None:
+                    from ..logging.log_manager import LogManager
+                    self._log_manager = LogManager(coordinator_id=self.coordinator_id)
+                
+                self._communication_factory = EventCommunicationFactory(
+                    coordinator_id=self.coordinator_id,
+                    log_manager=self._log_manager
+                )
+            except ImportError as e:
+                logger.warning(f"Communication module not available: {e}")
+                self.enable_communication = False
+        
+        return self._communication_factory
+    
+    async def setup_communication(self, config: Optional[Dict[str, Any]] = None) -> bool:
+        """Setup communication layer with given configuration.
+        
+        Args:
+            config: Communication configuration with adapter definitions
+            
+        Returns:
+            True if setup successful, False otherwise
+        """
+        if not self.enable_communication:
+            logger.info("Communication disabled, skipping setup")
+            return False
+        
+        try:
+            # Get communication factory
+            factory = await self._get_communication_factory()
+            if not factory:
+                return False
+            
+            # Default configuration if none provided
+            if config is None:
+                config = {
+                    'adapters': [{
+                        'name': 'default_pipeline',
+                        'type': 'pipeline',
+                        'containers': [],  # Will be populated with active containers
+                        'log_level': 'INFO'
+                    }]
+                }
+            
+            # Collect active containers from workflows
+            active_containers = {}
+            for workflow_info in self.active_workflows.values():
+                manager = workflow_info.get('manager')
+                if manager and hasattr(manager, 'containers'):
+                    active_containers.update(manager.containers)
+            
+            # Create communication layer
+            self._communication_layer = factory.create_communication_layer(
+                config=config,
+                containers=active_containers
+            )
+            
+            # Setup all adapters
+            await self._communication_layer.setup_all_adapters()
+            
+            logger.info(f"Communication layer setup complete with {len(self._communication_layer.adapters)} adapters")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to setup communication: {e}")
+            return False
+    
     async def _get_workflow_manager_factory(self):
         """Lazy load workflow manager factory."""
         if self._workflow_manager_factory is None:
@@ -437,10 +546,14 @@ class Coordinator:
     async def _get_composable_workflow_manager(self):
         """Lazy load composable workflow manager."""
         try:
+            # Use pipeline-enabled workflow manager for better event flow
+            from .composable_workflow_manager_pipeline import ComposableWorkflowManagerPipeline
+            return ComposableWorkflowManagerPipeline
+        except ImportError as e:
+            # Fall back to regular composable workflow manager
+            logger.warning("Pipeline workflow manager not available, falling back to regular manager")
             from .composable_workflow_manager import ComposableWorkflowManager
             return ComposableWorkflowManager
-        except ImportError as e:
-            raise ImportError(f"Cannot load composable workflow manager: {e}")
     
     async def _get_composition_engine(self):
         """Lazy load composition engine."""
@@ -463,6 +576,20 @@ class Coordinator:
                 raise ImportError(f"Cannot load container registry: {e}")
         
         return self._container_registry
+    
+    async def _ensure_containers_registered(self) -> None:
+        """Ensure pipeline-enabled containers are registered with the composition engine."""
+        try:
+            # Import and register pipeline-enabled containers
+            from ...execution import containers_pipeline
+            containers_pipeline.register_execution_containers()
+            logger.info("Pipeline-enabled containers registered with composition engine")
+        except ImportError as e:
+            logger.error(f"Failed to register pipeline containers: {e}")
+            raise ImportError(f"Pipeline containers not available: {e}")
+        except Exception as e:
+            logger.error(f"Error registering pipeline containers: {e}")
+            raise
     
     # Public API methods
     
@@ -488,6 +615,65 @@ class Coordinator:
             return pattern_info
         except ImportError:
             return {}
+    
+    async def get_system_status(self) -> Dict[str, Any]:
+        """Get comprehensive system status including communication metrics.
+        
+        Returns:
+            Dictionary containing system status information
+        """
+        status = {
+            'coordinator_id': self.coordinator_id,
+            'composable_containers_enabled': self.enable_composable_containers,
+            'communication_enabled': self.enable_communication,
+            'active_workflows': len(self.active_workflows),
+            'workflows': {}
+        }
+        
+        # Add workflow details
+        for workflow_id, workflow_info in self.active_workflows.items():
+            status['workflows'][workflow_id] = {
+                'type': workflow_info['config'].workflow_type.value,
+                'mode': workflow_info.get('mode', 'unknown'),
+                'start_time': workflow_info.get('context', {}).metadata.get('start_time')
+            }
+        
+        # Add communication metrics if enabled
+        if self.enable_communication and self._communication_layer:
+            try:
+                comm_metrics = self._communication_layer.get_system_metrics()
+                status['communication'] = {
+                    'total_adapters': comm_metrics.get('total_adapters', 0),
+                    'active_adapters': comm_metrics.get('active_adapters', 0),
+                    'connected_adapters': comm_metrics.get('connected_adapters', 0),
+                    'total_events_sent': comm_metrics.get('total_events_sent', 0),
+                    'total_events_received': comm_metrics.get('total_events_received', 0),
+                    'overall_error_rate': comm_metrics.get('overall_error_rate', 0),
+                    'events_per_second': comm_metrics.get('events_per_second', 0),
+                    'overall_health': comm_metrics.get('overall_health', 'unknown'),
+                    'adapter_status': self._communication_layer.get_adapter_status_summary()
+                }
+                
+                # Add latency percentiles if available
+                if 'latency_percentiles' in comm_metrics:
+                    status['communication']['latency_percentiles'] = comm_metrics['latency_percentiles']
+                    
+            except Exception as e:
+                logger.error(f"Failed to get communication metrics: {e}")
+                status['communication'] = {'error': str(e)}
+        else:
+            status['communication'] = {'status': 'disabled'}
+        
+        # Add container pattern info if available
+        if self.enable_composable_containers:
+            try:
+                patterns = await self.get_available_patterns()
+                status['available_patterns'] = list(patterns.keys())
+            except Exception as e:
+                logger.error(f"Failed to get pattern info: {e}")
+                status['available_patterns'] = []
+        
+        return status
     
     async def validate_workflow_config(
         self,
@@ -541,6 +727,22 @@ class Coordinator:
         workflow_ids = list(self.active_workflows.keys())
         for workflow_id in workflow_ids:
             await self._cleanup_workflow(workflow_id)
+        
+        # Clean up communication layer if created
+        if self._communication_layer:
+            try:
+                await self._communication_layer.cleanup()
+                logger.info("Communication layer cleaned up")
+            except Exception as e:
+                logger.error(f"Error cleaning up communication layer: {e}")
+        
+        # Clean up communication factory if created
+        if self._communication_factory:
+            try:
+                await self._communication_factory.cleanup_all_adapters()
+                logger.info("Communication factory cleaned up")
+            except Exception as e:
+                logger.error(f"Error cleaning up communication factory: {e}")
         
         # Clean up container manager if created
         if self._container_manager and hasattr(self._container_manager, 'shutdown'):

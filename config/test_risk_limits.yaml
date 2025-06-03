@@ -1,0 +1,46 @@
+# Test Configuration for Risk Limits
+# Tests the risk management with portfolio state sharing
+
+workflow:
+  type: "backtest"
+  name: "Risk Limits Test"
+
+data:
+  source: "csv"
+  file_path: "data/SPY_1m.csv"
+  symbols: ["SPY"]
+  max_bars: 100
+
+strategies:
+  - name: "test_strategy"
+    type: "mean_reversion"
+    enabled: true
+    parameters:
+      lookback_period: 15
+      entry_threshold: 0.8
+      exit_threshold: 0.2
+
+risk:
+  initial_capital: 10000  # Small capital to test limits
+  position_sizers:
+    - name: "fixed_size"
+      type: "fixed"
+      size: 1000  # $1000 per trade
+  limits:
+    - type: "position"
+      max_position: 2000  # Max $2000 per position
+    - type: "exposure"
+      max_exposure_pct: 50  # Max 50% exposure
+
+backtest:
+  initial_capital: 10000
+  commission:
+    type: "fixed"
+    value: 1.0
+  currency: "USD"
+
+output:
+  path: "results/risk_limits_test/"
+  generate_report: true
+
+# Classifier not needed for risk limits test

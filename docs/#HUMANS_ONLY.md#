@@ -1,0 +1,17 @@
+Key ideas:
+- [ ] event driven
+- [ ] config driven
+- [ ] isolated event buses + containers everywhere
+- [ ] container structure is decoupled from event flow
+- [ ] event communication is flexible via pluggable adapters
+- [ ] coordinator handles process management sequencing to ensure consistent exeuction paths --> reproducible results
+- [ ] coordinator workflows can be standardized, reused and composed
+- [ ] same code is used in live as in backtesting
+- [ ] parallelized backtesting, single pass over data 
+- [ ] analysis phase between optimization and forward testing
+
+
+The idea is that we can spawn containers with isolated event buses to prevent state leakage, and the Coordinator ensures things are wired up identically each time for reproducability. Being config driven ensures the entry point is via the Coordinator, essentially it's the Coordinator API. Backtest can be structured with standardized patterns and event communication system accomodates this.
+
+Once we have a basic backtest working, we should be able to quickly scale to more complex, multiphase processes.
+

@@ -1,0 +1,54 @@
+# Test configuration with lower momentum threshold to trigger trades
+name: Trading Test with Lower Threshold
+type: backtest
+description: Test with lower momentum threshold to actually see trades
+
+# Data configuration
+data:
+  source: csv
+  file_path: "data/SPY_1m.csv"
+  max_bars: 100  # More bars for better chance of trades
+
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  currency: USD
+  commission:
+    type: fixed
+    value: 1.0
+
+# Strategy configuration - with lower momentum threshold
+strategies:
+  - name: sensitive_momentum
+    type: momentum
+    enabled: true
+    allocation: 1.0
+    parameters:
+      lookback_period: 20
+      momentum_threshold: 0.0001  # Much lower threshold to trigger trades
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
+      signal_cooldown: 60  # Shorter cooldown
+
+# Risk management
+risk:
+  position_sizers:
+    - name: fixed_size
+      type: fixed
+      size: 10000  # $10k per position
+  
+  limits:
+    - type: position
+      max_position: 10000
+    - type: exposure
+      max_exposure_pct: 100
+
+# Analysis configuration
+analysis:
+  metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+  save_results: true
+  output_format: json

@@ -48,7 +48,7 @@ risk:
   position_sizers:
     - name: "fixed_size"
       type: "fixed"
-      size: 5000  # Smaller position size for multi-strategy
+      size: 1000  # Much smaller position size to test risk limits
   limits:
     - type: "position"
       max_position: 5000

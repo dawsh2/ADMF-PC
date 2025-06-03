@@ -1,0 +1,174 @@
+# Communication Configuration Examples for ADMF-PC
+# 
+# This file demonstrates various communication patterns using the
+# EventCommunicationFactory and adapter system.
+
+# Simple pipeline for basic workflow
+simple_pipeline:
+  pattern: "pipeline"
+  adapters:
+    - type: "pipeline"
+      name: "main_flow"
+      containers: 
+        - "data_container"
+        - "indicator_container"
+        - "strategy_container"
+        - "risk_container"
+        - "execution_container"
+
+# Fix for multi-strategy circular dependency issue
+multi_strategy_fixed:
+  pattern: "linear_pipeline"
+  adapters:
+    - type: "pipeline"
+      name: "main_pipeline"
+      containers:
+        - "data_container"
+        - "indicator_container"
+        - "classifier_container"
+        - "risk_container"
+        - "portfolio_container"
+        - "strategy_container"
+        - "execution_container"
+
+# Strategy-first organizational pattern (future)
+strategy_first_communication:
+  pattern: "strategy_first"
+  adapters:
+    - type: "pipeline"
+      name: "data_to_strategies"
+      containers: 
+        - "data_container"
+        - "strategy_container_001"
+    
+    - type: "pipeline"
+      name: "data_to_strategies_2"
+      containers: 
+        - "data_container"
+        - "strategy_container_002"
+    
+    - type: "pipeline"
+      name: "strategy_1_to_execution"
+      containers: 
+        - "strategy_container_001"
+        - "execution_container"
+    
+    - type: "pipeline"
+      name: "strategy_2_to_execution"
+      containers: 
+        - "strategy_container_002"
+        - "execution_container"
+
+# Multi-phase research workflow
+multi_phase_research:
+  # Phase 1: Parameter Discovery
+  phase_1_communication:
+    pattern: "discovery"
+    adapters:
+      - type: "pipeline"
+        name: "discovery_pipeline"
+        containers: 
+          - "data_container"
+          - "indicator_container"
+          - "strategy_container"
+          - "risk_container"
+          - "execution_container"
+  
+  # Phase 2: Regime Analysis
+  phase_2_communication:
+    pattern: "analysis"
+    adapters:
+      - type: "pipeline"
+        name: "analysis_pipeline"
+        containers: 
+          - "results_reader"
+          - "regime_analyzer"
+          - "report_generator"
+  
+  # Phase 3: Signal Replay
+  phase_3_communication:
+    pattern: "replay"
+    adapters:
+      - type: "pipeline"
+        name: "replay_pipeline"
+        containers: 
+          - "signal_reader"
+          - "ensemble_optimizer"
+          - "risk_container"
+          - "execution_container"
+
+# Future adapter types (to be implemented)
+future_patterns:
+  # Broadcast pattern for data distribution
+  broadcast_example:
+    pattern: "broadcast"
+    adapters:
+      - type: "broadcast"  # Not yet implemented
+        name: "data_distribution"
+        source: "data_container"
+        targets: 
+          - "indicator_container"
+          - "market_monitor"
+          - "data_recorder"
+  
+  # Hierarchical pattern for parent-child communication
+  hierarchical_example:
+    pattern: "hierarchical"
+    adapters:
+      - type: "hierarchical"  # Not yet implemented
+        name: "classifier_hierarchy"
+        parent: "classifier_container"
+        children: 
+          - "strategy_container_001"
+          - "strategy_container_002"
+          - "strategy_container_003"
+  
+  # Selective routing based on conditions
+  selective_example:
+    pattern: "selective"
+    adapters:
+      - type: "selective"  # Not yet implemented
+        name: "performance_routing"
+        source: "strategy_ensemble"
+        rules:
+          - condition: "performance.sharpe > 1.5"
+            target: "aggressive_risk_container"
+            name: "high_performance_route"
+          
+          - condition: "performance.sharpe < 0.5"
+            target: "conservative_risk_container"
+            name: "low_performance_route"
+          
+          - condition: "default"
+            target: "balanced_risk_container"
+            name: "default_route"
+
+# Production configuration example
+production_communication:
+  pattern: "production"
+  adapters:
+    # Main trading pipeline
+    - type: "pipeline"
+      name: "trading_pipeline"
+      containers:
+        - "market_data_container"
+        - "feature_engineering_container"
+        - "ml_prediction_container"
+        - "signal_generation_container"
+        - "position_sizing_container"
+        - "risk_management_container"
+        - "order_management_container"
+        - "execution_container"
+      
+      # Performance optimizations
+      enable_compression: false  # No compression for low latency
+      buffer_size: 10000        # Large buffer for high throughput
+      timeout_ms: 1000          # 1 second timeout
+      
+    # Monitoring pipeline (parallel)
+    - type: "pipeline"
+      name: "monitoring_pipeline"
+      containers:
+        - "market_data_container"
+        - "anomaly_detection_container"
+        - "alert_container"

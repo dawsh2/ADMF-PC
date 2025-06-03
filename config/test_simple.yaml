@@ -16,9 +16,13 @@ portfolio:
 risk:
   max_position_size: 0.02
   max_total_exposure: 0.1
+  position_sizers:
+    - type: fixed
+      size: 5000
 strategies:
 - type: momentum
   name: test_momentum
   parameters:
     lookback_period: 10
     rsi_period: 14
+    momentum_threshold: 0.0001

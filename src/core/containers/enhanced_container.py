@@ -52,6 +52,10 @@ class EnhancedContainer(UniversalScopedContainer):
             # Root container has standalone event bus
             self._event_bus = EventBus()
             
+        # Communication adapter support
+        self._output_event_handlers: List[Callable] = []
+        self._expected_input_type: Optional[EventType] = None
+            
     @property
     def event_bus(self) -> EventBus:
         """Get container's event bus."""
@@ -214,6 +218,74 @@ class EnhancedContainer(UniversalScopedContainer):
         if ensemble:
             return await ensemble.replay_with_weights(signals, weights)
         return {"error": "no_ensemble_optimizer"}
+    
+    # Communication adapter support methods
+    
+    def on_output_event(self, handler: Callable) -> None:
+        """Register a handler for output events (used by communication adapters).
+        
+        Args:
+            handler: Callable that will receive events emitted by this container
+        """
+        self._output_event_handlers.append(handler)
+        logger.debug(f"Registered output event handler for {self.container_id}")
+    
+    def remove_output_handler(self, handler: Callable) -> None:
+        """Remove an output event handler.
+        
+        Args:
+            handler: Handler to remove
+        """
+        if handler in self._output_event_handlers:
+            self._output_event_handlers.remove(handler)
+            logger.debug(f"Removed output event handler from {self.container_id}")
+    
+    def emit_output_event(self, event: Event) -> None:
+        """Emit an event to all registered output handlers.
+        
+        Args:
+            event: Event to emit
+        """
+        for handler in self._output_event_handlers:
+            try:
+                handler(event)
+            except Exception as e:
+                logger.error(
+                    f"Error in output event handler for {self.container_id}: {str(e)}"
+                )
+    
+    async def receive_event(self, event: Event) -> None:
+        """Receive an event from a communication adapter.
+        
+        Args:
+            event: Event to process
+        """
+        # Default implementation publishes to internal event bus
+        self._event_bus.publish(event)
+        
+        # Also process if we have a process_event method
+        if hasattr(self, 'process_event'):
+            await self.process_event(event)
+    
+    async def process_event(self, event: Event) -> None:
+        """Process a received event. Override in subclasses for custom processing.
+        
+        Args:
+            event: Event to process
+        """
+        logger.debug(
+            f"Container {self.container_id} processing event: {event.event_type}"
+        )
+    
+    @property
+    def expected_input_type(self) -> Optional[EventType]:
+        """Get the expected input event type for this container."""
+        return self._expected_input_type
+    
+    @expected_input_type.setter
+    def expected_input_type(self, event_type: Optional[EventType]) -> None:
+        """Set the expected input event type for this container."""
+        self._expected_input_type = event_type
 
 
 class ScopedEventBus(EventBus):

@@ -13,7 +13,6 @@ from typing import Dict, Any
 # Use new composable container system
 from src.core.coordinator.coordinator import Coordinator
 from src.core.containers.composition_engine import get_global_composition_engine
-from src.execution import containers  # Ensure container registration
 
 # Simple types for configuration
 from enum import Enum
@@ -282,8 +281,7 @@ async def main():
     # Build workflow configuration
     workflow_config = build_workflow_config(args, base_config)
     
-    # Ensure container registration for composable system
-    containers.register_execution_containers()
+    # Container registration is handled by the coordinator
     
     # Execute workflow through coordinator - force composable mode
     try:

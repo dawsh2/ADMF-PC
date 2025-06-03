@@ -23,6 +23,189 @@ Before starting:
 
 ## 🏗️ Implementation Tasks
 
+### 0. Container Hierarchy Inversion Experiment
+
+Before implementing the standard hierarchy, experiment with **inverted container organization** to optimize for risk manager comparison:
+
+**Standard Hierarchy** (many containers):
+```
+Classifier/Risk/Portfolio/Strategy
+├── HMM Classifier
+│   ├── Conservative Risk (Strategy A + Strategy B + Strategy C)
+│   ├── Balanced Risk (Strategy A + Strategy B + Strategy C)  
+│   └── Aggressive Risk (Strategy A + Strategy B + Strategy C)
+└── Pattern Classifier
+    ├── Conservative Risk (Strategy A + Strategy B + Strategy C)
+    ├── Balanced Risk (Strategy A + Strategy B + Strategy C)
+    └── Aggressive Risk (Strategy A + Strategy B + Strategy C)
+
+Total Containers: 2 classifiers × 3 risk × 3 strategies = 18 containers
+```
+
+**Inverted Hierarchy** (fewer containers):
+```
+Classifier/Strategy/Portfolio/Risk
+├── HMM Classifier
+│   ├── Strategy A (Conservative + Balanced + Aggressive Risk)
+│   ├── Strategy B (Conservative + Balanced + Aggressive Risk)
+│   └── Strategy C (Conservative + Balanced + Aggressive Risk)
+└── Pattern Classifier  
+    ├── Strategy A (Conservative + Balanced + Aggressive Risk)
+    ├── Strategy B (Conservative + Balanced + Aggressive Risk)
+    └── Strategy C (Conservative + Balanced + Aggressive Risk)
+
+Total Containers: 2 classifiers × 3 strategies = 6 containers
+Each container tests 3 risk managers
+```
+
+#### Why Hierarchy Inversion Makes Sense:
+
+1. **Performance Attribution**: "How does Strategy A perform with different risk managers?"
+2. **Risk Manager A/B Testing**: Keep strategy logic constant, vary risk parameters
+3. **Resource Efficiency**: 6 containers instead of 18 for same comparison
+4. **Cleaner Analysis**: Direct comparison of risk manager effectiveness per strategy
+
+#### Adapter Configuration for Inverted Hierarchy:
+
+```yaml
+# Inverted hierarchy adapter configuration
+communication:
+  adapters:
+    # Classifier to Strategy containers (unchanged)
+    - type: hierarchical
+      parent: hmm_classifier
+      children: [strategy_a_container, strategy_b_container, strategy_c_container]
+      
+    # Strategy to multiple risk managers (NEW PATTERN)
+    - type: broadcast
+      source: strategy_a_signals
+      targets: [conservative_risk_a, balanced_risk_a, aggressive_risk_a]
+      transform: add_strategy_context
+      
+    # Risk managers aggregate back to strategy container
+    - type: aggregation  # NEW ADAPTER TYPE
+      sources: [conservative_risk_a, balanced_risk_a, aggressive_risk_a]
+      target: strategy_a_results
+      aggregation_method: risk_comparison
+```
+
+#### Implementation:
+
+```python
+# src/risk/inverted_hierarchy_manager.py
+class InvertedHierarchyRiskManager:
+    """
+    Manages multiple risk managers within a single strategy container.
+    Enables direct comparison of risk management approaches.
+    """
+    
+    def __init__(self, strategy_id: str, risk_configs: Dict[str, RiskConfig]):
+        self.strategy_id = strategy_id
+        self.risk_managers: Dict[str, RiskManager] = {}
+        self.risk_results: Dict[str, RiskResults] = {}
+        
+        # Create multiple risk managers for this strategy
+        for risk_id, config in risk_configs.items():
+            self.risk_managers[risk_id] = RiskManager(
+                container_id=f"{strategy_id}_{risk_id}",
+                config=config
+            )
+            
+        self.logger = ComponentLogger("InvertedRiskManager", strategy_id)
+    
+    def process_strategy_signal(self, signal: TradingSignal) -> Dict[str, Order]:
+        """Process same signal through multiple risk managers"""
+        orders = {}
+        
+        for risk_id, risk_manager in self.risk_managers.items():
+            try:
+                # Clone signal for isolation
+                signal_copy = signal.copy()
+                order = risk_manager.process_signal(signal_copy)
+                
+                if order:
+                    orders[risk_id] = order
+                    self.logger.info(
+                        f"Risk manager {risk_id} generated order: "
+                        f"{order.side} {order.quantity} {order.symbol}"
+                    )
+                else:
+                    self.logger.info(f"Risk manager {risk_id} rejected signal")
+                    
+            except Exception as e:
+                self.logger.error(f"Risk manager {risk_id} failed: {e}")
+        
+        return orders
+    
+    def get_comparative_results(self) -> Dict[str, Any]:
+        """Get side-by-side risk manager performance"""
+        results = {}
+        
+        for risk_id, risk_manager in self.risk_managers.items():
+            metrics = risk_manager.get_performance_metrics()
+            results[risk_id] = {
+                'sharpe_ratio': metrics.sharpe_ratio,
+                'max_drawdown': metrics.max_drawdown,
+                'total_return': metrics.total_return,
+                'trade_count': metrics.trade_count,
+                'win_rate': metrics.win_rate
+            }
+        
+        return {
+            'strategy_id': self.strategy_id,
+            'risk_manager_comparison': results,
+            'best_risk_manager': self._identify_best_risk_manager(results)
+        }
+```
+
+#### Benefits of Hierarchy Inversion:
+
+**Resource Efficiency:**
+```
+Standard: 2 × 3 × 3 = 18 containers (heavy)
+Inverted: 2 × 3 = 6 containers (light)
+```
+
+**Cleaner Comparisons:**
+```python
+# Direct risk manager comparison per strategy
+strategy_a_results = {
+    'conservative': {'sharpe': 1.2, 'drawdown': 0.05},
+    'balanced': {'sharpe': 1.5, 'drawdown': 0.08}, 
+    'aggressive': {'sharpe': 1.8, 'drawdown': 0.15}
+}
+# Winner: Aggressive risk for Strategy A
+```
+
+**Easier Configuration:**
+```yaml
+# Test same strategy with different risk approaches
+strategy_a:
+  type: momentum
+  risk_managers:
+    conservative: {max_position: 0.02, stop_loss: 0.01}
+    balanced: {max_position: 0.05, stop_loss: 0.02}
+    aggressive: {max_position: 0.10, stop_loss: 0.05}
+```
+
+#### When to Use Each Hierarchy:
+
+**Use Inverted (Classifier/Strategy/Risk) When:**
+- Comparing risk management approaches
+- Strategy logic is fixed/proven
+- Optimizing risk parameters
+- A/B testing risk managers
+
+**Use Standard (Classifier/Risk/Strategy) When:**
+- Comparing strategy performance
+- Risk approach is fixed/proven  
+- Optimizing strategy parameters
+- A/B testing strategies
+
+#### Implementation Note:
+
+This substep validates that your adapter system can handle **arbitrary container hierarchies** - the same components, just reorganized. This proves the architecture's flexibility and sets up powerful optimization patterns.
+
 ### 1. Risk Container Hierarchy
 
 ```python

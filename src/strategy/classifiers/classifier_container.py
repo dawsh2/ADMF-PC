@@ -41,21 +41,43 @@ class ClassifierContainer:
         - Dependencies: Enhanced event isolation, structured logging
     
     Example:
-        config = ClassifierConfig(classifier_type='pattern')
-        container = ClassifierContainer("classifier_001", config)
+        config = {'classifier_type': 'pattern', 'lookback_period': 50}
+        container = ClassifierContainer(config, "classifier_001")
         container.on_bar(bar)  # Process market data
     """
     
-    def __init__(self, container_id: str, config: ClassifierConfig):
+    def __init__(self, config: Dict[str, Any], container_id: str = None):
         """
         Initialize classifier container.
         
         Args:
-            container_id: Unique container identifier
-            config: Classifier configuration
+            config: Configuration dictionary from YAML
+            container_id: Unique container identifier (optional)
         """
+        # Generate container ID if not provided
+        if container_id is None:
+            container_id = f"classifier_{datetime.now().timestamp()}"
         self.container_id = container_id
-        self.config = config
+        
+        # Convert dict config to ClassifierConfig dataclass
+        classifier_dict = config.get('classifier', config)
+        
+        self.config = ClassifierConfig(
+            classifier_type=classifier_dict.get('classifier_type', 'pattern'),
+            lookback_period=classifier_dict.get('lookback_period', 50),
+            min_confidence=classifier_dict.get('min_confidence', 0.6),
+            regime_change_threshold=classifier_dict.get('regime_change_threshold', 0.1),
+            feature_window=classifier_dict.get('feature_window', 20),
+            hmm_states=classifier_dict.get('n_states', classifier_dict.get('hmm_states', 3)),
+            hmm_iterations=classifier_dict.get('hmm_iterations', 100),
+            hmm_covariance_type=classifier_dict.get('covariance_type', classifier_dict.get('hmm_covariance_type', 'diag')),
+            atr_period=classifier_dict.get('atr_period', 14),
+            trend_period=classifier_dict.get('trend_period', 20),
+            volatility_threshold=classifier_dict.get('volatility_threshold', 0.02),
+            trend_threshold=classifier_dict.get('trend_threshold', 0.7),
+            ensemble_classifiers=classifier_dict.get('ensemble_classifiers', ['hmm', 'pattern']),
+            ensemble_weights=classifier_dict.get('ensemble_weights', {'hmm': 0.6, 'pattern': 0.4})
+        )
         
         # Create isolated event bus
         self.isolation_manager = get_enhanced_isolation_manager()
@@ -64,7 +86,7 @@ class ClassifierContainer:
         )
         
         # Initialize classifier
-        self.classifier = self._create_classifier(config.classifier_type)
+        self.classifier = self._create_classifier(self.config.classifier_type)
         
         # State tracking
         self.current_regime = MarketRegime.UNKNOWN
@@ -84,8 +106,8 @@ class ClassifierContainer:
         self.logger.info(
             "ClassifierContainer initialized",
             container_id=container_id,
-            classifier_type=config.classifier_type,
-            lookback_period=config.lookback_period
+            classifier_type=self.config.classifier_type,
+            lookback_period=self.config.lookback_period
         )
     
     def _create_classifier(self, classifier_type: str) -> BaseClassifier:

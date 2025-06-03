@@ -1,0 +1,8 @@
+2025-06-02 16:49:54,220 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-06-02 16:49:54,237 - src.core.events.isolation - DEBUG - EventIsolationManager initialized
+2025-06-02 16:49:54,239 - src.core.components.registry - DEBUG - ComponentRegistry initialized
+2025-06-02 16:49:54,243 - src.core.containers.lifecycle - INFO - ContainerLifecycleManager initialized
+2025-06-02 16:49:54,247 - src.core.coordinator.coordinator - INFO - Coordinator initialized (composable: None, communication: True)
+2025-06-02 16:49:54,247 - src.core.components.registry - DEBUG - ComponentRegistry initialized
+2025-06-02 16:49:54,247 - src.core.coordinator.yaml_coordinator - INFO - YAML Coordinator initialized
+2025-06-02 16:49:54,248 - src.core.coordinator.yaml_coordinator - INFO - Executing YAML workflow: debug_close_orders_config.yaml

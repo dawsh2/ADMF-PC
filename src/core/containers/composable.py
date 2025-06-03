@@ -14,7 +14,6 @@ from enum import Enum
 import uuid
 
 from ..events.types import Event
-from ..events.event_bus import EventBus
 
 
 ContainerType = TypeVar('ContainerType', bound='ComposableContainerProtocol')
@@ -91,7 +90,7 @@ class ComposableContainerProtocol(Protocol):
     
     @property
     @abstractmethod
-    def event_bus(self) -> EventBus:
+    def event_bus(self):
         """Container-scoped event bus."""
         ...
     
@@ -320,7 +319,8 @@ class BaseComposableContainer(HybridContainerInterface):
             config=config or {}
         )
         self._state = ContainerState.UNINITIALIZED
-        self._event_bus = EventBus()
+        # Use the internal_bus from HybridContainerInterface instead of creating our own
+        self._event_bus = self.internal_bus  # This enables proper event bridging between containers
         self._parent_container: Optional[ComposableContainerProtocol] = None
         self._child_containers: List[ComposableContainerProtocol] = []
         self._limits = limits or ContainerLimits()
@@ -346,7 +346,7 @@ class BaseComposableContainer(HybridContainerInterface):
         return self._state
     
     @property
-    def event_bus(self) -> EventBus:
+    def event_bus(self):  # Return the internal bus from HybridContainerInterface
         return self._event_bus
     
     @property
