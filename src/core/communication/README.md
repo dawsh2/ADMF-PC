@@ -1,176 +1,251 @@
-# Communication Module
+# Protocol-Based Communication Adapters
 
-The communication module provides a unified adapter interface for various communication protocols in the ADMF-PC system. It enables seamless integration of different communication mechanisms while maintaining consistency and proper event flow.
+This package implements ADMF-PC's protocol-based communication adapter system, connecting isolated container event buses without inheritance.
 
-## Overview
+## 🏗️ Architecture Principles
 
-The communication module implements the adapter pattern to abstract away the details of specific communication protocols (WebSocket, gRPC, ZeroMQ, etc.) and provides a consistent interface for event-based communication across containers.
-
-## Key Components
-
-### CommunicationAdapter (base_adapter.py)
-The abstract base class that all communication adapters must implement. It provides:
-- Lifecycle management (setup/cleanup)
-- Event serialization/deserialization
-- Metrics tracking
-- Error handling and recovery
-- Correlation ID support
-- Full logging integration
-
-### AdapterConfig
-Configuration dataclass for adapters including:
-- Name and type identification
-- Retry and timeout settings
-- Buffer and performance options
-- Custom protocol-specific settings
-
-### AdapterMetrics
-Comprehensive metrics tracking:
-- Events sent/received/failed
-- Bytes transferred
-- Error rates and latency
-- Connection statistics
-
-## Architecture
-
-```
-┌─────────────────────────────────────────┐
-│         CommunicationAdapter            │
-│         (Abstract Base Class)           │
-├─────────────────────────────────────────┤
-│ + connect() -> bool                     │
-│ + disconnect() -> None                  │
-│ + send_event(Event) -> bool            │
-│ + process_incoming() -> None           │
-│ + setup() -> None                      │
-│ + cleanup() -> None                    │
-└─────────────────────────────────────────┘
-                    ▲
-                    │ Inherits
-     ┌──────────────┴──────────────┐
-     │                             │
-┌────┴─────┐              ┌───────┴──────┐
-│WebSocket │              │    gRPC      │
-│ Adapter  │              │   Adapter    │
-└──────────┘              └──────────────┘
-```
-
-## Usage Example
+### 1. No Inheritance
+Adapters implement protocols, not inherit from base classes. This provides maximum flexibility and avoids the fragile base class problem.
 
 ```python
-from src.core.communication import CommunicationAdapter, AdapterConfig
-from src.core.events.types import Event, EventType
+# ❌ Old way - Inheritance
+class PipelineAdapter(CommunicationAdapter):
+    def __init__(self, config):
+        super().__init__(config)  # Tight coupling!
 
-# Configure adapter
-config = AdapterConfig(
-    name="market_data",
-    adapter_type="websocket",
-    retry_attempts=3,
-    timeout_ms=5000,
-    custom_settings={
-        "url": "wss://market-data.example.com",
-        "compression": True
-    }
-)
-
-# Create adapter (using concrete implementation)
-adapter = WebSocketAdapter(config)
-
-# Setup
-await adapter.setup()
-
-# Send events
-event = Event(
-    event_type=EventType.SIGNAL,
-    payload={"symbol": "AAPL", "direction": 1},
-    source_id="strategy_1",
-    metadata={"correlation_id": "trade-123"}
-)
-success = await adapter.send_event(event)
-
-# Process incoming messages
-await adapter.process_incoming()
-
-# Get metrics
-metrics = adapter.get_metrics()
-print(f"Events sent: {metrics.events_sent}")
-print(f"Average latency: {metrics.average_latency_ms}ms")
-
-# Cleanup
-await adapter.cleanup()
+# ✅ New way - Protocol implementation
+class PipelineAdapter:
+    def __init__(self, name: str, config: Dict[str, Any]):
+        self.name = name
+        self.config = config  # No super(), no inheritance!
 ```
 
-## Implementing a New Adapter
+### 2. Composition Over Inheritance
+Common functionality is provided through helper functions, not base class methods:
 
-To implement a new communication protocol:
+```python
+# Helper functions provide reusable behavior
+adapter = create_adapter_with_logging(PipelineAdapter, name, config)
+handle_event_with_metrics(adapter, event, source)
+```
 
-1. **Inherit from CommunicationAdapter**
-   ```python
-   class MyProtocolAdapter(CommunicationAdapter):
-       def __init__(self, config: AdapterConfig):
-           super().__init__(config)
-           # Protocol-specific initialization
-   ```
+### 3. Protocol Compliance
+Containers and adapters must implement specific protocols to work together:
 
-2. **Implement Abstract Methods**
-   - `connect()`: Establish connection to the communication channel
-   - `disconnect()`: Close the connection
-   - `send_raw()`: Send raw bytes through the channel
-   - `receive_raw()`: Receive raw bytes from the channel
+```python
+@runtime_checkable
+class Container(Protocol):
+    """What makes something a container"""
+    @property
+    def name(self) -> str: ...
+    @property
+    def event_bus(self) -> EventBusProtocol: ...
+    def receive_event(self, event: Event) -> None: ...
+    def publish_event(self, event: Event) -> None: ...
+```
 
-3. **Optional: Override Serialization**
-   - Override `serialize_event()` and `deserialize_event()` for custom formats
-   - Default implementation uses JSON
+## 📦 Available Adapters
 
-4. **Add Protocol-Specific Features**
-   - Use `config.custom_settings` for protocol-specific configuration
-   - Add helper methods as needed
-   - Maintain metrics tracking
+### Pipeline Adapter
+Routes events sequentially through containers:
+```python
+config = {
+    'type': 'pipeline',
+    'containers': ['data', 'strategy', 'risk', 'execution']
+}
+```
 
-## Integration with ADMF-PC
+### Broadcast Adapter
+Sends events from one source to multiple targets:
+```python
+config = {
+    'type': 'broadcast',
+    'source': 'market_data',
+    'targets': ['strategy1', 'strategy2', 'strategy3']
+}
+```
 
-The communication adapters integrate with the ADMF-PC event system:
+### Hierarchical Adapter
+Tree-structured event routing with up/down propagation:
+```python
+config = {
+    'type': 'hierarchical',
+    'root': 'supervisor',
+    'hierarchy': {
+        'risk_manager': {
+            'portfolio1': {},
+            'portfolio2': {}
+        }
+    }
+}
+```
 
-1. **Event Flow**
-   - Internal events → Adapter → External protocol
-   - External protocol → Adapter → Internal events
+### Selective Adapter
+Content-based routing with rules:
+```python
+config = {
+    'type': 'selective',
+    'source': 'signal_generator',
+    'routing_rules': [{
+        'target': 'aggressive_strategy',
+        'conditions': [
+            {'field': 'payload.confidence', 'operator': 'greater_than', 'value': 0.8}
+        ]
+    }]
+}
+```
 
-2. **Container Isolation**
-   - Each adapter runs in its own context
-   - Full logging with container awareness
-   - Correlation tracking across boundaries
+## 🚀 Usage Examples
 
-3. **Metrics and Monitoring**
-   - All adapters report standardized metrics
-   - Integration with system monitoring
-   - Performance tracking and optimization
+### Basic Setup
+```python
+from src.core.communication import AdapterFactory
 
-## Best Practices
+# Create factory
+factory = AdapterFactory()
 
-1. **Error Handling**
-   - Always implement retry logic
-   - Log errors with full context
-   - Graceful degradation on failures
+# Create adapter from config
+adapter = factory.create_adapter('main_pipeline', {
+    'type': 'pipeline',
+    'containers': ['data', 'strategy', 'risk']
+})
 
-2. **Performance**
-   - Use async/await for non-blocking I/O
-   - Implement buffering for high throughput
-   - Monitor and optimize latency
+# Setup with containers
+adapter.setup(containers)
+adapter.start()
+```
 
-3. **Security**
-   - Support encryption when needed
-   - Validate all incoming data
-   - Implement proper authentication
+### Advanced Patterns
 
-4. **Testing**
-   - Create mock adapters for testing
-   - Test error conditions and recovery
-   - Validate metrics accuracy
+#### Conditional Pipeline
+```python
+adapter = factory.create_adapter('conditional_flow', {
+    'type': 'conditional_pipeline',
+    'containers': ['input', 'validator', 'processor', 'output'],
+    'conditions': [{
+        'stage': 'validator',
+        'skip_if': 'event.payload.get("validated") == True'
+    }]
+})
+```
 
-## Future Enhancements
+#### Load-Balanced Router
+```python
+adapter = factory.create_adapter('load_balancer', {
+    'type': 'load_balanced_router',
+    'source': 'gateway',
+    'strategy': 'round_robin',  # or 'random', 'least_used', 'weighted'
+    'routing_rules': [...]
+})
+```
 
-- Protocol-specific implementations (WebSocket, gRPC, ZeroMQ)
-- Message compression and encryption
-- Advanced routing and filtering
-- Load balancing and failover
-- Performance optimizations
+#### Fan-Out with Transformations
+```python
+adapter = factory.create_adapter('transformer', {
+    'type': 'fan_out',
+    'source': 'raw_data',
+    'targets': [{
+        'name': 'ml_strategy',
+        'transform': lambda e: transform_to_ml_format(e)
+    }, {
+        'name': 'rule_strategy',
+        'transform': lambda e: transform_to_rule_format(e)
+    }]
+})
+```
+
+## 🔧 Creating Custom Adapters
+
+To create a custom adapter, just implement the protocol:
+
+```python
+class MyCustomAdapter:
+    """Custom adapter - no inheritance needed!"""
+    
+    def __init__(self, name: str, config: Dict[str, Any]):
+        self.name = name
+        self.config = config
+        self.containers = {}
+        
+    def setup(self, containers: Dict[str, Container]) -> None:
+        """Configure with containers"""
+        self.containers = containers
+        
+    def start(self) -> None:
+        """Begin operation"""
+        # Set up subscriptions
+        pass
+        
+    def stop(self) -> None:
+        """Shutdown"""
+        # Clean up subscriptions
+        pass
+        
+    def handle_event(self, event: Event, source: Container) -> None:
+        """Process events"""
+        # Your custom routing logic
+        pass
+
+# Register with factory
+factory.register_adapter_type('my_custom', 
+    lambda n, c: create_adapter_with_logging(MyCustomAdapter, n, c))
+```
+
+## 📊 Metrics and Monitoring
+
+All adapters support metrics through composition:
+
+```python
+# Metrics are attached via helper
+adapter = create_adapter_with_logging(PipelineAdapter, name, config)
+
+# Access metrics
+print(f"Events processed: {adapter.metrics.success_count}")
+print(f"Average latency: {adapter.metrics.get_average_latency()}")
+```
+
+## 🧪 Testing Adapters
+
+Test adapters using mock containers:
+
+```python
+@dataclass
+class MockContainer:
+    """Mock container for testing"""
+    name: str
+    event_bus: MockEventBus = field(default_factory=MockEventBus)
+    received_events: List[Event] = field(default_factory=list)
+    
+    def receive_event(self, event: Event) -> None:
+        self.received_events.append(event)
+
+# Test adapter
+containers = {'source': MockContainer('source'), ...}
+adapter.setup(containers)
+adapter.start()
+
+# Verify routing
+adapter.handle_event(test_event, containers['source'])
+assert len(containers['target'].received_events) == 1
+```
+
+## 🎯 Best Practices
+
+1. **Use Type Hints**: All adapters should use type hints for clarity
+2. **Validate Config**: Use `validate_adapter_config()` helper
+3. **Handle Errors**: Use try/except in routing logic
+4. **Log Events**: Use structured logging for debugging
+5. **Test Thoroughly**: Test all routing paths and edge cases
+
+## 🚫 Common Pitfalls
+
+1. **Don't inherit**: Resist the urge to create base classes
+2. **Don't share state**: Each adapter should be independent
+3. **Don't assume order**: Event delivery order isn't guaranteed
+4. **Don't block**: Keep event handling fast and async-friendly
+
+## 📚 Further Reading
+
+- [Event-Driven Architecture](../../docs/architecture/01-EVENT-DRIVEN-ARCHITECTURE.md)
+- [Container Organization](../../docs/architecture/container-organization-patterns_v2.md)
+- [System Architecture](../../docs/SYSTEM_ARCHITECTURE_v5.MD)

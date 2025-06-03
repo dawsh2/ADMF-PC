@@ -32,8 +32,7 @@ class MomentumStrategy:
                  momentum_threshold: float = 0.0005,  # Lowered from 0.02 to 0.0005 for minute data
                  rsi_period: int = 14,
                  rsi_oversold: float = 30,
-                 rsi_overbought: float = 70,
-                 signal_cooldown: float = 300):
+                 rsi_overbought: float = 70):
         """
         Initialize momentum strategy.
         
@@ -43,7 +42,6 @@ class MomentumStrategy:
             rsi_period: RSI calculation period
             rsi_oversold: RSI oversold threshold
             rsi_overbought: RSI overbought threshold
-            signal_cooldown: Signal cooldown in seconds
         """
         # Parameters
         self.lookback_period = lookback_period
@@ -55,8 +53,6 @@ class MomentumStrategy:
         # State
         self.price_history: List[float] = []
         self.rsi_values: List[float] = []
-        self.last_signal_time: Optional[datetime] = None
-        self.signal_cooldown = signal_cooldown  # Configurable cooldown
         
         # Internal calculation state
         self._gains: List[float] = []
@@ -125,29 +121,31 @@ class MomentumStrategy:
                 logger.debug(f"Not enough price history: {len(self.price_history)}/{self.lookback_period}")
                 continue
             
-            # Check cooldown
-            if self.last_signal_time:
-                time_since_last = (timestamp - self.last_signal_time).total_seconds()
-                if time_since_last < self.signal_cooldown:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.debug(f"Signal in cooldown: {time_since_last}s < {self.signal_cooldown}s")
-                    continue
+            # No cooldown - let risk management handle position limits
             
             # Get indicators - use shared indicators if available, fallback to internal calculation
             rsi = symbol_indicators.get('RSI')
             if rsi is None:
                 rsi = self._calculate_rsi(price)
             
-            # Calculate momentum (still internal for now - could be moved to indicators)
-            momentum = self._calculate_momentum()
+            # Use SMA from indicators for momentum calculation
+            sma_key = f'SMA_{self.lookback_period}'
+            sma = symbol_indicators.get(sma_key)
+            
+            if sma is not None and price is not None:
+                # Calculate momentum using SMA (price relative to moving average)
+                # This is more stable than simple rate of change
+                momentum = (price - sma) / sma if sma != 0 else 0.0
+                logger.info(f"   Using SMA-based momentum: price={price}, sma={sma}, momentum={momentum}")
+            else:
+                # Fallback to internal calculation
+                momentum = self._calculate_momentum()
+                logger.info(f"   Using internal momentum calculation: {momentum}")
             
             # Debug logging for signal conditions
-            import logging
-            logger = logging.getLogger(__name__)
             logger.info(f"🎯 SIGNAL ANALYSIS: momentum={momentum:.6f}, rsi={rsi:.2f}, threshold={self.momentum_threshold}")
             logger.info(f"   RSI bounds: oversold={self.rsi_oversold}, overbought={self.rsi_overbought}")
-            logger.info(f"   Price history length: {len(self.price_history)}, Current price: {price}")
+            logger.info(f"   Current price: {price}, SMA: {sma if sma is not None else 'N/A'}")
             logger.info(f"   Momentum conditions: momentum > threshold? {momentum > self.momentum_threshold}, momentum < -threshold? {momentum < -self.momentum_threshold}")
             logger.info(f"   RSI conditions: rsi < overbought? {rsi < self.rsi_overbought}, rsi > oversold? {rsi > self.rsi_oversold}")
             
@@ -236,7 +234,6 @@ class MomentumStrategy:
             
             if signal:
                 signals.append(signal)
-                self.last_signal_time = timestamp
         
         return signals
     

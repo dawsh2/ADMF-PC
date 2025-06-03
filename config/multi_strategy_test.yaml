@@ -9,7 +9,7 @@ data:
   source: "csv"
   file_path: "data/SPY_1m.csv"
   symbols: ["SPY"]
-  max_bars: 100
+  max_bars: 50
 
 # Enable comprehensive logging for debugging
 logging:
@@ -27,7 +27,6 @@ strategies:
       rsi_oversold: 40  # More sensitive (was 45)
       rsi_overbought: 60  # More sensitive (was 55)  
       momentum_threshold: 0.0001  # More sensitive (was 0.0002)
-      signal_cooldown: 60  # 1 minute cooldown for testing (was 300s)
   
   - name: "mean_reversion_strategy"
     type: "mean_reversion"

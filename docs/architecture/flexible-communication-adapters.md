@@ -34,7 +34,7 @@ Instead of hardcoding event flows based on organizational patterns, use **Event 
 │                             ▼                                   │
 │  ┌─────────────────────────────────────────────────────────────┐ │
 │  │           EXECUTION MODEL SELECTION                         │ │
-│  │  Containers | Actors | Functions | Hybrid                  │ │
+│  │  Containers | Functions | Parallel Containers             │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 │                             │                                   │
 │                             ▼                                   │
@@ -222,29 +222,23 @@ schema_registry.register_migration(
 )
 ```
 
-## Multi-Execution Model Support
+## Container Execution Configuration
 
-### Execution Model Selection
+### Container Configuration Options
 
 ```python
 from dataclasses import dataclass, field
 from typing import Literal, Dict, Any
 
-class ExecutionModelConfig:
-    """Configuration for different execution models"""
+class ContainerExecutionConfig:
+    """Configuration for container execution modes"""
     
     @dataclass
     class ContainerConfig:
         isolation_level: Literal["full", "process", "thread"] = "full"
         resource_limits: Dict[str, Any] = field(default_factory=dict)
         restart_policy: str = "on_failure"
-        
-    @dataclass  
-    class ActorConfig:
-        actor_system: Literal["ray", "akka", "celery"] = "ray"
-        max_actors: int = 1000
-        actor_pool_size: int = 100
-        supervision_strategy: str = "restart_failed"
+        parallelism: int = 1  # Number of parallel containers
         
     @dataclass
     class FunctionConfig:
@@ -253,29 +247,32 @@ class ExecutionModelConfig:
         memory_limit_mb: int = 512
         
 execution_config = {
-    "research_phase": {
-        "model": "actors",  # Fast parallel execution
-        "config": ExecutionModelConfig.ActorConfig(max_actors=5000)
+    "parameter_discovery": {
+        "model": "containers",  # Parallel containers for parameter sweep
+        "config": ContainerExecutionConfig.ContainerConfig(
+            isolation_level="full",
+            parallelism=100  # Run 100 parameter combinations in parallel
+        )
     },
     "backtesting": {
         "model": "containers",  # Full isolation
-        "config": ExecutionModelConfig.ContainerConfig(isolation_level="full")
+        "config": ContainerExecutionConfig.ContainerConfig(isolation_level="full")
     },
     "live_trading": {
         "model": "containers",  # Maximum reliability  
-        "config": ExecutionModelConfig.ContainerConfig(
+        "config": ContainerExecutionConfig.ContainerConfig(
             isolation_level="full",
             restart_policy="always"
         )
     },
     "signal_replay": {
         "model": "functions",  # Lightweight and fast
-        "config": ExecutionModelConfig.FunctionConfig(runtime="local")
+        "config": ContainerExecutionConfig.FunctionConfig(runtime="local")
     }
 }
 ```
 
-### Execution Model Adapters
+### Communication Adapter Implementations
 
 ```python
 class CommunicationAdapter(ABC):
@@ -285,70 +282,30 @@ class CommunicationAdapter(ABC):
         pass
 
 class PipelineCommunicationAdapter(CommunicationAdapter):
-    """Base pipeline adapter"""
-    pass
-
-class ExecutionModelAdapter:
-    """Adapts communication patterns to different execution models"""
-    
-    def create_pipeline_for_model(self, containers: List[str], 
-                                 execution_model: str) -> CommunicationAdapter:
-        """Create pipeline adapter appropriate for execution model"""
-        
-        if execution_model == "containers":
-            return ContainerPipelineAdapter(containers)
-        elif execution_model == "actors":
-            return ActorPipelineAdapter(containers)
-        elif execution_model == "functions":
-            return FunctionPipelineAdapter(containers)
-        else:
-            raise ValueError(f"Unknown execution model: {execution_model}")
-
-class ActorPipelineAdapter(PipelineCommunicationAdapter):
-    """Pipeline adapter optimized for actor-based execution"""
+    """Pipeline adapter for sequential data flow"""
     
     def __init__(self, containers: List[str]):
-        super().__init__()
-        self.actor_refs = {}
+        self.containers = containers
         
     def setup_flow(self, containers: List['Container']) -> None:
-        """Set up actor-based pipeline flow"""
-        import ray
-        
-        # Create actor references
-        for container in containers:
-            actor_class = self.get_actor_class(container)
-            self.actor_refs[container.name] = actor_class.remote()
-            
-        # Set up actor pipeline
+        """Set up pipeline flow between containers"""
         for i, container in enumerate(containers[:-1]):
             next_container = containers[i + 1]
             
-            # Actor-based event forwarding
+            # Set up event forwarding
             container.on_output_event(
-                lambda event: self.forward_to_actor(event, next_container.name)
+                lambda event: self.forward_event(event, next_container)
             )
     
-    def forward_to_actor(self, event: SemanticEventBase, target_actor: str):
-        """Forward event to target actor"""
-        target_ref = self.actor_refs[target_actor]
-        # Non-blocking actor call
-        target_ref.process_event.remote(event)
+    def forward_event(self, event: SemanticEventBase, target: 'Container'):
+        """Forward event to target container"""
+        # Events are forwarded through the container's event bus
+        target.receive_event(event)
 
-class ContainerPipelineAdapter(PipelineCommunicationAdapter):
-    """Pipeline adapter for full container isolation"""
+class IsolatedPipelineAdapter(PipelineCommunicationAdapter):
+    """Pipeline adapter with serialization boundary for complete isolation"""
     
-    def setup_flow(self, containers: List['Container']) -> None:
-        """Set up container-based pipeline with full isolation"""
-        for i, container in enumerate(containers[:-1]):
-            next_container = containers[i + 1]
-            
-            # Full isolation with serialization boundary
-            container.on_output_event(
-                lambda event: self.forward_with_isolation(event, next_container)
-            )
-    
-    def forward_with_isolation(self, event: SemanticEventBase, target: 'Container'):
+    def forward_event(self, event: SemanticEventBase, target: 'Container'):
         """Forward event with full serialization for isolation"""
         # Serialize event to ensure complete isolation
         serialized = pickle.dumps(event)
@@ -356,6 +313,36 @@ class ContainerPipelineAdapter(PipelineCommunicationAdapter):
         
         # Forward to isolated container
         target.receive_event(deserialized)
+
+class ParallelPipelineAdapter(PipelineCommunicationAdapter):
+    """Pipeline adapter that supports parallel container execution"""
+    
+    def __init__(self, containers: List[str], parallelism: int = 1):
+        super().__init__(containers)
+        self.parallelism = parallelism
+        self.container_pool = {}
+        
+    def setup_flow(self, containers: List['Container']) -> None:
+        """Set up pipeline with parallel execution support"""
+        # Create pools of containers for parallel stages
+        for container_name in self.containers:
+            if self.should_parallelize(container_name):
+                # Create multiple instances for parallel execution
+                self.container_pool[container_name] = [
+                    self.create_container_instance(container_name) 
+                    for _ in range(self.parallelism)
+                ]
+            else:
+                # Single instance for sequential stages
+                self.container_pool[container_name] = [containers[container_name]]
+        
+        # Set up load-balanced forwarding
+        self._setup_load_balanced_forwarding()
+    
+    def should_parallelize(self, container_name: str) -> bool:
+        """Determine if a container stage should be parallelized"""
+        # Parallelize compute-intensive stages like strategy evaluation
+        return container_name in ['strategy_container', 'optimization_container']
 ```
 
 ## Workspace-Aware Communication Adapters
@@ -636,13 +623,13 @@ event_communication:
   semantic_events: true
   schema_registry: "global"
   
-  # Execution model per phase
-  execution_models:
+  # Execution configuration per phase
+  execution_config:
     parameter_discovery:
-      model: "actors"
+      model: "containers"
       config:
-        max_actors: 5000
-        actor_system: "ray"
+        parallelism: 100  # Run 100 parallel containers
+        isolation_level: "full"
     signal_replay:
       model: "functions" 
       config:
@@ -767,7 +754,7 @@ class EventCommunicationFactory:
             
             adapter.setup_flow(container_list)
             
-        elif isinstance(adapter, (PipelineCommunicationAdapter, ContainerPipelineAdapter)):
+        elif isinstance(adapter, PipelineCommunicationAdapter):
             container_names = config['containers']
             container_list = [containers[name] for name in container_names]
             adapter.setup_flow(container_list)
@@ -809,9 +796,9 @@ class EventCommunicationFactory:
             adapter.setup_selective_routing(source)
 ```
 
-## Revised Assessment: Containers vs Actors
+## Container-Based Execution Strategy
 
-### When Containers Win (Updated Analysis)
+### When Full Container Isolation is Best
 
 Given the sophisticated workspace management and multi-organizational support:
 
@@ -821,37 +808,37 @@ Given the sophisticated workspace management and multi-organizational support:
 4. **Production Deployment**: Live trading requires maximum isolation and fault tolerance
 5. **Compliance and Auditing**: Container-level logging and resource tracking
 
-### When Actors Win (Refined Understanding)
+### When Lightweight Functions Work Well
 
-1. **Parameter Sweep Phase**: Ray actors for 5000+ parallel parameter evaluations
-2. **Signal Replay Optimization**: Lightweight actors for fast ensemble weight optimization  
-3. **Real-time Market Data**: Actor-based streaming for high-frequency data processing
-4. **ML Model Serving**: Actor pools for inference requests
+1. **Signal Replay**: Fast iteration over pre-computed signals
+2. **Simple Transformations**: Stateless data transformations
+3. **Quick Analysis**: Short-lived computational tasks
+4. **Utility Operations**: File I/O, data formatting, etc.
 
-### Hybrid Approach (The Optimal Solution)
+### Parallel Container Strategy
 
 ```yaml
-# Use different execution models for different phases
+# Use different execution strategies for different phases
 workflow_phases:
   parameter_discovery:
-    execution_model: "actors"     # Maximum parallelization
-    containers: 5000
+    execution_model: "containers"  # Parallel container instances
+    parallelism: 100               # 100 concurrent containers
     
   regime_analysis:
-    execution_model: "containers" # Isolation for complex analysis
-    containers: 10
+    execution_model: "containers"  # Isolation for complex analysis
+    parallelism: 10                # Moderate parallelism
     
   signal_replay:
-    execution_model: "actors"     # Fast optimization
-    containers: 1000
+    execution_model: "functions"   # Lightweight execution
+    parallelism: 50                # Function-level concurrency
     
   validation:
-    execution_model: "containers" # Reliable final validation
-    containers: 1
+    execution_model: "containers"  # Reliable final validation
+    parallelism: 1                 # Single instance for consistency
     
   live_trading:
-    execution_model: "containers" # Maximum reliability
-    containers: 1
+    execution_model: "containers"  # Maximum reliability
+    parallelism: 1                 # Single instance, fault-tolerant
 ```
 
 ## Benefits of Enhanced Approach
@@ -864,7 +851,7 @@ workflow_phases:
 
 ### 2. Execution Flexibility  
 - **Model selection**: Choose optimal execution model per phase
-- **Performance optimization**: Actors for parallelization, containers for isolation
+- **Performance optimization**: Parallel containers for compute-intensive work, isolated containers for production
 - **Resource efficiency**: Functions for lightweight tasks
 - **Scaling options**: Horizontal scale with appropriate isolation
 
@@ -1186,4 +1173,4 @@ The enhanced adapter system provides:
 4. **Pattern Independence**: Support all organizational approaches
 5. **Production Readiness**: Reliability, tracing, and compliance features
 
-The key insight is that **different phases of trading system workflows have different requirements** - parameter sweeps need massive parallelization (actors), live trading needs maximum reliability (containers), and signal replay needs fast turnaround (functions). The adapter system enables this flexibility while maintaining semantic consistency and organizational pattern independence.
+The key insight is that **different phases of trading system workflows have different requirements** - parameter sweeps need massive parallelization (parallel containers), live trading needs maximum reliability (isolated containers), and signal replay needs fast turnaround (lightweight functions). The adapter system enables this flexibility while maintaining semantic consistency and organizational pattern independence.

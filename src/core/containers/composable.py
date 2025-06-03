@@ -289,11 +289,8 @@ class DataFlowProtocol(Protocol):
         ...
 
 
-# Import hybrid event interface
-from ..events.hybrid_interface import HybridContainerInterface
-
 # Base Implementation Helper  
-class BaseComposableContainer(HybridContainerInterface):
+class BaseComposableContainer:
     """
     Base implementation providing common container functionality.
     
@@ -308,9 +305,8 @@ class BaseComposableContainer(HybridContainerInterface):
         container_id: str = None,
         limits: ContainerLimits = None
     ):
-        # Initialize hybrid interface first
+        # Generate container ID
         container_id_final = container_id or str(uuid.uuid4())
-        HybridContainerInterface.__init__(self, container_id_final)
         
         self._metadata = ContainerMetadata(
             container_id=container_id_final,
@@ -319,8 +315,9 @@ class BaseComposableContainer(HybridContainerInterface):
             config=config or {}
         )
         self._state = ContainerState.UNINITIALIZED
-        # Use the internal_bus from HybridContainerInterface instead of creating our own
-        self._event_bus = self.internal_bus  # This enables proper event bridging between containers
+        # Create event bus
+        from ..events.event_bus import EventBus
+        self._event_bus = EventBus()
         self._parent_container: Optional[ComposableContainerProtocol] = None
         self._child_containers: List[ComposableContainerProtocol] = []
         self._limits = limits or ContainerLimits()
@@ -346,9 +343,15 @@ class BaseComposableContainer(HybridContainerInterface):
         return self._state
     
     @property
-    def event_bus(self):  # Return the internal bus from HybridContainerInterface
+    def event_bus(self):
+        """Return the container's event bus."""
         return self._event_bus
     
+    @property
+    def name(self) -> str:
+        """Container name - required by Container protocol."""
+        return self._metadata.name
+        
     @property
     def parent_container(self) -> Optional[ComposableContainerProtocol]:
         return self._parent_container
@@ -370,9 +373,7 @@ class BaseComposableContainer(HybridContainerInterface):
         if hasattr(child, '_metadata'):
             child._metadata.parent_id = self._metadata.container_id
         
-        # Use hybrid interface for automatic communication setup
-        if hasattr(child, 'container_id'):
-            super().add_child_container(child)
+        # Communication setup will be handled by adapters
     
     def remove_child_container(self, container_id: str) -> bool:
         """Remove child container by ID."""
@@ -408,6 +409,17 @@ class BaseComposableContainer(HybridContainerInterface):
         
         return results
     
+    def receive_event(self, event: Event) -> None:
+        """Receive event from adapters - required by Container protocol."""
+        # Publish to local event bus for processing
+        self._event_bus.publish(event)
+        self._metrics['events_received'] = self._metrics.get('events_received', 0) + 1
+        
+    def process(self, event: Event) -> Optional[Event]:
+        """Process business logic - required by Container protocol."""
+        # Default implementation - containers can override
+        return None
+        
     def publish_event(self, event: Event, target_scope: str = "local") -> None:
         """Publish event to specified scope."""
         self._metrics['events_published'] += 1
@@ -518,9 +530,6 @@ class BaseComposableContainer(HybridContainerInterface):
         
         # Clear children
         self._child_containers.clear()
-        
-        # Unregister from event router
-        self.unregister_from_router()
         
         # Dispose self
         await self._dispose_self()

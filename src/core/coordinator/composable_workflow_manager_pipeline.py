@@ -99,17 +99,9 @@ class ComposableWorkflowManagerPipeline:
                         "children": {
                             "data": {"role": "data"},
                             "indicators": {"role": "indicator"},
-                            "risk": {
-                                "role": "risk",
-                                "children": {
-                                    "portfolio": {
-                                        "role": "portfolio",
-                                        "children": {
-                                            "strategy": {"role": "strategy"}
-                                        }
-                                    }
-                                }
-                            },
+                            "strategy": {"role": "strategy"},
+                            "risk": {"role": "risk"},
+                            "portfolio": {"role": "portfolio"},
                             "execution": {"role": "execution"}
                         }
                     }
@@ -130,11 +122,24 @@ class ComposableWorkflowManagerPipeline:
                 pipeline_order = self._determine_pipeline_order(container_pattern, all_containers)
                 
                 # Find the pipeline adapter and setup the complete pipeline
-                for adapter_name, adapter in self.coordinator.communication_layer.adapters.items():
+                # The adapters attribute is a list, not a dict
+                for adapter in self.coordinator.communication_layer.adapters:
                     if hasattr(adapter, 'setup_pipeline'):
-                        # Use proper setup_pipeline method which includes reverse routing
-                        adapter.setup_pipeline(pipeline_order)
-                        logger.info(f"Updated pipeline adapter with {len(pipeline_order)} containers")
+                        # Pass ALL containers to adapter, not just pipeline order
+                        # This ensures PortfolioContainer is available for reverse routing
+                        adapter.setup_pipeline(all_containers)
+                        logger.info(f"Updated pipeline adapter with {len(all_containers)} containers (all containers)")
+                        
+                        # Then set up specific pipeline connections
+                        adapter.connections.clear()
+                        for i in range(len(pipeline_order) - 1):
+                            adapter.connections.append((pipeline_order[i], pipeline_order[i + 1]))
+                        logger.info(f"Set up {len(adapter.connections)} pipeline connections")
+                        
+                        # Start the adapter now that connections are configured
+                        if hasattr(adapter, 'start'):
+                            adapter.start()
+                            logger.info("Started pipeline adapter with configured connections")
                         break
             
             # Setup monitoring
@@ -171,10 +176,11 @@ class ComposableWorkflowManagerPipeline:
         
         # Define pipeline order for simple_backtest pattern
         if pattern_name == 'simple_backtest':
-            pipeline_roles = ['data', 'indicator', 'strategy', 'portfolio', 'risk', 'execution']
+            # Portfolio is NOT in the main pipeline - it receives FILL events via reverse routing
+            pipeline_roles = ['data', 'indicator', 'strategy', 'risk', 'execution']
         else:
-            # Default order
-            pipeline_roles = ['data', 'indicator', 'classifier', 'strategy', 'portfolio', 'risk', 'execution']
+            # Default order - Portfolio is NOT in the main pipeline
+            pipeline_roles = ['data', 'indicator', 'classifier', 'strategy', 'risk', 'execution']
         
         # Build ordered list
         pipeline_order = []

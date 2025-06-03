@@ -294,13 +294,13 @@ class ComponentRegistry:
         return True
 
 
-# Global registry instance
-_registry = ComponentRegistry()
-
-
 def get_registry() -> ComponentRegistry:
-    """Get the global component registry."""
-    return _registry
+    """Get a component registry instance.
+    
+    Note: This now creates a new instance each time to avoid global state.
+    Callers should manage their own registry instance.
+    """
+    return ComponentRegistry()
 
 
 # Decorator for automatic registration

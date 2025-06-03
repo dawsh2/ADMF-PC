@@ -1,69 +1,143 @@
-"""Communication Module for ADMF-PC.
+"""Communication adapters for inter-container event routing.
 
-This module provides the communication infrastructure for the ADMF-PC system,
-enabling various communication protocols and patterns through a unified adapter
-interface.
+This package provides protocol-based communication adapters that connect
+isolated container event buses. Following ADMF-PC's architecture principles:
+
+1. **No Inheritance**: Adapters implement protocols, not inherit from base classes
+2. **Composition**: Mix and match adapter behaviors through composition
+3. **Type Safety**: Full protocol compliance checking at runtime
 
 Key Components:
-- CommunicationAdapter: Abstract base class for all adapters
-- AdapterConfig: Configuration for adapters
-- AdapterMetrics: Metrics tracking for adapters
+- Protocols: Define what adapters and containers must implement
+- Adapters: Route events between containers (pipeline, broadcast, etc.)
+- Helpers: Utility functions for common adapter operations
+- Factory: Create and manage adapter instances
 
-The communication module supports:
-- Multiple protocols (WebSocket, gRPC, ZeroMQ, etc.)
-- Event serialization/deserialization
-- Correlation ID tracking
-- Comprehensive metrics
-- Error handling and recovery
-- Full logging integration
-
-Example usage:
-    from src.core.communication import CommunicationAdapter, AdapterConfig
+Example:
+    ```python
+    from src.core.communication import AdapterFactory, create_simple_pipeline
     
-    # Configure adapter
-    config = AdapterConfig(
-        name="market_data",
-        adapter_type="websocket",
-        retry_attempts=3,
-        timeout_ms=5000
-    )
+    # Create adapters from configuration
+    factory = AdapterFactory()
+    adapter = factory.create_adapter('main_pipeline', {
+        'type': 'pipeline',
+        'containers': ['data', 'strategy', 'risk', 'execution']
+    })
     
-    # Create adapter (using concrete implementation)
-    adapter = WebSocketAdapter(config)
-    
-    # Setup and use
-    await adapter.setup()
-    await adapter.send_event(event)
-    await adapter.cleanup()
+    # Or use convenience functions
+    pipeline = create_simple_pipeline([data_container, strategy_container])
+    ```
 """
 
-from .base_adapter import (
+# Protocol definitions
+from .protocols import (
+    Container,
     CommunicationAdapter,
-    AdapterConfig,
     AdapterMetrics,
-    MessageHandler
+    AdapterErrorHandler,
 )
-from .pipeline_adapter import (
-    PipelineCommunicationAdapter,
-    EventTransformer,
-    PipelineStage
+
+# Helper functions
+from .helpers import (
+    create_adapter_with_logging,
+    handle_event_with_metrics,
+    subscribe_to_container_events,
+    validate_adapter_config,
+    create_forward_handler,
+    get_container_connections,
+    SimpleAdapterMetrics,
+    SimpleAdapterErrorHandler,
 )
+
+# Protocol-based adapters
+from .pipeline_adapter_protocol import (
+    PipelineAdapter,
+    create_conditional_pipeline,
+    create_parallel_pipeline,
+)
+
+from .broadcast_adapter import (
+    BroadcastAdapter,
+    create_filtered_broadcast,
+    create_priority_broadcast,
+    FanOutAdapter,
+)
+
+from .hierarchical_adapter import (
+    HierarchicalAdapter,
+    create_aggregating_hierarchy,
+    create_filtered_hierarchy,
+)
+
+from .selective_adapter import (
+    SelectiveAdapter,
+    create_capability_based_router,
+    create_load_balanced_router,
+    create_content_based_router,
+)
+
+# Factory and convenience functions
 from .factory import (
+    AdapterFactory,
+    create_adapter_network,
+    create_simple_pipeline,
+    create_event_bus,
+    create_tree_network,
+)
+
+# Integration and compatibility
+from .integration import (
     EventCommunicationFactory,
-    CommunicationLayer
+    CommunicationLayer,
+    ContainerProtocolAdapter,
+    create_pipeline_adapter,
 )
 
 __all__ = [
+    # Protocols
+    "Container",
     "CommunicationAdapter",
-    "AdapterConfig",
-    "AdapterMetrics",
-    "MessageHandler",
-    "PipelineCommunicationAdapter",
-    "EventTransformer",
-    "PipelineStage",
+    "AdapterMetrics", 
+    "AdapterErrorHandler",
+    
+    # Helpers
+    "create_adapter_with_logging",
+    "handle_event_with_metrics",
+    "subscribe_to_container_events",
+    "validate_adapter_config",
+    "create_forward_handler",
+    "get_container_connections",
+    "SimpleAdapterMetrics",
+    "SimpleAdapterErrorHandler",
+    
+    # Adapters
+    "PipelineAdapter",
+    "BroadcastAdapter",
+    "HierarchicalAdapter",
+    "SelectiveAdapter",
+    "FanOutAdapter",
+    
+    # Adapter variants
+    "create_conditional_pipeline",
+    "create_parallel_pipeline",
+    "create_filtered_broadcast",
+    "create_priority_broadcast",
+    "create_aggregating_hierarchy",
+    "create_filtered_hierarchy",
+    "create_capability_based_router",
+    "create_load_balanced_router",
+    "create_content_based_router",
+    
+    # Factory
+    "AdapterFactory",
+    "create_adapter_network",
+    "create_simple_pipeline",
+    "create_event_bus",
+    "create_tree_network",
+    
+    # Integration/Compatibility
     "EventCommunicationFactory",
-    "CommunicationLayer"
+    "CommunicationLayer",
+    "ContainerProtocolAdapter",
+    "create_pipeline_adapter",
 ]
-
-# Version info
-__version__ = "1.0.0"

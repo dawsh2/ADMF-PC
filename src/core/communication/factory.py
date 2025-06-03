@@ -1,546 +1,286 @@
-"""Event Communication Factory for ADMF-PC.
+"""
+Communication adapter factory using protocol-based design.
 
-This module provides the factory for creating communication adapters and
-managing the overall communication layer. The factory pattern allows for
-flexible configuration and runtime adapter selection.
-
-Key components:
-- EventCommunicationFactory: Creates adapters from configuration
-- CommunicationLayer: Manages all active adapters system-wide
+This module provides factory functions for creating communication adapters
+following ADMF-PC's protocol-based architecture.
 """
 
-from typing import Dict, Any, Type, List, Optional
-import asyncio
-from datetime import datetime
-import numpy as np
+from typing import Dict, Any, Type, List, Optional, Callable
+import logging
 
-from .base_adapter import CommunicationAdapter, AdapterConfig
-from .pipeline_adapter import PipelineCommunicationAdapter
-from ..logging.log_manager import LogManager
 from ..logging.container_logger import ContainerLogger
+from ..containers.protocols import Container
+from .protocols import CommunicationAdapter
+from .helpers import create_adapter_with_logging
+
+# Import protocol-based adapters
+from .pipeline_adapter_protocol import (
+    PipelineAdapter, 
+    create_conditional_pipeline,
+    create_parallel_pipeline
+)
+from .broadcast_adapter import (
+    BroadcastAdapter,
+    create_filtered_broadcast,
+    create_priority_broadcast,
+    FanOutAdapter
+)
+from .hierarchical_adapter import (
+    HierarchicalAdapter,
+    create_aggregating_hierarchy,
+    create_filtered_hierarchy
+)
+from .selective_adapter import (
+    SelectiveAdapter,
+    create_capability_based_router,
+    create_load_balanced_router,
+    create_content_based_router
+)
 
 
-class EventCommunicationFactory:
-    """Factory for creating communication adapters from configuration.
+class AdapterFactory:
+    """Factory for creating communication adapters.
     
-    This factory maintains a registry of available adapter types and
-    creates configured instances for the communication layer.
+    This factory creates protocol-based adapters without inheritance.
+    All adapters follow the CommunicationAdapter protocol but don't
+    inherit from any base class.
     """
     
-    def __init__(self, coordinator_id: str, log_manager: LogManager):
-        """Initialize the communication factory.
+    def __init__(self, logger: Optional[ContainerLogger] = None):
+        """Initialize the adapter factory.
         
         Args:
-            coordinator_id: ID of the coordinator using this factory
-            log_manager: Log manager for creating loggers
+            logger: Logger for factory operations
         """
-        self.coordinator_id = coordinator_id
-        self.log_manager = log_manager
+        self.logger = logger or logging.getLogger(__name__)
         
-        # Registry of available adapter types
-        self.adapter_registry: Dict[str, Type[CommunicationAdapter]] = {
-            'pipeline': PipelineCommunicationAdapter,
-            # Future adapters will be registered here:
-            # 'broadcast': BroadcastCommunicationAdapter,
-            # 'hierarchical': HierarchicalCommunicationAdapter,
-            # 'selective': SelectiveCommunicationAdapter,
+        # Registry of adapter types and their factory functions
+        self.adapter_registry: Dict[str, Callable] = {
+            # Basic patterns
+            'pipeline': lambda n, c: create_adapter_with_logging(PipelineAdapter, n, c),
+            'broadcast': lambda n, c: create_adapter_with_logging(BroadcastAdapter, n, c),
+            'hierarchical': lambda n, c: create_adapter_with_logging(HierarchicalAdapter, n, c),
+            'selective': lambda n, c: create_adapter_with_logging(SelectiveAdapter, n, c),
+            
+            # Pipeline variants
+            'conditional_pipeline': create_conditional_pipeline,
+            'parallel_pipeline': create_parallel_pipeline,
+            
+            # Broadcast variants
+            'filtered_broadcast': create_filtered_broadcast,
+            'priority_broadcast': create_priority_broadcast,
+            'fan_out': lambda n, c: create_adapter_with_logging(FanOutAdapter, n, c),
+            
+            # Hierarchical variants
+            'aggregating_hierarchy': create_aggregating_hierarchy,
+            'filtered_hierarchy': create_filtered_hierarchy,
+            
+            # Selective variants
+            'capability_router': create_capability_based_router,
+            'load_balanced_router': create_load_balanced_router,
+            'content_router': create_content_based_router,
         }
         
-        # Create factory logger
-        self.logger = ContainerLogger(
-            container_id=coordinator_id,
-            component_name="communication_factory",
-            log_level="INFO"
-        )
+        # Active adapter instances
+        self.active_adapters: List[Any] = []
         
-        # Track active adapters for lifecycle management
-        self.active_adapters: List[CommunicationAdapter] = []
-        
-        self.logger.info(
-            "Communication factory initialized",
-            coordinator_id=coordinator_id,
-            available_adapters=list(self.adapter_registry.keys()),
-            lifecycle_operation="factory_initialization"
-        )
-    
-    def register_adapter_type(self, adapter_type: str, adapter_class: Type[CommunicationAdapter]):
-        """Register a new adapter type in the factory.
+    def create_adapter(self, name: str, config: Dict[str, Any]) -> Any:
+        """Create a communication adapter instance.
         
         Args:
-            adapter_type: String identifier for the adapter type
-            adapter_class: Adapter class to register
-        """
-        self.adapter_registry[adapter_type] = adapter_class
-        
-        self.logger.info(
-            "Registered new adapter type",
-            adapter_type=adapter_type,
-            adapter_class=adapter_class.__name__,
-            total_types=len(self.adapter_registry)
-        )
-    
-    def create_communication_layer(self, config: Dict[str, Any], containers: Dict[str, Any]) -> 'CommunicationLayer':
-        """Create a communication layer from configuration.
-        
-        Args:
-            config: Communication configuration with adapter definitions
-            containers: Available containers to wire together
-            
-        Returns:
-            Configured communication layer
-        """
-        self.logger.info(
-            "Creating communication layer",
-            adapter_configs=len(config.get('adapters', [])),
-            available_containers=len(containers),
-            lifecycle_operation="communication_layer_creation"
-        )
-        
-        # Create communication layer
-        communication_layer = CommunicationLayer(self.coordinator_id, self.log_manager)
-        
-        # Create and add adapters
-        for adapter_config in config.get('adapters', []):
-            try:
-                adapter = self._create_adapter(adapter_config, containers)
-                adapter_name = adapter_config.get('name', f"{adapter_config['type']}_adapter")
-                communication_layer.add_adapter(adapter_name, adapter)
-                self.active_adapters.append(adapter)
-                
-            except Exception as e:
-                self.logger.error(
-                    "Failed to create adapter",
-                    adapter_config=adapter_config,
-                    error=str(e),
-                    error_type=type(e).__name__,
-                    lifecycle_operation="adapter_creation_error"
-                )
-                # Continue with other adapters
-        
-        self.logger.info(
-            "Communication layer created",
-            total_adapters=len(communication_layer.adapters),
-            lifecycle_operation="communication_layer_ready"
-        )
-        
-        return communication_layer
-    
-    def _create_adapter(self, adapter_config: Dict[str, Any], containers: Dict[str, Any]) -> CommunicationAdapter:
-        """Create a single adapter from configuration.
-        
-        Args:
-            adapter_config: Adapter configuration
-            containers: Available containers
+            name: Unique adapter name
+            config: Adapter configuration including 'type'
             
         Returns:
             Configured adapter instance
+            
+        Raises:
+            ValueError: If adapter type is unknown
         """
-        adapter_type = adapter_config.get('type')
-        
+        adapter_type = config.get('type')
+        if not adapter_type:
+            raise ValueError("Adapter configuration must specify 'type'")
+            
         if adapter_type not in self.adapter_registry:
             raise ValueError(f"Unknown adapter type: {adapter_type}")
-        
-        # Create adapter configuration
-        config = AdapterConfig(
-            name=adapter_config.get('name', f"{adapter_type}_adapter"),
-            adapter_type=adapter_type,
-            retry_attempts=adapter_config.get('retry_attempts', 3),
-            retry_delay_ms=adapter_config.get('retry_delay_ms', 100),
-            timeout_ms=adapter_config.get('timeout_ms', 5000),
-            buffer_size=adapter_config.get('buffer_size', 1000),
-            enable_compression=adapter_config.get('enable_compression', False),
-            enable_encryption=adapter_config.get('enable_encryption', False),
-            custom_settings=adapter_config.get('custom_settings', {})
-        )
-        
-        # Create logger for adapter
-        adapter_logger = ContainerLogger(
-            container_id=self.coordinator_id,
-            component_name=f"adapter.{config.name}",
-            log_level=adapter_config.get('log_level', 'INFO')
-        )
-        
-        # Create adapter instance
-        adapter_class = self.adapter_registry[adapter_type]
-        adapter = adapter_class(config, adapter_logger)
-        
-        # Setup adapter based on type
-        if adapter_type == 'pipeline':
-            # Pipeline-specific setup
-            container_names = adapter_config.get('containers', [])
-            pipeline_containers = []
             
-            for name in container_names:
-                if name not in containers:
-                    self.logger.warning(
-                        f"Container '{name}' not found for pipeline",
-                        adapter_name=config.name,
-                        available_containers=list(containers.keys())
-                    )
-                    continue
-                pipeline_containers.append(containers[name])
-            
-            if pipeline_containers:
-                adapter.setup_pipeline(pipeline_containers)
+        self.logger.info(f"Creating {adapter_type} adapter: {name}")
         
-        # Future adapter types will have their own setup logic here
+        # Create adapter using registered factory
+        factory_fn = self.adapter_registry[adapter_type]
+        adapter = factory_fn(name, config)
         
-        self.logger.info(
-            "Adapter created",
-            adapter_type=adapter_type,
-            adapter_name=config.name,
-            lifecycle_operation="adapter_creation"
-        )
+        # Track active adapter
+        self.active_adapters.append(adapter)
         
         return adapter
-    
-    async def cleanup_all_adapters(self):
-        """Cleanup all created adapters."""
-        self.logger.info(
-            "Starting cleanup of all adapters",
-            adapter_count=len(self.active_adapters),
-            lifecycle_operation="factory_cleanup"
-        )
         
-        cleanup_tasks = []
-        for adapter in self.active_adapters:
+    def register_adapter_type(self, adapter_type: str, factory_fn: Callable):
+        """Register a custom adapter type.
+        
+        Args:
+            adapter_type: Type identifier for the adapter
+            factory_fn: Factory function that creates adapter instances
+        """
+        self.adapter_registry[adapter_type] = factory_fn
+        self.logger.info(f"Registered adapter type: {adapter_type}")
+        
+    def create_adapters_from_config(self, 
+                                   adapters_config: List[Dict[str, Any]],
+                                   containers: Dict[str, Container]) -> List[Any]:
+        """Create multiple adapters from configuration.
+        
+        Args:
+            adapters_config: List of adapter configurations
+            containers: Available containers
+            
+        Returns:
+            List of configured adapter instances
+        """
+        adapters = []
+        
+        for adapter_config in adapters_config:
+            name = adapter_config.get('name', f"adapter_{len(adapters)}")
+            
             try:
-                if hasattr(adapter, 'cleanup'):
-                    cleanup_tasks.append(adapter.cleanup())
+                # Create adapter
+                adapter = self.create_adapter(name, adapter_config)
+                
+                # Setup with containers
+                if hasattr(adapter, 'setup'):
+                    adapter.setup(containers)
+                    
+                adapters.append(adapter)
+                
             except Exception as e:
-                self.logger.error(
-                    "Error preparing adapter cleanup",
-                    adapter_name=adapter.config.name,
-                    error=str(e),
-                    error_type=type(e).__name__,
-                    lifecycle_operation="adapter_cleanup_error"
-                )
+                self.logger.error(f"Failed to create adapter {name}: {e}")
+                raise
+                
+        return adapters
         
-        # Wait for all cleanups to complete
-        if cleanup_tasks:
-            await asyncio.gather(*cleanup_tasks, return_exceptions=True)
-        
+    def start_all(self) -> None:
+        """Start all active adapters."""
+        for adapter in self.active_adapters:
+            if hasattr(adapter, 'start'):
+                adapter.start()
+                self.logger.info(f"Started adapter: {adapter.name}")
+                
+    def stop_all(self) -> None:
+        """Stop all active adapters."""
+        for adapter in self.active_adapters:
+            if hasattr(adapter, 'stop'):
+                adapter.stop()
+                self.logger.info(f"Stopped adapter: {adapter.name}")
+                
         self.active_adapters.clear()
-        
-        self.logger.info(
-            "All adapters cleaned up",
-            lifecycle_operation="factory_cleanup_complete"
-        )
 
 
-class CommunicationLayer:
-    """Manages all communication adapters in the system.
+def create_adapter_network(config: Dict[str, Any],
+                          containers: Dict[str, Container],
+                          logger: Optional[ContainerLogger] = None) -> AdapterFactory:
+    """Create a complete adapter network from configuration.
     
-    The communication layer provides a unified interface for managing
-    multiple adapters and tracking system-wide communication metrics.
+    This is a convenience function that creates all adapters and
+    wires them up according to the configuration.
+    
+    Args:
+        config: Network configuration with 'adapters' list
+        containers: Available containers
+        logger: Optional logger
+        
+    Returns:
+        Configured AdapterFactory with all adapters created
     """
+    factory = AdapterFactory(logger)
     
-    def __init__(self, coordinator_id: str, log_manager: LogManager):
-        """Initialize the communication layer.
-        
-        Args:
-            coordinator_id: ID of the coordinator
-            log_manager: Log manager for creating loggers
-        """
-        self.coordinator_id = coordinator_id
-        self.log_manager = log_manager
-        
-        self.logger = ContainerLogger(
-            container_id=coordinator_id,
-            component_name="communication_layer",
-            log_level="INFO"
-        )
-        
-        self.adapters: Dict[str, CommunicationAdapter] = {}
-        self.start_time = datetime.utcnow()
-        
-        self.logger.info(
-            "Communication layer initialized",
-            coordinator_id=coordinator_id,
-            lifecycle_operation="layer_initialization"
-        )
+    # Create adapters
+    adapters_config = config.get('adapters', [])
+    adapters = factory.create_adapters_from_config(adapters_config, containers)
     
-    def add_adapter(self, name: str, adapter: CommunicationAdapter):
-        """Add an adapter to the communication layer.
-        
-        Args:
-            name: Unique name for the adapter
-            adapter: Adapter instance to add
-        """
-        if name in self.adapters:
-            self.logger.warning(
-                "Replacing existing adapter",
-                adapter_name=name,
-                existing_type=type(self.adapters[name]).__name__,
-                new_type=type(adapter).__name__
-            )
-        
-        self.adapters[name] = adapter
-        
-        self.logger.info(
-            "Adapter added to communication layer",
-            adapter_name=name,
-            adapter_type=type(adapter).__name__,
-            total_adapters=len(self.adapters),
-            lifecycle_operation="adapter_registration"
-        )
+    # Start all adapters
+    factory.start_all()
     
-    def remove_adapter(self, name: str) -> Optional[CommunicationAdapter]:
-        """Remove an adapter from the communication layer.
-        
-        Args:
-            name: Name of adapter to remove
-            
-        Returns:
-            Removed adapter or None if not found
-        """
-        adapter = self.adapters.pop(name, None)
-        
-        if adapter:
-            self.logger.info(
-                "Adapter removed from communication layer",
-                adapter_name=name,
-                adapter_type=type(adapter).__name__,
-                remaining_adapters=len(self.adapters),
-                lifecycle_operation="adapter_deregistration"
-            )
-        else:
-            self.logger.warning(
-                "Attempted to remove non-existent adapter",
-                adapter_name=name
-            )
-        
-        return adapter
+    return factory
+
+
+# Convenience functions for common patterns
+
+def create_simple_pipeline(containers: List[Container], 
+                          name: str = "main_pipeline") -> Any:
+    """Create a simple pipeline adapter.
     
-    def get_adapter(self, name: str) -> Optional[CommunicationAdapter]:
-        """Get an adapter by name.
+    Args:
+        containers: List of containers in pipeline order
+        name: Pipeline name
         
-        Args:
-            name: Name of adapter to retrieve
-            
-        Returns:
-            Adapter instance or None if not found
-        """
-        return self.adapters.get(name)
+    Returns:
+        Configured pipeline adapter
+    """
+    config = {
+        'type': 'pipeline',
+        'containers': [c.name for c in containers]
+    }
     
-    def get_system_metrics(self) -> Dict[str, Any]:
-        """Get comprehensive metrics for all adapters.
-        
-        Returns:
-            System-wide communication metrics
-        """
-        adapter_metrics = {}
-        total_events_sent = 0
-        total_events_received = 0
-        total_errors = 0
-        all_latencies = []
-        
-        for name, adapter in self.adapters.items():
-            metrics = adapter.get_metrics()
-            adapter_metrics[name] = {
-                'adapter_type': type(adapter).__name__,
-                'events_sent': metrics.events_sent,
-                'events_received': metrics.events_received,
-                'events_failed': metrics.events_failed,
-                'error_rate': metrics.error_rate,
-                'average_latency_ms': metrics.average_latency_ms,
-                'bytes_sent': metrics.bytes_sent,
-                'bytes_received': metrics.bytes_received,
-                'is_connected': adapter.is_connected,
-                'is_running': adapter.is_running
-            }
-            
-            # Aggregate totals
-            total_events_sent += metrics.events_sent
-            total_events_received += metrics.events_received
-            total_errors += metrics.errors_count
-            
-            # Collect latencies for percentile calculations
-            if metrics.events_sent + metrics.events_received > 0:
-                # Estimate latency distribution
-                avg_latency = metrics.average_latency_ms
-                for _ in range(min(100, metrics.events_sent + metrics.events_received)):
-                    # Simulate latency distribution around average
-                    all_latencies.append(avg_latency * np.random.lognormal(0, 0.3))
-        
-        # Calculate system-wide statistics
-        uptime_seconds = (datetime.utcnow() - self.start_time).total_seconds()
-        total_events = total_events_sent + total_events_received
-        
-        system_metrics = {
-            'total_adapters': len(self.adapters),
-            'active_adapters': sum(1 for a in self.adapters.values() if a.is_running),
-            'connected_adapters': sum(1 for a in self.adapters.values() if a.is_connected),
-            'uptime_seconds': uptime_seconds,
-            'total_events_sent': total_events_sent,
-            'total_events_received': total_events_received,
-            'total_events': total_events,
-            'total_errors': total_errors,
-            'overall_error_rate': total_errors / max(total_events, 1),
-            'events_per_second': total_events / max(uptime_seconds, 1),
-            'adapters': adapter_metrics,
-            'overall_health': self._calculate_overall_health(adapter_metrics)
-        }
-        
-        # Add latency percentiles if we have data
-        if all_latencies:
-            system_metrics['latency_percentiles'] = {
-                'p50': np.percentile(all_latencies, 50),
-                'p95': np.percentile(all_latencies, 95),
-                'p99': np.percentile(all_latencies, 99),
-                'max': max(all_latencies)
-            }
-        
-        return system_metrics
+    adapter = create_adapter_with_logging(PipelineAdapter, name, config)
     
-    def _calculate_overall_health(self, adapter_metrics: Dict[str, Dict[str, Any]]) -> str:
-        """Calculate overall communication system health.
-        
-        Args:
-            adapter_metrics: Metrics for all adapters
-            
-        Returns:
-            Health status: 'healthy', 'warning', or 'critical'
-        """
-        if not adapter_metrics:
-            return 'unknown'
-        
-        # Check error rates
-        error_rates = [m['error_rate'] for m in adapter_metrics.values()]
-        max_error_rate = max(error_rates) if error_rates else 0
-        
-        # Check connection status
-        disconnected_count = sum(1 for m in adapter_metrics.values() if not m['is_connected'])
-        disconnected_ratio = disconnected_count / len(adapter_metrics)
-        
-        # Determine health status
-        if max_error_rate < 0.01 and disconnected_ratio == 0:
-            return 'healthy'
-        elif max_error_rate < 0.05 and disconnected_ratio < 0.25:
-            return 'warning'
-        else:
-            return 'critical'
+    # Setup with container mapping
+    container_map = {c.name: c for c in containers}
+    adapter.setup(container_map)
     
-    async def setup_all_adapters(self):
-        """Setup all adapters in the communication layer."""
-        self.logger.info(
-            "Setting up all adapters",
-            adapter_count=len(self.adapters),
-            lifecycle_operation="layer_setup"
-        )
-        
-        setup_tasks = []
-        for name, adapter in self.adapters.items():
-            if hasattr(adapter, 'setup'):
-                setup_tasks.append(self._setup_adapter(name, adapter))
-        
-        # Setup all adapters concurrently
-        if setup_tasks:
-            results = await asyncio.gather(*setup_tasks, return_exceptions=True)
-            
-            # Log any setup failures
-            for i, (name, result) in enumerate(zip(self.adapters.keys(), results)):
-                if isinstance(result, Exception):
-                    self.logger.error(
-                        "Adapter setup failed",
-                        adapter_name=name,
-                        error=str(result),
-                        error_type=type(result).__name__,
-                        lifecycle_operation="adapter_setup_error"
-                    )
+    return adapter
+
+
+def create_event_bus(source: Container,
+                    targets: List[Container],
+                    name: str = "event_bus") -> Any:
+    """Create a broadcast adapter acting as an event bus.
     
-    async def _setup_adapter(self, name: str, adapter: CommunicationAdapter):
-        """Setup a single adapter with error handling.
+    Args:
+        source: Source container
+        targets: Target containers
+        name: Bus name
         
-        Args:
-            name: Adapter name
-            adapter: Adapter to setup
-        """
-        try:
-            await adapter.setup()
-            self.logger.info(
-                "Adapter setup complete",
-                adapter_name=name,
-                adapter_type=type(adapter).__name__,
-                lifecycle_operation="adapter_setup_success"
-            )
-        except Exception as e:
-            self.logger.error(
-                "Adapter setup failed",
-                adapter_name=name,
-                error=str(e),
-                error_type=type(e).__name__,
-                lifecycle_operation="adapter_setup_error"
-            )
-            raise
+    Returns:
+        Configured broadcast adapter
+    """
+    config = {
+        'type': 'broadcast',
+        'source': source.name,
+        'targets': [t.name for t in targets]
+    }
     
-    async def cleanup(self):
-        """Cleanup all adapters in the communication layer."""
-        self.logger.info(
-            "Starting communication layer cleanup",
-            adapter_count=len(self.adapters),
-            lifecycle_operation="layer_cleanup"
-        )
-        
-        cleanup_tasks = []
-        for name, adapter in self.adapters.items():
-            if hasattr(adapter, 'cleanup'):
-                cleanup_tasks.append(self._cleanup_adapter(name, adapter))
-        
-        # Cleanup all adapters concurrently
-        if cleanup_tasks:
-            await asyncio.gather(*cleanup_tasks, return_exceptions=True)
-        
-        # Clear adapter registry
-        self.adapters.clear()
-        
-        self.logger.info(
-            "Communication layer cleanup complete",
-            lifecycle_operation="layer_cleanup_complete"
-        )
+    adapter = create_adapter_with_logging(BroadcastAdapter, name, config)
     
-    async def _cleanup_adapter(self, name: str, adapter: CommunicationAdapter):
-        """Cleanup a single adapter with error handling.
-        
-        Args:
-            name: Adapter name
-            adapter: Adapter to cleanup
-        """
-        try:
-            await adapter.cleanup()
-            self.logger.info(
-                "Adapter cleanup complete",
-                adapter_name=name,
-                adapter_type=type(adapter).__name__,
-                lifecycle_operation="adapter_cleanup_success"
-            )
-        except Exception as e:
-            self.logger.error(
-                "Error cleaning up adapter",
-                adapter_name=name,
-                error=str(e),
-                error_type=type(e).__name__,
-                lifecycle_operation="adapter_cleanup_error"
-            )
+    # Setup with container mapping
+    all_containers = [source] + targets
+    container_map = {c.name: c for c in all_containers}
+    adapter.setup(container_map)
     
-    def get_adapter_status_summary(self) -> Dict[str, str]:
-        """Get a quick status summary of all adapters.
+    return adapter
+
+
+def create_tree_network(root: Container,
+                       tree_structure: Dict[str, Any],
+                       name: str = "tree_network") -> Any:
+    """Create a hierarchical tree network.
+    
+    Args:
+        root: Root container
+        tree_structure: Tree configuration
+        name: Network name
         
-        Returns:
-            Dictionary of adapter names to status strings
-        """
-        status_summary = {}
-        
-        for name, adapter in self.adapters.items():
-            if adapter.is_running and adapter.is_connected:
-                status = "active"
-            elif adapter.is_connected:
-                status = "connected"
-            elif adapter.is_running:
-                status = "running"
-            else:
-                status = "inactive"
-            
-            status_summary[name] = status
-        
-        return status_summary
+    Returns:
+        Configured hierarchical adapter
+    """
+    config = {
+        'type': 'hierarchical',
+        'root': root.name,
+        'hierarchy': tree_structure
+    }
+    
+    adapter = create_adapter_with_logging(HierarchicalAdapter, name, config)
+    
+    # Note: setup requires all containers to be provided
+    # This is a simplified version - real usage needs full container map
+    
+    return adapter

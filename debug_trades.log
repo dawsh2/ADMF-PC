@@ -1,0 +1,3 @@
+2025-06-03 09:52:49,897 - src.execution.containers_pipeline - INFO - [FILL] FILLED: SPY -1 1.00 @ 520.9294
+2025-06-03 09:52:49,933 - src.execution.containers_pipeline - INFO - ✅ Closed position: SPY -1.0 shares @ $520.9294050000001, cash change: $520.93
+2025-06-03 09:52:49,933 - src.execution.containers_pipeline - INFO - 🎯 All positions closed successfully for END_OF_DATA, total cash change: $520.93

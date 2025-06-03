@@ -1,91 +1,9 @@
 {
-  "container_status": {
-    "metadata": {
-      "container_id": "6901e223-216d-4268-9b30-64a1fa503fab",
-      "role": "data",
-      "name": "DataContainer",
-      "parent_id": null,
-      "created_at": "2025-06-01T20:49:45.199477",
-      "tags": []
-    },
-    "state": "running",
-    "metrics": {
-      "events_processed": 0,
-      "events_published": 0,
-      "start_time": "2025-06-01T20:49:45.308924",
-      "last_activity": null
-    },
-    "child_containers": 2,
-    "limits": {
-      "max_memory_mb": null,
-      "max_cpu_percent": null,
-      "max_execution_time_minutes": null,
-      "max_child_containers": null,
-      "max_events_per_second": null
-    }
-  },
-  "container_structure": {
-    "id": "6901e223-216d-4268-9b30-64a1fa503fab",
-    "role": "data",
-    "name": "DataContainer",
-    "state": "running",
-    "children": [
-      {
-        "id": "ea2c09b5-8037-42a2-8653-8ae1dce03810",
-        "role": "indicator",
-        "name": "IndicatorContainer",
-        "state": "running",
-        "children": []
-      },
-      {
-        "id": "e3ddec16-c2ae-40f3-93cf-3625e3931a63",
-        "role": "risk",
-        "name": "RiskContainer",
-        "state": "running",
-        "children": [
-          {
-            "id": "48607bf0-eaed-4831-ab0e-f9b196584ed0",
-            "role": "portfolio",
-            "name": "PortfolioContainer",
-            "state": "running",
-            "children": [
-              {
-                "id": "ccf2f4d1-88b5-40c5-ae5e-f149052ac761",
-                "role": "strategy",
-                "name": "StrategyContainer",
-                "state": "running",
-                "children": []
-              }
-            ]
-          },
-          {
-            "id": "353e7d76-a126-4460-b541-ab175ded8043",
-            "role": "execution",
-            "name": "ExecutionContainer",
-            "state": "running",
-            "children": []
-          }
-        ]
-      }
-    ]
-  },
-  "metrics": {
-    "events_processed": 0,
-    "events_published": 0,
-    "start_time": "2025-06-01T20:49:45.308924",
-    "last_activity": null
-  },
-  "final_state": "running",
+  "container_status": {},
+  "container_structure": {},
+  "metrics": {},
+  "final_state": "unknown",
   "execution_time": 0,
-  "workflow_id": "c0fc5abf-74ce-4410-86d7-b51b5dd60537",
-  "backtest_data": {
-    "trades": [],
-    "portfolio_value": 100000.0,
-    "positions": {},
-    "performance_metrics": {},
-    "signals_generated": 0,
-    "bars_processed": 0,
-    "cash": 100000.0,
-    "position_value": 0
-  }
+  "workflow_id": "215fa2e1-f327-4610-ad7f-4f976db3a42c",
+  "backtest_data": {}
 }

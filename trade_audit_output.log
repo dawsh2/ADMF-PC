@@ -1,0 +1,1856 @@
+2025-06-03 09:22:15,649 - ContainerLifecycleManager initialized
+2025-06-03 09:22:15,982 - ================================================================================
+2025-06-03 09:22:15,982 - TRADE AUDIT - 50 BARS
+2025-06-03 09:22:15,982 - ================================================================================
+2025-06-03 09:22:15,988 - Coordinator initialized (composable: True, communication: True)
+2025-06-03 09:22:15,988 - Executing workflow 4a7d250b-056c-4983-9e9b-39ad8fb71c54 in composable mode
+2025-06-03 09:22:15,989 - Registered container pattern: full_backtest
+2025-06-03 09:22:15,989 - Registered container pattern: signal_generation
+2025-06-03 09:22:15,989 - Registered container pattern: signal_replay
+2025-06-03 09:22:15,989 - Registered container pattern: simple_backtest
+2025-06-03 09:22:15,989 - Registered container type: backtest
+2025-06-03 09:22:15,989 - Registered container type: data
+2025-06-03 09:22:15,989 - Registered container type: indicator
+2025-06-03 09:22:15,989 - Registered container type: strategy
+2025-06-03 09:22:15,989 - Registered container type: execution
+2025-06-03 09:22:15,989 - Registered container type: risk
+2025-06-03 09:22:15,989 - Registered container type: portfolio
+2025-06-03 09:22:15,989 - Execution containers registered with composition engine
+2025-06-03 09:22:15,989 - Pipeline-enabled containers registered with composition engine
+2025-06-03 09:22:15,993 - Creating pipeline adapter: default_pipeline
+2025-06-03 09:22:15,993 - Pipeline adapter 'default_pipeline' configured with 0 connections
+2025-06-03 09:22:15,993 - Found containers by role: []
+2025-06-03 09:22:15,993 - No PortfolioContainer found for PORTFOLIO event routing
+2025-06-03 09:22:15,993 - No RiskContainer found for PORTFOLIO event routing
+2025-06-03 09:22:15,993 - Pipeline adapter 'default_pipeline' started with forward and reverse routing
+2025-06-03 09:22:15,993 - Started adapter: default_pipeline
+2025-06-03 09:22:15,993 - Started 1 communication adapters
+2025-06-03 09:22:15,993 - Communication layer setup complete with 1 adapters
+2025-06-03 09:22:15,993 - Executing backtest workflow with composable containers and pipeline communication
+2025-06-03 09:22:15,993 - Found 2 strategies from config
+2025-06-03 09:22:15,993 -   Strategy 1: {'name': 'momentum_strategy', 'type': 'momentum', 'enabled': True, 'allocation': 0.6, 'weight': 1.0, 'parameters': {'lookback_period': 20, 'rsi_period': 14, 'rsi_oversold': 40, 'rsi_overbought': 60, 'momentum_threshold': 0.0001}}
+2025-06-03 09:22:15,993 -   Strategy 2: {'name': 'mean_reversion_strategy', 'type': 'mean_reversion', 'enabled': True, 'allocation': 0.4, 'weight': 0.8, 'parameters': {'lookback_period': 15, 'entry_threshold': 0.8, 'exit_threshold': 0.2}}
+2025-06-03 09:22:15,993 - Configured multi-strategy with 2 strategies
+2025-06-03 09:22:15,993 - Inferred 3 indicators from strategies: {'SMA_20', 'RSI', 'BB_15'}
+2025-06-03 09:22:15,993 - Added risk config to simple_backtest: {'initial_capital': 100000, 'position_sizers': [{'name': 'fixed_size', 'type': 'fixed', 'size': 1000}], 'limits': [{'type': 'position', 'max_position': 5000}, {'type': 'exposure', 'max_exposure_pct': 80}]}
+2025-06-03 09:22:15,993 - Added portfolio config to simple_backtest: {'initial_capital': 100000}
+2025-06-03 09:22:15,993 - Creating custom simple_backtest structure without classifier
+2025-06-03 09:22:15,993 - Composed custom pattern with root container: e350b20c-ebed-4d60-b936-d5d1b74d9919
+2025-06-03 09:22:15,993 - Pipeline order: ['DataContainer', 'IndicatorContainer', 'StrategyContainer', 'RiskContainer', 'ExecutionContainer']
+2025-06-03 09:22:15,993 - Pipeline adapter 'default_pipeline' configured with 6 connections via setup_pipeline
+2025-06-03 09:22:15,993 - Updated pipeline adapter with 7 containers (all containers)
+2025-06-03 09:22:15,993 - Set up 4 pipeline connections
+2025-06-03 09:22:15,993 - Found containers by role: ['data', 'indicator', 'strategy', 'risk', 'execution', 'backtest', 'portfolio']
+2025-06-03 09:22:15,993 - Set up reverse routing for FILL events from ExecutionContainer
+2025-06-03 09:22:15,993 - Set up PORTFOLIO event routing from PortfolioContainer to RiskContainer
+2025-06-03 09:22:15,993 - Set up SYSTEM event broadcasting from DataContainer
+2025-06-03 09:22:15,993 - Pipeline adapter 'default_pipeline' started with forward and reverse routing
+2025-06-03 09:22:15,993 - Started pipeline adapter with configured connections
+2025-06-03 09:22:15,993 - BacktestContainer initialized
+2025-06-03 09:22:15,993 - DataContainer config: {'source': 'csv', 'file_path': 'data/SPY_1m.csv', 'symbols': ['SPY'], 'max_bars': 50}
+2025-06-03 09:22:15,993 - Using specific file path: data/SPY_1m.csv
+2025-06-03 09:22:15,993 - DataContainer initialized with csv data source
+2025-06-03 09:22:15,993 - IndicatorContainer config: {'indicators': ['SMA_20', 'RSI', 'BB_15']}
+2025-06-03 09:22:15,994 - Initializing IndicatorContainer with config-inferred indicators: ['SMA_20', 'RSI', 'BB_15']
+2025-06-03 09:22:15,994 - Created indicator config: SMA_20 (IndicatorType.TREND)
+2025-06-03 09:22:15,994 - Created indicator config: RSI (IndicatorType.MOMENTUM)
+2025-06-03 09:22:15,994 - Created indicator config: BB_15 (IndicatorType.VOLATILITY)
+2025-06-03 09:22:15,994 - IndicatorContainer initialized with 3 indicator configs
+2025-06-03 09:22:15,994 - Initializing 2 strategies as sub-containers
+2025-06-03 09:22:15,994 - StrategyContainer initialized with momentum strategy
+2025-06-03 09:22:15,994 - Created strategy sub-container: momentum_strategy with type: momentum
+2025-06-03 09:22:15,994 - MeanReversionStrategy initialized with period=15, entry=0.8, exit=0.2
+2025-06-03 09:22:15,994 - StrategyContainer initialized with mean_reversion strategy
+2025-06-03 09:22:15,994 - Created strategy sub-container: mean_reversion_strategy with type: mean_reversion
+2025-06-03 09:22:15,994 - StrategyContainer initialized with momentum strategy
+2025-06-03 09:22:15,994 - MeanReversionStrategy initialized with period=15, entry=0.8, exit=0.2
+2025-06-03 09:22:15,994 - StrategyContainer initialized with mean_reversion strategy
+2025-06-03 09:22:15,994 - RiskContainer initialized with position sizing and risk limits
+2025-06-03 09:22:15,994 - PortfolioContainer initialized with capital: $100000
+2025-06-03 09:22:15,994 - 📋 PortfolioContainer registered for position closing
+2025-06-03 09:22:15,995 - 📊 PortfolioContainer published PORTFOLIO update
+2025-06-03 09:22:15,995 - ImprovedMarketSimulator created - ID: MarketSim_b66e4989-2334-4892-b766-2deca52afdce
+2025-06-03 09:22:15,995 - Initialized BacktestBroker with portfolio state, initial_capital=100000
+2025-06-03 09:22:15,998 - Created scoped container: backtest_portfolio
+2025-06-03 09:22:15,998 - Created isolated event bus for container: backtest_portfolio
+2025-06-03 09:22:15,998 - Created UniversalScopedContainer: backtest_portfolio
+2025-06-03 09:22:15,998 - Initialized BacktestBroker with portfolio state, initial_capital=100000
+2025-06-03 09:22:15,998 - Initialized MarketSimulator
+2025-06-03 09:22:15,998 - Initialized OrderManager
+2025-06-03 09:22:15,998 - Initialized ExecutionContext
+2025-06-03 09:22:15,998 - Initialized DefaultExecutionEngine
+2025-06-03 09:22:15,998 - ExecutionContainer initialized with backtest engine
+2025-06-03 09:22:15,998 - BacktestContainer started - managing peer containers
+2025-06-03 09:22:15,998 - 📊 RiskContainer cached updated portfolio state
+2025-06-03 09:22:15,998 -    💰 Cash: $100000.00, Positions: 0
+2025-06-03 09:22:15,998 - Starting data streaming
+2025-06-03 09:22:15,998 - Loading data for SPY
+2025-06-03 09:22:16,491 - Loaded 102236 rows for SPY
+2025-06-03 09:22:16,491 - Date range: 2024-03-26 13:30:00+00:00 to 2025-04-02 19:23:00+00:00
+2025-06-03 09:22:16,491 - Limited to 50 bars as requested
+2025-06-03 09:22:16,492 - BAR   1: 2024-03-26 13:30:00+00:00 - SPY @ $521.0100
+2025-06-03 09:22:16,492 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,492 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,492 - [BAR] SPY @ 2024-03-26 13:30:00+00:00 - Price: 521.0100
+2025-06-03 09:22:16,493 - BAR   2: 2024-03-26 13:31:00+00:00 - SPY @ $521.0700
+2025-06-03 09:22:16,493 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,493 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,493 - [BAR] SPY @ 2024-03-26 13:31:00+00:00 - Price: 521.0700
+2025-06-03 09:22:16,494 - BAR   3: 2024-03-26 13:32:00+00:00 - SPY @ $521.2200
+2025-06-03 09:22:16,494 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,494 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,495 - [BAR] SPY @ 2024-03-26 13:32:00+00:00 - Price: 521.2200
+2025-06-03 09:22:16,496 - BAR   4: 2024-03-26 13:33:00+00:00 - SPY @ $521.2896
+2025-06-03 09:22:16,496 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,496 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,496 - [BAR] SPY @ 2024-03-26 13:33:00+00:00 - Price: 521.2896
+2025-06-03 09:22:16,497 - BAR   5: 2024-03-26 13:34:00+00:00 - SPY @ $521.3600
+2025-06-03 09:22:16,497 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,497 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,497 - [BAR] SPY @ 2024-03-26 13:34:00+00:00 - Price: 521.3600
+2025-06-03 09:22:16,498 - BAR   6: 2024-03-26 13:35:00+00:00 - SPY @ $521.1297
+2025-06-03 09:22:16,498 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,498 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,498 - [BAR] SPY @ 2024-03-26 13:35:00+00:00 - Price: 521.1297
+2025-06-03 09:22:16,500 - BAR   7: 2024-03-26 13:36:00+00:00 - SPY @ $521.1200
+2025-06-03 09:22:16,500 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,500 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,500 - [BAR] SPY @ 2024-03-26 13:36:00+00:00 - Price: 521.1200
+2025-06-03 09:22:16,501 - BAR   8: 2024-03-26 13:37:00+00:00 - SPY @ $521.2500
+2025-06-03 09:22:16,501 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,501 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,501 - [BAR] SPY @ 2024-03-26 13:37:00+00:00 - Price: 521.2500
+2025-06-03 09:22:16,502 - BAR   9: 2024-03-26 13:38:00+00:00 - SPY @ $521.0200
+2025-06-03 09:22:16,502 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,502 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,502 - [BAR] SPY @ 2024-03-26 13:38:00+00:00 - Price: 521.0200
+2025-06-03 09:22:16,503 - BAR  10: 2024-03-26 13:39:00+00:00 - SPY @ $521.0900
+2025-06-03 09:22:16,503 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,503 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,503 - [BAR] SPY @ 2024-03-26 13:39:00+00:00 - Price: 521.0900
+2025-06-03 09:22:16,505 - BAR  11: 2024-03-26 13:40:00+00:00 - SPY @ $521.0200
+2025-06-03 09:22:16,505 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,505 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,505 - [BAR] SPY @ 2024-03-26 13:40:00+00:00 - Price: 521.0200
+2025-06-03 09:22:16,506 - BAR  12: 2024-03-26 13:41:00+00:00 - SPY @ $520.8522
+2025-06-03 09:22:16,506 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,506 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,506 - [BAR] SPY @ 2024-03-26 13:41:00+00:00 - Price: 520.8522
+2025-06-03 09:22:16,507 - BAR  13: 2024-03-26 13:42:00+00:00 - SPY @ $520.8950
+2025-06-03 09:22:16,507 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,507 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,507 - [BAR] SPY @ 2024-03-26 13:42:00+00:00 - Price: 520.8950
+2025-06-03 09:22:16,509 - BAR  14: 2024-03-26 13:43:00+00:00 - SPY @ $521.0850
+2025-06-03 09:22:16,509 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,509 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,509 - [BAR] SPY @ 2024-03-26 13:43:00+00:00 - Price: 521.0850
+2025-06-03 09:22:16,510 - BAR  15: 2024-03-26 13:44:00+00:00 - SPY @ $521.1550
+2025-06-03 09:22:16,510 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,510 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,510 - [BAR] SPY @ 2024-03-26 13:44:00+00:00 - Price: 521.1550
+2025-06-03 09:22:16,510 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,510 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,510 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,510 - [INDICATOR] SPY RSI = 54.6456
+2025-06-03 09:22:16,510 - [INDICATOR] SPY BB_15 = {upper=521.37, middle=521.10, lower=520.84, bandwidth=0.00}
+2025-06-03 09:22:16,510 - 🔍 _process_signals called with timestamp: 2024-03-26 13:44:00+00:00
+2025-06-03 09:22:16,510 - 📊 Market data available: True
+2025-06-03 09:22:16,510 - 📈 Indicators available: True
+2025-06-03 09:22:16,510 - 🏭 Strategy available: False
+2025-06-03 09:22:16,510 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,510 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,511 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,511 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,511 -    Indicators: {'SPY': {'RSI': np.float64(54.64564910931628), 'BB_15': {'upper': np.float64(521.3727690799064), 'middle': np.float64(521.1044333333334), 'lower': np.float64(520.8360975867604), 'bandwidth': np.float64(0.0010298732054783493)}}}
+2025-06-03 09:22:16,511 -    Timestamp: 2024-03-26 13:44:00+00:00
+2025-06-03 09:22:16,511 -    📊 Processing symbol: SPY, data: {'open': 521.08, 'high': 521.2084, 'low': 521.05, 'close': 521.155, 'volume': 169200.0}
+2025-06-03 09:22:16,511 -    💰 Extracted price: 521.155
+2025-06-03 09:22:16,511 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,511 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,511 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,511 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,511 -    Indicators: {'SPY': {'RSI': np.float64(54.64564910931628), 'BB_15': {'upper': np.float64(521.3727690799064), 'middle': np.float64(521.1044333333334), 'lower': np.float64(520.8360975867604), 'bandwidth': np.float64(0.0010298732054783493)}}}
+2025-06-03 09:22:16,511 -    Timestamp: 2024-03-26 13:44:00+00:00
+2025-06-03 09:22:16,511 -    📊 Processing symbol: SPY, data: {'open': 521.08, 'high': 521.2084, 'low': 521.05, 'close': 521.155, 'volume': 169200.0}
+2025-06-03 09:22:16,511 -    💰 Extracted price: 521.155
+2025-06-03 09:22:16,511 -    📊 BB: upper=521.37, middle=521.10, lower=520.84
+2025-06-03 09:22:16,511 -    📊 RSI: 54.64564910931628
+2025-06-03 09:22:16,511 -    📊 Z-score: 0.38
+2025-06-03 09:22:16,511 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,511 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,511 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,511 - BAR  16: 2024-03-26 13:45:00+00:00 - SPY @ $521.0660
+2025-06-03 09:22:16,511 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,511 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,511 - [BAR] SPY @ 2024-03-26 13:45:00+00:00 - Price: 521.0660
+2025-06-03 09:22:16,511 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,511 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,511 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,511 - [INDICATOR] SPY RSI = 49.8742
+2025-06-03 09:22:16,511 - [INDICATOR] SPY BB_15 = {upper=521.37, middle=521.11, lower=520.84, bandwidth=0.00}
+2025-06-03 09:22:16,511 - 🔍 _process_signals called with timestamp: 2024-03-26 13:45:00+00:00
+2025-06-03 09:22:16,511 - 📊 Market data available: True
+2025-06-03 09:22:16,511 - 📈 Indicators available: True
+2025-06-03 09:22:16,511 - 🏭 Strategy available: False
+2025-06-03 09:22:16,511 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,511 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,511 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,511 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,511 -    Indicators: {'SPY': {'RSI': np.float64(49.87418218419668), 'BB_15': {'upper': np.float64(521.3726740948335), 'middle': np.float64(521.1081666666665), 'lower': np.float64(520.8436592384995), 'bandwidth': np.float64(0.0010151728377584578)}}}
+2025-06-03 09:22:16,511 -    Timestamp: 2024-03-26 13:45:00+00:00
+2025-06-03 09:22:16,511 -    📊 Processing symbol: SPY, data: {'open': 521.165, 'high': 521.28, 'low': 521.066, 'close': 521.066, 'volume': 114550.0}
+2025-06-03 09:22:16,511 -    💰 Extracted price: 521.066
+2025-06-03 09:22:16,512 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,512 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,512 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,512 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,512 -    Indicators: {'SPY': {'RSI': np.float64(49.87418218419668), 'BB_15': {'upper': np.float64(521.3726740948335), 'middle': np.float64(521.1081666666665), 'lower': np.float64(520.8436592384995), 'bandwidth': np.float64(0.0010151728377584578)}}}
+2025-06-03 09:22:16,512 -    Timestamp: 2024-03-26 13:45:00+00:00
+2025-06-03 09:22:16,512 -    📊 Processing symbol: SPY, data: {'open': 521.165, 'high': 521.28, 'low': 521.066, 'close': 521.066, 'volume': 114550.0}
+2025-06-03 09:22:16,512 -    💰 Extracted price: 521.066
+2025-06-03 09:22:16,512 -    📊 BB: upper=521.37, middle=521.11, lower=520.84
+2025-06-03 09:22:16,512 -    📊 RSI: 49.87418218419668
+2025-06-03 09:22:16,512 -    📊 Z-score: -0.32
+2025-06-03 09:22:16,512 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,512 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,512 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,512 - BAR  17: 2024-03-26 13:46:00+00:00 - SPY @ $521.1100
+2025-06-03 09:22:16,512 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,512 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,512 - [BAR] SPY @ 2024-03-26 13:46:00+00:00 - Price: 521.1100
+2025-06-03 09:22:16,513 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,513 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,513 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,513 - [INDICATOR] SPY RSI = 46.2928
+2025-06-03 09:22:16,513 - [INDICATOR] SPY BB_15 = {upper=521.37, middle=521.11, lower=520.85, bandwidth=0.00}
+2025-06-03 09:22:16,513 - 🔍 _process_signals called with timestamp: 2024-03-26 13:46:00+00:00
+2025-06-03 09:22:16,513 - 📊 Market data available: True
+2025-06-03 09:22:16,513 - 📈 Indicators available: True
+2025-06-03 09:22:16,513 - 🏭 Strategy available: False
+2025-06-03 09:22:16,513 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,513 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,513 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,513 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,513 -    Indicators: {'SPY': {'RSI': np.float64(46.29280129414868), 'BB_15': {'upper': np.float64(521.3745532217671), 'middle': np.float64(521.1108333333333), 'lower': np.float64(520.8471134448995), 'bandwidth': np.float64(0.0010121451006762545)}}}
+2025-06-03 09:22:16,513 -    Timestamp: 2024-03-26 13:46:00+00:00
+2025-06-03 09:22:16,513 -    📊 Processing symbol: SPY, data: {'open': 521.07, 'high': 521.23, 'low': 521.07, 'close': 521.11, 'volume': 66036.0}
+2025-06-03 09:22:16,513 -    💰 Extracted price: 521.11
+2025-06-03 09:22:16,513 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,513 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,513 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,513 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,513 -    Indicators: {'SPY': {'RSI': np.float64(46.29280129414868), 'BB_15': {'upper': np.float64(521.3745532217671), 'middle': np.float64(521.1108333333333), 'lower': np.float64(520.8471134448995), 'bandwidth': np.float64(0.0010121451006762545)}}}
+2025-06-03 09:22:16,513 -    Timestamp: 2024-03-26 13:46:00+00:00
+2025-06-03 09:22:16,513 -    📊 Processing symbol: SPY, data: {'open': 521.07, 'high': 521.23, 'low': 521.07, 'close': 521.11, 'volume': 66036.0}
+2025-06-03 09:22:16,513 -    💰 Extracted price: 521.11
+2025-06-03 09:22:16,513 -    📊 BB: upper=521.37, middle=521.11, lower=520.85
+2025-06-03 09:22:16,513 -    📊 RSI: 46.29280129414868
+2025-06-03 09:22:16,513 -    📊 Z-score: -0.01
+2025-06-03 09:22:16,513 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,513 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,513 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,513 - BAR  18: 2024-03-26 13:47:00+00:00 - SPY @ $521.0900
+2025-06-03 09:22:16,513 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,513 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,514 - [BAR] SPY @ 2024-03-26 13:47:00+00:00 - Price: 521.0900
+2025-06-03 09:22:16,514 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,514 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,514 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,514 - [INDICATOR] SPY RSI = 43.0404
+2025-06-03 09:22:16,514 - [INDICATOR] SPY BB_15 = {upper=521.36, middle=521.10, lower=520.84, bandwidth=0.00}
+2025-06-03 09:22:16,514 - 🔍 _process_signals called with timestamp: 2024-03-26 13:47:00+00:00
+2025-06-03 09:22:16,514 - 📊 Market data available: True
+2025-06-03 09:22:16,514 - 📈 Indicators available: True
+2025-06-03 09:22:16,514 - 🏭 Strategy available: False
+2025-06-03 09:22:16,514 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,514 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,514 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,514 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,514 -    Indicators: {'SPY': {'RSI': np.float64(43.04044630404732), 'BB_15': {'upper': np.float64(521.3594321188535), 'middle': np.float64(521.1021666666667), 'lower': np.float64(520.8449012144798), 'bandwidth': np.float64(0.0009873896853373498)}}}
+2025-06-03 09:22:16,514 -    Timestamp: 2024-03-26 13:47:00+00:00
+2025-06-03 09:22:16,514 -    📊 Processing symbol: SPY, data: {'open': 521.1, 'high': 521.18, 'low': 521.07, 'close': 521.09, 'volume': 114040.0}
+2025-06-03 09:22:16,514 -    💰 Extracted price: 521.09
+2025-06-03 09:22:16,514 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,514 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,514 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,514 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,514 -    Indicators: {'SPY': {'RSI': np.float64(43.04044630404732), 'BB_15': {'upper': np.float64(521.3594321188535), 'middle': np.float64(521.1021666666667), 'lower': np.float64(520.8449012144798), 'bandwidth': np.float64(0.0009873896853373498)}}}
+2025-06-03 09:22:16,514 -    Timestamp: 2024-03-26 13:47:00+00:00
+2025-06-03 09:22:16,514 -    📊 Processing symbol: SPY, data: {'open': 521.1, 'high': 521.18, 'low': 521.07, 'close': 521.09, 'volume': 114040.0}
+2025-06-03 09:22:16,514 -    💰 Extracted price: 521.09
+2025-06-03 09:22:16,514 -    📊 BB: upper=521.36, middle=521.10, lower=520.84
+2025-06-03 09:22:16,514 -    📊 RSI: 43.04044630404732
+2025-06-03 09:22:16,514 -    📊 Z-score: -0.09
+2025-06-03 09:22:16,514 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,514 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,514 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,515 - BAR  19: 2024-03-26 13:48:00+00:00 - SPY @ $521.1700
+2025-06-03 09:22:16,515 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,515 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,515 - [BAR] SPY @ 2024-03-26 13:48:00+00:00 - Price: 521.1700
+2025-06-03 09:22:16,515 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,515 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,515 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,515 - [INDICATOR] SPY RSI = 43.4192
+2025-06-03 09:22:16,515 - [INDICATOR] SPY BB_15 = {upper=521.33, middle=521.09, lower=520.85, bandwidth=0.00}
+2025-06-03 09:22:16,515 - 🔍 _process_signals called with timestamp: 2024-03-26 13:48:00+00:00
+2025-06-03 09:22:16,515 - 📊 Market data available: True
+2025-06-03 09:22:16,515 - 📈 Indicators available: True
+2025-06-03 09:22:16,515 - 🏭 Strategy available: False
+2025-06-03 09:22:16,515 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,515 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,515 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,515 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,515 -    Indicators: {'SPY': {'RSI': np.float64(43.41922970351632), 'BB_15': {'upper': np.float64(521.3345886573773), 'middle': np.float64(521.0941933333332), 'lower': np.float64(520.8537980092892), 'bandwidth': np.float64(0.0009226559309987228)}}}
+2025-06-03 09:22:16,515 -    Timestamp: 2024-03-26 13:48:00+00:00
+2025-06-03 09:22:16,515 -    📊 Processing symbol: SPY, data: {'open': 521.095, 'high': 521.175, 'low': 521.07, 'close': 521.17, 'volume': 67113.0}
+2025-06-03 09:22:16,515 -    💰 Extracted price: 521.17
+2025-06-03 09:22:16,515 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,515 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,515 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,515 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,515 -    Indicators: {'SPY': {'RSI': np.float64(43.41922970351632), 'BB_15': {'upper': np.float64(521.3345886573773), 'middle': np.float64(521.0941933333332), 'lower': np.float64(520.8537980092892), 'bandwidth': np.float64(0.0009226559309987228)}}}
+2025-06-03 09:22:16,515 -    Timestamp: 2024-03-26 13:48:00+00:00
+2025-06-03 09:22:16,515 -    📊 Processing symbol: SPY, data: {'open': 521.095, 'high': 521.175, 'low': 521.07, 'close': 521.17, 'volume': 67113.0}
+2025-06-03 09:22:16,515 -    💰 Extracted price: 521.17
+2025-06-03 09:22:16,515 -    📊 BB: upper=521.33, middle=521.09, lower=520.85
+2025-06-03 09:22:16,515 -    📊 RSI: 43.41922970351632
+2025-06-03 09:22:16,515 -    📊 Z-score: 0.63
+2025-06-03 09:22:16,515 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,515 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,515 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,516 - BAR  20: 2024-03-26 13:49:00+00:00 - SPY @ $521.1900
+2025-06-03 09:22:16,516 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,516 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,516 - [BAR] SPY @ 2024-03-26 13:49:00+00:00 - Price: 521.1900
+2025-06-03 09:22:16,516 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,516 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,516 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,516 - [INDICATOR] SPY SMA_20 = 521.1096
+2025-06-03 09:22:16,516 - [INDICATOR] SPY RSI = 52.4447
+2025-06-03 09:22:16,516 - [INDICATOR] SPY BB_15 = {upper=521.29, middle=521.08, lower=520.88, bandwidth=0.00}
+2025-06-03 09:22:16,516 - 🔍 _process_signals called with timestamp: 2024-03-26 13:49:00+00:00
+2025-06-03 09:22:16,516 - 📊 Market data available: True
+2025-06-03 09:22:16,516 - 📈 Indicators available: True
+2025-06-03 09:22:16,516 - 🏭 Strategy available: False
+2025-06-03 09:22:16,516 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,516 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,516 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,516 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,516 -    Indicators: {'SPY': {'SMA_20': np.float64(521.109625), 'RSI': np.float64(52.44466066650871), 'BB_15': {'upper': np.float64(521.2850554407662), 'middle': np.float64(521.08286), 'lower': np.float64(520.8806645592338), 'bandwidth': np.float64(0.0007760586896535623)}}}
+2025-06-03 09:22:16,516 -    Timestamp: 2024-03-26 13:49:00+00:00
+2025-06-03 09:22:16,516 -    📊 Processing symbol: SPY, data: {'open': 521.16, 'high': 521.2099, 'low': 521.106, 'close': 521.19, 'volume': 49709.0}
+2025-06-03 09:22:16,516 -    💰 Extracted price: 521.19
+2025-06-03 09:22:16,516 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,516 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,516 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,517 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,517 -    Indicators: {'SPY': {'SMA_20': np.float64(521.109625), 'RSI': np.float64(52.44466066650871), 'BB_15': {'upper': np.float64(521.2850554407662), 'middle': np.float64(521.08286), 'lower': np.float64(520.8806645592338), 'bandwidth': np.float64(0.0007760586896535623)}}}
+2025-06-03 09:22:16,517 -    Timestamp: 2024-03-26 13:49:00+00:00
+2025-06-03 09:22:16,517 -    📊 Processing symbol: SPY, data: {'open': 521.16, 'high': 521.2099, 'low': 521.106, 'close': 521.19, 'volume': 49709.0}
+2025-06-03 09:22:16,517 -    💰 Extracted price: 521.19
+2025-06-03 09:22:16,517 -    📊 BB: upper=521.29, middle=521.08, lower=520.88
+2025-06-03 09:22:16,517 -    📊 RSI: 52.44466066650871
+2025-06-03 09:22:16,517 -    📊 Z-score: 1.06
+2025-06-03 09:22:16,517 -    🔴 SELL signal: z_score=1.06, RSI=52.44466066650871
+2025-06-03 09:22:16,517 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,517 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,517 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,517 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 13:49:00+00:00
+2025-06-03 09:22:16,517 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,517 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,517 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,517 - RiskContainer created order: SPY OrderSide.SELL 1
+2025-06-03 09:22:16,517 - ORDER: OrderSide.SELL 1 SPY @ market (price=$521.1900)
+2025-06-03 09:22:16,517 - [ORDER] SPY -1 1.00 @ 0.0000
+2025-06-03 09:22:16,517 - RiskContainer approved and emitted 1 orders
+2025-06-03 09:22:16,517 - RISK CHECK: Cash=$100000.00, Positions={}
+2025-06-03 09:22:16,517 - 🔧 DefaultExecutionEngine.execute_order() called for ORD-eab37431
+2025-06-03 09:22:16,517 - Order submitted: ORD-eab37431
+2025-06-03 09:22:16,517 - Allowing short sale initiation for SPY - quantity: 1
+2025-06-03 09:22:16,517 - Order submitted - ID: ORD-eab37431, side: SELL, quantity: 1, symbol: SPY, type: MARKET
+2025-06-03 09:22:16,517 -    Broker order ID: ORD-eab37431
+2025-06-03 09:22:16,517 -    Market data for SPY: price=521.19, volume=49709.0, spread=0.01999999999998181
+2025-06-03 09:22:16,517 -    Raw market data: {'price': 521.19, 'close': 521.19, 'open': 521.16, 'high': 521.2099, 'low': 521.106, 'volume': 49709.0, 'bid': 521.1800000000001, 'ask': 521.2, 'timestamp': Timestamp('2024-03-26 13:49:00+0000', tz='UTC')}
+2025-06-03 09:22:16,517 -    Calling market_simulator.simulate_fill()
+2025-06-03 09:22:16,517 - 🎲 MarketSimulator.simulate_fill() called for ORD-eab37431
+2025-06-03 09:22:16,517 -    Order: SPY -1 1 @ None (type: MARKET)
+2025-06-03 09:22:16,517 -    Market: price=521.19, volume=49709.0, spread=0.01999999999998181
+2025-06-03 09:22:16,517 -    Fill probability check: 0.629 vs 0.95
+2025-06-03 09:22:16,517 -    _calculate_fill_price: order.order_type=OrderType.MARKET, OrderType.MARKET=OrderType.MARKET
+2025-06-03 09:22:16,517 -    Order type comparison: True
+2025-06-03 09:22:16,517 -    Market order detected, returning market_price: 521.19
+2025-06-03 09:22:16,517 -    Fill price calculation: 521.19
+2025-06-03 09:22:16,517 -    Final fill price (with slippage): 520.9294050000001 (slippage: -0.260595)
+2025-06-03 09:22:16,517 -    Fill quantity: 1.0
+2025-06-03 09:22:16,517 - Simulated fill: SELL 1.0 SPY @ 520.93 (market: 521.19, slippage: -0.2606, commission: 2.60)
+2025-06-03 09:22:16,517 - Fill recorded - ID: c0feecec-e3ee-4818-8ce3-56343c4463e7, order: ORD-eab37431, side: SELL, quantity: 1.0, symbol: SPY, price: 520.9294050000001
+2025-06-03 09:22:16,517 -    Broker execute_fill result: True
+2025-06-03 09:22:16,517 -    ✅ Broker returned True, proceeding with order completion
+2025-06-03 09:22:16,517 -    📝 Adding fill to order manager
+2025-06-03 09:22:16,517 - Order ORD-eab37431 status: OrderStatus.SUBMITTED -> OrderStatus.FILLED
+2025-06-03 09:22:16,517 - Fill added to order ORD-eab37431: 1.0 @ 520.9294050000001
+2025-06-03 09:22:16,517 -    📝 Fill added to order manager: True
+2025-06-03 09:22:16,517 -    📊 Recording fill metrics
+2025-06-03 09:22:16,517 -    📊 Fill metrics recorded successfully
+2025-06-03 09:22:16,517 - Order executed: ORD-eab37431 - Fill: c0feecec-e3ee-4818-8ce3-56343c4463e7
+2025-06-03 09:22:16,517 - [FILL] FILLED: SPY -1 1.00 @ 520.9294
+2025-06-03 09:22:16,517 - ExecutionContainer generated fill for order ORD-eab37431
+2025-06-03 09:22:16,517 - FILL: OrderSide.SELL 1.0 SPY @ $520.9294 = $520.93 (commission=$2.60)
+2025-06-03 09:22:16,517 - 💼 PortfolioContainer updated: SPY -1 1.0 @ 520.9294050000001
+2025-06-03 09:22:16,517 -    📈 Position: 1.0
+2025-06-03 09:22:16,517 -    💰 Cash change: 518.32, New balance: 99997.40
+2025-06-03 09:22:16,517 - 📊 PortfolioContainer published PORTFOLIO update
+2025-06-03 09:22:16,517 - PORTFOLIO: Cash=$99997.40, Total=$100518.32, Positions=1
+2025-06-03 09:22:16,518 -   POSITION: SPY = 1.0 shares
+2025-06-03 09:22:16,518 - 🔄 RiskContainer received FILL event - forwarding to PortfolioContainer
+2025-06-03 09:22:16,518 - 📊 RiskContainer cached updated portfolio state
+2025-06-03 09:22:16,518 -    💰 Cash: $99997.40, Positions: 1
+2025-06-03 09:22:16,518 -    📍 SPY: 1.00 shares
+2025-06-03 09:22:16,518 - BAR  21: 2024-03-26 13:50:00+00:00 - SPY @ $521.2150
+2025-06-03 09:22:16,518 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,518 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,518 - [BAR] SPY @ 2024-03-26 13:50:00+00:00 - Price: 521.2150
+2025-06-03 09:22:16,518 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,518 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,518 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,518 - [INDICATOR] SPY SMA_20 = 521.1199
+2025-06-03 09:22:16,518 - [INDICATOR] SPY RSI = 53.8043
+2025-06-03 09:22:16,518 - [INDICATOR] SPY BB_15 = {upper=521.30, middle=521.09, lower=520.88, bandwidth=0.00}
+2025-06-03 09:22:16,518 - 🔍 _process_signals called with timestamp: 2024-03-26 13:50:00+00:00
+2025-06-03 09:22:16,518 - 📊 Market data available: True
+2025-06-03 09:22:16,518 - 📈 Indicators available: True
+2025-06-03 09:22:16,518 - 🏭 Strategy available: False
+2025-06-03 09:22:16,518 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,518 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,518 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,518 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,518 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1198750000001), 'RSI': np.float64(53.80426077206612), 'BB_15': {'upper': np.float64(521.3002654470229), 'middle': np.float64(521.0885466666666), 'lower': np.float64(520.8768278863104), 'bandwidth': np.float64(0.0008126019338196134)}}}
+2025-06-03 09:22:16,518 -    Timestamp: 2024-03-26 13:50:00+00:00
+2025-06-03 09:22:16,518 -    📊 Processing symbol: SPY, data: {'open': 521.19, 'high': 521.25, 'low': 521.14, 'close': 521.215, 'volume': 65501.0}
+2025-06-03 09:22:16,518 -    💰 Extracted price: 521.215
+2025-06-03 09:22:16,518 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,518 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,518 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,518 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,518 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1198750000001), 'RSI': np.float64(53.80426077206612), 'BB_15': {'upper': np.float64(521.3002654470229), 'middle': np.float64(521.0885466666666), 'lower': np.float64(520.8768278863104), 'bandwidth': np.float64(0.0008126019338196134)}}}
+2025-06-03 09:22:16,518 -    Timestamp: 2024-03-26 13:50:00+00:00
+2025-06-03 09:22:16,518 -    📊 Processing symbol: SPY, data: {'open': 521.19, 'high': 521.25, 'low': 521.14, 'close': 521.215, 'volume': 65501.0}
+2025-06-03 09:22:16,518 -    💰 Extracted price: 521.215
+2025-06-03 09:22:16,518 -    📊 BB: upper=521.30, middle=521.09, lower=520.88
+2025-06-03 09:22:16,518 -    📊 RSI: 53.80426077206612
+2025-06-03 09:22:16,518 -    📊 Z-score: 1.19
+2025-06-03 09:22:16,518 -    🔴 SELL signal: z_score=1.19, RSI=53.80426077206612
+2025-06-03 09:22:16,518 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,518 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,518 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,518 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 13:50:00+00:00
+2025-06-03 09:22:16,518 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,518 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,518 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,518 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,518 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,518 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,519 - BAR  22: 2024-03-26 13:51:00+00:00 - SPY @ $521.0800
+2025-06-03 09:22:16,519 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,519 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,519 - [BAR] SPY @ 2024-03-26 13:51:00+00:00 - Price: 521.0800
+2025-06-03 09:22:16,519 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,519 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,519 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,519 - [INDICATOR] SPY SMA_20 = 521.1204
+2025-06-03 09:22:16,519 - [INDICATOR] SPY RSI = 43.2195
+2025-06-03 09:22:16,519 - [INDICATOR] SPY BB_15 = {upper=521.30, middle=521.09, lower=520.87, bandwidth=0.00}
+2025-06-03 09:22:16,519 - 🔍 _process_signals called with timestamp: 2024-03-26 13:51:00+00:00
+2025-06-03 09:22:16,519 - 📊 Market data available: True
+2025-06-03 09:22:16,519 - 📈 Indicators available: True
+2025-06-03 09:22:16,519 - 🏭 Strategy available: False
+2025-06-03 09:22:16,519 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,519 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,519 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,519 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,519 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1203750000002), 'RSI': np.float64(43.2195277600521), 'BB_15': {'upper': np.float64(521.2969535884315), 'middle': np.float64(521.0858800000001), 'lower': np.float64(520.8748064115687), 'bandwidth': np.float64(0.0008101297560834352)}}}
+2025-06-03 09:22:16,519 -    Timestamp: 2024-03-26 13:51:00+00:00
+2025-06-03 09:22:16,519 -    📊 Processing symbol: SPY, data: {'open': 521.225, 'high': 521.225, 'low': 521.05, 'close': 521.08, 'volume': 66797.0}
+2025-06-03 09:22:16,519 -    💰 Extracted price: 521.08
+2025-06-03 09:22:16,519 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,519 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,519 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,519 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,519 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1203750000002), 'RSI': np.float64(43.2195277600521), 'BB_15': {'upper': np.float64(521.2969535884315), 'middle': np.float64(521.0858800000001), 'lower': np.float64(520.8748064115687), 'bandwidth': np.float64(0.0008101297560834352)}}}
+2025-06-03 09:22:16,519 -    Timestamp: 2024-03-26 13:51:00+00:00
+2025-06-03 09:22:16,519 -    📊 Processing symbol: SPY, data: {'open': 521.225, 'high': 521.225, 'low': 521.05, 'close': 521.08, 'volume': 66797.0}
+2025-06-03 09:22:16,519 -    💰 Extracted price: 521.08
+2025-06-03 09:22:16,519 -    📊 BB: upper=521.30, middle=521.09, lower=520.87
+2025-06-03 09:22:16,519 -    📊 RSI: 43.2195277600521
+2025-06-03 09:22:16,519 -    📊 Z-score: -0.06
+2025-06-03 09:22:16,519 -    ⚪ EXIT signal: z_score=-0.06
+2025-06-03 09:22:16,519 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,519 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,519 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,519 - SIGNAL: mean_reversion_strategy - OrderSide.BUY SPY @ 2024-03-26 13:51:00+00:00
+2025-06-03 09:22:16,519 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,519 - [SIGNAL] SPY OrderSide.BUY (strength: 0.80) - Price returned to mean
+2025-06-03 09:22:16,520 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,520 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,520 - BAR  23: 2024-03-26 13:52:00+00:00 - SPY @ $521.1200
+2025-06-03 09:22:16,520 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,520 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,520 - [BAR] SPY @ 2024-03-26 13:52:00+00:00 - Price: 521.1200
+2025-06-03 09:22:16,520 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,520 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,520 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,520 - [INDICATOR] SPY SMA_20 = 521.1154
+2025-06-03 09:22:16,520 - [INDICATOR] SPY RSI = 54.7010
+2025-06-03 09:22:16,520 - [INDICATOR] SPY BB_15 = {upper=521.27, middle=521.08, lower=520.88, bandwidth=0.00}
+2025-06-03 09:22:16,520 - 🔍 _process_signals called with timestamp: 2024-03-26 13:52:00+00:00
+2025-06-03 09:22:16,520 - 📊 Market data available: True
+2025-06-03 09:22:16,520 - 📈 Indicators available: True
+2025-06-03 09:22:16,520 - 🏭 Strategy available: False
+2025-06-03 09:22:16,520 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,520 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,520 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,520 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,520 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1153750000001), 'RSI': np.float64(54.70101541933236), 'BB_15': {'upper': np.float64(521.2705505912246), 'middle': np.float64(521.0772133333334), 'lower': np.float64(520.8838760754421), 'bandwidth': np.float64(0.0007420675974465505)}}}
+2025-06-03 09:22:16,520 -    Timestamp: 2024-03-26 13:52:00+00:00
+2025-06-03 09:22:16,520 -    📊 Processing symbol: SPY, data: {'open': 521.0776, 'high': 521.2, 'low': 521.065, 'close': 521.12, 'volume': 62975.0}
+2025-06-03 09:22:16,520 -    💰 Extracted price: 521.12
+2025-06-03 09:22:16,520 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,520 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,520 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,520 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,520 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1153750000001), 'RSI': np.float64(54.70101541933236), 'BB_15': {'upper': np.float64(521.2705505912246), 'middle': np.float64(521.0772133333334), 'lower': np.float64(520.8838760754421), 'bandwidth': np.float64(0.0007420675974465505)}}}
+2025-06-03 09:22:16,520 -    Timestamp: 2024-03-26 13:52:00+00:00
+2025-06-03 09:22:16,520 -    📊 Processing symbol: SPY, data: {'open': 521.0776, 'high': 521.2, 'low': 521.065, 'close': 521.12, 'volume': 62975.0}
+2025-06-03 09:22:16,520 -    💰 Extracted price: 521.12
+2025-06-03 09:22:16,520 -    📊 BB: upper=521.27, middle=521.08, lower=520.88
+2025-06-03 09:22:16,520 -    📊 RSI: 54.70101541933236
+2025-06-03 09:22:16,521 -    📊 Z-score: 0.44
+2025-06-03 09:22:16,521 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,521 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,521 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,521 - BAR  24: 2024-03-26 13:53:00+00:00 - SPY @ $521.0069
+2025-06-03 09:22:16,521 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,521 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,521 - [BAR] SPY @ 2024-03-26 13:53:00+00:00 - Price: 521.0069
+2025-06-03 09:22:16,521 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,521 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,521 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,521 - [INDICATOR] SPY SMA_20 = 521.1012
+2025-06-03 09:22:16,521 - [INDICATOR] SPY RSI = 46.2456
+2025-06-03 09:22:16,521 - [INDICATOR] SPY BB_15 = {upper=521.27, middle=521.08, lower=520.88, bandwidth=0.00}
+2025-06-03 09:22:16,522 - 🔍 _process_signals called with timestamp: 2024-03-26 13:53:00+00:00
+2025-06-03 09:22:16,522 - 📊 Market data available: True
+2025-06-03 09:22:16,522 - 📈 Indicators available: True
+2025-06-03 09:22:16,522 - 🏭 Strategy available: False
+2025-06-03 09:22:16,522 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,522 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,522 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,522 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,522 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1012400000002), 'RSI': np.float64(46.24559501219517), 'BB_15': {'upper': np.float64(521.2708181159926), 'middle': np.float64(521.0763400000001), 'lower': np.float64(520.8818618840075), 'bandwidth': np.float64(0.0007464476932210162)}}}
+2025-06-03 09:22:16,522 -    Timestamp: 2024-03-26 13:53:00+00:00
+2025-06-03 09:22:16,522 -    📊 Processing symbol: SPY, data: {'open': 521.13, 'high': 521.155, 'low': 521.005, 'close': 521.0069, 'volume': 57340.0}
+2025-06-03 09:22:16,522 -    💰 Extracted price: 521.0069
+2025-06-03 09:22:16,522 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,522 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,522 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,522 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,522 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1012400000002), 'RSI': np.float64(46.24559501219517), 'BB_15': {'upper': np.float64(521.2708181159926), 'middle': np.float64(521.0763400000001), 'lower': np.float64(520.8818618840075), 'bandwidth': np.float64(0.0007464476932210162)}}}
+2025-06-03 09:22:16,522 -    Timestamp: 2024-03-26 13:53:00+00:00
+2025-06-03 09:22:16,522 -    📊 Processing symbol: SPY, data: {'open': 521.13, 'high': 521.155, 'low': 521.005, 'close': 521.0069, 'volume': 57340.0}
+2025-06-03 09:22:16,522 -    💰 Extracted price: 521.0069
+2025-06-03 09:22:16,522 -    📊 BB: upper=521.27, middle=521.08, lower=520.88
+2025-06-03 09:22:16,522 -    📊 RSI: 46.24559501219517
+2025-06-03 09:22:16,522 -    📊 Z-score: -0.71
+2025-06-03 09:22:16,522 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,522 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,522 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,522 - BAR  25: 2024-03-26 13:54:00+00:00 - SPY @ $520.9550
+2025-06-03 09:22:16,522 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,522 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,522 - [BAR] SPY @ 2024-03-26 13:54:00+00:00 - Price: 520.9550
+2025-06-03 09:22:16,523 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,523 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,523 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,523 - [INDICATOR] SPY SMA_20 = 521.0810
+2025-06-03 09:22:16,523 - [INDICATOR] SPY RSI = 47.0145
+2025-06-03 09:22:16,523 - [INDICATOR] SPY BB_15 = {upper=521.27, middle=521.07, lower=520.86, bandwidth=0.00}
+2025-06-03 09:22:16,523 - 🔍 _process_signals called with timestamp: 2024-03-26 13:54:00+00:00
+2025-06-03 09:22:16,523 - 📊 Market data available: True
+2025-06-03 09:22:16,523 - 📈 Indicators available: True
+2025-06-03 09:22:16,523 - 🏭 Strategy available: False
+2025-06-03 09:22:16,523 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,523 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,523 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,523 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,523 -    Indicators: {'SPY': {'SMA_20': np.float64(521.0809900000002), 'RSI': np.float64(47.01451405475111), 'BB_15': {'upper': np.float64(521.2707465328351), 'middle': np.float64(521.0673400000001), 'lower': np.float64(520.863933467165), 'bandwidth': np.float64(0.0007807303095799803)}}}
+2025-06-03 09:22:16,523 -    Timestamp: 2024-03-26 13:54:00+00:00
+2025-06-03 09:22:16,523 -    📊 Processing symbol: SPY, data: {'open': 521.01, 'high': 521.01, 'low': 520.89, 'close': 520.955, 'volume': 98023.0}
+2025-06-03 09:22:16,523 -    💰 Extracted price: 520.955
+2025-06-03 09:22:16,523 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,523 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,523 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,523 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,523 -    Indicators: {'SPY': {'SMA_20': np.float64(521.0809900000002), 'RSI': np.float64(47.01451405475111), 'BB_15': {'upper': np.float64(521.2707465328351), 'middle': np.float64(521.0673400000001), 'lower': np.float64(520.863933467165), 'bandwidth': np.float64(0.0007807303095799803)}}}
+2025-06-03 09:22:16,523 -    Timestamp: 2024-03-26 13:54:00+00:00
+2025-06-03 09:22:16,523 -    📊 Processing symbol: SPY, data: {'open': 521.01, 'high': 521.01, 'low': 520.89, 'close': 520.955, 'volume': 98023.0}
+2025-06-03 09:22:16,523 -    💰 Extracted price: 520.955
+2025-06-03 09:22:16,523 -    📊 BB: upper=521.27, middle=521.07, lower=520.86
+2025-06-03 09:22:16,523 -    📊 RSI: 47.01451405475111
+2025-06-03 09:22:16,523 -    📊 Z-score: -1.10
+2025-06-03 09:22:16,523 -    🟢 BUY signal: z_score=-1.10, RSI=47.01451405475111
+2025-06-03 09:22:16,523 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,523 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,523 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,523 - SIGNAL: mean_reversion_strategy - OrderSide.BUY SPY @ 2024-03-26 13:54:00+00:00
+2025-06-03 09:22:16,523 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,523 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Price below lower band - oversold
+2025-06-03 09:22:16,523 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,523 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,523 - BAR  26: 2024-03-26 13:55:00+00:00 - SPY @ $521.0400
+2025-06-03 09:22:16,523 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,523 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,523 - [BAR] SPY @ 2024-03-26 13:55:00+00:00 - Price: 521.0400
+2025-06-03 09:22:16,524 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,524 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,524 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,524 - [INDICATOR] SPY SMA_20 = 521.0765
+2025-06-03 09:22:16,524 - [INDICATOR] SPY RSI = 59.3359
+2025-06-03 09:22:16,524 - [INDICATOR] SPY BB_15 = {upper=521.27, middle=521.07, lower=520.87, bandwidth=0.00}
+2025-06-03 09:22:16,524 - 🔍 _process_signals called with timestamp: 2024-03-26 13:55:00+00:00
+2025-06-03 09:22:16,524 - 📊 Market data available: True
+2025-06-03 09:22:16,524 - 📈 Indicators available: True
+2025-06-03 09:22:16,524 - 🏭 Strategy available: False
+2025-06-03 09:22:16,524 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,524 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,524 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,524 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,524 -    Indicators: {'SPY': {'SMA_20': np.float64(521.0765050000002), 'RSI': np.float64(59.33585205806245), 'BB_15': {'upper': np.float64(521.2710808755731), 'middle': np.float64(521.0686733333333), 'lower': np.float64(520.8662657910935), 'bandwidth': np.float64(0.0007768939205075395)}}}
+2025-06-03 09:22:16,524 -    Timestamp: 2024-03-26 13:55:00+00:00
+2025-06-03 09:22:16,524 -    📊 Processing symbol: SPY, data: {'open': 520.95, 'high': 521.055, 'low': 520.92, 'close': 521.04, 'volume': 99971.0}
+2025-06-03 09:22:16,524 -    💰 Extracted price: 521.04
+2025-06-03 09:22:16,524 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,524 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,524 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,524 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,524 -    Indicators: {'SPY': {'SMA_20': np.float64(521.0765050000002), 'RSI': np.float64(59.33585205806245), 'BB_15': {'upper': np.float64(521.2710808755731), 'middle': np.float64(521.0686733333333), 'lower': np.float64(520.8662657910935), 'bandwidth': np.float64(0.0007768939205075395)}}}
+2025-06-03 09:22:16,524 -    Timestamp: 2024-03-26 13:55:00+00:00
+2025-06-03 09:22:16,524 -    📊 Processing symbol: SPY, data: {'open': 520.95, 'high': 521.055, 'low': 520.92, 'close': 521.04, 'volume': 99971.0}
+2025-06-03 09:22:16,524 -    💰 Extracted price: 521.04
+2025-06-03 09:22:16,524 -    📊 BB: upper=521.27, middle=521.07, lower=520.87
+2025-06-03 09:22:16,524 -    📊 RSI: 59.33585205806245
+2025-06-03 09:22:16,524 -    📊 Z-score: -0.28
+2025-06-03 09:22:16,524 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,524 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,524 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,525 - BAR  27: 2024-03-26 13:56:00+00:00 - SPY @ $521.1450
+2025-06-03 09:22:16,525 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,525 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,525 - [BAR] SPY @ 2024-03-26 13:56:00+00:00 - Price: 521.1450
+2025-06-03 09:22:16,525 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,525 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,525 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,525 - [INDICATOR] SPY SMA_20 = 521.0778
+2025-06-03 09:22:16,525 - [INDICATOR] SPY RSI = 61.7041
+2025-06-03 09:22:16,525 - [INDICATOR] SPY BB_15 = {upper=521.26, middle=521.09, lower=520.92, bandwidth=0.00}
+2025-06-03 09:22:16,525 - 🔍 _process_signals called with timestamp: 2024-03-26 13:56:00+00:00
+2025-06-03 09:22:16,525 - 📊 Market data available: True
+2025-06-03 09:22:16,525 - 📈 Indicators available: True
+2025-06-03 09:22:16,525 - 🏭 Strategy available: False
+2025-06-03 09:22:16,525 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,525 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,525 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,525 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,525 -    Indicators: {'SPY': {'SMA_20': np.float64(521.077755), 'RSI': np.float64(61.70411985018994), 'BB_15': {'upper': np.float64(521.2570188048187), 'middle': np.float64(521.0881933333334), 'lower': np.float64(520.9193678618481), 'bandwidth': np.float64(0.0006479727372263743)}}}
+2025-06-03 09:22:16,525 -    Timestamp: 2024-03-26 13:56:00+00:00
+2025-06-03 09:22:16,525 -    📊 Processing symbol: SPY, data: {'open': 521.035, 'high': 521.1674, 'low': 521.01, 'close': 521.145, 'volume': 77001.0}
+2025-06-03 09:22:16,525 -    💰 Extracted price: 521.145
+2025-06-03 09:22:16,525 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,525 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,525 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,525 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,525 -    Indicators: {'SPY': {'SMA_20': np.float64(521.077755), 'RSI': np.float64(61.70411985018994), 'BB_15': {'upper': np.float64(521.2570188048187), 'middle': np.float64(521.0881933333334), 'lower': np.float64(520.9193678618481), 'bandwidth': np.float64(0.0006479727372263743)}}}
+2025-06-03 09:22:16,525 -    Timestamp: 2024-03-26 13:56:00+00:00
+2025-06-03 09:22:16,525 -    📊 Processing symbol: SPY, data: {'open': 521.035, 'high': 521.1674, 'low': 521.01, 'close': 521.145, 'volume': 77001.0}
+2025-06-03 09:22:16,525 -    💰 Extracted price: 521.145
+2025-06-03 09:22:16,525 -    📊 BB: upper=521.26, middle=521.09, lower=520.92
+2025-06-03 09:22:16,525 -    📊 RSI: 61.70411985018994
+2025-06-03 09:22:16,525 -    📊 Z-score: 0.67
+2025-06-03 09:22:16,525 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,525 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,525 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,526 - BAR  28: 2024-03-26 13:57:00+00:00 - SPY @ $521.1250
+2025-06-03 09:22:16,526 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,526 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,526 - [BAR] SPY @ 2024-03-26 13:57:00+00:00 - Price: 521.1250
+2025-06-03 09:22:16,526 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,526 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,526 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,526 - [INDICATOR] SPY SMA_20 = 521.0715
+2025-06-03 09:22:16,526 - [INDICATOR] SPY RSI = 52.2272
+2025-06-03 09:22:16,526 - [INDICATOR] SPY BB_15 = {upper=521.24, middle=521.10, lower=520.97, bandwidth=0.00}
+2025-06-03 09:22:16,526 - 🔍 _process_signals called with timestamp: 2024-03-26 13:57:00+00:00
+2025-06-03 09:22:16,526 - 📊 Market data available: True
+2025-06-03 09:22:16,526 - 📈 Indicators available: True
+2025-06-03 09:22:16,526 - 🏭 Strategy available: False
+2025-06-03 09:22:16,526 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,526 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,526 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,526 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,526 -    Indicators: {'SPY': {'SMA_20': np.float64(521.0715050000001), 'RSI': np.float64(52.22717149220365), 'BB_15': {'upper': np.float64(521.2375784470436), 'middle': np.float64(521.1035266666667), 'lower': np.float64(520.9694748862897), 'bandwidth': np.float64(0.0005144919330498709)}}}
+2025-06-03 09:22:16,526 -    Timestamp: 2024-03-26 13:57:00+00:00
+2025-06-03 09:22:16,526 -    📊 Processing symbol: SPY, data: {'open': 521.145, 'high': 521.205, 'low': 521.11, 'close': 521.125, 'volume': 40838.0}
+2025-06-03 09:22:16,526 -    💰 Extracted price: 521.125
+2025-06-03 09:22:16,526 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,526 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,526 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,526 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,526 -    Indicators: {'SPY': {'SMA_20': np.float64(521.0715050000001), 'RSI': np.float64(52.22717149220365), 'BB_15': {'upper': np.float64(521.2375784470436), 'middle': np.float64(521.1035266666667), 'lower': np.float64(520.9694748862897), 'bandwidth': np.float64(0.0005144919330498709)}}}
+2025-06-03 09:22:16,526 -    Timestamp: 2024-03-26 13:57:00+00:00
+2025-06-03 09:22:16,526 -    📊 Processing symbol: SPY, data: {'open': 521.145, 'high': 521.205, 'low': 521.11, 'close': 521.125, 'volume': 40838.0}
+2025-06-03 09:22:16,526 -    💰 Extracted price: 521.125
+2025-06-03 09:22:16,527 -    📊 BB: upper=521.24, middle=521.10, lower=520.97
+2025-06-03 09:22:16,527 -    📊 RSI: 52.22717149220365
+2025-06-03 09:22:16,527 -    📊 Z-score: 0.32
+2025-06-03 09:22:16,527 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,527 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,527 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,527 - BAR  29: 2024-03-26 13:58:00+00:00 - SPY @ $521.1400
+2025-06-03 09:22:16,527 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,527 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,527 - [BAR] SPY @ 2024-03-26 13:58:00+00:00 - Price: 521.1400
+2025-06-03 09:22:16,527 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,527 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,527 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,527 - [INDICATOR] SPY SMA_20 = 521.0775
+2025-06-03 09:22:16,527 - [INDICATOR] SPY RSI = 49.1103
+2025-06-03 09:22:16,527 - [INDICATOR] SPY BB_15 = {upper=521.24, middle=521.11, lower=520.97, bandwidth=0.00}
+2025-06-03 09:22:16,527 - 🔍 _process_signals called with timestamp: 2024-03-26 13:58:00+00:00
+2025-06-03 09:22:16,527 - 📊 Market data available: True
+2025-06-03 09:22:16,527 - 📈 Indicators available: True
+2025-06-03 09:22:16,527 - 🏭 Strategy available: False
+2025-06-03 09:22:16,527 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,528 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,528 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,528 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,528 -    Indicators: {'SPY': {'SMA_20': np.float64(521.077505), 'RSI': np.float64(49.110320284698034), 'BB_15': {'upper': np.float64(521.2420240413426), 'middle': np.float64(521.1071933333335), 'lower': np.float64(520.9723626253244), 'bandwidth': np.float64(0.0005174778231196039)}}}
+2025-06-03 09:22:16,528 -    Timestamp: 2024-03-26 13:58:00+00:00
+2025-06-03 09:22:16,528 -    📊 Processing symbol: SPY, data: {'open': 521.125, 'high': 521.175, 'low': 521.11, 'close': 521.14, 'volume': 139196.0}
+2025-06-03 09:22:16,528 -    💰 Extracted price: 521.14
+2025-06-03 09:22:16,528 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,528 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,528 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,528 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,528 -    Indicators: {'SPY': {'SMA_20': np.float64(521.077505), 'RSI': np.float64(49.110320284698034), 'BB_15': {'upper': np.float64(521.2420240413426), 'middle': np.float64(521.1071933333335), 'lower': np.float64(520.9723626253244), 'bandwidth': np.float64(0.0005174778231196039)}}}
+2025-06-03 09:22:16,528 -    Timestamp: 2024-03-26 13:58:00+00:00
+2025-06-03 09:22:16,528 -    📊 Processing symbol: SPY, data: {'open': 521.125, 'high': 521.175, 'low': 521.11, 'close': 521.14, 'volume': 139196.0}
+2025-06-03 09:22:16,528 -    💰 Extracted price: 521.14
+2025-06-03 09:22:16,528 -    📊 BB: upper=521.24, middle=521.11, lower=520.97
+2025-06-03 09:22:16,528 -    📊 RSI: 49.110320284698034
+2025-06-03 09:22:16,528 -    📊 Z-score: 0.49
+2025-06-03 09:22:16,528 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,528 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,528 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,528 - BAR  30: 2024-03-26 13:59:00+00:00 - SPY @ $521.2500
+2025-06-03 09:22:16,528 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,528 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,528 - [BAR] SPY @ 2024-03-26 13:59:00+00:00 - Price: 521.2500
+2025-06-03 09:22:16,529 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,529 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,529 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,529 - [INDICATOR] SPY SMA_20 = 521.0855
+2025-06-03 09:22:16,529 - [INDICATOR] SPY RSI = 60.6481
+2025-06-03 09:22:16,529 - [INDICATOR] SPY BB_15 = {upper=521.26, middle=521.11, lower=520.96, bandwidth=0.00}
+2025-06-03 09:22:16,529 - 🔍 _process_signals called with timestamp: 2024-03-26 13:59:00+00:00
+2025-06-03 09:22:16,529 - 📊 Market data available: True
+2025-06-03 09:22:16,529 - 📈 Indicators available: True
+2025-06-03 09:22:16,529 - 🏭 Strategy available: False
+2025-06-03 09:22:16,529 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,529 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,529 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,529 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,529 -    Indicators: {'SPY': {'SMA_20': np.float64(521.085505), 'RSI': np.float64(60.648148148148756), 'BB_15': {'upper': np.float64(521.264681377109), 'middle': np.float64(521.1135266666668), 'lower': np.float64(520.9623719562245), 'bandwidth': np.float64(0.0005801219991703044)}}}
+2025-06-03 09:22:16,529 -    Timestamp: 2024-03-26 13:59:00+00:00
+2025-06-03 09:22:16,529 -    📊 Processing symbol: SPY, data: {'open': 521.16, 'high': 521.27, 'low': 521.16, 'close': 521.25, 'volume': 89254.0}
+2025-06-03 09:22:16,529 -    💰 Extracted price: 521.25
+2025-06-03 09:22:16,529 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,529 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,529 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,529 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,529 -    Indicators: {'SPY': {'SMA_20': np.float64(521.085505), 'RSI': np.float64(60.648148148148756), 'BB_15': {'upper': np.float64(521.264681377109), 'middle': np.float64(521.1135266666668), 'lower': np.float64(520.9623719562245), 'bandwidth': np.float64(0.0005801219991703044)}}}
+2025-06-03 09:22:16,529 -    Timestamp: 2024-03-26 13:59:00+00:00
+2025-06-03 09:22:16,529 -    📊 Processing symbol: SPY, data: {'open': 521.16, 'high': 521.27, 'low': 521.16, 'close': 521.25, 'volume': 89254.0}
+2025-06-03 09:22:16,529 -    💰 Extracted price: 521.25
+2025-06-03 09:22:16,529 -    📊 BB: upper=521.26, middle=521.11, lower=520.96
+2025-06-03 09:22:16,529 -    📊 RSI: 60.648148148148756
+2025-06-03 09:22:16,529 -    📊 Z-score: 1.81
+2025-06-03 09:22:16,529 -    🔴 SELL signal: z_score=1.81, RSI=60.648148148148756
+2025-06-03 09:22:16,529 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,529 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,529 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,529 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 13:59:00+00:00
+2025-06-03 09:22:16,529 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,529 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,529 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,529 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,529 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,529 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,530 - BAR  31: 2024-03-26 14:00:00+00:00 - SPY @ $521.3500
+2025-06-03 09:22:16,530 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,530 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,530 - [BAR] SPY @ 2024-03-26 14:00:00+00:00 - Price: 521.3500
+2025-06-03 09:22:16,530 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,530 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,530 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,530 - [INDICATOR] SPY SMA_20 = 521.1020
+2025-06-03 09:22:16,530 - [INDICATOR] SPY RSI = 63.0435
+2025-06-03 09:22:16,530 - [INDICATOR] SPY BB_15 = {upper=521.32, middle=521.13, lower=520.94, bandwidth=0.00}
+2025-06-03 09:22:16,530 - 🔍 _process_signals called with timestamp: 2024-03-26 14:00:00+00:00
+2025-06-03 09:22:16,530 - 📊 Market data available: True
+2025-06-03 09:22:16,530 - 📈 Indicators available: True
+2025-06-03 09:22:16,530 - 🏭 Strategy available: False
+2025-06-03 09:22:16,530 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,530 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,530 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,530 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,530 -    Indicators: {'SPY': {'SMA_20': np.float64(521.102005), 'RSI': np.float64(63.04347826087225), 'BB_15': {'upper': np.float64(521.3214664097679), 'middle': np.float64(521.13246), 'lower': np.float64(520.9434535902321), 'bandwidth': np.float64(0.000725368017827401)}}}
+2025-06-03 09:22:16,530 -    Timestamp: 2024-03-26 14:00:00+00:00
+2025-06-03 09:22:16,530 -    📊 Processing symbol: SPY, data: {'open': 521.25, 'high': 521.38, 'low': 521.18, 'close': 521.35, 'volume': 188916.0}
+2025-06-03 09:22:16,530 -    💰 Extracted price: 521.35
+2025-06-03 09:22:16,530 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,530 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,530 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,530 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,530 -    Indicators: {'SPY': {'SMA_20': np.float64(521.102005), 'RSI': np.float64(63.04347826087225), 'BB_15': {'upper': np.float64(521.3214664097679), 'middle': np.float64(521.13246), 'lower': np.float64(520.9434535902321), 'bandwidth': np.float64(0.000725368017827401)}}}
+2025-06-03 09:22:16,530 -    Timestamp: 2024-03-26 14:00:00+00:00
+2025-06-03 09:22:16,530 -    📊 Processing symbol: SPY, data: {'open': 521.25, 'high': 521.38, 'low': 521.18, 'close': 521.35, 'volume': 188916.0}
+2025-06-03 09:22:16,530 -    💰 Extracted price: 521.35
+2025-06-03 09:22:16,530 -    📊 BB: upper=521.32, middle=521.13, lower=520.94
+2025-06-03 09:22:16,530 -    📊 RSI: 63.04347826087225
+2025-06-03 09:22:16,530 -    📊 Z-score: 2.30
+2025-06-03 09:22:16,530 -    🔴 SELL signal: z_score=2.30, RSI=63.04347826087225
+2025-06-03 09:22:16,530 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,530 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,530 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,530 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:00:00+00:00
+2025-06-03 09:22:16,530 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,530 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,530 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,530 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,530 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,530 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,531 - BAR  32: 2024-03-26 14:01:00+00:00 - SPY @ $521.2801
+2025-06-03 09:22:16,531 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,531 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,531 - [BAR] SPY @ 2024-03-26 14:01:00+00:00 - Price: 521.2801
+2025-06-03 09:22:16,531 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,531 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,531 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,531 - [INDICATOR] SPY SMA_20 = 521.1234
+2025-06-03 09:22:16,531 - [INDICATOR] SPY RSI = 59.8000
+2025-06-03 09:22:16,531 - [INDICATOR] SPY BB_15 = {upper=521.35, middle=521.14, lower=520.94, bandwidth=0.00}
+2025-06-03 09:22:16,531 - 🔍 _process_signals called with timestamp: 2024-03-26 14:01:00+00:00
+2025-06-03 09:22:16,531 - 📊 Market data available: True
+2025-06-03 09:22:16,531 - 📈 Indicators available: True
+2025-06-03 09:22:16,531 - 🏭 Strategy available: False
+2025-06-03 09:22:16,531 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,531 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,531 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,531 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,531 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1234000000001), 'RSI': np.float64(59.79997937931373), 'BB_15': {'upper': np.float64(521.3460058489098), 'middle': np.float64(521.1438), 'lower': np.float64(520.9415941510903), 'bandwidth': np.float64(0.0007760078846176299)}}}
+2025-06-03 09:22:16,531 -    Timestamp: 2024-03-26 14:01:00+00:00
+2025-06-03 09:22:16,531 -    📊 Processing symbol: SPY, data: {'open': 521.36, 'high': 521.38, 'low': 521.25, 'close': 521.2801, 'volume': 101208.0}
+2025-06-03 09:22:16,531 -    💰 Extracted price: 521.2801
+2025-06-03 09:22:16,531 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,531 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,531 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,531 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,531 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1234000000001), 'RSI': np.float64(59.79997937931373), 'BB_15': {'upper': np.float64(521.3460058489098), 'middle': np.float64(521.1438), 'lower': np.float64(520.9415941510903), 'bandwidth': np.float64(0.0007760078846176299)}}}
+2025-06-03 09:22:16,531 -    Timestamp: 2024-03-26 14:01:00+00:00
+2025-06-03 09:22:16,531 -    📊 Processing symbol: SPY, data: {'open': 521.36, 'high': 521.38, 'low': 521.25, 'close': 521.2801, 'volume': 101208.0}
+2025-06-03 09:22:16,531 -    💰 Extracted price: 521.2801
+2025-06-03 09:22:16,531 -    📊 BB: upper=521.35, middle=521.14, lower=520.94
+2025-06-03 09:22:16,531 -    📊 RSI: 59.79997937931373
+2025-06-03 09:22:16,531 -    📊 Z-score: 1.35
+2025-06-03 09:22:16,531 -    🔴 SELL signal: z_score=1.35, RSI=59.79997937931373
+2025-06-03 09:22:16,531 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,531 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,531 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,531 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:01:00+00:00
+2025-06-03 09:22:16,531 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,531 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,531 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,531 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,531 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,531 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,532 - BAR  33: 2024-03-26 14:02:00+00:00 - SPY @ $521.2900
+2025-06-03 09:22:16,532 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,532 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,532 - [BAR] SPY @ 2024-03-26 14:02:00+00:00 - Price: 521.2900
+2025-06-03 09:22:16,532 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,532 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,532 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,532 - [INDICATOR] SPY SMA_20 = 521.1432
+2025-06-03 09:22:16,532 - [INDICATOR] SPY RSI = 56.6681
+2025-06-03 09:22:16,532 - [INDICATOR] SPY BB_15 = {upper=521.37, middle=521.16, lower=520.94, bandwidth=0.00}
+2025-06-03 09:22:16,532 - 🔍 _process_signals called with timestamp: 2024-03-26 14:02:00+00:00
+2025-06-03 09:22:16,532 - 📊 Market data available: True
+2025-06-03 09:22:16,532 - 📈 Indicators available: True
+2025-06-03 09:22:16,532 - 🏭 Strategy available: False
+2025-06-03 09:22:16,532 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,532 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,532 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,532 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,532 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1431500000001), 'RSI': np.float64(56.66814847743948), 'BB_15': {'upper': np.float64(521.3695105784004), 'middle': np.float64(521.1571333333335), 'lower': np.float64(520.9447560882666), 'bandwidth': np.float64(0.000815021925186209)}}}
+2025-06-03 09:22:16,532 -    Timestamp: 2024-03-26 14:02:00+00:00
+2025-06-03 09:22:16,532 -    📊 Processing symbol: SPY, data: {'open': 521.285, 'high': 521.325, 'low': 521.2, 'close': 521.29, 'volume': 69173.0}
+2025-06-03 09:22:16,532 -    💰 Extracted price: 521.29
+2025-06-03 09:22:16,532 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,532 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,532 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,532 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,532 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1431500000001), 'RSI': np.float64(56.66814847743948), 'BB_15': {'upper': np.float64(521.3695105784004), 'middle': np.float64(521.1571333333335), 'lower': np.float64(520.9447560882666), 'bandwidth': np.float64(0.000815021925186209)}}}
+2025-06-03 09:22:16,532 -    Timestamp: 2024-03-26 14:02:00+00:00
+2025-06-03 09:22:16,532 -    📊 Processing symbol: SPY, data: {'open': 521.285, 'high': 521.325, 'low': 521.2, 'close': 521.29, 'volume': 69173.0}
+2025-06-03 09:22:16,532 -    💰 Extracted price: 521.29
+2025-06-03 09:22:16,532 -    📊 BB: upper=521.37, middle=521.16, lower=520.94
+2025-06-03 09:22:16,532 -    📊 RSI: 56.66814847743948
+2025-06-03 09:22:16,532 -    📊 Z-score: 1.25
+2025-06-03 09:22:16,532 -    🔴 SELL signal: z_score=1.25, RSI=56.66814847743948
+2025-06-03 09:22:16,532 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,532 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,532 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,532 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:02:00+00:00
+2025-06-03 09:22:16,532 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,532 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,533 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,533 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,533 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,533 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,533 - BAR  34: 2024-03-26 14:03:00+00:00 - SPY @ $521.2500
+2025-06-03 09:22:16,533 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,533 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,533 - [BAR] SPY @ 2024-03-26 14:03:00+00:00 - Price: 521.2500
+2025-06-03 09:22:16,533 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,533 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,533 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,533 - [INDICATOR] SPY SMA_20 = 521.1514
+2025-06-03 09:22:16,533 - [INDICATOR] SPY RSI = 53.2616
+2025-06-03 09:22:16,533 - [INDICATOR] SPY BB_15 = {upper=521.38, middle=521.16, lower=520.95, bandwidth=0.00}
+2025-06-03 09:22:16,533 - 🔍 _process_signals called with timestamp: 2024-03-26 14:03:00+00:00
+2025-06-03 09:22:16,533 - 📊 Market data available: True
+2025-06-03 09:22:16,533 - 📈 Indicators available: True
+2025-06-03 09:22:16,533 - 🏭 Strategy available: False
+2025-06-03 09:22:16,533 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,533 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,533 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,533 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,533 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1514000000001), 'RSI': np.float64(53.261578604041766), 'BB_15': {'upper': np.float64(521.3798280268228), 'middle': np.float64(521.1624666666668), 'lower': np.float64(520.9451053065108), 'bandwidth': np.float64(0.000834140499588462)}}}
+2025-06-03 09:22:16,533 -    Timestamp: 2024-03-26 14:03:00+00:00
+2025-06-03 09:22:16,533 -    📊 Processing symbol: SPY, data: {'open': 521.3, 'high': 521.315, 'low': 521.1887, 'close': 521.25, 'volume': 66193.0}
+2025-06-03 09:22:16,533 -    💰 Extracted price: 521.25
+2025-06-03 09:22:16,534 - 🎯 SIGNAL ANALYSIS: momentum=0.000182, rsi=53.26, threshold=0.0001
+2025-06-03 09:22:16,534 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,534 -    Price history length: 20, Current price: 521.25
+2025-06-03 09:22:16,534 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,534 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,534 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,534 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,534 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,534 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,534 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,534 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1514000000001), 'RSI': np.float64(53.261578604041766), 'BB_15': {'upper': np.float64(521.3798280268228), 'middle': np.float64(521.1624666666668), 'lower': np.float64(520.9451053065108), 'bandwidth': np.float64(0.000834140499588462)}}}
+2025-06-03 09:22:16,534 -    Timestamp: 2024-03-26 14:03:00+00:00
+2025-06-03 09:22:16,534 -    📊 Processing symbol: SPY, data: {'open': 521.3, 'high': 521.315, 'low': 521.1887, 'close': 521.25, 'volume': 66193.0}
+2025-06-03 09:22:16,534 -    💰 Extracted price: 521.25
+2025-06-03 09:22:16,534 -    📊 BB: upper=521.38, middle=521.16, lower=520.95
+2025-06-03 09:22:16,534 -    📊 RSI: 53.261578604041766
+2025-06-03 09:22:16,534 -    📊 Z-score: 0.81
+2025-06-03 09:22:16,534 -    🔴 SELL signal: z_score=0.81, RSI=53.261578604041766
+2025-06-03 09:22:16,534 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,534 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,534 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,534 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:03:00+00:00
+2025-06-03 09:22:16,534 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:03:00+00:00
+2025-06-03 09:22:16,534 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,534 - [SIGNAL] SPY OrderSide.BUY (strength: 0.91) - Positive momentum with room to run
+2025-06-03 09:22:16,534 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,534 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,534 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,534 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,534 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,534 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,534 - BAR  35: 2024-03-26 14:04:00+00:00 - SPY @ $521.3300
+2025-06-03 09:22:16,534 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,534 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,534 - [BAR] SPY @ 2024-03-26 14:04:00+00:00 - Price: 521.3300
+2025-06-03 09:22:16,534 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,534 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,534 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,534 - [INDICATOR] SPY SMA_20 = 521.1601
+2025-06-03 09:22:16,534 - [INDICATOR] SPY RSI = 55.8986
+2025-06-03 09:22:16,534 - [INDICATOR] SPY BB_15 = {upper=521.40, middle=521.17, lower=520.94, bandwidth=0.00}
+2025-06-03 09:22:16,535 - 🔍 _process_signals called with timestamp: 2024-03-26 14:04:00+00:00
+2025-06-03 09:22:16,535 - 📊 Market data available: True
+2025-06-03 09:22:16,535 - 📈 Indicators available: True
+2025-06-03 09:22:16,535 - 🏭 Strategy available: False
+2025-06-03 09:22:16,535 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,535 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,535 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,535 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,535 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1601499999999), 'RSI': np.float64(55.89864587607785), 'BB_15': {'upper': np.float64(521.4045659883518), 'middle': np.float64(521.1718000000001), 'lower': np.float64(520.9390340116483), 'bandwidth': np.float64(0.0008932409173008851)}}}
+2025-06-03 09:22:16,535 -    Timestamp: 2024-03-26 14:04:00+00:00
+2025-06-03 09:22:16,535 -    📊 Processing symbol: SPY, data: {'open': 521.25, 'high': 521.38, 'low': 521.25, 'close': 521.33, 'volume': 79253.0}
+2025-06-03 09:22:16,535 -    💰 Extracted price: 521.33
+2025-06-03 09:22:16,535 - 🎯 SIGNAL ANALYSIS: momentum=0.000507, rsi=55.90, threshold=0.0001
+2025-06-03 09:22:16,535 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,535 -    Price history length: 21, Current price: 521.33
+2025-06-03 09:22:16,535 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,535 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,535 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,535 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,535 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,535 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,535 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,535 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1601499999999), 'RSI': np.float64(55.89864587607785), 'BB_15': {'upper': np.float64(521.4045659883518), 'middle': np.float64(521.1718000000001), 'lower': np.float64(520.9390340116483), 'bandwidth': np.float64(0.0008932409173008851)}}}
+2025-06-03 09:22:16,535 -    Timestamp: 2024-03-26 14:04:00+00:00
+2025-06-03 09:22:16,535 -    📊 Processing symbol: SPY, data: {'open': 521.25, 'high': 521.38, 'low': 521.25, 'close': 521.33, 'volume': 79253.0}
+2025-06-03 09:22:16,535 -    💰 Extracted price: 521.33
+2025-06-03 09:22:16,535 -    📊 BB: upper=521.40, middle=521.17, lower=520.94
+2025-06-03 09:22:16,535 -    📊 RSI: 55.89864587607785
+2025-06-03 09:22:16,535 -    📊 Z-score: 1.36
+2025-06-03 09:22:16,535 -    🔴 SELL signal: z_score=1.36, RSI=55.89864587607785
+2025-06-03 09:22:16,535 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,535 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,535 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,535 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:04:00+00:00
+2025-06-03 09:22:16,535 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:04:00+00:00
+2025-06-03 09:22:16,535 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,535 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,535 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,535 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,535 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,535 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,535 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,535 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,535 - BAR  36: 2024-03-26 14:05:00+00:00 - SPY @ $521.3100
+2025-06-03 09:22:16,535 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,535 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,535 - [BAR] SPY @ 2024-03-26 14:05:00+00:00 - Price: 521.3100
+2025-06-03 09:22:16,536 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,536 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,536 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,536 - [INDICATOR] SPY SMA_20 = 521.1724
+2025-06-03 09:22:16,536 - [INDICATOR] SPY RSI = 63.3752
+2025-06-03 09:22:16,536 - [INDICATOR] SPY BB_15 = {upper=521.42, middle=521.18, lower=520.94, bandwidth=0.00}
+2025-06-03 09:22:16,536 - 🔍 _process_signals called with timestamp: 2024-03-26 14:05:00+00:00
+2025-06-03 09:22:16,536 - 📊 Market data available: True
+2025-06-03 09:22:16,536 - 📈 Indicators available: True
+2025-06-03 09:22:16,536 - 🏭 Strategy available: False
+2025-06-03 09:22:16,536 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,536 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,536 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,536 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,536 -    Indicators: {'SPY': {'SMA_20': np.float64(521.17235), 'RSI': np.float64(63.375203535699434), 'BB_15': {'upper': np.float64(521.4202387392118), 'middle': np.float64(521.1781333333333), 'lower': np.float64(520.9360279274549), 'bandwidth': np.float64(0.0009290696995668742)}}}
+2025-06-03 09:22:16,536 -    Timestamp: 2024-03-26 14:05:00+00:00
+2025-06-03 09:22:16,536 -    📊 Processing symbol: SPY, data: {'open': 521.32, 'high': 521.38, 'low': 521.3, 'close': 521.31, 'volume': 83007.0}
+2025-06-03 09:22:16,536 -    💰 Extracted price: 521.31
+2025-06-03 09:22:16,536 - 🎯 SIGNAL ANALYSIS: momentum=0.000384, rsi=63.38, threshold=0.0001
+2025-06-03 09:22:16,536 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,536 -    Price history length: 22, Current price: 521.31
+2025-06-03 09:22:16,536 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,536 -    RSI conditions: rsi < overbought? False, rsi > oversold? True
+2025-06-03 09:22:16,536 -    ❌ No signal conditions met
+2025-06-03 09:22:16,536 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,536 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,536 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,536 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,536 -    Indicators: {'SPY': {'SMA_20': np.float64(521.17235), 'RSI': np.float64(63.375203535699434), 'BB_15': {'upper': np.float64(521.4202387392118), 'middle': np.float64(521.1781333333333), 'lower': np.float64(520.9360279274549), 'bandwidth': np.float64(0.0009290696995668742)}}}
+2025-06-03 09:22:16,536 -    Timestamp: 2024-03-26 14:05:00+00:00
+2025-06-03 09:22:16,536 -    📊 Processing symbol: SPY, data: {'open': 521.32, 'high': 521.38, 'low': 521.3, 'close': 521.31, 'volume': 83007.0}
+2025-06-03 09:22:16,536 -    💰 Extracted price: 521.31
+2025-06-03 09:22:16,536 -    📊 BB: upper=521.42, middle=521.18, lower=520.94
+2025-06-03 09:22:16,536 -    📊 RSI: 63.375203535699434
+2025-06-03 09:22:16,536 -    📊 Z-score: 1.09
+2025-06-03 09:22:16,536 -    🔴 SELL signal: z_score=1.09, RSI=63.375203535699434
+2025-06-03 09:22:16,536 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,536 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,536 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,536 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:05:00+00:00
+2025-06-03 09:22:16,536 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,536 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,536 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,536 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,536 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,536 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,536 - BAR  37: 2024-03-26 14:06:00+00:00 - SPY @ $521.3000
+2025-06-03 09:22:16,536 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,536 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,536 - [BAR] SPY @ 2024-03-26 14:06:00+00:00 - Price: 521.3000
+2025-06-03 09:22:16,537 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,537 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,537 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,537 - [INDICATOR] SPY SMA_20 = 521.1818
+2025-06-03 09:22:16,537 - [INDICATOR] SPY RSI = 60.8460
+2025-06-03 09:22:16,537 - [INDICATOR] SPY BB_15 = {upper=521.44, middle=521.19, lower=520.95, bandwidth=0.00}
+2025-06-03 09:22:16,537 - 🔍 _process_signals called with timestamp: 2024-03-26 14:06:00+00:00
+2025-06-03 09:22:16,537 - 📊 Market data available: True
+2025-06-03 09:22:16,537 - 📈 Indicators available: True
+2025-06-03 09:22:16,537 - 🏭 Strategy available: False
+2025-06-03 09:22:16,537 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,537 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,537 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,537 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,537 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1818499999999), 'RSI': np.float64(60.84598698481141), 'BB_15': {'upper': np.float64(521.4360014363992), 'middle': np.float64(521.1928), 'lower': np.float64(520.9495985636008), 'bandwidth': np.float64(0.0009332494094287488)}}}
+2025-06-03 09:22:16,537 -    Timestamp: 2024-03-26 14:06:00+00:00
+2025-06-03 09:22:16,537 -    📊 Processing symbol: SPY, data: {'open': 521.3287, 'high': 521.35, 'low': 521.26, 'close': 521.3, 'volume': 54238.0}
+2025-06-03 09:22:16,537 -    💰 Extracted price: 521.3
+2025-06-03 09:22:16,537 - 🎯 SIGNAL ANALYSIS: momentum=0.000403, rsi=60.85, threshold=0.0001
+2025-06-03 09:22:16,537 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,537 -    Price history length: 23, Current price: 521.3
+2025-06-03 09:22:16,537 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,537 -    RSI conditions: rsi < overbought? False, rsi > oversold? True
+2025-06-03 09:22:16,537 -    ❌ No signal conditions met
+2025-06-03 09:22:16,537 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,537 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,537 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,537 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,537 -    Indicators: {'SPY': {'SMA_20': np.float64(521.1818499999999), 'RSI': np.float64(60.84598698481141), 'BB_15': {'upper': np.float64(521.4360014363992), 'middle': np.float64(521.1928), 'lower': np.float64(520.9495985636008), 'bandwidth': np.float64(0.0009332494094287488)}}}
+2025-06-03 09:22:16,537 -    Timestamp: 2024-03-26 14:06:00+00:00
+2025-06-03 09:22:16,537 -    📊 Processing symbol: SPY, data: {'open': 521.3287, 'high': 521.35, 'low': 521.26, 'close': 521.3, 'volume': 54238.0}
+2025-06-03 09:22:16,537 -    💰 Extracted price: 521.3
+2025-06-03 09:22:16,537 -    📊 BB: upper=521.44, middle=521.19, lower=520.95
+2025-06-03 09:22:16,537 -    📊 RSI: 60.84598698481141
+2025-06-03 09:22:16,537 -    📊 Z-score: 0.88
+2025-06-03 09:22:16,537 -    🔴 SELL signal: z_score=0.88, RSI=60.84598698481141
+2025-06-03 09:22:16,537 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,537 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,537 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,537 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:06:00+00:00
+2025-06-03 09:22:16,537 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,537 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,537 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,537 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,537 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,537 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,538 - BAR  38: 2024-03-26 14:07:00+00:00 - SPY @ $521.4300
+2025-06-03 09:22:16,538 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,538 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,538 - [BAR] SPY @ 2024-03-26 14:07:00+00:00 - Price: 521.4300
+2025-06-03 09:22:16,538 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,538 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,538 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,538 - [INDICATOR] SPY SMA_20 = 521.1988
+2025-06-03 09:22:16,538 - [INDICATOR] SPY RSI = 74.9852
+2025-06-03 09:22:16,538 - [INDICATOR] SPY BB_15 = {upper=521.48, middle=521.21, lower=520.95, bandwidth=0.00}
+2025-06-03 09:22:16,538 - 🔍 _process_signals called with timestamp: 2024-03-26 14:07:00+00:00
+2025-06-03 09:22:16,538 - 📊 Market data available: True
+2025-06-03 09:22:16,538 - 📈 Indicators available: True
+2025-06-03 09:22:16,538 - 🏭 Strategy available: False
+2025-06-03 09:22:16,538 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,538 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,538 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,538 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,538 -    Indicators: {'SPY': {'SMA_20': np.float64(521.19885), 'RSI': np.float64(74.98523680169771), 'BB_15': {'upper': np.float64(521.4799791320829), 'middle': np.float64(521.2134666666667), 'lower': np.float64(520.9469542012505), 'bandwidth': np.float64(0.0010226614715871513)}}}
+2025-06-03 09:22:16,538 -    Timestamp: 2024-03-26 14:07:00+00:00
+2025-06-03 09:22:16,538 -    📊 Processing symbol: SPY, data: {'open': 521.31, 'high': 521.44, 'low': 521.285, 'close': 521.43, 'volume': 132666.0}
+2025-06-03 09:22:16,538 -    💰 Extracted price: 521.43
+2025-06-03 09:22:16,538 - 🎯 SIGNAL ANALYSIS: momentum=0.000499, rsi=74.99, threshold=0.0001
+2025-06-03 09:22:16,538 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,538 -    Price history length: 24, Current price: 521.43
+2025-06-03 09:22:16,538 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,538 -    RSI conditions: rsi < overbought? False, rsi > oversold? True
+2025-06-03 09:22:16,538 -    ❌ No signal conditions met
+2025-06-03 09:22:16,538 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,538 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,538 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,538 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,538 -    Indicators: {'SPY': {'SMA_20': np.float64(521.19885), 'RSI': np.float64(74.98523680169771), 'BB_15': {'upper': np.float64(521.4799791320829), 'middle': np.float64(521.2134666666667), 'lower': np.float64(520.9469542012505), 'bandwidth': np.float64(0.0010226614715871513)}}}
+2025-06-03 09:22:16,538 -    Timestamp: 2024-03-26 14:07:00+00:00
+2025-06-03 09:22:16,538 -    📊 Processing symbol: SPY, data: {'open': 521.31, 'high': 521.44, 'low': 521.285, 'close': 521.43, 'volume': 132666.0}
+2025-06-03 09:22:16,538 -    💰 Extracted price: 521.43
+2025-06-03 09:22:16,538 -    📊 BB: upper=521.48, middle=521.21, lower=520.95
+2025-06-03 09:22:16,538 -    📊 RSI: 74.98523680169771
+2025-06-03 09:22:16,538 -    📊 Z-score: 1.62
+2025-06-03 09:22:16,538 -    🔴 SELL signal: z_score=1.62, RSI=74.98523680169771
+2025-06-03 09:22:16,538 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,538 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,538 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,538 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:07:00+00:00
+2025-06-03 09:22:16,538 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,538 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,538 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,538 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,538 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,538 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,539 - BAR  39: 2024-03-26 14:08:00+00:00 - SPY @ $521.3800
+2025-06-03 09:22:16,539 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,539 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,539 - [BAR] SPY @ 2024-03-26 14:08:00+00:00 - Price: 521.3800
+2025-06-03 09:22:16,539 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,539 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,539 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,539 - [INDICATOR] SPY SMA_20 = 521.2093
+2025-06-03 09:22:16,539 - [INDICATOR] SPY RSI = 75.1539
+2025-06-03 09:22:16,539 - [INDICATOR] SPY BB_15 = {upper=521.49, middle=521.24, lower=520.98, bandwidth=0.00}
+2025-06-03 09:22:16,539 - 🔍 _process_signals called with timestamp: 2024-03-26 14:08:00+00:00
+2025-06-03 09:22:16,539 - 📊 Market data available: True
+2025-06-03 09:22:16,539 - 📈 Indicators available: True
+2025-06-03 09:22:16,539 - 🏭 Strategy available: False
+2025-06-03 09:22:16,539 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,539 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,539 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,539 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,539 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2093499999999), 'RSI': np.float64(75.15388257575258), 'BB_15': {'upper': np.float64(521.4924484681784), 'middle': np.float64(521.23834), 'lower': np.float64(520.9842315318216), 'bandwidth': np.float64(0.0009750183310707206)}}}
+2025-06-03 09:22:16,539 -    Timestamp: 2024-03-26 14:08:00+00:00
+2025-06-03 09:22:16,539 -    📊 Processing symbol: SPY, data: {'open': 521.43, 'high': 521.495, 'low': 521.33, 'close': 521.38, 'volume': 90138.0}
+2025-06-03 09:22:16,539 -    💰 Extracted price: 521.38
+2025-06-03 09:22:16,539 - 🎯 SIGNAL ANALYSIS: momentum=0.000365, rsi=75.15, threshold=0.0001
+2025-06-03 09:22:16,539 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,539 -    Price history length: 25, Current price: 521.38
+2025-06-03 09:22:16,539 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,539 -    RSI conditions: rsi < overbought? False, rsi > oversold? True
+2025-06-03 09:22:16,539 -    ❌ No signal conditions met
+2025-06-03 09:22:16,539 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,539 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,539 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,539 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,539 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2093499999999), 'RSI': np.float64(75.15388257575258), 'BB_15': {'upper': np.float64(521.4924484681784), 'middle': np.float64(521.23834), 'lower': np.float64(520.9842315318216), 'bandwidth': np.float64(0.0009750183310707206)}}}
+2025-06-03 09:22:16,539 -    Timestamp: 2024-03-26 14:08:00+00:00
+2025-06-03 09:22:16,539 -    📊 Processing symbol: SPY, data: {'open': 521.43, 'high': 521.495, 'low': 521.33, 'close': 521.38, 'volume': 90138.0}
+2025-06-03 09:22:16,539 -    💰 Extracted price: 521.38
+2025-06-03 09:22:16,539 -    📊 BB: upper=521.49, middle=521.24, lower=520.98
+2025-06-03 09:22:16,539 -    📊 RSI: 75.15388257575258
+2025-06-03 09:22:16,539 -    📊 Z-score: 1.11
+2025-06-03 09:22:16,539 -    🔴 SELL signal: z_score=1.11, RSI=75.15388257575258
+2025-06-03 09:22:16,539 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,539 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,539 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,539 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:08:00+00:00
+2025-06-03 09:22:16,539 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,539 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,539 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,539 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,540 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,540 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,540 - BAR  40: 2024-03-26 14:09:00+00:00 - SPY @ $521.3000
+2025-06-03 09:22:16,540 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,540 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,540 - [BAR] SPY @ 2024-03-26 14:09:00+00:00 - Price: 521.3000
+2025-06-03 09:22:16,540 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,540 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,540 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,540 - [INDICATOR] SPY SMA_20 = 521.2148
+2025-06-03 09:22:16,540 - [INDICATOR] SPY RSI = 65.4799
+2025-06-03 09:22:16,540 - [INDICATOR] SPY BB_15 = {upper=521.47, middle=521.26, lower=521.06, bandwidth=0.00}
+2025-06-03 09:22:16,540 - 🔍 _process_signals called with timestamp: 2024-03-26 14:09:00+00:00
+2025-06-03 09:22:16,540 - 📊 Market data available: True
+2025-06-03 09:22:16,540 - 📈 Indicators available: True
+2025-06-03 09:22:16,540 - 🏭 Strategy available: False
+2025-06-03 09:22:16,540 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,540 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,540 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,540 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,540 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2148499999998), 'RSI': np.float64(65.47987616098656), 'BB_15': {'upper': np.float64(521.4664266977646), 'middle': np.float64(521.26134), 'lower': np.float64(521.0562533022354), 'bandwidth': np.float64(0.0007868862776764824)}}}
+2025-06-03 09:22:16,540 -    Timestamp: 2024-03-26 14:09:00+00:00
+2025-06-03 09:22:16,540 -    📊 Processing symbol: SPY, data: {'open': 521.355, 'high': 521.36, 'low': 521.29, 'close': 521.3, 'volume': 76364.0}
+2025-06-03 09:22:16,540 -    💰 Extracted price: 521.3
+2025-06-03 09:22:16,540 - 🎯 SIGNAL ANALYSIS: momentum=0.000163, rsi=65.48, threshold=0.0001
+2025-06-03 09:22:16,540 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,540 -    Price history length: 26, Current price: 521.3
+2025-06-03 09:22:16,540 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,540 -    RSI conditions: rsi < overbought? False, rsi > oversold? True
+2025-06-03 09:22:16,540 -    ❌ No signal conditions met
+2025-06-03 09:22:16,540 - 📭 No signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,540 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,540 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,540 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,540 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2148499999998), 'RSI': np.float64(65.47987616098656), 'BB_15': {'upper': np.float64(521.4664266977646), 'middle': np.float64(521.26134), 'lower': np.float64(521.0562533022354), 'bandwidth': np.float64(0.0007868862776764824)}}}
+2025-06-03 09:22:16,540 -    Timestamp: 2024-03-26 14:09:00+00:00
+2025-06-03 09:22:16,541 -    📊 Processing symbol: SPY, data: {'open': 521.355, 'high': 521.36, 'low': 521.29, 'close': 521.3, 'volume': 76364.0}
+2025-06-03 09:22:16,541 -    💰 Extracted price: 521.3
+2025-06-03 09:22:16,541 -    📊 BB: upper=521.47, middle=521.26, lower=521.06
+2025-06-03 09:22:16,541 -    📊 RSI: 65.47987616098656
+2025-06-03 09:22:16,541 -    📊 Z-score: 0.38
+2025-06-03 09:22:16,541 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,541 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,541 - 📭 No signals generated by any sub-container strategy
+2025-06-03 09:22:16,541 - BAR  41: 2024-03-26 14:10:00+00:00 - SPY @ $521.1400
+2025-06-03 09:22:16,541 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,541 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,541 - [BAR] SPY @ 2024-03-26 14:10:00+00:00 - Price: 521.1400
+2025-06-03 09:22:16,541 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,541 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,541 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,541 - [INDICATOR] SPY SMA_20 = 521.2111
+2025-06-03 09:22:16,541 - [INDICATOR] SPY RSI = 49.7206
+2025-06-03 09:22:16,541 - [INDICATOR] SPY BB_15 = {upper=521.45, middle=521.27, lower=521.09, bandwidth=0.00}
+2025-06-03 09:22:16,541 - 🔍 _process_signals called with timestamp: 2024-03-26 14:10:00+00:00
+2025-06-03 09:22:16,541 - 📊 Market data available: True
+2025-06-03 09:22:16,541 - 📈 Indicators available: True
+2025-06-03 09:22:16,541 - 🏭 Strategy available: False
+2025-06-03 09:22:16,541 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,541 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,541 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,541 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,541 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2110999999999), 'RSI': np.float64(49.72060795708569), 'BB_15': {'upper': np.float64(521.44896147453), 'middle': np.float64(521.2680066666667), 'lower': np.float64(521.0870518588033), 'bandwidth': np.float64(0.0006942870291256202)}}}
+2025-06-03 09:22:16,541 -    Timestamp: 2024-03-26 14:10:00+00:00
+2025-06-03 09:22:16,541 -    📊 Processing symbol: SPY, data: {'open': 521.29, 'high': 521.37, 'low': 521.12, 'close': 521.14, 'volume': 88518.0}
+2025-06-03 09:22:16,542 -    💰 Extracted price: 521.14
+2025-06-03 09:22:16,542 - 🎯 SIGNAL ANALYSIS: momentum=0.000115, rsi=49.72, threshold=0.0001
+2025-06-03 09:22:16,542 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,542 -    Price history length: 27, Current price: 521.14
+2025-06-03 09:22:16,542 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,542 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,542 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,542 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,542 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,542 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,542 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,542 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2110999999999), 'RSI': np.float64(49.72060795708569), 'BB_15': {'upper': np.float64(521.44896147453), 'middle': np.float64(521.2680066666667), 'lower': np.float64(521.0870518588033), 'bandwidth': np.float64(0.0006942870291256202)}}}
+2025-06-03 09:22:16,542 -    Timestamp: 2024-03-26 14:10:00+00:00
+2025-06-03 09:22:16,542 -    📊 Processing symbol: SPY, data: {'open': 521.29, 'high': 521.37, 'low': 521.12, 'close': 521.14, 'volume': 88518.0}
+2025-06-03 09:22:16,542 -    💰 Extracted price: 521.14
+2025-06-03 09:22:16,542 -    📊 BB: upper=521.45, middle=521.27, lower=521.09
+2025-06-03 09:22:16,542 -    📊 RSI: 49.72060795708569
+2025-06-03 09:22:16,542 -    📊 Z-score: -1.41
+2025-06-03 09:22:16,542 -    🟢 BUY signal: z_score=-1.41, RSI=49.72060795708569
+2025-06-03 09:22:16,542 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,542 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,542 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,542 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:10:00+00:00
+2025-06-03 09:22:16,542 - SIGNAL: mean_reversion_strategy - OrderSide.BUY SPY @ 2024-03-26 14:10:00+00:00
+2025-06-03 09:22:16,542 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,542 - [SIGNAL] SPY OrderSide.BUY (strength: 0.58) - Positive momentum with room to run
+2025-06-03 09:22:16,542 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Price below lower band - oversold
+2025-06-03 09:22:16,542 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,542 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,542 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,542 - BAR  42: 2024-03-26 14:11:00+00:00 - SPY @ $521.1750
+2025-06-03 09:22:16,542 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,542 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,542 - [BAR] SPY @ 2024-03-26 14:11:00+00:00 - Price: 521.1750
+2025-06-03 09:22:16,542 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,542 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,542 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,542 - [INDICATOR] SPY SMA_20 = 521.2158
+2025-06-03 09:22:16,543 - [INDICATOR] SPY RSI = 52.7479
+2025-06-03 09:22:16,543 - [INDICATOR] SPY BB_15 = {upper=521.45, middle=521.27, lower=521.09, bandwidth=0.00}
+2025-06-03 09:22:16,543 - 🔍 _process_signals called with timestamp: 2024-03-26 14:11:00+00:00
+2025-06-03 09:22:16,543 - 📊 Market data available: True
+2025-06-03 09:22:16,543 - 📈 Indicators available: True
+2025-06-03 09:22:16,543 - 🏭 Strategy available: False
+2025-06-03 09:22:16,543 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,543 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,543 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,543 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,543 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2158499999998), 'RSI': np.float64(52.74785667179311), 'BB_15': {'upper': np.float64(521.4460763569097), 'middle': np.float64(521.2700066666667), 'lower': np.float64(521.0939369764238), 'bandwidth': np.float64(0.0006755412281200447)}}}
+2025-06-03 09:22:16,543 -    Timestamp: 2024-03-26 14:11:00+00:00
+2025-06-03 09:22:16,543 -    📊 Processing symbol: SPY, data: {'open': 521.14, 'high': 521.175, 'low': 520.93, 'close': 521.175, 'volume': 203520.0}
+2025-06-03 09:22:16,543 -    💰 Extracted price: 521.175
+2025-06-03 09:22:16,543 - 🎯 SIGNAL ANALYSIS: momentum=0.000106, rsi=52.75, threshold=0.0001
+2025-06-03 09:22:16,543 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,543 -    Price history length: 28, Current price: 521.175
+2025-06-03 09:22:16,543 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,543 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,543 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,543 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,543 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,543 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,543 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,543 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2158499999998), 'RSI': np.float64(52.74785667179311), 'BB_15': {'upper': np.float64(521.4460763569097), 'middle': np.float64(521.2700066666667), 'lower': np.float64(521.0939369764238), 'bandwidth': np.float64(0.0006755412281200447)}}}
+2025-06-03 09:22:16,543 -    Timestamp: 2024-03-26 14:11:00+00:00
+2025-06-03 09:22:16,543 -    📊 Processing symbol: SPY, data: {'open': 521.14, 'high': 521.175, 'low': 520.93, 'close': 521.175, 'volume': 203520.0}
+2025-06-03 09:22:16,543 -    💰 Extracted price: 521.175
+2025-06-03 09:22:16,543 -    📊 BB: upper=521.45, middle=521.27, lower=521.09
+2025-06-03 09:22:16,543 -    📊 RSI: 52.74785667179311
+2025-06-03 09:22:16,543 -    📊 Z-score: -1.08
+2025-06-03 09:22:16,543 -    🟢 BUY signal: z_score=-1.08, RSI=52.74785667179311
+2025-06-03 09:22:16,543 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,543 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,543 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,543 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:11:00+00:00
+2025-06-03 09:22:16,543 - SIGNAL: mean_reversion_strategy - OrderSide.BUY SPY @ 2024-03-26 14:11:00+00:00
+2025-06-03 09:22:16,543 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,543 - [SIGNAL] SPY OrderSide.BUY (strength: 0.53) - Positive momentum with room to run
+2025-06-03 09:22:16,543 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Price below lower band - oversold
+2025-06-03 09:22:16,543 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,543 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,543 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,543 - BAR  43: 2024-03-26 14:12:00+00:00 - SPY @ $521.2900
+2025-06-03 09:22:16,543 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,543 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,543 - [BAR] SPY @ 2024-03-26 14:12:00+00:00 - Price: 521.2900
+2025-06-03 09:22:16,544 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,544 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,544 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,544 - [INDICATOR] SPY SMA_20 = 521.2243
+2025-06-03 09:22:16,544 - [INDICATOR] SPY RSI = 57.4272
+2025-06-03 09:22:16,544 - [INDICATOR] SPY BB_15 = {upper=521.44, middle=521.28, lower=521.12, bandwidth=0.00}
+2025-06-03 09:22:16,544 - 🔍 _process_signals called with timestamp: 2024-03-26 14:12:00+00:00
+2025-06-03 09:22:16,544 - 📊 Market data available: True
+2025-06-03 09:22:16,544 - 📈 Indicators available: True
+2025-06-03 09:22:16,544 - 🏭 Strategy available: False
+2025-06-03 09:22:16,544 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,544 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,544 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,544 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,544 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2243499999998), 'RSI': np.float64(57.42721330956399), 'BB_15': {'upper': np.float64(521.439170977292), 'middle': np.float64(521.2810066666667), 'lower': np.float64(521.1228423560415), 'bandwidth': np.float64(0.0006068293630593492)}}}
+2025-06-03 09:22:16,544 -    Timestamp: 2024-03-26 14:12:00+00:00
+2025-06-03 09:22:16,544 -    📊 Processing symbol: SPY, data: {'open': 521.18, 'high': 521.36, 'low': 521.1637, 'close': 521.29, 'volume': 122954.0}
+2025-06-03 09:22:16,544 -    💰 Extracted price: 521.29
+2025-06-03 09:22:16,544 - 🎯 SIGNAL ANALYSIS: momentum=0.000543, rsi=57.43, threshold=0.0001
+2025-06-03 09:22:16,544 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,544 -    Price history length: 29, Current price: 521.29
+2025-06-03 09:22:16,544 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,544 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,544 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,544 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,544 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,544 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,544 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,544 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2243499999998), 'RSI': np.float64(57.42721330956399), 'BB_15': {'upper': np.float64(521.439170977292), 'middle': np.float64(521.2810066666667), 'lower': np.float64(521.1228423560415), 'bandwidth': np.float64(0.0006068293630593492)}}}
+2025-06-03 09:22:16,544 -    Timestamp: 2024-03-26 14:12:00+00:00
+2025-06-03 09:22:16,544 -    📊 Processing symbol: SPY, data: {'open': 521.18, 'high': 521.36, 'low': 521.1637, 'close': 521.29, 'volume': 122954.0}
+2025-06-03 09:22:16,544 -    💰 Extracted price: 521.29
+2025-06-03 09:22:16,544 -    📊 BB: upper=521.44, middle=521.28, lower=521.12
+2025-06-03 09:22:16,544 -    📊 RSI: 57.42721330956399
+2025-06-03 09:22:16,544 -    📊 Z-score: 0.11
+2025-06-03 09:22:16,544 -    ⚪ EXIT signal: z_score=0.11
+2025-06-03 09:22:16,544 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,544 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,544 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,544 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:12:00+00:00
+2025-06-03 09:22:16,544 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:12:00+00:00
+2025-06-03 09:22:16,544 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,544 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,544 - [SIGNAL] SPY OrderSide.SELL (strength: 0.80) - Price returned to mean
+2025-06-03 09:22:16,544 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,544 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,544 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,544 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,544 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,544 - BAR  44: 2024-03-26 14:13:00+00:00 - SPY @ $521.3001
+2025-06-03 09:22:16,545 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,545 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,545 - [BAR] SPY @ 2024-03-26 14:13:00+00:00 - Price: 521.3001
+2025-06-03 09:22:16,545 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,545 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,545 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,545 - [INDICATOR] SPY SMA_20 = 521.2390
+2025-06-03 09:22:16,545 - [INDICATOR] SPY RSI = 52.7530
+2025-06-03 09:22:16,545 - [INDICATOR] SPY BB_15 = {upper=521.43, middle=521.29, lower=521.15, bandwidth=0.00}
+2025-06-03 09:22:16,545 - 🔍 _process_signals called with timestamp: 2024-03-26 14:13:00+00:00
+2025-06-03 09:22:16,545 - 📊 Market data available: True
+2025-06-03 09:22:16,545 - 📈 Indicators available: True
+2025-06-03 09:22:16,545 - 🏭 Strategy available: False
+2025-06-03 09:22:16,545 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,545 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,545 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,545 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,545 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2390099999999), 'RSI': np.float64(52.75304978569243), 'BB_15': {'upper': np.float64(521.4308036227246), 'middle': np.float64(521.29168), 'lower': np.float64(521.1525563772755), 'bandwidth': np.float64(0.0005337649844115827)}}}
+2025-06-03 09:22:16,545 -    Timestamp: 2024-03-26 14:13:00+00:00
+2025-06-03 09:22:16,545 -    📊 Processing symbol: SPY, data: {'open': 521.31, 'high': 521.34, 'low': 521.22, 'close': 521.3001, 'volume': 63689.0}
+2025-06-03 09:22:16,545 -    💰 Extracted price: 521.3001
+2025-06-03 09:22:16,545 - 🎯 SIGNAL ANALYSIS: momentum=0.000662, rsi=52.75, threshold=0.0001
+2025-06-03 09:22:16,545 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,545 -    Price history length: 30, Current price: 521.3001
+2025-06-03 09:22:16,545 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,545 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,545 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,545 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,545 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,545 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,545 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,545 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2390099999999), 'RSI': np.float64(52.75304978569243), 'BB_15': {'upper': np.float64(521.4308036227246), 'middle': np.float64(521.29168), 'lower': np.float64(521.1525563772755), 'bandwidth': np.float64(0.0005337649844115827)}}}
+2025-06-03 09:22:16,545 -    Timestamp: 2024-03-26 14:13:00+00:00
+2025-06-03 09:22:16,545 -    📊 Processing symbol: SPY, data: {'open': 521.31, 'high': 521.34, 'low': 521.22, 'close': 521.3001, 'volume': 63689.0}
+2025-06-03 09:22:16,545 -    💰 Extracted price: 521.3001
+2025-06-03 09:22:16,545 -    📊 BB: upper=521.43, middle=521.29, lower=521.15
+2025-06-03 09:22:16,545 -    📊 RSI: 52.75304978569243
+2025-06-03 09:22:16,545 -    📊 Z-score: 0.12
+2025-06-03 09:22:16,545 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,545 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,545 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,545 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:13:00+00:00
+2025-06-03 09:22:16,545 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,545 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,545 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,545 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,546 - BAR  45: 2024-03-26 14:14:00+00:00 - SPY @ $521.3300
+2025-06-03 09:22:16,546 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,546 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,546 - [BAR] SPY @ 2024-03-26 14:14:00+00:00 - Price: 521.3300
+2025-06-03 09:22:16,546 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,546 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,546 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,546 - [INDICATOR] SPY SMA_20 = 521.2578
+2025-06-03 09:22:16,546 - [INDICATOR] SPY RSI = 48.8092
+2025-06-03 09:22:16,546 - [INDICATOR] SPY BB_15 = {upper=521.44, middle=521.30, lower=521.16, bandwidth=0.00}
+2025-06-03 09:22:16,546 - 🔍 _process_signals called with timestamp: 2024-03-26 14:14:00+00:00
+2025-06-03 09:22:16,546 - 📊 Market data available: True
+2025-06-03 09:22:16,546 - 📈 Indicators available: True
+2025-06-03 09:22:16,546 - 🏭 Strategy available: False
+2025-06-03 09:22:16,546 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,546 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,546 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,546 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,546 -    Indicators: {'SPY': {'SMA_20': np.float64(521.25776), 'RSI': np.float64(48.80924029530977), 'BB_15': {'upper': np.float64(521.4354688302349), 'middle': np.float64(521.2970133333334), 'lower': np.float64(521.158557836432), 'bandwidth': np.float64(0.00053119620239569)}}}
+2025-06-03 09:22:16,546 -    Timestamp: 2024-03-26 14:14:00+00:00
+2025-06-03 09:22:16,546 -    📊 Processing symbol: SPY, data: {'open': 521.3199, 'high': 521.38, 'low': 521.28, 'close': 521.33, 'volume': 68387.0}
+2025-06-03 09:22:16,546 -    💰 Extracted price: 521.33
+2025-06-03 09:22:16,546 - 🎯 SIGNAL ANALYSIS: momentum=0.000557, rsi=48.81, threshold=0.0001
+2025-06-03 09:22:16,546 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,546 -    Price history length: 31, Current price: 521.33
+2025-06-03 09:22:16,546 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,546 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,546 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,546 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,546 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,546 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,546 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,546 -    Indicators: {'SPY': {'SMA_20': np.float64(521.25776), 'RSI': np.float64(48.80924029530977), 'BB_15': {'upper': np.float64(521.4354688302349), 'middle': np.float64(521.2970133333334), 'lower': np.float64(521.158557836432), 'bandwidth': np.float64(0.00053119620239569)}}}
+2025-06-03 09:22:16,546 -    Timestamp: 2024-03-26 14:14:00+00:00
+2025-06-03 09:22:16,546 -    📊 Processing symbol: SPY, data: {'open': 521.3199, 'high': 521.38, 'low': 521.28, 'close': 521.33, 'volume': 68387.0}
+2025-06-03 09:22:16,546 -    💰 Extracted price: 521.33
+2025-06-03 09:22:16,546 -    📊 BB: upper=521.44, middle=521.30, lower=521.16
+2025-06-03 09:22:16,546 -    📊 RSI: 48.80924029530977
+2025-06-03 09:22:16,546 -    📊 Z-score: 0.48
+2025-06-03 09:22:16,546 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,546 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,546 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,546 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:14:00+00:00
+2025-06-03 09:22:16,546 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,546 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,546 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,546 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,547 - BAR  46: 2024-03-26 14:15:00+00:00 - SPY @ $521.2750
+2025-06-03 09:22:16,547 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,547 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,547 - [BAR] SPY @ 2024-03-26 14:15:00+00:00 - Price: 521.2750
+2025-06-03 09:22:16,547 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,547 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,547 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,547 - [INDICATOR] SPY SMA_20 = 521.2695
+2025-06-03 09:22:16,547 - [INDICATOR] SPY RSI = 49.6909
+2025-06-03 09:22:16,547 - [INDICATOR] SPY BB_15 = {upper=521.43, middle=521.29, lower=521.16, bandwidth=0.00}
+2025-06-03 09:22:16,547 - 🔍 _process_signals called with timestamp: 2024-03-26 14:15:00+00:00
+2025-06-03 09:22:16,547 - 📊 Market data available: True
+2025-06-03 09:22:16,547 - 📈 Indicators available: True
+2025-06-03 09:22:16,547 - 🏭 Strategy available: False
+2025-06-03 09:22:16,547 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,547 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,547 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,547 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,547 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2695099999999), 'RSI': np.float64(49.69087162080439), 'BB_15': {'upper': np.float64(521.4278457961526), 'middle': np.float64(521.2920133333333), 'lower': np.float64(521.156180870514), 'bandwidth': np.float64(0.0005211377091727897)}}}
+2025-06-03 09:22:16,547 -    Timestamp: 2024-03-26 14:15:00+00:00
+2025-06-03 09:22:16,547 -    📊 Processing symbol: SPY, data: {'open': 521.34, 'high': 521.395, 'low': 521.23, 'close': 521.275, 'volume': 101962.0}
+2025-06-03 09:22:16,547 -    💰 Extracted price: 521.275
+2025-06-03 09:22:16,547 - 🎯 SIGNAL ANALYSIS: momentum=0.000249, rsi=49.69, threshold=0.0001
+2025-06-03 09:22:16,547 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,547 -    Price history length: 32, Current price: 521.275
+2025-06-03 09:22:16,547 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,547 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,547 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,547 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,547 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,547 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,547 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,547 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2695099999999), 'RSI': np.float64(49.69087162080439), 'BB_15': {'upper': np.float64(521.4278457961526), 'middle': np.float64(521.2920133333333), 'lower': np.float64(521.156180870514), 'bandwidth': np.float64(0.0005211377091727897)}}}
+2025-06-03 09:22:16,547 -    Timestamp: 2024-03-26 14:15:00+00:00
+2025-06-03 09:22:16,547 -    📊 Processing symbol: SPY, data: {'open': 521.34, 'high': 521.395, 'low': 521.23, 'close': 521.275, 'volume': 101962.0}
+2025-06-03 09:22:16,547 -    💰 Extracted price: 521.275
+2025-06-03 09:22:16,547 -    📊 BB: upper=521.43, middle=521.29, lower=521.16
+2025-06-03 09:22:16,547 -    📊 RSI: 49.69087162080439
+2025-06-03 09:22:16,547 -    📊 Z-score: -0.25
+2025-06-03 09:22:16,547 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,547 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,548 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,548 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:15:00+00:00
+2025-06-03 09:22:16,548 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,548 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,548 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,548 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,548 - BAR  47: 2024-03-26 14:16:00+00:00 - SPY @ $521.3200
+2025-06-03 09:22:16,548 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,548 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,548 - [BAR] SPY @ 2024-03-26 14:16:00+00:00 - Price: 521.3200
+2025-06-03 09:22:16,548 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,548 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,548 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,548 - [INDICATOR] SPY SMA_20 = 521.2783
+2025-06-03 09:22:16,548 - [INDICATOR] SPY RSI = 51.7442
+2025-06-03 09:22:16,548 - [INDICATOR] SPY BB_15 = {upper=521.43, middle=521.29, lower=521.16, bandwidth=0.00}
+2025-06-03 09:22:16,548 - 🔍 _process_signals called with timestamp: 2024-03-26 14:16:00+00:00
+2025-06-03 09:22:16,548 - 📊 Market data available: True
+2025-06-03 09:22:16,548 - 📈 Indicators available: True
+2025-06-03 09:22:16,548 - 🏭 Strategy available: False
+2025-06-03 09:22:16,548 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,548 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,548 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,548 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,548 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2782599999999), 'RSI': np.float64(51.744186046516155), 'BB_15': {'upper': np.float64(521.4310301293584), 'middle': np.float64(521.2946733333333), 'lower': np.float64(521.1583165373082), 'bandwidth': np.float64(0.0005231467076122837)}}}
+2025-06-03 09:22:16,548 -    Timestamp: 2024-03-26 14:16:00+00:00
+2025-06-03 09:22:16,548 -    📊 Processing symbol: SPY, data: {'open': 521.27, 'high': 521.39, 'low': 521.27, 'close': 521.32, 'volume': 63041.0}
+2025-06-03 09:22:16,548 -    💰 Extracted price: 521.32
+2025-06-03 09:22:16,549 - 🎯 SIGNAL ANALYSIS: momentum=0.000374, rsi=51.74, threshold=0.0001
+2025-06-03 09:22:16,549 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,549 -    Price history length: 33, Current price: 521.32
+2025-06-03 09:22:16,549 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,549 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,549 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,549 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,549 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,549 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,549 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,549 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2782599999999), 'RSI': np.float64(51.744186046516155), 'BB_15': {'upper': np.float64(521.4310301293584), 'middle': np.float64(521.2946733333333), 'lower': np.float64(521.1583165373082), 'bandwidth': np.float64(0.0005231467076122837)}}}
+2025-06-03 09:22:16,549 -    Timestamp: 2024-03-26 14:16:00+00:00
+2025-06-03 09:22:16,549 -    📊 Processing symbol: SPY, data: {'open': 521.27, 'high': 521.39, 'low': 521.27, 'close': 521.32, 'volume': 63041.0}
+2025-06-03 09:22:16,549 -    💰 Extracted price: 521.32
+2025-06-03 09:22:16,549 -    📊 BB: upper=521.43, middle=521.29, lower=521.16
+2025-06-03 09:22:16,549 -    📊 RSI: 51.744186046516155
+2025-06-03 09:22:16,549 -    📊 Z-score: 0.37
+2025-06-03 09:22:16,549 - Generated 0 mean reversion signals
+2025-06-03 09:22:16,549 - 📭 No signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,549 - 🔄 Aggregated 1 signals from sub-containers
+2025-06-03 09:22:16,549 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:16:00+00:00
+2025-06-03 09:22:16,549 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,549 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,549 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,549 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,549 - BAR  48: 2024-03-26 14:17:00+00:00 - SPY @ $521.3800
+2025-06-03 09:22:16,549 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,549 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,549 - [BAR] SPY @ 2024-03-26 14:17:00+00:00 - Price: 521.3800
+2025-06-03 09:22:16,549 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,549 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,549 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,549 - [INDICATOR] SPY SMA_20 = 521.2910
+2025-06-03 09:22:16,549 - [INDICATOR] SPY RSI = 57.3864
+2025-06-03 09:22:16,549 - [INDICATOR] SPY BB_15 = {upper=521.44, middle=521.30, lower=521.16, bandwidth=0.00}
+2025-06-03 09:22:16,549 - 🔍 _process_signals called with timestamp: 2024-03-26 14:17:00+00:00
+2025-06-03 09:22:16,549 - 📊 Market data available: True
+2025-06-03 09:22:16,549 - 📈 Indicators available: True
+2025-06-03 09:22:16,550 - 🏭 Strategy available: False
+2025-06-03 09:22:16,550 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,550 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,550 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,550 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,550 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2910099999998), 'RSI': np.float64(57.38636363636151), 'BB_15': {'upper': np.float64(521.4434488768351), 'middle': np.float64(521.3006733333333), 'lower': np.float64(521.1578977898315), 'bandwidth': np.float64(0.0005477665800384322)}}}
+2025-06-03 09:22:16,550 -    Timestamp: 2024-03-26 14:17:00+00:00
+2025-06-03 09:22:16,550 -    📊 Processing symbol: SPY, data: {'open': 521.33, 'high': 521.44, 'low': 521.29, 'close': 521.38, 'volume': 89547.0}
+2025-06-03 09:22:16,550 -    💰 Extracted price: 521.38
+2025-06-03 09:22:16,550 - 🎯 SIGNAL ANALYSIS: momentum=0.000461, rsi=57.39, threshold=0.0001
+2025-06-03 09:22:16,550 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,550 -    Price history length: 34, Current price: 521.38
+2025-06-03 09:22:16,550 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,550 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,550 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,550 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,550 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,550 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,550 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,550 -    Indicators: {'SPY': {'SMA_20': np.float64(521.2910099999998), 'RSI': np.float64(57.38636363636151), 'BB_15': {'upper': np.float64(521.4434488768351), 'middle': np.float64(521.3006733333333), 'lower': np.float64(521.1578977898315), 'bandwidth': np.float64(0.0005477665800384322)}}}
+2025-06-03 09:22:16,550 -    Timestamp: 2024-03-26 14:17:00+00:00
+2025-06-03 09:22:16,550 -    📊 Processing symbol: SPY, data: {'open': 521.33, 'high': 521.44, 'low': 521.29, 'close': 521.38, 'volume': 89547.0}
+2025-06-03 09:22:16,550 -    💰 Extracted price: 521.38
+2025-06-03 09:22:16,550 -    📊 BB: upper=521.44, middle=521.30, lower=521.16
+2025-06-03 09:22:16,550 -    📊 RSI: 57.38636363636151
+2025-06-03 09:22:16,550 -    📊 Z-score: 1.11
+2025-06-03 09:22:16,550 -    🔴 SELL signal: z_score=1.11, RSI=57.38636363636151
+2025-06-03 09:22:16,550 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,550 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,550 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,550 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:17:00+00:00
+2025-06-03 09:22:16,550 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:17:00+00:00
+2025-06-03 09:22:16,550 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,550 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,550 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,550 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,550 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,550 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,550 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,550 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,550 - BAR  49: 2024-03-26 14:18:00+00:00 - SPY @ $521.4800
+2025-06-03 09:22:16,550 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,550 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,550 - [BAR] SPY @ 2024-03-26 14:18:00+00:00 - Price: 521.4800
+2025-06-03 09:22:16,551 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,551 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,551 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,551 - [INDICATOR] SPY SMA_20 = 521.3080
+2025-06-03 09:22:16,551 - [INDICATOR] SPY RSI = 58.3333
+2025-06-03 09:22:16,551 - [INDICATOR] SPY BB_15 = {upper=521.48, middle=521.32, lower=521.15, bandwidth=0.00}
+2025-06-03 09:22:16,551 - 🔍 _process_signals called with timestamp: 2024-03-26 14:18:00+00:00
+2025-06-03 09:22:16,551 - 📊 Market data available: True
+2025-06-03 09:22:16,551 - 📈 Indicators available: True
+2025-06-03 09:22:16,551 - 🏭 Strategy available: False
+2025-06-03 09:22:16,551 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,551 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,551 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,551 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,551 -    Indicators: {'SPY': {'SMA_20': np.float64(521.30801), 'RSI': np.float64(58.33333333333018), 'BB_15': {'upper': np.float64(521.4813401150536), 'middle': np.float64(521.3160066666666), 'lower': np.float64(521.1506732182795), 'bandwidth': np.float64(0.0006342926220287269)}}}
+2025-06-03 09:22:16,551 -    Timestamp: 2024-03-26 14:18:00+00:00
+2025-06-03 09:22:16,551 -    📊 Processing symbol: SPY, data: {'open': 521.38, 'high': 521.58, 'low': 521.37, 'close': 521.48, 'volume': 151792.0}
+2025-06-03 09:22:16,551 -    💰 Extracted price: 521.48
+2025-06-03 09:22:16,551 - 🎯 SIGNAL ANALYSIS: momentum=0.000441, rsi=58.33, threshold=0.0001
+2025-06-03 09:22:16,551 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,551 -    Price history length: 35, Current price: 521.48
+2025-06-03 09:22:16,551 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,551 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,551 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,551 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,551 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,551 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,551 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,551 -    Indicators: {'SPY': {'SMA_20': np.float64(521.30801), 'RSI': np.float64(58.33333333333018), 'BB_15': {'upper': np.float64(521.4813401150536), 'middle': np.float64(521.3160066666666), 'lower': np.float64(521.1506732182795), 'bandwidth': np.float64(0.0006342926220287269)}}}
+2025-06-03 09:22:16,551 -    Timestamp: 2024-03-26 14:18:00+00:00
+2025-06-03 09:22:16,551 -    📊 Processing symbol: SPY, data: {'open': 521.38, 'high': 521.58, 'low': 521.37, 'close': 521.48, 'volume': 151792.0}
+2025-06-03 09:22:16,551 -    💰 Extracted price: 521.48
+2025-06-03 09:22:16,551 -    📊 BB: upper=521.48, middle=521.32, lower=521.15
+2025-06-03 09:22:16,551 -    📊 RSI: 58.33333333333018
+2025-06-03 09:22:16,551 -    📊 Z-score: 1.98
+2025-06-03 09:22:16,551 -    🔴 SELL signal: z_score=1.98, RSI=58.33333333333018
+2025-06-03 09:22:16,551 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,551 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,551 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,551 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:18:00+00:00
+2025-06-03 09:22:16,551 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:18:00+00:00
+2025-06-03 09:22:16,551 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,551 - [SIGNAL] SPY OrderSide.BUY (strength: 1.00) - Positive momentum with room to run
+2025-06-03 09:22:16,551 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,551 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,551 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,551 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,551 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,551 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,551 - BAR  50: 2024-03-26 14:19:00+00:00 - SPY @ $521.4250
+2025-06-03 09:22:16,551 - 🔍 IndicatorContainer received event: EventType.BAR
+2025-06-03 09:22:16,551 - 📊 Processing BAR event for symbol: SPY
+2025-06-03 09:22:16,551 - [BAR] SPY @ 2024-03-26 14:19:00+00:00 - Price: 521.4250
+2025-06-03 09:22:16,552 - 🎯 StrategyContainer received event: EventType.INDICATORS
+2025-06-03 09:22:16,552 - 📈 Processing INDICATORS event with 1 symbols and 1 market data entries
+2025-06-03 09:22:16,552 - 📊 Updated market data, now have 1 symbols
+2025-06-03 09:22:16,552 - [INDICATOR] SPY SMA_20 = 521.3168
+2025-06-03 09:22:16,552 - [INDICATOR] SPY RSI = 56.1497
+2025-06-03 09:22:16,552 - [INDICATOR] SPY BB_15 = {upper=521.50, middle=521.32, lower=521.15, bandwidth=0.00}
+2025-06-03 09:22:16,552 - 🔍 _process_signals called with timestamp: 2024-03-26 14:19:00+00:00
+2025-06-03 09:22:16,552 - 📊 Market data available: True
+2025-06-03 09:22:16,552 - 📈 Indicators available: True
+2025-06-03 09:22:16,552 - 🏭 Strategy available: False
+2025-06-03 09:22:16,552 - 🔀 Multi-strategy mode - processing with sub-containers
+2025-06-03 09:22:16,552 - 🚀 Processing signals with sub-strategy: MomentumStrategy
+2025-06-03 09:22:16,552 - 🎯 MomentumStrategy.generate_signals() called!
+2025-06-03 09:22:16,552 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,552 -    Indicators: {'SPY': {'SMA_20': np.float64(521.3167599999998), 'RSI': np.float64(56.1497326203202), 'BB_15': {'upper': np.float64(521.4963812793947), 'middle': np.float64(521.3223399999999), 'lower': np.float64(521.1482987206052), 'bandwidth': np.float64(0.0006676916220190294)}}}
+2025-06-03 09:22:16,552 -    Timestamp: 2024-03-26 14:19:00+00:00
+2025-06-03 09:22:16,552 -    📊 Processing symbol: SPY, data: {'open': 521.47, 'high': 521.47, 'low': 521.4, 'close': 521.425, 'volume': 92254.0}
+2025-06-03 09:22:16,552 -    💰 Extracted price: 521.425
+2025-06-03 09:22:16,552 - 🎯 SIGNAL ANALYSIS: momentum=0.000144, rsi=56.15, threshold=0.0001
+2025-06-03 09:22:16,552 -    RSI bounds: oversold=40, overbought=60
+2025-06-03 09:22:16,552 -    Price history length: 36, Current price: 521.425
+2025-06-03 09:22:16,552 -    Momentum conditions: momentum > threshold? True, momentum < -threshold? False
+2025-06-03 09:22:16,552 -    RSI conditions: rsi < overbought? True, rsi > oversold? True
+2025-06-03 09:22:16,552 -    💡 BULLISH signal triggered!
+2025-06-03 09:22:16,552 - 📥 Got 1 signals from SubStrategy_momentum_strategy
+2025-06-03 09:22:16,552 - 🚀 Processing signals with sub-strategy: MeanReversionStrategy
+2025-06-03 09:22:16,552 - 🎯 MeanReversionStrategy.generate_signals() called!
+2025-06-03 09:22:16,552 -    Market data: ['SPY'] symbols
+2025-06-03 09:22:16,552 -    Indicators: {'SPY': {'SMA_20': np.float64(521.3167599999998), 'RSI': np.float64(56.1497326203202), 'BB_15': {'upper': np.float64(521.4963812793947), 'middle': np.float64(521.3223399999999), 'lower': np.float64(521.1482987206052), 'bandwidth': np.float64(0.0006676916220190294)}}}
+2025-06-03 09:22:16,552 -    Timestamp: 2024-03-26 14:19:00+00:00
+2025-06-03 09:22:16,552 -    📊 Processing symbol: SPY, data: {'open': 521.47, 'high': 521.47, 'low': 521.4, 'close': 521.425, 'volume': 92254.0}
+2025-06-03 09:22:16,552 -    💰 Extracted price: 521.425
+2025-06-03 09:22:16,552 -    📊 BB: upper=521.50, middle=521.32, lower=521.15
+2025-06-03 09:22:16,552 -    📊 RSI: 56.1497326203202
+2025-06-03 09:22:16,552 -    📊 Z-score: 1.18
+2025-06-03 09:22:16,552 -    🔴 SELL signal: z_score=1.18, RSI=56.1497326203202
+2025-06-03 09:22:16,552 - Generated 1 mean reversion signals
+2025-06-03 09:22:16,552 - 📥 Got 1 signals from SubStrategy_mean_reversion_strategy
+2025-06-03 09:22:16,552 - 🔄 Aggregated 2 signals from sub-containers
+2025-06-03 09:22:16,552 - SIGNAL: momentum_strategy - OrderSide.BUY SPY @ 2024-03-26 14:19:00+00:00
+2025-06-03 09:22:16,552 - SIGNAL: mean_reversion_strategy - OrderSide.SELL SPY @ 2024-03-26 14:19:00+00:00
+2025-06-03 09:22:16,552 - 🚀 StrategyContainer publishing SIGNAL via event bus
+2025-06-03 09:22:16,552 - [SIGNAL] SPY OrderSide.BUY (strength: 0.72) - Positive momentum with room to run
+2025-06-03 09:22:16,552 - [SIGNAL] SPY OrderSide.SELL (strength: 1.00) - Price above upper band - overbought
+2025-06-03 09:22:16,552 - ❌ Risk limit rejected signal for SPY: Already have position worth $520.93, not adding more
+2025-06-03 09:22:16,552 - ✅ Risk limits passed for SPY OrderSide.SELL signal
+2025-06-03 09:22:16,552 - 🔄 Reversal signal for SPY: closing existing BUY position
+2025-06-03 09:22:16,552 - RiskContainer skipping order creation for SPY - quantity is 0
+2025-06-03 09:22:16,552 - RISK CHECK: Cash=$99997.40, Positions={'SPY': 1.0}
+2025-06-03 09:22:16,553 - 🔍 IndicatorContainer received event: EventType.SYSTEM
+2025-06-03 09:22:16,553 - Broadcasting SYSTEM event 'END_OF_DATA' to all containers
+2025-06-03 09:22:16,553 - 🔍 IndicatorContainer received event: EventType.SYSTEM
+2025-06-03 09:22:16,553 - 🎯 StrategyContainer received event: EventType.SYSTEM
+2025-06-03 09:22:16,553 - Received END_OF_DATA signal
+2025-06-03 09:22:16,553 - 📢 Published END_OF_DATA event
+2025-06-03 09:22:16,553 - 🏁 RiskContainer received END_OF_DATA event - ignoring (ExecutionContainer handles position closing)
+2025-06-03 09:22:16,553 - 🏁 ExecutionContainer received END_OF_DATA - closing all positions directly
+2025-06-03 09:22:16,553 - 🏁 Closing all positions directly for END_OF_DATA
+2025-06-03 09:22:16,553 - 📍 Found registered PortfolioContainer: PortfolioContainer
+2025-06-03 09:22:16,553 - 📊 Closing 1 positions for END_OF_DATA
+2025-06-03 09:22:16,553 - ✅ Closed position: SPY 1.0 shares @ $520.9294050000001, cash change: $520.93
+2025-06-03 09:22:16,553 - 📊 PortfolioContainer published PORTFOLIO update
+2025-06-03 09:22:16,553 - 🎯 All positions closed successfully for END_OF_DATA, total cash change: $520.93
+2025-06-03 09:22:16,553 -    💰 Final cash balance: $100518.32
+2025-06-03 09:22:16,553 - ✅ Called PortfolioContainer position closing directly
+2025-06-03 09:22:16,553 - 🎯 Position closing process completed
+2025-06-03 09:22:16,553 - 🏁 PortfolioContainer received END_OF_DATA event
+2025-06-03 09:22:16,553 - Workflow completed normally
+2025-06-03 09:22:16,553 - 📊 RiskContainer cached updated portfolio state
+2025-06-03 09:22:16,553 -    💰 Cash: $100518.32, Positions: 0
+2025-06-03 09:22:18,554 - 📊 Final Portfolio Summary:
+2025-06-03 09:22:18,554 -    💰 Cash Balance: $100518.32
+2025-06-03 09:22:18,554 -    📈 Position Value: $0.00
+2025-06-03 09:22:18,554 -    🏆 Total Equity: $100518.32
+2025-06-03 09:22:18,554 -    📍 Number of Positions: 0
+2025-06-03 09:22:18,555 - Data streaming stopped
+2025-06-03 09:22:18,555 - BacktestContainer stopped
+2025-06-03 09:22:18,555 - 
+================================================================================
+2025-06-03 09:22:18,555 - AUDIT SUMMARY
+2025-06-03 09:22:18,555 - ================================================================================
+2025-06-03 09:22:18,555 - 
+Bars processed: 50
+2025-06-03 09:22:18,555 - Period: 2024-03-26 13:30:00+00:00 to 2024-03-26 14:19:00+00:00
+2025-06-03 09:22:18,555 - Price range: $521.0100 to $521.4250
+2025-06-03 09:22:18,555 - 
+Signals generated: 32
+2025-06-03 09:22:18,555 -   Momentum: 12
+2025-06-03 09:22:18,555 -   Mean Reversion: 20
+2025-06-03 09:22:18,555 - 
+Orders created: 1
+2025-06-03 09:22:18,555 - 
+Fills executed: 1
+2025-06-03 09:22:18,555 - 
+DETAILED FILL AUDIT:
+2025-06-03 09:22:18,555 - 
+Fill #1:
+2025-06-03 09:22:18,555 -   Side: OrderSide.SELL
+2025-06-03 09:22:18,555 -   Quantity: 1.0
+2025-06-03 09:22:18,555 -   Price: $520.9294
+2025-06-03 09:22:18,555 -   Value: $520.93
+2025-06-03 09:22:18,555 -   Commission: $2.60
+2025-06-03 09:22:18,555 - 
+TRADE SUMMARY:
+2025-06-03 09:22:18,555 -   Total Buy Value: $0.00
+2025-06-03 09:22:18,555 -   Total Sell Value: $520.93
+2025-06-03 09:22:18,555 -   Total Commission: $2.60
+2025-06-03 09:22:18,555 -   Net Cash Flow: $518.32
+2025-06-03 09:22:18,555 - 
+PORTFOLIO VALIDATION:
+2025-06-03 09:22:18,555 -   Initial Capital: $100000.00
+2025-06-03 09:22:18,555 -   Final Cash: $99997.40
+2025-06-03 09:22:18,555 -   Final Total: $100518.32
+2025-06-03 09:22:18,555 -   Final Positions: {'SPY': 1.0}
+2025-06-03 09:22:18,555 - 
+MANUAL VALIDATION:
+2025-06-03 09:22:18,555 -   Starting Cash: $100000.00
+2025-06-03 09:22:18,555 -   + Cash from trades: $520.93
+2025-06-03 09:22:18,555 -   - Commissions: $2.60
+2025-06-03 09:22:18,555 -   = Expected Cash: $100518.32
+2025-06-03 09:22:18,555 -   Actual Cash: $99997.40
+2025-06-03 09:22:18,555 -   Difference: $-520.93
+2025-06-03 09:22:18,555 - 
+RETURNS:
+2025-06-03 09:22:18,556 -   P&L: $518.32
+2025-06-03 09:22:18,556 -   Return: 0.5183%

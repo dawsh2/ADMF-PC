@@ -68,7 +68,6 @@ class ExecutionMode(str, Enum):
     AUTO = "auto"           # Coordinator chooses best mode
     TRADITIONAL = "traditional"  # Traditional workflow managers
     COMPOSABLE = "composable"    # Composable container patterns
-    HYBRID = "hybrid"           # Mix of traditional and composable
 
 
 class Coordinator:
@@ -161,8 +160,6 @@ class Coordinator:
                 await self._execute_traditional_workflow(config, context, result)
             elif execution_mode == ExecutionMode.COMPOSABLE:
                 await self._execute_composable_workflow(config, context, result)
-            elif execution_mode == ExecutionMode.HYBRID:
-                await self._execute_hybrid_workflow(config, context, result)
             else:
                 result.add_error(f"Unknown execution mode: {execution_mode}")
                 
@@ -346,78 +343,6 @@ class Coordinator:
             await self._execute_traditional_workflow(config, context, result)
         except Exception as e:
             result.add_error(f"Composable workflow execution failed: {e}")
-    
-    async def _execute_hybrid_workflow(
-        self,
-        config: WorkflowConfig,
-        context: ExecutionContext,
-        result: CoordinatorResult
-    ) -> None:
-        """Execute workflow using hybrid approach."""
-        
-        try:
-            # Use traditional for orchestration, composable for specific phases
-            phase_configs = config.parameters.get('phase_patterns', {})
-            
-            if not phase_configs:
-                # No phase-specific config, default to composable
-                await self._execute_composable_workflow(config, context, result)
-                return
-            
-            phase_results = {}
-            
-            for phase_name, phase_config in phase_configs.items():
-                if 'container_pattern' in phase_config:
-                    # Use composable for this phase
-                    phase_context = ExecutionContext(
-                        workflow_id=f"{context.workflow_id}_{phase_name}",
-                        workflow_type=config.workflow_type,
-                        metadata={'phase': phase_name}
-                    )
-                    
-                    phase_result = CoordinatorResult(
-                        workflow_id=phase_context.workflow_id,
-                        workflow_type=config.workflow_type,
-                        success=True
-                    )
-                    
-                    await self._execute_composable_workflow(config, phase_context, phase_result)
-                    phase_results[phase_name] = phase_result
-                else:
-                    # Use traditional for this phase
-                    phase_context = ExecutionContext(
-                        workflow_id=f"{context.workflow_id}_{phase_name}",
-                        workflow_type=config.workflow_type,
-                        metadata={'phase': phase_name}
-                    )
-                    
-                    phase_result = CoordinatorResult(
-                        workflow_id=phase_context.workflow_id,
-                        workflow_type=config.workflow_type,
-                        success=True
-                    )
-                    
-                    await self._execute_traditional_workflow(config, phase_context, phase_result)
-                    phase_results[phase_name] = phase_result
-            
-            # Aggregate results
-            result.success = all(r.success for r in phase_results.values())
-            result.data = {
-                'phase_results': {name: r.data for name, r in phase_results.items()}
-            }
-            result.metadata.update({
-                'execution_mode': 'hybrid',
-                'phases': list(phase_results.keys()),
-                'successful_phases': sum(1 for r in phase_results.values() if r.success)
-            })
-            
-            # Collect all errors and warnings
-            for phase_result in phase_results.values():
-                result.errors.extend(phase_result.errors)
-                result.warnings.extend(phase_result.warnings)
-            
-        except Exception as e:
-            result.add_error(f"Hybrid workflow execution failed: {e}")
     
     async def _cleanup_workflow(self, workflow_id: str) -> None:
         """Clean up resources for completed workflow."""
