@@ -1,0 +1,39 @@
+# Example configuration for signal replay mode
+# This replays saved signals with different risk parameters
+
+workflow_type: backtest
+
+parameters:
+  mode: signal_replay  # Load signals → orders → fills
+  
+  # Input directory with saved signals
+  signal_input_dir: ./signals/momentum_exploration
+  
+  # Optional: Market data for accurate pricing
+  market_data_file: ./data/market_prices.json
+  
+  # Test different risk profiles on same signals
+  risk_profiles:
+    - type: conservative
+      max_position_size: 0.05
+      max_portfolio_risk: 0.01
+      stop_loss_pct: 0.02
+    - type: moderate
+      max_position_size: 0.1
+      max_portfolio_risk: 0.02
+      stop_loss_pct: 0.03
+    - type: aggressive
+      max_position_size: 0.2
+      max_portfolio_risk: 0.05
+      stop_loss_pct: 0.05
+  
+  # Execution configuration
+  execution:
+    slippage_bps: [5, 10, 15]  # Test slippage sensitivity
+    commission_per_share: 0.01
+
+# No data_config needed - using saved signals!
+  
+infrastructure_config:
+  parallel_execution: true
+  max_workers: 4

@@ -55,6 +55,44 @@ class Strategy(Protocol):
 
 
 @runtime_checkable
+class StatelessStrategy(Protocol):
+    """
+    Protocol for stateless strategy components in unified architecture.
+    
+    Stateless strategies are pure functions that generate signals based on 
+    features and market data. They maintain no internal state - all required 
+    data is passed as parameters. This enables perfect parallelization and
+    eliminates container overhead.
+    """
+    
+    def generate_signal(self, features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate a trading signal from features and current bar.
+        
+        This is a pure function - no side effects or state mutations.
+        
+        Args:
+            features: Calculated indicators and features from FeatureHub
+            bar: Current market bar with OHLCV data
+            params: Strategy parameters (lookback periods, thresholds, etc.)
+            
+        Returns:
+            Signal dictionary with:
+                - symbol: str
+                - direction: 'long', 'short', or 'flat'
+                - strength: float between 0 and 1
+                - timestamp: datetime
+                - metadata: optional additional information
+        """
+        ...
+    
+    @property
+    def required_features(self) -> List[str]:
+        """List of feature names this strategy requires from FeatureHub."""
+        ...
+
+
+@runtime_checkable
 class FeatureProvider(Protocol):
     """
     Protocol for stateful feature computation engines.
@@ -234,6 +272,41 @@ class Classifier(Protocol):
     
     def reset(self) -> None:
         """Reset classifier state."""
+        ...
+
+
+@runtime_checkable
+class StatelessClassifier(Protocol):
+    """
+    Protocol for stateless market regime classifier components.
+    
+    Stateless classifiers are pure functions that detect market regimes based on
+    features. They maintain no internal state - all required data is passed as 
+    parameters. This enables regime detection to run in parallel across multiple
+    parameter combinations without container overhead.
+    """
+    
+    def classify_regime(self, features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Classify the current market regime.
+        
+        This is a pure function - no side effects or state mutations.
+        
+        Args:
+            features: Calculated indicators and features from FeatureHub
+            params: Classifier parameters (thresholds, model params, etc.)
+            
+        Returns:
+            Regime dictionary with:
+                - regime: string identifier (e.g., 'bull', 'bear', 'sideways')
+                - confidence: float between 0 and 1
+                - metadata: optional additional information
+        """
+        ...
+    
+    @property
+    def required_features(self) -> List[str]:
+        """List of feature names this classifier requires from FeatureHub."""
         ...
 
 

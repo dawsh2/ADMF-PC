@@ -214,6 +214,130 @@ class Stateful(Protocol):
         ...
 
 
+# ============================================================================
+# STATELESS COMPONENT PROTOCOLS
+# These protocols define pure function interfaces for the unified architecture
+# ============================================================================
+
+@runtime_checkable
+class StatelessStrategy(Protocol):
+    """
+    Protocol for stateless strategy components.
+    
+    Strategies are pure functions that generate signals based on features and market data.
+    They maintain no internal state - all required data is passed as parameters.
+    """
+    
+    def generate_signal(self, features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Generate a trading signal from features and current bar.
+        
+        Args:
+            features: Calculated indicators and features from FeatureHub
+            bar: Current market bar (OHLCV data)
+            params: Strategy parameters (lookback periods, thresholds, etc.)
+            
+        Returns:
+            Signal dictionary with at least:
+            - direction: 'long', 'short', or 'flat'
+            - strength: float between 0 and 1
+            - metadata: optional additional information
+        """
+        ...
+    
+    @property
+    def required_features(self) -> List[str]:
+        """List of feature names this strategy requires."""
+        ...
+
+
+@runtime_checkable
+class StatelessClassifier(Protocol):
+    """
+    Protocol for stateless market regime classifier components.
+    
+    Classifiers are pure functions that detect market regimes based on features.
+    They maintain no internal state - all required data is passed as parameters.
+    """
+    
+    def classify_regime(self, features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Classify the current market regime.
+        
+        Args:
+            features: Calculated indicators and features from FeatureHub
+            params: Classifier parameters (thresholds, model params, etc.)
+            
+        Returns:
+            Regime dictionary with at least:
+            - regime: string identifier (e.g., 'bull', 'bear', 'sideways')
+            - confidence: float between 0 and 1
+            - metadata: optional additional information
+        """
+        ...
+    
+    @property
+    def required_features(self) -> List[str]:
+        """List of feature names this classifier requires."""
+        ...
+
+
+@runtime_checkable
+class StatelessRiskValidator(Protocol):
+    """
+    Protocol for stateless risk validation components.
+    
+    Risk validators are pure functions that validate orders against risk limits.
+    They maintain no internal state - portfolio state is passed as a parameter.
+    """
+    
+    def validate_order(
+        self, 
+        order: Dict[str, Any], 
+        portfolio_state: Dict[str, Any], 
+        risk_limits: Dict[str, Any],
+        market_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Validate an order against risk limits.
+        
+        Args:
+            order: Order to validate with symbol, quantity, side, etc.
+            portfolio_state: Current portfolio state (positions, cash, etc.)
+            risk_limits: Risk parameters (max position, max drawdown, etc.)
+            market_data: Current market prices and conditions
+            
+        Returns:
+            Validation result with:
+            - approved: bool indicating if order passes risk checks
+            - adjusted_quantity: optional adjusted order size
+            - reason: string explanation if rejected
+            - risk_metrics: calculated risk metrics
+        """
+        ...
+    
+    def calculate_position_size(
+        self,
+        signal: Dict[str, Any],
+        portfolio_state: Dict[str, Any],
+        risk_params: Dict[str, Any],
+        market_data: Dict[str, Any]
+    ) -> float:
+        """
+        Calculate appropriate position size for a signal.
+        
+        Args:
+            signal: Trading signal with direction and strength
+            portfolio_state: Current portfolio state
+            risk_params: Risk parameters for sizing
+            market_data: Current market prices
+            
+        Returns:
+            Position size (number of shares/contracts)
+        """
+        ...
+
+
 # Capability definitions
 class Capability:
     """Enumeration of available component capabilities."""

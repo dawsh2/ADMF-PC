@@ -1,0 +1,51 @@
+# Example configuration for signal generation mode
+# This captures signals to disk for later replay/analysis
+
+workflow_type: backtest
+
+parameters:
+  mode: signal_generation  # Stop after signals, save to disk
+  
+  # Output directory for signals
+  signal_output_dir: ./signals/momentum_exploration
+  
+  # Data configuration
+  symbols: ['SPY', 'QQQ', 'IWM']
+  start_date: '2023-01-01'
+  end_date: '2023-12-31'
+  
+  # Feature calculation
+  features:
+    indicators:
+      - name: sma_fast
+        type: sma
+        period: 10
+      - name: sma_slow
+        type: sma
+        period: 20
+      - name: rsi
+        type: rsi
+        period: 14
+  
+  # Large parameter grid for exploration
+  strategies:
+    - type: momentum
+      momentum_threshold: [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
+      rsi_oversold: [20, 25, 30, 35]
+      rsi_overbought: [65, 70, 75, 80]
+  
+  # Multiple classifiers (optional)
+  classifiers:
+    - type: simple
+      trend_threshold: 0.02
+    - type: volatility
+      vol_window: 20
+
+# Data source configuration
+data_config:
+  source: csv
+  file_path: ./data/
+  
+infrastructure_config:
+  parallel_execution: true
+  max_workers: 8  # More workers for signal generation

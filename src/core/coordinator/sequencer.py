@@ -455,21 +455,24 @@ class WorkflowCoordinator:
     async def execute_phases(
         self, 
         config: 'WorkflowConfig', 
-        context: 'ExecutionContext'
+        context: 'ExecutionContext',
+        workflow_manager: Optional['WorkflowManager'] = None
     ) -> 'WorkflowResult':
         """
         Execute multi-phase workflow with checkpointing and phase transitions.
         
-        This method is called by the Coordinator for multi-phase workflows.
+        In the unified architecture, each phase uses one of the three base execution modes
+        (BACKTEST, SIGNAL_GENERATION, SIGNAL_REPLAY) via the WorkflowManager.
         
         Args:
             config: Workflow configuration with phases
             context: Execution context with correlation ID
+            workflow_manager: Optional WorkflowManager instance for unified execution
             
         Returns:
             WorkflowResult with aggregated results from all phases
         """
-        from ..types.workflow import WorkflowResult
+        from ..types.workflow import WorkflowResult, WorkflowConfig
         
         # Initialize workflow state
         self.workflow_state = WorkflowState(context.workflow_id)
@@ -506,18 +509,34 @@ class WorkflowCoordinator:
                 
                 logger.info(f"Executing phase: {phase_name}")
                 
-                # Create phase function based on type
-                phase_type = phase_config.get('type', 'backtest')
+                # Determine execution mode for this phase
+                execution_mode = self._determine_phase_mode(phase_config)
                 
-                # Execute phase based on type
-                if phase_type == 'optimization':
-                    phase_result = await self._execute_optimization_phase(phase_config, context)
-                elif phase_type == 'backtest':
-                    phase_result = await self._execute_backtest_phase(phase_config, context)
-                elif phase_type == 'analysis':
-                    phase_result = await self._execute_analysis_phase(phase_config, context)
+                # Create phase-specific config
+                phase_workflow_config = self._create_phase_config(
+                    phase_config, 
+                    config,
+                    execution_mode,
+                    context
+                )
+                
+                # Execute phase using WorkflowManager if available
+                if workflow_manager:
+                    phase_result = await workflow_manager.execute(
+                        phase_workflow_config,
+                        context
+                    )
                 else:
-                    raise ValueError(f"Unknown phase type: {phase_type}")
+                    # Fallback to legacy execution
+                    phase_type = phase_config.get('type', 'backtest')
+                    if phase_type == 'optimization':
+                        phase_result = await self._execute_optimization_phase(phase_config, context)
+                    elif phase_type == 'backtest':
+                        phase_result = await self._execute_backtest_phase(phase_config, context)
+                    elif phase_type == 'analysis':
+                        phase_result = await self._execute_analysis_phase(phase_config, context)
+                    else:
+                        raise ValueError(f"Unknown phase type: {phase_type}")
                 
                 # Record phase result
                 self.workflow_state.completed_phases.add(phase_name)
@@ -551,6 +570,82 @@ class WorkflowCoordinator:
             result.success = False
         
         return result
+    
+    def _determine_phase_mode(self, phase_config: Dict[str, Any]) -> str:
+        """
+        Determine the execution mode for a phase.
+        
+        Maps phase types to unified architecture modes:
+        - optimization → SIGNAL_GENERATION (capture signals for replay)
+        - backtest → BACKTEST (full pipeline)
+        - analysis → SIGNAL_REPLAY (replay with different weights)
+        """
+        phase_type = phase_config.get('type', 'backtest')
+        
+        # Check for explicit mode override
+        if 'execution_mode' in phase_config:
+            return phase_config['execution_mode']
+        
+        # Map phase types to execution modes
+        mode_mapping = {
+            'optimization': 'signal_generation',  # Capture signals
+            'backtest': 'backtest',              # Full pipeline
+            'analysis': 'signal_replay',         # Replay signals
+            'validation': 'backtest',            # Full pipeline
+            'signal_capture': 'signal_generation',
+            'signal_replay': 'signal_replay',
+            'parameter_search': 'signal_generation',
+            'ensemble_optimization': 'signal_replay'
+        }
+        
+        return mode_mapping.get(phase_type, 'backtest')
+    
+    def _create_phase_config(
+        self,
+        phase_config: Dict[str, Any],
+        parent_config: 'WorkflowConfig',
+        execution_mode: str,
+        context: 'ExecutionContext'
+    ) -> 'WorkflowConfig':
+        """Create a WorkflowConfig for a specific phase."""
+        from ..types.workflow import WorkflowConfig, WorkflowType
+        
+        # Start with parent config as base
+        phase_params = parent_config.parameters.copy()
+        
+        # Override with phase-specific parameters
+        phase_params.update(phase_config.get('parameters', {}))
+        
+        # Set execution mode
+        phase_params['mode'] = execution_mode
+        
+        # Handle phase inheritance
+        if phase_config.get('inherit_best_from'):
+            inherited_phase = phase_config['inherit_best_from']
+            if inherited_phase in self.workflow_state.phase_results:
+                best_params = self.workflow_state.phase_results[inherited_phase].get('best_params', {})
+                phase_params.update(best_params)
+        
+        # Create phase config
+        phase_workflow_config = WorkflowConfig(
+            workflow_type=WorkflowType(phase_config.get('workflow_type', 'backtest')),
+            parameters=phase_params,
+            data_config=parent_config.data_config,
+            infrastructure_config=parent_config.infrastructure_config
+        )
+        
+        # Add phase-specific configurations
+        if execution_mode == 'signal_generation':
+            phase_workflow_config.parameters['signal_generation_only'] = True
+            phase_workflow_config.parameters['signal_output_dir'] = f"./signals/{context.workflow_id}/{phase_config['name']}"
+        elif execution_mode == 'signal_replay':
+            phase_workflow_config.parameters['signal_replay'] = True
+            # Look for signal source from previous phases
+            signal_source = phase_config.get('signal_source')
+            if signal_source and signal_source in self.workflow_state.phase_results:
+                phase_workflow_config.parameters['signal_input_dir'] = self.workflow_state.phase_results[signal_source].get('signal_output_dir')
+        
+        return phase_workflow_config
     
     async def _execute_optimization_phase(
         self, 

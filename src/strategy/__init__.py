@@ -25,14 +25,6 @@ Example Usage:
 # Core protocols
 from .protocols import (
     Strategy,
-    Indicator,
-    Feature,
-    Rule,
-    SignalAggregator,
-    Classifier,
-    RegimeAdaptive,
-    Optimizable,
-    PerformanceTracker,
     SignalDirection
 )
 
@@ -41,36 +33,28 @@ from .protocols import (
 # Strategies
 from .strategies.momentum import MomentumStrategy, create_momentum_strategy
 
-# Optimization
-from .optimization import (
-    # Protocols
-    Optimizer,
-    Objective,
-    Constraint,
-    ParameterSpace,
-    OptimizationWorkflow,
-    RegimeAnalyzer,
-    
-    # Capabilities
-    OptimizationCapability,
-    
-    # Containers
-    OptimizationContainer,
-    RegimeAwareOptimizationContainer
-)
+# # Optimization - commented out for unified architecture testing
+# from .optimization import (
+#     # Protocols
+#     Optimizer,
+#     Objective,
+#     Constraint,
+#     ParameterSpace,
+#     OptimizationWorkflow,
+#     RegimeAnalyzer,
+#     
+#     # Capabilities
+#     OptimizationCapability,
+#     
+#     # Containers
+#     OptimizationContainer,
+#     RegimeAwareOptimizationContainer
+# )
 
 
 __all__ = [
     # Protocols
     "Strategy",
-    "Indicator", 
-    "Feature",
-    "Rule",
-    "SignalAggregator",
-    "Classifier",
-    "RegimeAdaptive",
-    "Optimizable",
-    "PerformanceTracker",
     "SignalDirection",
     
     # No capabilities exported - components implement protocols directly
@@ -79,14 +63,14 @@ __all__ = [
     "MomentumStrategy",
     "create_momentum_strategy",
     
-    # Optimization
-    "Optimizer",
-    "Objective",
-    "Constraint",
-    "ParameterSpace",
-    "OptimizationWorkflow",
-    "RegimeAnalyzer",
-    "OptimizationCapability",
-    "OptimizationContainer",
-    "RegimeAwareOptimizationContainer"
+    # # Optimization - commented out for unified architecture testing
+    # "Optimizer",
+    # "Objective",
+    # "Constraint",
+    # "ParameterSpace",
+    # "OptimizationWorkflow",
+    # "RegimeAnalyzer",
+    # "OptimizationCapability",
+    # "OptimizationContainer",
+    # "RegimeAwareOptimizationContainer"
 ]

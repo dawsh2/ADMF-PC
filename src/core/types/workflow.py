@@ -8,11 +8,33 @@ from dataclasses import dataclass, field
 
 class WorkflowType(str, Enum):
     """Supported workflow types."""
-    OPTIMIZATION = "optimization"
+    # Base workflow types (single execution)
     BACKTEST = "backtest"
     LIVE_TRADING = "live_trading"
     ANALYSIS = "analysis"
     VALIDATION = "validation"
+    
+    # Composite workflow types (multi-phase)
+    OPTIMIZATION = "optimization"  # Multi-phase parameter search
+    WALK_FORWARD = "walk_forward"  # Rolling window validation
+    ENSEMBLE_CREATION = "ensemble_creation"  # Multi-strategy ensemble
+    REGIME_ANALYSIS = "regime_analysis"  # Cross-regime performance
+
+
+class BaseMode(str, Enum):
+    """
+    Base execution modes for unified architecture.
+    
+    These are the fundamental modes that all workflows use:
+    - BACKTEST: Full pipeline execution (data → signals → orders → fills)
+    - SIGNAL_GENERATION: Stop after signals, save for replay
+    - SIGNAL_REPLAY: Load signals and execute (signals → orders → fills)
+    
+    Composite workflows (OPTIMIZATION, WALK_FORWARD, etc.) use sequences of these base modes.
+    """
+    BACKTEST = "backtest"
+    SIGNAL_GENERATION = "signal_generation"
+    SIGNAL_REPLAY = "signal_replay"
 
 
 class WorkflowPhase(str, Enum):
@@ -136,6 +158,10 @@ class WorkflowResult:
         # Collect errors and warnings
         self.errors.extend(result.errors)
         self.warnings.extend(result.warnings)
+        
+    def add_error(self, error: str) -> None:
+        """Add an error to the workflow result."""
+        self.errors.append(error)
         
     def finalize(self) -> None:
         """Finalize the workflow result."""

@@ -1,8 +1,8 @@
 """
 Stateless mean reversion trading strategy using Bollinger Bands.
 
-This strategy consumes features from FeatureHub and makes pure decisions
-based on current feature values. No state is maintained.
+This module provides both stateful (container-based) and stateless implementations
+of the mean reversion strategy to support the unified architecture transition.
 """
 
 from typing import Dict, Any, List, Optional, Set
@@ -11,8 +11,140 @@ import logging
 
 from ...risk.protocols import Signal as RiskSignal
 from ...execution.protocols import OrderSide
+from ...core.components.protocols import StatelessStrategy
 
 logger = logging.getLogger(__name__)
+
+
+class StatelessMeanReversionStrategy:
+    """
+    Stateless mean reversion strategy for unified architecture.
+    
+    Implements the StatelessStrategy protocol for use as a lightweight
+    service in the event-driven architecture. All state is passed as
+    parameters - no internal state is maintained.
+    """
+    
+    def __init__(self):
+        """Initialize stateless mean reversion strategy."""
+        # No configuration stored - everything comes from params
+        pass
+    
+    def generate_signal(
+        self,
+        features: Dict[str, Any],
+        bar: Dict[str, Any],
+        params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a trading signal from features and current bar.
+        
+        Pure function implementation - no side effects or state changes.
+        
+        Args:
+            features: Calculated indicators from FeatureHub
+                - bollinger_upper: Upper Bollinger Band
+                - bollinger_middle: Middle Bollinger Band (SMA)
+                - bollinger_lower: Lower Bollinger Band
+                - rsi: Relative Strength Index
+            bar: Current market bar with OHLCV data
+            params: Strategy parameters
+                - entry_threshold: Std devs for entry (default: 2.0)
+                - exit_threshold: Std devs for exit (default: 0.5)
+                
+        Returns:
+            Signal dict with direction, strength, and metadata
+        """
+        # Extract parameters with defaults
+        entry_threshold = params.get('entry_threshold', 2.0)
+        exit_threshold = params.get('exit_threshold', 0.5)
+        
+        # Get current price
+        price = bar.get('close', bar.get('price', 0))
+        
+        # Get required features
+        upper_band = features.get('bollinger_upper')
+        middle_band = features.get('bollinger_middle')
+        lower_band = features.get('bollinger_lower')
+        rsi = features.get('rsi')
+        
+        # Return empty signal if features missing
+        if any(x is None for x in [upper_band, middle_band, lower_band]) or price <= 0:
+            return {
+                'direction': 'flat',
+                'strength': 0.0,
+                'metadata': {'reason': 'Missing required features or price'}
+            }
+        
+        # Calculate z-score (distance from mean in standard deviations)
+        band_width = upper_band - middle_band
+        if band_width > 0:
+            z_score = (price - middle_band) / (band_width / 2)
+        else:
+            z_score = 0
+        
+        # Generate signal based on mean reversion logic
+        if z_score < -entry_threshold:
+            # Price below lower band - oversold, expect reversion up
+            return {
+                'direction': 'long',
+                'strength': min(abs(z_score) / entry_threshold, 1.0),
+                'metadata': {
+                    'z_score': z_score,
+                    'rsi': rsi,
+                    'upper_band': upper_band,
+                    'middle_band': middle_band,
+                    'lower_band': lower_band,
+                    'price': price,
+                    'reason': 'Price below lower band - oversold'
+                }
+            }
+        elif z_score > entry_threshold:
+            # Price above upper band - overbought, expect reversion down
+            return {
+                'direction': 'short',
+                'strength': min(z_score / entry_threshold, 1.0),
+                'metadata': {
+                    'z_score': z_score,
+                    'rsi': rsi,
+                    'upper_band': upper_band,
+                    'middle_band': middle_band,
+                    'lower_band': lower_band,
+                    'price': price,
+                    'reason': 'Price above upper band - overbought'
+                }
+            }
+        elif abs(z_score) < exit_threshold:
+            # Near the mean - potential exit signal (flat)
+            return {
+                'direction': 'flat',
+                'strength': 0.0,
+                'metadata': {
+                    'z_score': z_score,
+                    'reason': 'Price near mean - no clear signal'
+                }
+            }
+        else:
+            # No signal
+            return {
+                'direction': 'flat',
+                'strength': 0.0,
+                'metadata': {
+                    'z_score': z_score,
+                    'reason': 'No mean reversion signal'
+                }
+            }
+    
+    @property
+    def required_features(self) -> List[str]:
+        """List of feature names this strategy requires."""
+        return ['bollinger_upper', 'bollinger_middle', 'bollinger_lower', 'rsi']
+
+
+# Stateless factory function
+def create_stateless_mean_reversion() -> StatelessMeanReversionStrategy:
+    """Create a stateless mean reversion strategy instance."""
+    return StatelessMeanReversionStrategy()
 
 
 class MeanReversionStrategy:

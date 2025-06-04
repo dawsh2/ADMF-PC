@@ -1,0 +1,57 @@
+# Example configuration for unified architecture backtest
+# This demonstrates the simplified configuration with automatic topology creation
+
+workflow_type: backtest
+
+# Simple mode specification - no pattern detection needed!
+parameters:
+  mode: backtest  # Full pipeline: data → signals → orders → fills
+  
+  # Data configuration
+  symbols: ['SPY']
+  start_date: '2023-01-01'
+  end_date: '2023-12-31'
+  
+  # Feature calculation
+  features:
+    indicators:
+      - name: sma_fast
+        type: sma
+        period: 10
+      - name: sma_slow
+        type: sma
+        period: 20
+      - name: rsi
+        type: rsi
+        period: 14
+  
+  # Strategy parameters (generates parameter grid)
+  strategies:
+    - type: momentum
+      momentum_threshold: [0.01, 0.02, 0.03]
+      rsi_oversold: [20, 30]
+      rsi_overbought: [70, 80]
+  
+  # Risk profiles
+  risk_profiles:
+    - type: conservative
+      max_position_size: 0.1
+      max_portfolio_risk: 0.02
+    - type: moderate
+      max_position_size: 0.2
+      max_portfolio_risk: 0.05
+  
+  # Execution configuration
+  execution:
+    slippage_bps: 5
+    commission_per_share: 0.01
+
+# Data source configuration
+data_config:
+  source: csv
+  file_path: ./data/SPY.csv
+  
+# Infrastructure (optional)
+infrastructure_config:
+  parallel_execution: true
+  max_workers: 4

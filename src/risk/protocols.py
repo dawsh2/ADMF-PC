@@ -4,7 +4,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from decimal import Decimal
 from datetime import datetime
-from typing import Protocol, Optional, Dict, List, Any, Set
+from typing import Protocol, Optional, Dict, List, Any, Set, runtime_checkable
 from enum import Enum
 
 from ..core.components.protocols import Component, Capability
@@ -270,6 +270,68 @@ class RiskPortfolioProtocol(Component, Protocol):
     @abstractmethod
     def get_risk_report(self) -> Dict[str, Any]:
         """Get comprehensive risk report."""
+        ...
+
+
+@runtime_checkable
+class StatelessRiskValidator(Protocol):
+    """
+    Protocol for stateless risk validation components in unified architecture.
+    
+    Risk validators are pure functions that validate orders against risk limits.
+    They maintain no internal state - portfolio state is passed as a parameter.
+    This enables perfect parallelization for testing multiple risk configurations
+    simultaneously without container overhead.
+    """
+    
+    def validate_order(
+        self, 
+        order: Dict[str, Any], 
+        portfolio_state: Dict[str, Any], 
+        risk_limits: Dict[str, Any],
+        market_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Validate an order against risk limits.
+        
+        This is a pure function - no side effects or state mutations.
+        
+        Args:
+            order: Order to validate with symbol, quantity, side, etc.
+            portfolio_state: Current portfolio state (positions, cash, etc.)
+            risk_limits: Risk parameters (max position, max drawdown, etc.)
+            market_data: Current market prices and conditions
+            
+        Returns:
+            Validation result with:
+                - approved: bool indicating if order passes risk checks
+                - adjusted_quantity: optional adjusted order size
+                - reason: string explanation if rejected
+                - risk_metrics: calculated risk metrics
+        """
+        ...
+    
+    def calculate_position_size(
+        self,
+        signal: Dict[str, Any],
+        portfolio_state: Dict[str, Any],
+        risk_params: Dict[str, Any],
+        market_data: Dict[str, Any]
+    ) -> float:
+        """
+        Calculate appropriate position size for a signal.
+        
+        This is a pure function - no side effects or state mutations.
+        
+        Args:
+            signal: Trading signal with direction and strength
+            portfolio_state: Current portfolio state
+            risk_params: Risk parameters for sizing
+            market_data: Current market prices
+            
+        Returns:
+            Position size (number of shares/contracts)
+        """
         ...
 
 

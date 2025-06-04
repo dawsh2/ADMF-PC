@@ -1,8 +1,8 @@
 """
 Momentum trading strategy implementation.
 
-This demonstrates a pure protocol-based strategy with NO inheritance.
-The strategy can be enhanced with capabilities through the ComponentFactory.
+This module provides both stateful (container-based) and stateless implementations
+of the momentum strategy to support the unified architecture transition.
 """
 
 from typing import Dict, Any, Optional, List, Set
@@ -13,6 +13,118 @@ import uuid
 from ..protocols import Strategy, SignalDirection
 from ...risk.protocols import Signal, SignalType, OrderSide
 from ...core.logging.structured import StructuredLogger, LogContext
+from ...core.components.protocols import StatelessStrategy
+
+
+class StatelessMomentumStrategy:
+    """
+    Stateless momentum trading strategy for unified architecture.
+    
+    Implements the StatelessStrategy protocol for use as a lightweight
+    service in the event-driven architecture. All state is passed as
+    parameters - no internal state is maintained.
+    """
+    
+    def __init__(self):
+        """Initialize stateless momentum strategy."""
+        # No configuration stored - everything comes from params
+        pass
+    
+    def generate_signal(
+        self, 
+        features: Dict[str, Any], 
+        bar: Dict[str, Any], 
+        params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a trading signal from features and current bar.
+        
+        Pure function implementation - no side effects or state changes.
+        
+        Args:
+            features: Calculated indicators from FeatureHub
+                - sma_fast: Fast moving average
+                - sma_slow: Slow moving average  
+                - rsi: Relative strength index
+            bar: Current market bar with OHLCV data
+            params: Strategy parameters
+                - momentum_threshold: Min momentum for signals (default: 0.02)
+                - rsi_oversold: RSI oversold level (default: 30)
+                - rsi_overbought: RSI overbought level (default: 70)
+                
+        Returns:
+            Signal dict with direction, strength, and metadata
+        """
+        # Extract parameters with defaults
+        momentum_threshold = params.get('momentum_threshold', 0.02)
+        rsi_oversold = params.get('rsi_oversold', 30)
+        rsi_overbought = params.get('rsi_overbought', 70)
+        
+        # Get required features
+        sma_fast = features.get('sma_fast')
+        sma_slow = features.get('sma_slow')
+        rsi = features.get('rsi')
+        
+        # Return empty signal if features missing
+        if any(x is None for x in [sma_fast, sma_slow, rsi]):
+            return {
+                'direction': 'flat',
+                'strength': 0.0,
+                'metadata': {'reason': 'Missing required features'}
+            }
+        
+        # Calculate momentum
+        momentum = (sma_fast - sma_slow) / sma_slow if sma_slow != 0 else 0.0
+        
+        # Generate signal based on momentum and RSI
+        if momentum > momentum_threshold and rsi < rsi_overbought:
+            # Bullish signal
+            return {
+                'direction': 'long',
+                'strength': min(momentum / (momentum_threshold * 2), 1.0),
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'sma_fast': sma_fast,
+                    'sma_slow': sma_slow,
+                    'reason': 'Positive momentum with room to run'
+                }
+            }
+        elif momentum < -momentum_threshold and rsi > rsi_oversold:
+            # Bearish signal
+            return {
+                'direction': 'short',
+                'strength': min(abs(momentum) / (momentum_threshold * 2), 1.0),
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'sma_fast': sma_fast,
+                    'sma_slow': sma_slow,
+                    'reason': 'Negative momentum with room to fall'
+                }
+            }
+        else:
+            # No signal
+            return {
+                'direction': 'flat',
+                'strength': 0.0,
+                'metadata': {
+                    'momentum': momentum,
+                    'rsi': rsi,
+                    'reason': 'No clear momentum signal'
+                }
+            }
+    
+    @property
+    def required_features(self) -> List[str]:
+        """List of feature names this strategy requires."""
+        return ['sma_fast', 'sma_slow', 'rsi']
+
+
+# Stateless factory function
+def create_stateless_momentum() -> StatelessMomentumStrategy:
+    """Create a stateless momentum strategy instance."""
+    return StatelessMomentumStrategy()
 
 
 class MomentumStrategy:
