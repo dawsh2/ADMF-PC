@@ -1,20 +1,35 @@
 """
 Strategy components for ADMF-PC.
 
-These are building blocks for strategies - indicators, classifiers,
+These are building blocks for strategies - features, classifiers,
 rules, and signal processing components. All implement protocols
 without inheritance.
 """
 
-from .indicators import (
-    SimpleMovingAverage,
-    ExponentialMovingAverage,
-    RSI,
-    ATR,
-    create_sma,
-    create_ema,
-    create_rsi,
-    create_atr
+from .features import (
+    # Stateless feature functions
+    sma_feature,
+    ema_feature,
+    rsi_feature,
+    macd_feature,
+    bollinger_bands_feature,
+    atr_feature,
+    stochastic_feature,
+    williams_r_feature,
+    cci_feature,
+    adx_feature,
+    volume_features,
+    momentum_features,
+    price_action_features,
+    compute_feature,
+    compute_multiple_features,
+    FEATURE_REGISTRY,
+    # Stateful feature computation engine
+    FeatureHub,
+    create_feature_hub,
+    DEFAULT_MOMENTUM_FEATURES,
+    DEFAULT_MEAN_REVERSION_FEATURES,
+    DEFAULT_VOLATILITY_FEATURES
 )
 
 from .classifiers import (
@@ -32,30 +47,40 @@ from .signal_replay import (
     WeightedSignalAggregator
 )
 
-from .indicator_hub import (
-    IndicatorHub,
-    IndicatorConfig,
-    IndicatorType,
-    IndicatorValue
+from .indicator_inference import (
+    infer_indicators_from_strategies,
+    get_strategy_requirements,
+    validate_strategy_configuration
 )
+
+# Note: indicators.py merged into features.py - FeatureHub now in features.py
 
 
 __all__ = [
-    # Indicators
-    "SimpleMovingAverage",
-    "ExponentialMovingAverage", 
-    "RSI",
-    "ATR",
-    "create_sma",
-    "create_ema",
-    "create_rsi",
-    "create_atr",
+    # Stateless feature functions
+    "sma_feature",
+    "ema_feature",
+    "rsi_feature",
+    "macd_feature",
+    "bollinger_bands_feature",
+    "atr_feature",
+    "stochastic_feature",
+    "williams_r_feature",
+    "cci_feature",
+    "adx_feature",
+    "volume_features",
+    "momentum_features",
+    "price_action_features",
+    "compute_feature",
+    "compute_multiple_features",
+    "FEATURE_REGISTRY",
     
-    # Indicator Hub
-    "IndicatorHub",
-    "IndicatorConfig",
-    "IndicatorType",
-    "IndicatorValue",
+    # Stateful feature computation engine
+    "FeatureHub",
+    "create_feature_hub",
+    "DEFAULT_MOMENTUM_FEATURES",
+    "DEFAULT_MEAN_REVERSION_FEATURES",
+    "DEFAULT_VOLATILITY_FEATURES",
     
     # Classifiers
     "MarketRegime",
@@ -68,5 +93,10 @@ __all__ = [
     "CapturedSignal",
     "SignalCapture",
     "SignalReplayer",
-    "WeightedSignalAggregator"
+    "WeightedSignalAggregator",
+    
+    # Indicator Inference
+    "infer_indicators_from_strategies",
+    "get_strategy_requirements",
+    "validate_strategy_configuration"
 ]

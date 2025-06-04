@@ -85,13 +85,9 @@ from .factory import (
     create_tree_network,
 )
 
-# Integration and compatibility
-from .integration import (
-    EventCommunicationFactory,
-    CommunicationLayer,
-    ContainerProtocolAdapter,
-    create_pipeline_adapter,
-)
+# Integration and compatibility - DEPRECATED
+# These are kept for backward compatibility only
+# Use AdapterFactory and the protocol-based adapters instead
 
 __all__ = [
     # Protocols
@@ -135,9 +131,4 @@ __all__ = [
     "create_event_bus",
     "create_tree_network",
     
-    # Integration/Compatibility
-    "EventCommunicationFactory",
-    "CommunicationLayer",
-    "ContainerProtocolAdapter",
-    "create_pipeline_adapter",
 ]

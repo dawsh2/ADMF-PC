@@ -13,12 +13,12 @@ from __future__ import annotations
 from typing import Dict, Any, List
 from collections import deque
 
-from .classifier import BaseClassifier
+# BaseClassifier removed - using Protocol + Composition instead
 from .regime_types import MarketRegime, ClassifierConfig
 from ...data.models import Bar
 
 
-class PatternClassifier(BaseClassifier):
+class PatternClassifier:
     """
     Rule-based pattern classifier for market regimes.
     

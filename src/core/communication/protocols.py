@@ -8,7 +8,7 @@ must implement, following ADMF-PC's protocol-based architecture.
 from typing import Protocol, runtime_checkable, Dict, Any, Optional
 from abc import abstractmethod
 
-from ..events.types import Event, EventType, EventBusProtocol
+from ..types.events import Event, EventType, EventBusProtocol
 
 
 @runtime_checkable

@@ -11,7 +11,7 @@ import time
 from typing import Dict, Any, Optional
 from contextlib import contextmanager
 
-from ..events.types import Event, EventType
+from ..types.events import Event, EventType
 from .protocols import Container, CommunicationAdapter, AdapterMetrics, AdapterErrorHandler
 
 

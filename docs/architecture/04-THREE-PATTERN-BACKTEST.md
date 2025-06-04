@@ -36,7 +36,7 @@ Pure signal analysis without execution overhead
 │                                                             │
 │  Components:                                                │
 │  • DataStreamer: Historical data playback                  │
-│  • IndicatorHub: Technical indicator calculations          │
+│  • FeatureHub: Technical feature calculations             │
 │  • StrategyContainer: Signal generation                    │
 │  • RiskContainer: Position sizing & risk limits            │
 │  • ExecutionEngine: Order simulation & fills               │
@@ -55,7 +55,7 @@ class FullBacktestPattern:
         
         # Create all components
         self.data_streamer = DataStreamer(config['data'])
-        self.indicator_hub = IndicatorHub(config['indicators'])
+        self.feature_hub = FeatureHub(config['features'])
         self.strategy = StrategyContainer(config['strategy'])
         self.risk_manager = RiskContainer(config['risk'])
         self.execution = ExecutionEngine(config['execution'])
@@ -63,11 +63,11 @@ class FullBacktestPattern:
     def run(self) -> BacktestResults:
         """Execute full backtest"""
         for bar in self.data_streamer:
-            # 1. Calculate indicators
-            indicators = self.indicator_hub.calculate(bar)
+            # 1. Calculate features
+            features = self.feature_hub.calculate(bar)
             
             # 2. Generate signals
-            signal = self.strategy.generate_signal(bar, indicators)
+            signal = self.strategy.generate_signal(bar, features)
             
             # 3. Apply risk management
             order = self.risk_manager.process_signal(signal)
@@ -249,7 +249,7 @@ signal_log = {
 │                                                             │
 │  Components:                                                │
 │  • DataStreamer: Historical data playback                  │
-│  • IndicatorHub: Technical indicator calculations          │
+│  • FeatureHub: Technical feature calculations             │
 │  • StrategyContainer: Signal generation                    │
 │  • SignalAnalyzer: Statistical analysis & capture          │
 │                                                             │
@@ -268,7 +268,7 @@ class SignalGenerationPattern:
         self.container = SignalGenerationContainer("signal_gen")
         
         self.data_streamer = DataStreamer(config['data'])
-        self.indicator_hub = IndicatorHub(config['indicators'])
+        self.feature_hub = FeatureHub(config['features'])
         self.strategy = StrategyContainer(config['strategy'])
         self.analyzer = SignalAnalyzer(config['analysis'])
     
@@ -277,17 +277,17 @@ class SignalGenerationPattern:
         all_signals = []
         
         for bar in self.data_streamer:
-            # Calculate indicators
-            indicators = self.indicator_hub.calculate(bar)
+            # Calculate features
+            features = self.feature_hub.calculate(bar)
             
             # Generate signal
-            signal = self.strategy.generate_signal(bar, indicators)
+            signal = self.strategy.generate_signal(bar, features)
             
             # Capture with full context
             signal_record = {
                 "timestamp": bar.timestamp,
                 "signal": signal,
-                "indicators": indicators,
+                "features": features,
                 "price": bar.close,
                 "future_returns": None  # Filled in later
             }
@@ -355,16 +355,16 @@ class SignalAnalyzer:
 
 2. **Feature Engineering**
    ```python
-   # Test which indicators improve signal quality
-   indicator_sets = [
+   # Test which features improve signal quality
+   feature_sets = [
        ['SMA', 'RSI'],
        ['SMA', 'RSI', 'ATR'],
        ['SMA', 'RSI', 'ATR', 'MACD'],
    ]
    
-   for indicators in indicator_sets:
-       config['indicators'] = indicators
-       results = analyze_with_indicators(config)
+   for features in feature_sets:
+       config['features'] = features
+       results = analyze_with_features(config)
    ```
 
 3. **Regime Detection Testing**
@@ -385,7 +385,7 @@ class SignalAnalyzer:
 
 - **Speed**: 2-3x faster than full backtest
 - **Memory**: Lower - no execution state
-- **CPU**: Moderate - indicators but no execution
+- **CPU**: Moderate - features but no execution
 - **Purpose**: Research, not trading
 
 ## Pattern Selection Guide

@@ -106,18 +106,18 @@ class MassiveUniverseDataHandler(DataProtocol):
         return sorted(scores.keys(), key=lambda s: scores[s], reverse=True)
 ```
 
-### 2. Optimized Indicator Computation
+### 2. Optimized Feature Computation
 
 ```python
-# src/strategy/indicators/vectorized_indicators.py
+# src/strategy/features/vectorized_features.py
 import numpy as np
 import numba
 from numba import cuda
 import cupy as cp  # GPU arrays
 
-class VectorizedIndicatorHub:
+class VectorizedFeatureHub:
     """
-    Massively parallel indicator computation for 1000+ symbols.
+    Massively parallel feature computation for 1000+ symbols.
     
     Features:
     - Vectorized operations across all symbols
@@ -141,7 +141,7 @@ class VectorizedIndicatorHub:
         else:
             self.gpu_enabled = False
             
-        # Indicator caches
+        # Feature caches
         self.sma_cache = {}
         self.ema_cache = {}
         self.rsi_cache = {}
@@ -164,10 +164,10 @@ class VectorizedIndicatorHub:
             
         return results
         
-    def calculate_complex_indicators_gpu(self):
-        """Use GPU for complex indicator calculations"""
+    def calculate_complex_features_gpu(self):
+        """Use GPU for complex feature calculations"""
         if not self.gpu_enabled:
-            return self.calculate_complex_indicators_cpu()
+            return self.calculate_complex_features_cpu()
             
         # Transfer to GPU
         gpu_prices = cp.asarray(self.price_matrix)
@@ -243,18 +243,18 @@ class DistributedSignalGenerator:
         """Process a partition of symbols"""
         signals = []
         
-        # Create local indicator cache
-        indicator_cache = LocalIndicatorCache()
+        # Create local feature cache
+        feature_cache = LocalFeatureCache()
         
         for symbol in symbols:
             symbol_data = market_data[symbol]
             
-            # Calculate indicators once
-            indicators = indicator_cache.get_or_calculate(symbol, symbol_data)
+            # Calculate features once
+            features = feature_cache.get_or_calculate(symbol, symbol_data)
             
             # Generate signals from all strategies
             for strategy in strategies:
-                signal = strategy.evaluate(symbol, indicators)
+                signal = strategy.evaluate(symbol, features)
                 if signal.strength > strategy.threshold:
                     signals.append(signal)
                     
@@ -417,16 +417,16 @@ class MassivePortfolioTracker:
 
 ```python
 # tests/test_massive_universe.py
-def test_vectorized_indicators():
-    """Test indicator calculation across 1000+ symbols"""
+def test_vectorized_features():
+    """Test feature calculation across 1000+ symbols"""
     # Create test data
     symbols = [f"SYM_{i:04d}" for i in range(1500)]
-    hub = VectorizedIndicatorHub(symbols, config)
+    hub = VectorizedFeatureHub(symbols, config)
     
     # Generate random price data
     hub.price_matrix = np.random.randn(100, 1500) * 100 + 100
     
-    # Calculate indicators
+    # Calculate features
     start_time = time.time()
     sma_results = hub.calculate_sma_vectorized([10, 20, 50])
     duration = time.time() - start_time
@@ -462,7 +462,7 @@ def test_full_universe_pipeline():
     """Test complete pipeline with massive universe"""
     # Initialize components
     data_handler = MassiveUniverseDataHandler(config)
-    indicator_hub = VectorizedIndicatorHub(symbols, config)
+    feature_hub = VectorizedFeatureHub(symbols, config)
     signal_generator = DistributedSignalGenerator()
     portfolio_tracker = MassivePortfolioTracker(len(symbols))
     
@@ -471,8 +471,8 @@ def test_full_universe_pipeline():
     
     # Stream data in batches
     for event_batch in data_handler.stream_bars(timestamp):
-        # Update indicators
-        indicator_hub.update_batch(event_batch)
+        # Update features
+        feature_hub.update_batch(event_batch)
         
         # Generate signals
         signals = signal_generator.process_batch(event_batch)
@@ -516,7 +516,7 @@ def test_sustained_throughput():
 ### Performance Validation
 - [ ] Process 1000+ symbols in real-time
 - [ ] Maintain sub-second latency
-- [ ] Indicator calculation under 100ms
+- [ ] Feature calculation under 100ms
 - [ ] Signal generation parallelized
 
 ### Memory Validation
@@ -528,7 +528,7 @@ def test_sustained_throughput():
 ### Accuracy Validation
 - [ ] All symbols processed
 - [ ] No data loss
-- [ ] Correct indicator values
+- [ ] Correct feature values
 - [ ] Accurate position tracking
 
 ### Scalability Validation
@@ -544,7 +544,7 @@ def test_sustained_throughput():
 class MemoryOptimizer:
     def __init__(self):
         self.symbol_cache_size = 100  # Keep hot symbols in memory
-        self.indicator_retention = 60  # seconds
+        self.feature_retention = 60  # seconds
         self.position_precision = np.float32  # vs float64
         
     def optimize_data_structures(self):
@@ -552,7 +552,7 @@ class MemoryOptimizer:
         recommendations = {
             'positions': 'scipy.sparse for mostly zero positions',
             'price_data': 'numpy arrays with float32',
-            'indicators': 'circular buffers for rolling windows',
+            'features': 'circular buffers for rolling windows',
             'signals': 'object pooling to reduce GC',
             'events': 'pre-allocated event pools'
         }
@@ -562,11 +562,11 @@ class MemoryOptimizer:
         """Estimate memory requirements in GB"""
         # Base requirements
         price_history = num_symbols * 390 * 20 * 4  # mins * days * bytes
-        indicators = num_symbols * 10 * 100 * 4     # types * values * bytes
+        features = num_symbols * 10 * 100 * 4     # types * values * bytes
         positions = num_symbols * 8                  # sparse representation
         overhead = 2 * 1024 * 1024 * 1024           # 2GB system overhead
         
-        total_bytes = price_history + indicators + positions + overhead
+        total_bytes = price_history + features + positions + overhead
         return total_bytes / (1024 * 1024 * 1024)
 ```
 

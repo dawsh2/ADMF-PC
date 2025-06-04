@@ -14,7 +14,7 @@ from collections import defaultdict, deque
 import uuid
 from datetime import datetime
 
-from ..types import Event
+from ...types.events import Event
 from .traced_event import TracedEvent
 
 logger = logging.getLogger(__name__)

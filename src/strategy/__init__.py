@@ -1,26 +1,23 @@
 """
 Strategy module for ADMF-PC.
 
-This module provides trading strategies using protocol-based design
-with no inheritance. Components can be enhanced with capabilities
-through composition.
+Architecture Reference: docs/SYSTEM_ARCHITECTURE_V5.MD#strategy-module
+Style Guide: STYLE.md - Canonical strategy implementations
+
+This module provides trading strategies using Protocol + Composition architecture
+with zero inheritance. All components implement protocols directly.
 
 Example Usage:
     ```python
     from src.strategy import MomentumStrategy
-    from src.core.components import ComponentFactory
     
-    # Create strategy with capabilities
-    strategy = ComponentFactory().create_component({
-        'class': 'MomentumStrategy',
-        'params': {
-            'lookback_period': 20,
-            'momentum_threshold': 0.02
-        },
-        'capabilities': ['strategy', 'optimization', 'events']
-    })
+    # Create strategy directly - no framework overhead
+    strategy = MomentumStrategy(
+        lookback_period=20,
+        momentum_threshold=0.02
+    )
     
-    # Use strategy
+    # Use strategy - implements Strategy protocol
     signal = strategy.generate_signal(market_data)
     ```
 """
@@ -39,13 +36,7 @@ from .protocols import (
     SignalDirection
 )
 
-# Capabilities
-from .capabilities import (
-    StrategyCapability,
-    IndicatorCapability,
-    RuleManagementCapability,
-    RegimeAdaptiveCapability
-)
+# Note: No capabilities.py - components ARE capabilities through protocol implementation
 
 # Strategies
 from .strategies.momentum import MomentumStrategy, create_momentum_strategy
@@ -82,11 +73,7 @@ __all__ = [
     "PerformanceTracker",
     "SignalDirection",
     
-    # Capabilities
-    "StrategyCapability",
-    "IndicatorCapability",
-    "RuleManagementCapability",
-    "RegimeAdaptiveCapability",
+    # No capabilities exported - components implement protocols directly
     
     # Strategies
     "MomentumStrategy",

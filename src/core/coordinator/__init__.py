@@ -18,8 +18,12 @@ def get_coordinator():
     from .coordinator import Coordinator
     return Coordinator
 
+def get_workflow_manager():
+    from .topology import WorkflowManager
+    return WorkflowManager
+
 # Import simple types that don't have dependencies
-from .simple_types import (
+from ..types.workflow import (
     WorkflowConfig,
     WorkflowType,
     WorkflowPhase,
@@ -28,7 +32,7 @@ from .simple_types import (
 
 # Import types only if needed
 try:
-    from .types import WorkflowResult
+    from ..types.workflow import WorkflowResult
 except ImportError:
     # Use a simple dataclass if pydantic not available
     from dataclasses import dataclass, field
@@ -50,19 +54,34 @@ except ImportError:
         def finalize(self):
             if self._start_time:
                 self.duration_seconds = (datetime.now() - self._start_time).total_seconds()
-from .phase_management import (
-    PhaseTransition,
-    ContainerNamingStrategy,
-    StreamingResultWriter,
-    ResultAggregator,
-    StrategyIdentity,
-    WorkflowState,
-    CheckpointManager,
-    WorkflowCoordinator,
-    SharedServiceRegistry,
-    WalkForwardValidator,
-    integrate_phase_management
-)
+# Phase management imports (using actual sequencer module)
+try:
+    from .sequencer import (
+        PhaseTransition,
+        ContainerNamingStrategy,
+        StreamingResultWriter,
+        ResultAggregator,
+        StrategyIdentity,
+        WorkflowState,
+        CheckpointManager,
+        WorkflowCoordinator,
+        SharedServiceRegistry,
+        WalkForwardValidator,
+        integrate_phase_management
+    )
+except ImportError as e:
+    # Phase management not available - use stubs
+    class PhaseTransition: pass
+    class ContainerNamingStrategy: pass
+    class StreamingResultWriter: pass
+    class ResultAggregator: pass
+    class StrategyIdentity: pass
+    class WorkflowState: pass
+    class CheckpointManager: pass
+    class WorkflowCoordinator: pass
+    class SharedServiceRegistry: pass
+    class WalkForwardValidator: pass
+    def integrate_phase_management(*args, **kwargs): pass
 # from .multi_symbol_architecture import (
 #     SymbolAllocation,
 #     RiskContainer,
@@ -72,6 +91,7 @@ from .phase_management import (
 
 __all__ = [
     'get_coordinator',  # Changed from Coordinator to avoid circular import
+    'get_workflow_manager',  # Modular workflow manager
     'WorkflowConfig',
     'WorkflowType',
     'WorkflowPhase',

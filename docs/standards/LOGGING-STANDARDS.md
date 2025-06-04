@@ -80,7 +80,7 @@ class ComponentLogger:
 "EVENT_FLOW | {container_id} | {source} → {destination} | {event_type} | {payload_summary}"
 
 # Example
-"EVENT_FLOW | backtest_001 | DataStreamer → IndicatorHub | BAR_DATA | AAPL 2024-01-15 10:30:00"
+"EVENT_FLOW | backtest_001 | DataStreamer → FeatureHub | BAR_DATA | AAPL 2024-01-15 10:30:00"
 "EVENT_FLOW | backtest_001 | MomentumStrategy → RiskManager | SIGNAL | BUY AAPL strength=0.8"
 ```
 
@@ -433,8 +433,8 @@ class LogBasedTester:
         
         # Verify sequence
         expected_flow = [
-            "DataStreamer → IndicatorHub",
-            "IndicatorHub → Strategy",
+            "DataStreamer → FeatureHub",
+            "FeatureHub → Strategy",
             "Strategy → RiskManager",
             "RiskManager → ExecutionEngine"
         ]

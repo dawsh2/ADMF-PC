@@ -1,436 +1,393 @@
-# ADMF-PC Strategy Module
+# Strategy Module
 
-The Strategy Module implements a pure Protocol + Composition (PC) architecture for algorithmic trading strategies, with ZERO inheritance patterns. This module provides strategies, indicators, classifiers, and optimization capabilities that work seamlessly with the container isolation system.
+This module provides THE canonical implementations for trading strategies, market classifiers, and strategy components for ADMF-PC.
 
-## Architecture Overview
+## Architecture Reference
+- **System Architecture**: docs/SYSTEM_ARCHITECTURE_v5.MD#strategy-module  
+- **Style Guide**: STYLE.md - Canonical strategy implementations
+- **Core Patterns**: docs/new/arch-101.md - Protocol + Composition
 
-### Core Principles
+## Module Overview
 
-1. **Protocol-Based Design**: All components implement protocols, not base classes
-2. **No Inheritance**: Strategies are simple classes with NO inheritance
-3. **Capability Enhancement**: Features added through composition, not inheritance
-4. **Container Awareness**: Full isolation for parallel execution
-5. **Event-Driven**: Communication through container-scoped event buses
+The Strategy module implements trading strategies and market analysis using Protocol + Composition patterns with **no inheritance**. All components are designed as composable, protocol-compliant building blocks that can be mixed and matched through configuration.
 
-### Module Structure
+## Core Principle: Stateless Strategies + Stateful Feature Engine
 
-```
-src/strategy/
-├── protocols.py           # Core protocols (Strategy, Indicator, Classifier)
-├── capabilities.py        # Strategy-specific capabilities
-├── strategies/           # Strategy implementations
-│   ├── momentum.py       # Momentum trading strategy
-│   ├── mean_reversion.py # Mean reversion strategy
-│   ├── trend_following.py # Trend following strategy
-│   ├── arbitrage.py      # Arbitrage strategy
-│   └── market_making.py  # Market making strategy
-├── components/           # Reusable components
-│   ├── indicators.py     # Technical indicators
-│   ├── classifiers.py    # Market regime classifiers
-│   └── signal_replay.py  # Signal capture and replay
-├── optimization/         # Optimization framework
-│   ├── protocols.py      # Optimization protocols
-│   ├── optimizers.py     # Optimization algorithms
-│   ├── objectives.py     # Objective functions
-│   ├── constraints.py    # Parameter constraints
-│   ├── containers.py     # Optimization containers
-│   └── workflows.py      # Multi-phase workflows
-└── classifiers/          # Advanced classifier system
-    ├── classifier.py     # Classifier implementations
-    └── classifier_container.py # Container integration
+This module follows a **Two-Tier Architecture**:
 
-```
+### Tier 1: Stateless Strategy Components
+Components that perform pure calculations based on inputs:
+- **Trading Strategies**: Generate signals based on current feature values
+- **Market Classifiers**: Classify market regimes from current data
+- **Rules and Aggregators**: Combine signals using pure logic
 
-## Key Protocols
+### Tier 2: Stateful Feature Engine
+The **FeatureHub** component that maintains state for efficient computation:
+- **Feature Computation**: Incremental calculation of technical indicators
+- **Rolling Windows**: Maintains price/volume history for indicators
+- **Caching**: Optimized feature storage and retrieval
+- **Real-time Updates**: Streaming data processing for live trading
 
-### Strategy Protocol
+## Files
 
+### Core Protocol Definitions
+- **`protocols.py`** - THE strategy protocol definitions
+  - `Strategy`: Core trading strategy interface
+  - `FeatureProvider`: Stateful feature computation engine interface
+  - `FeatureExtractor`: Stateless feature extraction function interface
+  - `Rule`: Trading rule evaluation interface
+  - `SignalAggregator`: Signal combination interface
+  - `Classifier`: Market regime classification interface
+  - `RegimeAdaptive`: Regime-aware strategy interface
+  - `Optimizable`: Parameter optimization interface
+
+### Trading Strategies
+- **`strategies/momentum.py`** - THE momentum strategy implementation
+  - `MomentumStrategy`: Dual moving average crossover with RSI filter
+  - Stateless: Consumes features from FeatureHub, no internal state
+  - Protocol compliant: Implements Strategy protocol directly
+
+- **`strategies/mean_reversion_simple.py`** - THE mean reversion strategy
+  - `MeanReversionStrategy`: Bollinger Bands mean reversion
+  - Stateless: Pure decision logic based on current feature values
+  - Protocol compliant: No inheritance required
+
+- **`strategies/`** directory contains additional canonical strategies:
+  - `trend_following.py`: Donchian channel breakout strategies
+  - `arbitrage.py`: Statistical arbitrage implementations
+  - `market_making.py`: Bid-ask spread capture strategies
+
+### Feature System
+- **`components/indicators.py`** - THE feature computation engine
+  - `FeatureHub`: Stateful feature computation engine (Tier 2)
+  - Manages rolling windows for all technical indicators
+  - Provides incremental updates for streaming data
+  - Caches computed features for efficiency
+
+- **`components/features.py`** - THE stateless feature functions
+  - `sma_feature`, `ema_feature`, `rsi_feature`: Technical indicators
+  - `bollinger_bands_feature`, `macd_feature`: Complex indicators
+  - `FEATURE_REGISTRY`: Registry of all available feature functions
+  - Pure functions: No state, work on pandas DataFrames
+
+### Market Classifiers
+- **`classifiers/hmm_classifier.py`** - THE HMM regime classifier
+  - `HMMClassifier`: Hidden Markov Model for regime detection
+  - Uses price returns, volume, and volatility for classification
+  - Identifies bull, bear, and neutral market states
+
+- **`classifiers/pattern_classifier.py`** - THE pattern-based classifier
+  - `PatternClassifier`: Technical pattern recognition
+  - Identifies trends, ranges, and reversal patterns
+
+- **`classifiers/simple_classifiers.py`** - Simple regime classifiers
+  - `TrendClassifier`: Basic trend detection
+  - `VolatilityClassifier`: Volatility regime identification
+
+### Strategy Components
+- **`components/signal_aggregation.py`** - THE signal combination engine
+  - `SignalCombiner`: Aggregates multiple signals within strategies
+  - `WeightedAggregator`: Weighted signal combination
+  - Used for intra-strategy signal processing (not multi-strategy)
+
+### Optimization Framework
+- **`optimization/`** - THE strategy optimization implementations
+  - Complete optimization framework with Protocol + Composition
+  - Multi-phase optimization workflows
+  - Signal replay for efficient weight optimization
+  - Walk-forward validation capabilities
+  - See `optimization/README.md` for detailed documentation
+
+## Usage Examples
+
+### Basic Strategy Usage
 ```python
-@runtime_checkable
-class Strategy(Protocol):
-    """Core trading strategy protocol."""
-    
-    @property
-    def name(self) -> str:
-        """Strategy identifier."""
-        ...
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Generate trading signal from market data."""
-        ...
-```
+from src.strategy import MomentumStrategy
+from src.strategy.components import FeatureHub, DEFAULT_MOMENTUM_FEATURES
 
-### Indicator Protocol
+# Create stateful feature engine
+feature_hub = FeatureHub(symbols=["SPY", "QQQ"])
+feature_hub.configure_features(DEFAULT_MOMENTUM_FEATURES)
 
-```python
-@runtime_checkable
-class Indicator(Protocol):
-    """Technical indicator protocol."""
-    
-    def calculate(self, data: List[float]) -> float:
-        """Calculate indicator value."""
-        ...
-    
-    def update(self, value: float) -> None:
-        """Update with new data point."""
-        ...
-```
+# Create stateless strategy
+strategy = MomentumStrategy(
+    momentum_threshold=0.02,
+    rsi_oversold=30,
+    rsi_overbought=70
+)
 
-### Classifier Protocol
-
-```python
-@runtime_checkable
-class Classifier(Protocol):
-    """Market regime classifier protocol."""
+# Process market data
+for bar in market_data:
+    # Update features (stateful)
+    feature_hub.update_bar(bar.symbol, {
+        'open': bar.open,
+        'high': bar.high, 
+        'low': bar.low,
+        'close': bar.close,
+        'volume': bar.volume
+    })
     
-    def classify(self, features: Dict[str, Any]) -> str:
-        """Classify current market regime."""
-        ...
-    
-    def get_confidence(self) -> float:
-        """Get classification confidence."""
-        ...
-```
-
-## Strategy Implementation
-
-### Example: Momentum Strategy (NO Inheritance!)
-
-```python
-class MomentumStrategy:
-    """Momentum-based trading strategy - pure class, no inheritance."""
-    
-    def __init__(self, lookback_period: int = 20, 
-                 momentum_threshold: float = 0.02):
-        self.lookback_period = lookback_period
-        self.momentum_threshold = momentum_threshold
-        self.price_history = []
-    
-    @property
-    def name(self) -> str:
-        return "momentum_strategy"
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        price = market_data.get('close')
-        self.price_history.append(price)
+    # Generate signals (stateless)
+    if feature_hub.has_sufficient_data(bar.symbol):
+        features = feature_hub.get_all_features()
+        strategy_input = {
+            'market_data': {bar.symbol: bar},
+            'features': features,
+            'timestamp': bar.timestamp
+        }
         
-        if len(self.price_history) < self.lookback_period:
-            return None
-        
-        momentum = self._calculate_momentum()
-        
-        if momentum > self.momentum_threshold:
-            return {
-                'symbol': market_data['symbol'],
-                'direction': SignalDirection.BUY,
-                'strength': min(momentum / (self.momentum_threshold * 2), 1.0),
-                'timestamp': market_data['timestamp']
+        signals = strategy.generate_signals(strategy_input)
+        for signal in signals:
+            print(f"Generated {signal.side} signal for {signal.symbol}")
+```
+
+### Mean Reversion Strategy
+```python
+from src.strategy.strategies import MeanReversionStrategy
+from src.strategy.components import DEFAULT_MEAN_REVERSION_FEATURES
+
+# Create feature engine for mean reversion
+feature_hub = FeatureHub(symbols=["SPY"])
+feature_hub.configure_features(DEFAULT_MEAN_REVERSION_FEATURES)
+
+# Create strategy
+strategy = MeanReversionStrategy(
+    entry_threshold=2.0,  # 2 standard deviations
+    exit_threshold=0.5    # 0.5 standard deviations
+)
+
+# Strategy consumes Bollinger Bands and RSI features
+# from FeatureHub - no internal state management
+```
+
+### Market Classification
+```python
+from src.strategy.classifiers import HMMClassifier
+
+# Create HMM classifier
+classifier = HMMClassifier(
+    parameters=HMMParameters(
+        n_states=3,
+        lookback_period=20,
+        confidence_threshold=0.6
+    )
+)
+
+# Classify market regime
+regime = classifier.classify_regime(market_data, timestamp)
+print(f"Current regime: {regime}")
+```
+
+### Custom Feature Configuration
+```python
+# Define custom feature set
+custom_features = {
+    "sma_10": {"feature": "sma", "period": 10},
+    "sma_50": {"feature": "sma", "period": 50},
+    "rsi_14": {"feature": "rsi", "period": 14},
+    "bollinger_20": {"feature": "bollinger", "period": 20, "std_dev": 2.0},
+    "atr_14": {"feature": "atr", "period": 14}
+}
+
+# Configure FeatureHub
+feature_hub = FeatureHub(symbols=["AAPL", "GOOGL"])
+feature_hub.configure_features(custom_features)
+
+# Features available to all strategies:
+# sma_10, sma_50, rsi_14, bollinger_20_upper, 
+# bollinger_20_middle, bollinger_20_lower, atr_14
+```
+
+## Protocol Compliance
+
+All strategy components implement standard protocols:
+
+```python
+# Strategies implement Strategy protocol
+def generate_signals(self, strategy_input: Dict[str, Any]) -> List[Signal]:
+    """Generate trading signals from market data and features"""
+
+# Feature providers implement FeatureProvider protocol
+def update_bar(self, symbol: str, bar: Dict[str, float]) -> None:
+    """Update with new bar data for incremental feature calculation"""
+
+def get_features(self, symbol: str) -> Dict[str, Any]:
+    """Get current feature values for a symbol"""
+
+# Classifiers implement Classifier protocol
+def classify(self, data: Dict[str, Any]) -> str:
+    """Classify current market conditions"""
+```
+
+## Configuration Patterns
+
+### YAML Configuration
+```yaml
+strategy_config:
+  momentum_strategy:
+    type: "momentum"
+    momentum_threshold: 0.02
+    rsi_oversold: 30
+    rsi_overbought: 70
+    
+  mean_reversion_strategy:
+    type: "mean_reversion"
+    entry_threshold: 2.0
+    exit_threshold: 0.5
+
+feature_config:
+  sma_fast: 
+    feature: "sma"
+    period: 10
+  sma_slow:
+    feature: "sma" 
+    period: 20
+  rsi:
+    feature: "rsi"
+    period: 14
+
+classifier_config:
+  hmm_classifier:
+    type: "hmm"
+    n_states: 3
+    lookback_period: 20
+    confidence_threshold: 0.6
+```
+
+### Factory Functions
+```python
+def create_momentum_strategy(config: Dict[str, Any]) -> MomentumStrategy:
+    """Factory function for momentum strategy creation"""
+    return MomentumStrategy(
+        momentum_threshold=config.get('momentum_threshold', 0.02),
+        rsi_oversold=config.get('rsi_oversold', 30),
+        rsi_overbought=config.get('rsi_overbought', 70)
+    )
+
+def create_feature_hub(symbols: List[str], 
+                      feature_type: str) -> FeatureHub:
+    """Factory function for FeatureHub creation"""
+    feature_configs = {
+        'momentum': DEFAULT_MOMENTUM_FEATURES,
+        'mean_reversion': DEFAULT_MEAN_REVERSION_FEATURES,
+        'volatility': DEFAULT_VOLATILITY_FEATURES
+    }
+    
+    hub = FeatureHub(symbols)
+    hub.configure_features(feature_configs[feature_type])
+    return hub
+```
+
+## Testing Strategy
+
+### Unit Testing
+```python
+def test_momentum_strategy_signal_generation():
+    """Test momentum strategy signal logic"""
+    strategy = MomentumStrategy(momentum_threshold=0.02)
+    
+    # Test data with momentum signal
+    strategy_input = {
+        'market_data': {'SPY': {'close': 100}},
+        'features': {
+            'SPY': {
+                'sma_fast': 102,
+                'sma_slow': 100,
+                'rsi': 50
             }
+        },
+        'timestamp': datetime.now()
+    }
+    
+    signals = strategy.generate_signals(strategy_input)
+    assert len(signals) == 1
+    assert signals[0].side == OrderSide.BUY
+
+def test_feature_hub_incremental_updates():
+    """Test FeatureHub incremental computation"""
+    hub = FeatureHub(symbols=['TEST'])
+    hub.configure_features({'sma_10': {'feature': 'sma', 'period': 10}})
+    
+    # Add bars incrementally
+    for i in range(20):
+        hub.update_bar('TEST', {'close': 100 + i})
+    
+    features = hub.get_features('TEST')
+    assert 'sma_10' in features
+    assert features['sma_10'] > 100
+```
+
+### Integration Testing
+```python
+def test_strategy_feature_hub_integration():
+    """Test full strategy + feature hub integration"""
+    # Setup
+    hub = FeatureHub(['SPY'])
+    hub.configure_features(DEFAULT_MOMENTUM_FEATURES)
+    strategy = MomentumStrategy()
+    
+    # Feed data
+    bars = generate_test_bars('SPY', 100)
+    for bar in bars:
+        hub.update_bar('SPY', bar)
+    
+    # Generate signals
+    if hub.has_sufficient_data('SPY'):
+        features = hub.get_all_features()
+        strategy_input = {
+            'market_data': {'SPY': bars[-1]},
+            'features': features,
+            'timestamp': datetime.now()
+        }
+        signals = strategy.generate_signals(strategy_input)
         
-        return None
-```
-
-## Capability Enhancement
-
-### Adding Capabilities to Strategies
-
-```python
-from src.core.components import ComponentFactory
-
-# Create strategy with capabilities
-strategy = ComponentFactory().create_component({
-    'class': 'MomentumStrategy',
-    'params': {
-        'lookback_period': 20,
-        'momentum_threshold': 0.02
-    },
-    'capabilities': [
-        'strategy',      # Core strategy capability
-        'lifecycle',     # Start/stop lifecycle
-        'events',        # Event publishing
-        'optimization',  # Parameter optimization
-        'monitoring'     # Performance monitoring
-    ]
-})
-
-# Now strategy has enhanced features
-strategy.start()  # From lifecycle capability
-strategy.publish_event('signal_generated', signal)  # From events
-params = strategy.get_parameters()  # From optimization
-```
-
-## Container Integration
-
-### Strategy Execution in Containers
-
-```python
-from src.core.containers import UniversalScopedContainer
-
-# Create strategy container
-container = UniversalScopedContainer(
-    scope_id="strategy_momentum_001",
-    parent_container=coordinator_container
-)
-
-# Register strategy
-container.register_component('strategy', strategy, {
-    'capabilities': ['strategy', 'events']
-})
-
-# Execute in isolation
-with container.create_scope():
-    signal = strategy.generate_signal(market_data)
-```
-
-## Optimization Integration
-
-### Making Strategies Optimizable
-
-```python
-from src.strategy.optimization import OptimizationCapability
-
-# Apply optimization capability
-opt_capability = OptimizationCapability()
-optimizable_strategy = opt_capability.apply(strategy, {
-    'parameter_space': {
-        'lookback_period': [10, 20, 30, 40],
-        'momentum_threshold': [0.01, 0.02, 0.03, 0.04]
-    },
-    'constraints': [
-        RangeConstraint('lookback_period', min_value=5, max_value=100)
-    ]
-})
-
-# Run optimization
-optimizer = GridOptimizer()
-best_params = optimizer.optimize(
-    lambda params: evaluate_strategy(optimizable_strategy, params),
-    parameter_space=optimizable_strategy.get_parameter_space()
-)
-```
-
-## Regime-Aware Strategies
-
-### Adaptive Strategy Behavior
-
-```python
-class RegimeAdaptiveStrategy:
-    """Strategy that adapts to market regimes."""
-    
-    def __init__(self, regime_params: Dict[str, Dict[str, Any]]):
-        self.regime_params = regime_params
-        self.current_regime = None
-    
-    def set_regime(self, regime: str) -> None:
-        """Switch to regime-specific parameters."""
-        self.current_regime = regime
-        if regime in self.regime_params:
-            self._apply_params(self.regime_params[regime])
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        # Adapt behavior based on current regime
-        if self.current_regime == 'HIGH_VOLATILITY':
-            # More conservative in volatile markets
-            return self._generate_conservative_signal(market_data)
-        else:
-            # Normal signal generation
-            return self._generate_normal_signal(market_data)
-```
-
-## Event Integration
-
-### Publishing Strategy Events
-
-```python
-# Strategies with event capability can publish
-strategy.publish_event('signal.generated', {
-    'strategy': strategy.name,
-    'signal': signal,
-    'confidence': 0.85,
-    'timestamp': datetime.now()
-})
-
-# Other components can subscribe
-event_bus.subscribe('signal.generated', lambda event: 
-    logger.info(f"Signal from {event.data['strategy']}")
-)
+        # Verify signal quality
+        assert all(isinstance(s.strength, Decimal) for s in signals)
+        assert all(0 <= s.strength <= 1 for s in signals)
 ```
 
 ## Performance Considerations
 
-### 1. Efficient Data Handling
+- **FeatureHub Efficiency**: Uses rolling windows with fixed memory footprint
+- **Feature Caching**: Computed features cached until next bar update
+- **Stateless Strategies**: No memory overhead from strategy state
+- **Lazy Computation**: Features computed only when configured
+- **Batch Updates**: Multiple symbols processed efficiently
 
-```python
-class EfficientStrategy:
-    """Memory-efficient strategy implementation."""
-    
-    def __init__(self, max_history: int = 1000):
-        self.max_history = max_history
-        self._price_buffer = deque(maxlen=max_history)
-        self._indicator_cache = {}
-```
+## Architecture Benefits
 
-### 2. Signal Caching
+### Two-Tier Separation
+1. **FeatureHub (Tier 2)**: Handles ALL stateful computation
+   - Rolling windows for technical indicators
+   - Incremental updates for real-time processing
+   - Optimized caching and memory management
 
-```python
-class CachedStrategy:
-    """Strategy with signal caching."""
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        cache_key = self._generate_cache_key(market_data)
-        
-        if cache_key in self._signal_cache:
-            return self._signal_cache[cache_key]
-        
-        signal = self._calculate_signal(market_data)
-        self._signal_cache[cache_key] = signal
-        return signal
-```
+2. **Strategies (Tier 1)**: Purely stateless decision logic
+   - Consume pre-computed features
+   - Generate signals based on current state
+   - No memory overhead or state management
 
-## Testing Strategies
+### Protocol + Composition Advantages
+- **No Inheritance**: All components implement protocols directly
+- **Flexible Composition**: Mix and match any compatible components  
+- **Easy Testing**: Pure functions and clear interfaces
+- **Container Isolation**: Each container gets fresh strategy instances
+- **Optimization Friendly**: Stateless strategies optimize efficiently
 
-### Unit Testing
+## No "Enhanced" Versions
 
-```python
-def test_momentum_strategy():
-    strategy = MomentumStrategy(lookback_period=10)
-    
-    # Feed historical data
-    for price in [100, 102, 104, 106, 108, 110, 112, 114, 116, 118]:
-        signal = strategy.generate_signal({'close': price, 'symbol': 'TEST'})
-    
-    # Should generate buy signal on strong momentum
-    assert signal is not None
-    assert signal['direction'] == SignalDirection.BUY
-```
+Do not create `enhanced_momentum_strategy.py`, `improved_feature_hub.py`, etc. Use composition and configuration to add capabilities to the canonical implementations in this module.
 
-### Integration Testing
+## Integration Points
 
-```python
-def test_strategy_in_container():
-    container = UniversalScopedContainer("test_strategy")
-    strategy = ComponentFactory().create_component({
-        'class': 'MomentumStrategy',
-        'capabilities': ['strategy', 'events']
-    })
-    
-    container.register_component('strategy', strategy)
-    
-    # Test execution in isolation
-    with container.create_scope():
-        signal = strategy.generate_signal(test_data)
-        assert signal is not None
-```
+- **Data Module**: Receives market data bars for feature computation
+- **Risk Module**: Sends generated trading signals for risk processing
+- **Core Events**: Integrates with event bus for signal publishing
+- **Coordinator**: Orchestrates strategy lifecycle and configuration
 
-## Best Practices
+## Future Enhancements
 
-1. **No Inheritance**: Keep strategies as simple classes
-2. **Protocol Compliance**: Ensure strategies implement required protocol methods
-3. **Capability Composition**: Add features through capabilities, not inheritance
-4. **Container Isolation**: Always run strategies in containers for production
-5. **Event Publishing**: Use events for loose coupling
-6. **Parameter Validation**: Validate parameters in __init__
-7. **Efficient State Management**: Limit historical data storage
-8. **Clear Signal Format**: Use consistent signal structure
-9. **Regime Awareness**: Consider market conditions
-10. **Comprehensive Testing**: Test both logic and integration
-
-## Common Patterns
-
-### 1. Multi-Timeframe Strategy
-
-```python
-class MultiTimeframeStrategy:
-    """Strategy using multiple timeframes."""
-    
-    def __init__(self, timeframes: List[str]):
-        self.indicators = {tf: {} for tf in timeframes}
-    
-    def update_timeframe(self, timeframe: str, data: Dict[str, Any]):
-        # Update indicators for specific timeframe
-        self.indicators[timeframe]['sma'] = calculate_sma(data)
-```
-
-### 2. Ensemble Strategy
-
-```python
-class EnsembleStrategy:
-    """Combines multiple sub-strategies."""
-    
-    def __init__(self, strategies: List[Any], weights: List[float]):
-        self.strategies = strategies
-        self.weights = weights
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        signals = [s.generate_signal(market_data) for s in self.strategies]
-        return self._combine_signals(signals, self.weights)
-```
-
-### 3. Risk-Aware Strategy
-
-```python
-class RiskAwareStrategy:
-    """Strategy with integrated risk management."""
-    
-    def __init__(self, base_strategy: Any, max_position_size: float):
-        self.base_strategy = base_strategy
-        self.max_position_size = max_position_size
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        signal = self.base_strategy.generate_signal(market_data)
-        
-        if signal:
-            # Adjust signal strength based on risk
-            signal['strength'] = min(
-                signal['strength'],
-                self._calculate_risk_adjusted_size(market_data)
-            )
-        
-        return signal
-```
-
-## Migration Guide
-
-### Converting Inherited Strategies to PC
-
-Before (with inheritance):
-```python
-class MyStrategy(BaseStrategy):  # BAD - uses inheritance
-    def __init__(self):
-        super().__init__()
-        self.param = 10
-    
-    def generate_signal(self, data):
-        return super().generate_signal(data)
-```
-
-After (Protocol + Composition):
-```python
-class MyStrategy:  # GOOD - no inheritance
-    def __init__(self):
-        self.param = 10
-        self.name = "my_strategy"
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        # Direct implementation
-        if self._should_trade(market_data):
-            return {
-                'symbol': market_data['symbol'],
-                'direction': SignalDirection.BUY,
-                'strength': 0.8,
-                'timestamp': market_data['timestamp']
-            }
-        return None
-```
-
-## Conclusion
-
-The Strategy Module demonstrates that complex trading strategies can be implemented without ANY inheritance, using only protocols and composition. This approach provides:
-
-- Maximum flexibility and reusability
-- Clean separation of concerns
-- Easy testing and mocking
-- Seamless integration with the container system
-- Natural parallelization through isolation
-
-Every strategy is a simple class that gains power through capability composition, not inheritance hierarchies.
+- **ML Feature Extractors**: Machine learning-based feature computation
+- **Alternative Data**: News, sentiment, economic indicators
+- **Multi-Asset Strategies**: Cross-asset signal generation
+- **Dynamic Feature Selection**: Adaptive feature sets based on market conditions

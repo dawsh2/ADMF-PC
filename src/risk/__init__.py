@@ -1,18 +1,19 @@
 """Risk management module for ADMF-PC.
 
-This module provides a unified Risk & Portfolio management system that:
-- Manages multiple strategy components
-- Converts signals to orders (with veto capability)
-- Tracks portfolio state globally
-- Implements position sizing strategies
-- Enforces risk limits
+Architecture Reference: docs/SYSTEM_ARCHITECTURE_V5.MD#risk-module  
+Style Guide: STYLE.md - Canonical risk implementations
 
-Key components:
-- RiskPortfolioContainer: Unified risk and portfolio management
-- PositionSizer: Position sizing strategies
-- RiskLimit: Risk limit implementations
+This module provides canonical Risk management implementations:
+- Portfolio state tracking
+- Position sizing strategies  
+- Risk constraint enforcement
+- Signal processing pipeline
+
+THE canonical implementations:
 - PortfolioState: Global portfolio tracking
-- SignalProcessor: Signal to order pipeline
+- Position sizers: Fixed, percentage, volatility-based strategies
+- Risk limits: Position, exposure, drawdown constraints
+- Signal processors: Signal to order conversion pipeline
 """
 
 from .protocols import (
@@ -28,14 +29,14 @@ from .protocols import (
     Position,
     RiskMetrics,
 )
-from .risk_portfolio import RiskPortfolioContainer
+# RiskPortfolioContainer deprecated - use separate Risk and Portfolio containers
 from .position_sizing import (
     FixedPositionSizer,
     PercentagePositionSizer,
     KellyCriterionSizer,
     VolatilityBasedSizer,
 )
-from .risk_limits import (
+from .limits import (
     MaxPositionLimit,
     MaxExposureLimit,
     MaxDrawdownLimit,
@@ -44,62 +45,35 @@ from .risk_limits import (
     LeverageLimit,
 )
 from .portfolio_state import PortfolioState
-from .signal_processing import SignalProcessor, SignalAggregator
-from .signal_advanced import (
-    SignalRouter,
-    SignalValidator,
-    RiskAdjustedSignalProcessor,
-    SignalCache,
-    SignalPrioritizer,
-)
-from .signal_flow import (
-    SignalFlowManager,
-    MultiSymbolSignalFlow,
-)
-from .capabilities import (
-    RiskPortfolioCapability,
-    ThreadSafeRiskPortfolioCapability
-)
+# Capabilities deprecated with RiskPortfolioContainer
+# Use separate Risk and Portfolio containers instead
 
 __all__ = [
     # Protocols
     "RiskPortfolioProtocol",
-    "PositionSizerProtocol",
+    "PositionSizerProtocol", 
     "RiskLimitProtocol",
     "PortfolioStateProtocol",
     "SignalProcessorProtocol",
     # Types
     "Signal",
-    "SignalType",
+    "SignalType", 
     "OrderSide",
     "Order",
     "Position",
     "RiskMetrics",
-    # Implementations
-    "RiskPortfolioContainer",
+    # Position Sizers
     "FixedPositionSizer",
-    "PercentagePositionSizer",
+    "PercentagePositionSizer", 
     "KellyCriterionSizer",
     "VolatilityBasedSizer",
+    # Risk Limits
     "MaxPositionLimit",
     "MaxExposureLimit",
-    "MaxDrawdownLimit",
+    "MaxDrawdownLimit", 
     "VaRLimit",
     "ConcentrationLimit",
     "LeverageLimit",
+    # Portfolio State
     "PortfolioState",
-    "SignalProcessor",
-    "SignalAggregator",
-    # Advanced Signal Processing
-    "SignalRouter",
-    "SignalValidator",
-    "RiskAdjustedSignalProcessor",
-    "SignalCache",
-    "SignalPrioritizer",
-    # Signal Flow
-    "SignalFlowManager",
-    "MultiSymbolSignalFlow",
-    # Capabilities
-    "RiskPortfolioCapability",
-    "ThreadSafeRiskPortfolioCapability",
 ]

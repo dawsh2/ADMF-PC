@@ -38,7 +38,7 @@ Example Usage:
     ```
 """
 
-from .types import (
+from ..types.events import (
     Event,
     EventType,
     EventHandler,
@@ -70,6 +70,48 @@ from .isolation import (
     IsolatedEventPublisher,
     validate_event_isolation,
     get_isolation_manager
+)
+
+# Semantic events and type flow analysis
+from .semantic import (
+    SemanticEvent,
+    EventCategory,
+    MarketDataEvent,
+    FeatureEvent,
+    TradingSignal,
+    OrderEvent,
+    FillEvent,
+    PortfolioUpdateEvent,
+    create_event_with_context,
+    create_caused_event,
+    validate_semantic_event,
+    feature_to_signal,
+    signal_to_order,
+    order_to_fill
+)
+
+from .type_flow_analysis import (
+    FlowNode,
+    TypeTransition,
+    ValidationResult,
+    EventTypeRegistry,
+    TypeFlowAnalyzer,
+    ContainerTypeInferencer
+)
+
+from .type_flow_integration import (
+    TypeFlowValidator,
+    create_default_validator,
+    validate_adapter_network,
+    get_semantic_event_suggestions,
+    create_type_flow_report
+)
+
+from .type_flow_visualization import (
+    TypeFlowVisualizer,
+    create_flow_visualization,
+    validate_and_visualize,
+    export_mermaid_diagram
 )
 
 
@@ -105,5 +147,42 @@ __all__ = [
     "EventIsolationManager",
     "IsolatedEventPublisher",
     "validate_event_isolation",
-    "get_isolation_manager"
+    "get_isolation_manager",
+    
+    # Semantic events
+    "SemanticEvent",
+    "EventCategory",
+    "MarketDataEvent",
+    "FeatureEvent",
+    "TradingSignal",
+    "OrderEvent",
+    "FillEvent",
+    "PortfolioUpdateEvent",
+    "create_event_with_context",
+    "create_caused_event",
+    "validate_semantic_event",
+    "feature_to_signal",
+    "signal_to_order",
+    "order_to_fill",
+    
+    # Type flow analysis
+    "FlowNode",
+    "TypeTransition",
+    "ValidationResult",
+    "EventTypeRegistry",
+    "TypeFlowAnalyzer",
+    "ContainerTypeInferencer",
+    
+    # Type flow integration
+    "TypeFlowValidator",
+    "create_default_validator",
+    "validate_adapter_network",
+    "get_semantic_event_suggestions",
+    "create_type_flow_report",
+    
+    # Type flow visualization
+    "TypeFlowVisualizer",
+    "create_flow_visualization",
+    "validate_and_visualize",
+    "export_mermaid_diagram"
 ]

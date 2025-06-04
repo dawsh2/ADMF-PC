@@ -7,9 +7,10 @@ from pathlib import Path
 
 # Use simple types to avoid circular imports
 try:
-    from .types import WorkflowConfig, WorkflowResult, ExecutionContext, PhaseResult
+    from ..types.workflow import WorkflowConfig, WorkflowResult, ExecutionContext
+    from .types import PhaseResult
 except ImportError:
-    from .simple_types import WorkflowConfig, ExecutionContext
+    from ..types.workflow import WorkflowConfig, ExecutionContext
     WorkflowResult = Any
     PhaseResult = Any
 

@@ -52,7 +52,7 @@ class ContainerHierarchy:
 
 ```
 BacktestContainer (ID: backtest_001)
-├── IndicatorHub (ID: backtest_001.indicators)
+├── FeatureHub (ID: backtest_001.features)
 ├── StrategyContainer (ID: backtest_001.strategy_momentum)
 │   └── MomentumStrategy
 ├── RiskContainer (ID: backtest_001.risk)
@@ -68,11 +68,11 @@ BacktestContainer (ID: backtest_001)
 ### Event Flow in Hierarchy
 
 ```
-1. Data → IndicatorHub
-   - Computes indicators
-   - Emits INDICATOR events
+1. Data → FeatureHub
+   - Computes features
+   - Emits FEATURE events
 
-2. INDICATOR → StrategyContainer
+2. FEATURE → StrategyContainer
    - Generates signals
    - Emits SIGNAL events
 

@@ -13,7 +13,7 @@ from threading import local
 import logging
 from weakref import WeakValueDictionary
 
-from .types import Event, EventBusProtocol
+from ..types.events import Event, EventBusProtocol
 from .event_bus import ContainerEventBus
 
 

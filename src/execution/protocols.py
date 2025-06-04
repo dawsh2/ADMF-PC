@@ -96,6 +96,30 @@ class Position:
 class Broker(Protocol):
     """Broker interface for order execution."""
     
+    @property
+    def supported_order_types(self) -> List[OrderType]:
+        """Get supported order types."""
+        ...
+    
+    @property
+    def supported_symbols(self) -> List[str]:
+        """Get supported symbols ('*' for all)."""
+        ...
+    
+    @property
+    def min_order_size(self) -> float:
+        """Get minimum order size."""
+        ...
+    
+    @property
+    def max_order_size(self) -> Optional[float]:
+        """Get maximum order size (None for unlimited)."""
+        ...
+    
+    async def validate_order_constraints(self, order: Order) -> tuple[bool, Optional[str]]:
+        """Validate order against broker constraints. Returns (valid, error_message)."""
+        ...
+    
     async def submit_order(self, order: Order) -> str:
         """Submit order for execution."""
         ...
@@ -183,24 +207,4 @@ class ExecutionEngine(Protocol):
         ...
 
 
-class ExecutionCapability(Protocol):
-    """Execution capability interface."""
-    
-    @property
-    def capability_id(self) -> str:
-        """Unique capability identifier."""
-        ...
-    
-    @property
-    def supported_order_types(self) -> List[OrderType]:
-        """Supported order types."""
-        ...
-    
-    @property
-    def supported_symbols(self) -> List[str]:
-        """Supported trading symbols."""
-        ...
-    
-    async def validate_capability(self, order: Order) -> bool:
-        """Validate if order is supported by capability."""
-        ...
+# ExecutionCapability removed - these properties are now part of Broker protocol

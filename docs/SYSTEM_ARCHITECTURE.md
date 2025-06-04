@@ -160,7 +160,7 @@ The system uses a sophisticated container model where each execution instance is
 │                             │                                               │
 │                             ▼                                               │
 │            ┌────────────────────────────────┐                               │
-│            │        Indicator Hub           │                               │
+│            │         Feature Hub            │                               │
 │            │ (Compute once, share globally) │                               │
 │            └────────────────┬───────────────┘                               │
 │                             │                                               │
@@ -188,24 +188,24 @@ The system uses a sophisticated container model where each execution instance is
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Event Flow: BAR → INDICATOR → SIGNAL → ORDER → FILL → PORTFOLIO_UPDATE**
+**Key Event Flow: BAR → FEATURE → SIGNAL → ORDER → FILL → PORTFOLIO_UPDATE**
 
 This nested hierarchy enables:
-- **Shared Computation**: Indicator Hub computes each indicator once per bar for all consumers
+- **Shared Computation**: Feature Hub computes each feature once per bar for all consumers
 - **Regime-Aware Trading**: Different classifiers (HMM, Pattern) detect market regimes
 - **Multi-Strategy Portfolios**: Multiple risk profiles and strategies operate simultaneously
 - **Complete Isolation**: Each container has its own event bus and state
 
-### 3. Shared Indicator Computation
+### 3. Shared Feature Computation
 
-The system automatically infers required indicators from all strategy and classifier components, then computes each indicator exactly once per bar:
+The system automatically infers required features from all strategy and classifier components, then computes each feature exactly once per bar:
 
 ```
 Strategy A needs: RSI, MACD
 Strategy B needs: RSI, Bollinger Bands
 Classifier needs: RSI, ATR
 
-→ Indicator Hub computes: RSI (shared), MACD, Bollinger Bands, ATR
+→ Feature Hub computes: RSI (shared), MACD, Bollinger Bands, ATR
 → All components receive the same RSI calculation
 → No duplicate computation, perfect efficiency
 ```
@@ -284,15 +284,15 @@ Based on actual execution logs from `python main.py --config config/spy_momentum
 2024-01-15 14:30:52 - Creating container pattern: simple_backtest
 2024-01-15 14:30:52 - Initializing components in dependency order...
 
-# Automatic Indicator Inference
+# Automatic Feature Inference
 2024-01-15 14:30:52 - Analyzing strategy requirements...
-2024-01-15 14:30:52 - Required indicators inferred: ['SMA_12', 'SMA_26', 'RSI_14']
-2024-01-15 14:30:52 - Configuring Indicator Hub with shared computation
+2024-01-15 14:30:52 - Required features inferred: ['SMA_12', 'SMA_26', 'RSI_14']
+2024-01-15 14:30:52 - Configuring Feature Hub with shared computation
 
 # Container Orchestration
 2024-01-15 14:30:52 - Creating Universal container: simple_backtest_20240115_143052
 2024-01-15 14:30:52 - Initializing DataHandler with SPY data (50 bars)
-2024-01-15 14:30:52 - Setting up IndicatorHub for shared computation
+2024-01-15 14:30:52 - Setting up FeatureHub for shared computation
 2024-01-15 14:30:52 - Initializing MomentumStrategy with crossover logic
 2024-01-15 14:30:52 - Setting up RiskManager with position sizing
 2024-01-15 14:30:52 - Initializing Portfolio with $100000 starting capital
@@ -316,9 +316,9 @@ Bar 30: RSI=45.1, SMA_12=425.2, SMA_26=426.1 → SIGNAL: SELL strength=0.72
 ```
 
 This execution demonstrates:
-1. **Automatic indicator inference** from strategy requirements
+1. **Automatic feature inference** from strategy requirements
 2. **Container orchestration** with standardized naming
-3. **Shared computation** in the Indicator Hub
+3. **Shared computation** in the Feature Hub
 4. **Event-driven flow** with complete audit trail
 5. **Risk management** integration at every step
 
@@ -337,7 +337,7 @@ Market Data → Indicators → Classifiers → Strategies → Risk & Portfolio �
 Signal Logs → Ensemble Weights → Risk & Portfolio → Execution
 ```
 **Use:** 10-100x faster ensemble optimization, risk parameter tuning
-**Speed:** No indicator/classifier recomputation needed
+**Speed:** No feature/classifier recomputation needed
 
 ### 3. Signal Generation (Analysis)
 ```
@@ -401,8 +401,8 @@ The system's breakthrough is the ability to run thousands of separate configurat
 ```
 Single Data Stream:
 ├── Historical data loaded once
-├── Shared Indicator Hub computes each indicator once
-├── Multiple strategies/configurations consume shared indicators
+├── Shared Feature Hub computes each feature once
+├── Multiple strategies/configurations consume shared features
 └── Parallel backtests executed simultaneously
 
 Theoretical Capability:
@@ -414,14 +414,14 @@ workflow_results = coordinator.execute_parallel([
 ])
 ```
 
-### Automatic Indicator Inference and Sharing
+### Automatic Feature Inference and Sharing
 ```
 Strategy A needs: RSI, MACD
 Strategy B needs: RSI, Bollinger Bands
 Classifier needs: RSI, ATR
 
 → System automatically infers: RSI (shared), MACD, Bollinger Bands, ATR
-→ Indicator Hub computes each indicator exactly once per bar
+→ Feature Hub computes each feature exactly once per bar
 → All components receive the same RSI calculation
 → No duplicate computation, perfect efficiency
 → Ready for massive parallel execution
@@ -436,7 +436,7 @@ Each container guarantees:
 - **Reproducible results**: Same config = same results, always
 
 ### Performance Optimization Patterns
-1. **Shared Computation**: Indicator Hub eliminates duplicate calculations
+1. **Shared Computation**: Feature Hub eliminates duplicate calculations
 2. **Signal Replay**: 100x speedup for ensemble optimization phases  
 3. **Streaming Results**: Large optimizations stream to disk, keep only top performers in memory
 4. **Container Pooling**: Reuse containers for similar configurations
@@ -478,7 +478,7 @@ This separation enables testing any number of permutations between parameters, s
 
 ### No Code Changes Required
 
-Add new strategies, indicators, or risk models without touching the codebase:
+Add new strategies, features, or risk models without touching the codebase:
 
 ```yaml
 # Add new ML strategy
@@ -490,9 +490,9 @@ components:
       max_depth: 10
     features: ["rsi", "macd", "bb_position"]
     
-# Add new custom indicator  
+# Add new custom feature  
   custom_momentum:
-    function: "my_indicators.custom_momentum_calc"
+    function: "my_features.custom_momentum_calc"
     params:
       lookback: 20
       
@@ -536,7 +536,7 @@ research:
 - Runtime type checking for safety
 
 ### 2. Event-Driven Communication
-- Unidirectional event flow: BAR → INDICATOR → SIGNAL → ORDER → FILL
+- Unidirectional event flow: BAR → FEATURE → SIGNAL → ORDER → FILL
 - No circular dependencies
 - Clear data lineage and audit trail
 - Container-scoped event buses prevent cross-contamination
@@ -624,12 +624,12 @@ The Protocol + Composition + Container architecture provides the foundation to h
 ### Simple Strategy (Level 1)
 1. Define strategy parameters in YAML
 2. Run `python main.py --config your_strategy.yaml`
-3. System automatically handles indicator computation, risk management, execution
+3. System automatically handles feature computation, risk management, execution
 
 ### Multi-Strategy Portfolio (Level 2)  
 1. Add multiple strategies to config
 2. Define portfolio weights and risk parameters
-3. System orchestrates all strategies with shared indicator computation
+3. System orchestrates all strategies with shared feature computation
 
 ### Regime-Adaptive System (Level 3)
 1. Add classifier configurations

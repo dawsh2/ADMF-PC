@@ -26,7 +26,7 @@ async def create_workflow_with_communication():
     """Create and execute a workflow with cross-container communication."""
     
     from src.core.coordinator.coordinator import Coordinator
-    from src.core.coordinator.simple_types import WorkflowConfig, WorkflowType
+    from src.core.coordinator.types import WorkflowConfig, WorkflowType
     
     # Create coordinator with all features enabled
     coordinator = Coordinator(
@@ -238,7 +238,7 @@ async def test_communication_patterns():
     """Test different communication patterns and configurations."""
     
     from src.core.coordinator.coordinator import Coordinator
-    from src.core.coordinator.simple_types import WorkflowConfig, WorkflowType
+    from src.core.coordinator.types import WorkflowConfig, WorkflowType
     
     patterns = [
         {

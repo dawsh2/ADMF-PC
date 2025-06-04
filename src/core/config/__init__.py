@@ -1,6 +1,6 @@
 """Configuration validation and schema management."""
 
-from .simple_validator import (
+from .schema_validator import (
     SimpleConfigValidator as ConfigSchemaValidator,
     SchemaValidationError,
     ValidationResult,

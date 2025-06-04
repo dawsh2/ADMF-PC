@@ -20,8 +20,8 @@
   - Handles setup/cleanup of all adapters
   - Offers adapter status summary
 
-### 3. Enhanced Container Support
-- **Updated**: `EnhancedContainer` class
+### 3. Container Communication Support
+- **Updated**: Container communication interface
 - **Added Methods**:
   - `on_output_event()` - Register output handlers
   - `emit_output_event()` - Emit events to adapters
@@ -89,7 +89,7 @@ communication:
 ```
 
 ### 3. Container Compatibility
-All containers extending `EnhancedContainer` automatically support:
+All containers with communication capabilities automatically support:
 - Event emission through adapters
 - Event reception from adapters
 - Output handler registration
@@ -163,7 +163,7 @@ To use this in existing ADMF-PC code:
    - Define adapters and container flows
 
 3. **Update Containers**:
-   - Ensure containers extend `EnhancedContainer`
+   - Ensure containers implement communication protocols
    - Or implement required adapter methods
 
 4. **Replace Direct Event Routing**:

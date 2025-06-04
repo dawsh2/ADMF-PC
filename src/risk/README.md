@@ -1,346 +1,489 @@
-# Risk Module Documentation
+# Risk Management Module
 
-## Overview
+This module provides THE canonical risk management implementations for ADMF-PC.
 
-The Risk module manages risk controls and limits for trading strategies. It works in conjunction with separate Portfolio containers to enforce risk constraints while allowing flexible portfolio allocation strategies.
+## Architecture Reference
+- **System Architecture**: docs/SYSTEM_ARCHITECTURE_v5.MD#risk-module  
+- **Style Guide**: STYLE.md - Canonical risk implementations
+- **Core Patterns**: docs/new/arch-101.md - Protocol + Composition
 
-## Architecture
+## Module Overview
 
-### Risk Container with Separate Portfolio Containers
+The Risk module implements comprehensive risk management using Protocol + Composition patterns with **no inheritance**. All components are designed as composable, protocol-compliant building blocks that can be mixed and matched through configuration.
 
+## Core Principle: Mixed Stateful/Stateless Design
+
+This module contains both **stateful** and **stateless** risk components, each serving different purposes:
+
+### Stateful Components
+Components that legitimately need to maintain state across signals/time:
+- **Portfolio State Tracking**: Current positions, cash, P&L, value history
+- **Violation Tracking**: Daily loss limits, circuit breakers, breach monitoring
+- **Rate Limiting**: Order timing, cooldown periods, frequency constraints
+- **Adaptive Models**: Learning risk models that evolve with market conditions
+- **Correlation Tracking**: Relationship matrices that build over time
+
+### Stateless Components  
+Components that perform pure calculations based on inputs:
+- **Position Sizing**: Calculate position sizes based on current portfolio state
+- **Basic Limits**: Check constraints like max position, max exposure
+- **Risk Metrics**: VaR calculations, concentration analysis
+
+## Files
+
+### Core Implementations
+- **`portfolio_state.py`** - THE portfolio state tracking implementation
+  - `PortfolioState`: Manages positions, cash, P&L, performance metrics
+  - Stateful component: Maintains positions, value history, returns history
+  - Provides risk metrics: drawdown, Sharpe ratio, VaR, leverage
+
+- **`position_sizing.py`** - THE position sizing strategies
+  - `FixedPositionSizer`: Fixed position sizes
+  - `PercentagePositionSizer`: Portfolio percentage-based sizing
+  - `KellyCriterionSizer`: Kelly criterion optimal sizing
+  - `VolatilityBasedSizer`: Risk parity approach
+  - `ATRBasedSizer`: ATR-based position sizing
+  - Stateless components: Calculate based on signal + portfolio state
+
+- **`limits.py`** - THE risk limit implementations
+  - `MaxPositionLimit`: Position size constraints
+  - `MaxDrawdownLimit`: Drawdown protection
+  - `VaRLimit`: Value at Risk constraints
+  - `MaxExposureLimit`: Total exposure limits
+  - `ConcentrationLimit`: Portfolio concentration limits
+  - `LeverageLimit`: Leverage constraints
+  - `DailyLossLimit`: Daily loss tracking (stateful)
+  - `SymbolRestrictionLimit`: Trading symbol restrictions
+  - Mixed stateful/stateless: Basic checks are stateless, violation tracking is stateful
+
+### Protocol Definitions
+- **`protocols.py`** - THE risk management protocols
+  - `RiskPortfolioProtocol`: Combined risk + portfolio management interface
+  - `PositionSizerProtocol`: Position sizing calculation interface
+  - `RiskLimitProtocol`: Risk constraint checking interface
+  - `PortfolioStateProtocol`: Portfolio state management interface
+  - `SignalProcessorProtocol`: Signal-to-order conversion interface
+
+### Data Models
+- **`models.py`** - Risk-specific data structures
+  - `TradingSignal`: Signal from strategy to risk system
+  - `Order`: Risk-adjusted order for execution
+  - `Fill`: Execution result for portfolio updates
+  - `Position`: Position tracking data structure
+  - `RiskConfig`: Risk management configuration
+
+## Usage Examples
+
+### Basic Risk Management
+```python
+from src.risk import (
+    PortfolioState, 
+    PercentagePositionSizer, 
+    MaxPositionLimit,
+    MaxDrawdownLimit
+)
+
+# Initialize components
+portfolio = PortfolioState(initial_capital=Decimal("100000"))
+position_sizer = PercentagePositionSizer(percentage=Decimal("0.02"))
+risk_limits = [
+    MaxPositionLimit(max_position_percent=Decimal("0.10")),
+    MaxDrawdownLimit(max_drawdown=Decimal("0.20"))
+]
+
+# Process trading signal
+def process_signal(signal, market_data):
+    # Calculate position size
+    size = position_sizer.calculate_size(signal, portfolio, market_data)
+    
+    # Create proposed order
+    order = Order(
+        symbol=signal.symbol,
+        side=signal.side,
+        quantity=size,
+        order_type=OrderType.MARKET
+    )
+    
+    # Check risk limits
+    for limit in risk_limits:
+        approved, reason = limit.check_limit(order, portfolio, market_data)
+        if not approved:
+            return None  # Risk rejected
+    
+    return order
 ```
-Classifier Container
-└── Risk Container
-    ├── Risk Limit Enforcement  
-    ├── Signal → Order Conversion
-    └── Portfolio Container Pool
-        ├── Portfolio Container A (Conservative allocation)
-        ├── Portfolio Container B (Aggressive allocation)
-        └── Portfolio Container N (Custom allocation)
+
+### Advanced Risk Configuration
+```python
+from src.risk import RiskConfig
+
+# Configuration-driven risk management
+config = RiskConfig(
+    initial_capital=100000.0,
+    sizing_method="volatility",
+    max_position_size=0.10,
+    max_portfolio_risk=0.02,
+    max_correlation=0.7,
+    max_drawdown=0.15,
+    max_leverage=1.0,
+    max_concentration=0.20,
+    default_stop_loss_pct=0.05
+)
+
+# Components configured from settings
+portfolio = PortfolioState(
+    initial_capital=Decimal(str(config.initial_capital))
+)
+
+if config.sizing_method == "volatility":
+    sizer = VolatilityBasedSizer(
+        target_volatility=Decimal(str(config.max_portfolio_risk))
+    )
+elif config.sizing_method == "fixed":
+    sizer = FixedPositionSizer(
+        size=Decimal(str(config.fixed_position_size))
+    )
 ```
 
-**Key Principle**: Risk and Portfolio are separate concerns - Risk enforces limits and constraints, while Portfolio manages allocation strategies and position tracking. This separation enables testing different portfolio approaches under the same risk framework.
+### Container Integration
+```python
+# Risk management in container context
+from src.core.containers import Container
+from src.risk.protocols import RiskPortfolioProtocol
 
-**Note**: While logically separate containers, the current implementation files are co-located under `src/risk/` for convenience. This can be refactored to separate modules later without affecting the container architecture.
+class RiskContainer(Container):
+    """Risk management container with isolated event bus"""
+    
+    def __init__(self, config: RiskConfig):
+        super().__init__()
+        
+        # Initialize risk components
+        self.portfolio = PortfolioState(
+            initial_capital=Decimal(str(config.initial_capital))
+        )
+        
+        self.position_sizer = self._create_position_sizer(config)
+        self.risk_limits = self._create_risk_limits(config)
+        
+        # Register event handlers
+        self.event_bus.subscribe("SIGNAL", self._handle_signal)
+        self.event_bus.subscribe("FILL", self._handle_fill)
+    
+    def _handle_signal(self, signal_event):
+        """Process trading signal through risk management"""
+        signal = signal_event.data
+        market_data = signal_event.metadata.get("market_data", {})
+        
+        # Risk processing
+        order = self.process_signal(signal, market_data)
+        
+        if order:
+            # Emit order event
+            self.event_bus.emit("ORDER", order)
+        else:
+            # Log risk rejection
+            self.logger.info(f"Signal rejected by risk management: {signal.symbol}")
+```
 
-## Core Components
+## Protocol Compliance
 
-### 1. RiskContainer (`risk_container.py`)
-
-The main risk management component that:
-- Manages multiple portfolio containers as children
-- Enforces risk limits across all portfolios
-- Converts signals to orders (with veto capability)
-- Monitors aggregate exposure and limits
-- Coordinates with separate portfolio containers
+All risk components implement standard protocols:
 
 ```python
-# Example usage
-risk_container = RiskContainer(
-    container_id="main_risk",
-    parent_container=classifier_container
-)
+# Position sizers implement PositionSizerProtocol
+def calculate_size(
+    self, 
+    signal: Signal, 
+    portfolio_state: PortfolioStateProtocol,
+    market_data: Dict[str, Any]
+) -> Decimal:
+    """Calculate position size based on signal and current state"""
 
-# Add portfolio containers with different strategies
-conservative_portfolio = PortfolioContainer(
-    container_id="conservative_portfolio",
-    initial_capital=Decimal("50000"),
-    allocation_strategy="conservative"
-)
-aggressive_portfolio = PortfolioContainer(
-    container_id="aggressive_portfolio", 
-    initial_capital=Decimal("50000"),
-    allocation_strategy="aggressive"
-)
+# Risk limits implement RiskLimitProtocol  
+def check_limit(
+    self,
+    order: Order,
+    portfolio_state: PortfolioStateProtocol,
+    market_data: Dict[str, Any]
+) -> tuple[bool, Optional[str]]:
+    """Check if order violates risk constraints"""
 
-risk_container.add_portfolio(conservative_portfolio)
-risk_container.add_portfolio(aggressive_portfolio)
-
-# Add risk limits that apply to all portfolios
-risk_container.add_risk_limit(MaxExposureLimit(max_exposure_pct=Decimal("20")))
-risk_container.add_risk_limit(MaxDrawdownLimit(max_drawdown_pct=Decimal("10")))
+# Portfolio state implements PortfolioStateProtocol
+def get_risk_metrics(self) -> RiskMetrics:
+    """Get current portfolio risk metrics"""
 ```
 
-### 2. Position Sizing Strategies (`position_sizing.py`)
+## Configuration Patterns
 
-Determine how much to trade based on portfolio state and risk parameters:
-
-- **FixedPositionSizer**: Fixed number of shares
-- **PercentagePositionSizer**: Percentage of portfolio value
-- **VolatilityBasedSizer**: Risk parity approach using volatility
-- **KellyCriterionSizer**: Optimal sizing based on edge and probability
-- **ATRBasedSizer**: Position size based on Average True Range
-
-### 3. Risk Limits (`risk_limits.py`)
-
-Enforce portfolio-wide constraints:
-
-- **MaxPositionLimit**: Maximum shares per position
-- **MaxExposureLimit**: Maximum percentage exposure
-- **MaxDrawdownLimit**: Stop trading or reduce size at drawdown threshold
-- **VaRLimit**: Value at Risk constraints
-- **ConcentrationLimit**: Prevent over-concentration in single positions
-- **LeverageLimit**: Control overall leverage
-- **DailyLossLimit**: Stop trading after daily loss threshold
-- **SymbolRestrictionLimit**: Whitelist/blacklist symbols
-
-### 4. Portfolio State (`portfolio_state.py`)
-
-Tracks:
-- Current positions and P&L
-- Cash balance
-- Performance history
-- Risk metrics (exposure, drawdown, etc.)
-
-### 5. Signal Processing (`signal_processing.py`)
-
-Pipeline for converting signals to orders:
-- Signal validation
-- Position sizing
-- Risk limit checking
-- Order generation
-
-## Event Flow
-
-```
-1. Strategy generates SIGNAL event
-   {
-     "signal_id": "sig_001",
-     "strategy_id": "momentum_strategy",
-     "symbol": "AAPL",
-     "side": "BUY",
-     "strength": 0.85
-   }
-
-2. Risk & Portfolio processes signal
-   - Checks current portfolio state
-   - Applies position sizing rules
-   - Verifies risk limits
-   - May veto signal if limits exceeded
-
-3. If approved, generates ORDER event
-   {
-     "order_id": "ord_001",
-     "signal_id": "sig_001",
-     "symbol": "AAPL",
-     "side": "BUY",
-     "quantity": 100,
-     "order_type": "MARKET"
-   }
-
-4. Receives FILL event from execution
-   {
-     "order_id": "ord_001",
-     "price": 150.25,
-     "quantity": 100,
-     "commission": 1.0
-   }
-
-5. Updates portfolio state
-   - Records position
-   - Updates cash
-   - Recalculates metrics
-```
-
-## Configuration
-
-### Using RiskPortfolioCapability
-
-Apply the capability to any container to transform it into a Risk & Portfolio container:
-
-```python
-from src.risk import RiskPortfolioCapability
-
-# Apply to container
-factory.apply_capability(
-    container,
-    RiskPortfolioCapability(),
-    {
-        'initial_capital': 100000,
-        'position_sizers': [
-            {
-                'name': 'default',
-                'type': 'percentage',
-                'percentage': 2.0  # 2% per position
-            },
-            {
-                'name': 'momentum',
-                'type': 'volatility',
-                'risk_per_trade': 1.0  # 1% risk per trade
-            }
-        ],
-        'risk_limits': [
-            {
-                'type': 'position',
-                'max_position': 5000
-            },
-            {
-                'type': 'exposure', 
-                'max_exposure_pct': 20  # 20% max total exposure
-            },
-            {
-                'type': 'drawdown',
-                'max_drawdown_pct': 10,  # 10% max drawdown
-                'reduce_at_pct': 8       # Start reducing at 8%
-            },
-            {
-                'type': 'concentration',
-                'max_position_pct': 5,   # Max 5% in any position
-                'max_sector_pct': 20     # Max 20% in any sector
-            }
-        ]
-    }
-)
-```
-
-### YAML Configuration Example
-
+### YAML Configuration
 ```yaml
-risk_portfolio:
-  initial_capital: 100000
+risk_management:
+  portfolio:
+    initial_capital: 100000
+    base_currency: "USD"
   
-  position_sizers:
-    - name: default
-      type: percentage
-      percentage: 2.0
-      
-    - name: momentum
-      type: volatility
-      risk_per_trade: 1.0
-      lookback_period: 20
-      
-    - name: mean_reversion
-      type: fixed
-      size: 100
+  position_sizing:
+    method: "percentage"
+    percentage: 0.02
+    max_position: 0.10
   
-  risk_limits:
-    - type: position
-      max_position: 5000
-      
-    - type: exposure
-      max_exposure_pct: 20
-      
-    - type: drawdown
-      max_drawdown_pct: 10
-      reduce_at_pct: 8
-      
-    - type: daily_loss
-      max_daily_loss: 2000
-      max_daily_loss_pct: 2
-      
-    - type: symbol_restriction
-      allowed_symbols: ["AAPL", "GOOGL", "MSFT", "SPY"]
-      blocked_symbols: ["MEME", "PENNY"]
+  limits:
+    - type: "max_position"
+      max_position_percent: 0.10
+    - type: "max_drawdown" 
+      max_drawdown: 0.20
+    - type: "daily_loss"
+      max_daily_loss: 0.05
+  
+  features:
+    - portfolio_tracking
+    - violation_monitoring
+    - adaptive_sizing
 ```
 
-## Multi-Strategy Management
+### Factory Pattern
+```python
+def create_risk_manager(config: RiskConfig) -> RiskPortfolioProtocol:
+    """Factory function for risk management components"""
+    
+    # Create portfolio state
+    portfolio = PortfolioState(
+        initial_capital=Decimal(str(config.initial_capital))
+    )
+    
+    # Create position sizer based on config
+    if config.sizing_method == "fixed":
+        sizer = FixedPositionSizer(Decimal(str(config.fixed_position_size)))
+    elif config.sizing_method == "percentage":
+        sizer = PercentagePositionSizer(Decimal(str(config.max_position_size)))
+    elif config.sizing_method == "volatility":
+        sizer = VolatilityBasedSizer(Decimal(str(config.max_portfolio_risk)))
+    
+    # Create risk limits
+    limits = []
+    if config.max_position_size > 0:
+        limits.append(MaxPositionLimit(
+            max_position_percent=Decimal(str(config.max_position_size))
+        ))
+    if config.max_drawdown > 0:
+        limits.append(MaxDrawdownLimit(
+            max_drawdown=Decimal(str(config.max_drawdown))
+        ))
+    
+    return RiskManager(portfolio, sizer, limits)
+```
 
-The Risk & Portfolio container manages multiple strategies, each generating signals independently:
+## Testing Strategy
+
+### Unit Testing
+```python
+def test_percentage_position_sizer():
+    """Test position sizing calculation"""
+    sizer = PercentagePositionSizer(percentage=Decimal("0.02"))
+    
+    # Create test signal and portfolio state
+    signal = create_test_signal(symbol="SPY", strength=0.8)
+    portfolio = PortfolioState(initial_capital=Decimal("100000"))
+    market_data = {"prices": {"SPY": 400}}
+    
+    # Test calculation
+    size = sizer.calculate_size(signal, portfolio, market_data)
+    expected_size = Decimal("40")  # (100000 * 0.02 * 0.8) / 400
+    
+    assert size == expected_size
+
+def test_risk_limit_violation():
+    """Test risk limit enforcement"""
+    limit = MaxPositionLimit(max_position_percent=Decimal("0.10"))
+    
+    # Create test order that exceeds limit
+    order = create_test_order(symbol="SPY", quantity=Decimal("500"))
+    portfolio = PortfolioState(initial_capital=Decimal("100000"))
+    market_data = {"prices": {"SPY": 400}}
+    
+    # Test limit check
+    passes, reason = limit.check_limit(order, portfolio, market_data)
+    
+    assert not passes
+    assert "exceeds limit" in reason
+```
+
+### Integration Testing
+```python
+def test_full_risk_pipeline():
+    """Test complete signal-to-order pipeline"""
+    # Setup risk management components
+    portfolio = PortfolioState(initial_capital=Decimal("100000"))
+    sizer = PercentagePositionSizer(percentage=Decimal("0.02"))
+    limits = [MaxPositionLimit(max_position_percent=Decimal("0.10"))]
+    
+    # Process signal through complete pipeline
+    signal = create_test_signal(symbol="SPY", strength=0.8)
+    market_data = {"prices": {"SPY": 400}}
+    
+    # Calculate size
+    size = sizer.calculate_size(signal, portfolio, market_data)
+    
+    # Create order
+    order = Order(
+        order_id="test_001",
+        symbol=signal.symbol,
+        side=signal.side,
+        quantity=size,
+        order_type=OrderType.MARKET
+    )
+    
+    # Check limits
+    for limit in limits:
+        passes, reason = limit.check_limit(order, portfolio, market_data)
+        assert passes, f"Risk limit failed: {reason}"
+    
+    # Simulate fill and portfolio update
+    fill = Fill(
+        fill_id="fill_001",
+        order_id=order.order_id,
+        symbol=order.symbol,
+        side=order.side,
+        quantity=order.quantity,
+        price=Decimal("400"),
+        timestamp=datetime.now()
+    )
+    
+    # Update portfolio
+    initial_cash = portfolio.get_cash_balance()
+    portfolio.update_position(
+        symbol=fill.symbol,
+        quantity_delta=fill.quantity if fill.side == OrderSide.BUY else -fill.quantity,
+        price=fill.price,
+        timestamp=fill.timestamp
+    )
+    
+    # Verify portfolio state
+    assert portfolio.get_cash_balance() < initial_cash
+    position = portfolio.get_position("SPY")
+    assert position is not None
+    assert position.quantity == fill.quantity
+```
+
+## Performance Considerations
+
+- **Memory Usage**: Portfolio state maintains limited history (252 days by default)
+- **Calculation Efficiency**: Position sizers are lightweight calculation functions
+- **State Management**: Portfolio state updates are atomic and consistent
+- **Risk Limit Performance**: Limits check current state without expensive computations
+
+## No "Enhanced" Versions
+
+Do not create `enhanced_risk_manager.py`, `improved_portfolio_state.py`, etc. Use composition and configuration to add capabilities to the canonical implementations in this module.
+
+## Integration Points
+
+- **Data Module**: Receives market data for risk calculations
+- **Strategy Module**: Processes trading signals from strategies  
+- **Execution Module**: Sends approved orders to execution engines
+- **Core Events**: Integrates with event bus for container communication
+
+---
+
+## Addendum: Stateless Risk Architecture Proposal
+
+### Alternative Architecture: Stateless Risk + Separate Portfolio Module
+
+During the architectural review, we explored an alternative approach where **Risk becomes purely stateless** and **Portfolio state is separated into its own module**. This section documents that proposal for future consideration.
+
+#### Proposed Module Separation
+
+**Option: Split into separate modules**
+```
+src/portfolio/          # Stateful portfolio tracking
+├── __init__.py
+├── protocols.py        # PortfolioStateProtocol, Position protocols  
+├── state.py           # PortfolioState implementation
+├── models.py          # Position, Fill data models
+└── README.md
+
+src/risk/              # Stateless risk calculations
+├── __init__.py  
+├── protocols.py       # RiskLimitProtocol, PositionSizerProtocol
+├── position_sizing.py # Stateless sizing strategies
+├── limits.py          # Stateless risk limits
+└── README.md
+```
+
+#### Stateless Risk Data Flow
+
+In this alternative architecture, the data flow becomes:
+```
+BAR → SIGNAL → Execution.executeOrder(Risk.check(Portfolio.getState()))
+```
+
+Where:
+- **Risk components** are pure functions that receive portfolio state as input
+- **Portfolio module** owns all state management (positions, cash, P&L)  
+- **Execution module** orchestrates between stateless Risk and stateful Portfolio
+
+#### Benefits of Stateless Approach
+
+1. **Pure Risk Functions**: All risk calculations become testable pure functions
+2. **Clear Separation**: Portfolio = state management, Risk = constraint enforcement
+3. **Parallel Execution**: Multiple risk calculations can run simultaneously
+4. **Easier Testing**: No mocking required for risk function tests
+5. **Reusable Calculations**: Same risk functions work with any portfolio state
+
+#### Implementation Example
 
 ```python
-# Strategies generate signals
-momentum_signal = {
-    'strategy_id': 'momentum',
-    'symbol': 'AAPL',
-    'side': 'BUY',
-    'strength': 0.9
-}
+# Stateless risk functions
+class PositionSizer:
+    def calculate_size(self, signal: Signal, portfolio_state: PortfolioSnapshot) -> Decimal:
+        """Pure function - no state modification"""
+        
+class RiskLimits:
+    def check_limits(self, order: Order, portfolio_state: PortfolioSnapshot) -> bool:
+        """Pure function - no state modification"""
 
-mean_reversion_signal = {
-    'strategy_id': 'mean_reversion',
-    'symbol': 'SPY',
-    'side': 'SELL',
-    'strength': 0.7
-}
-
-# Risk & Portfolio processes both
-# - Uses strategy-specific position sizers
-# - Enforces portfolio-wide risk limits
-# - Ensures total exposure stays within bounds
+# Execution orchestrates everything
+class ExecutionEngine:
+    def process_signal(self, signal: Signal):
+        # Get immutable state snapshot
+        state = self.portfolio.get_current_state()
+        
+        # Pure risk calculations
+        size = self.risk.calculate_size(signal, state)
+        approved = self.risk.check_limits(order, state)
+        
+        # Execute and update state
+        if approved:
+            order = self.create_order(signal, size)
+            fill = self.broker.execute(order)
+            self.portfolio.update_state(fill)  # Only here is state modified
 ```
 
-## Thread Safety
+#### When to Consider Stateless Risk
 
-The module automatically handles thread safety based on ExecutionContext:
+The stateless approach makes sense when:
+- Risk components primarily do **calculations** rather than **tracking**
+- You want **maximum testability** and **parallel execution**
+- Portfolio state can be **cleanly separated** from risk logic
+- You're building a **research-focused** system with lots of parameter variations
 
-- **Backtest Mode**: Single-threaded, no locks needed
-- **Live Trading**: Multi-threaded, automatic locking
-- **Optimization**: Process-level parallelism
+#### Why We Chose Stateful Risk (For Now)
 
-## Key Benefits
+We decided to keep the current **stateful risk architecture** because:
 
-1. **Global Portfolio View**: Risk decisions based on entire portfolio, not individual positions
-2. **Strategy Independence**: Strategies focus only on signal generation
-3. **Flexible Risk Controls**: Mix and match position sizing and risk limits
-4. **Clean Separation**: Clear boundary between alpha generation and risk management
-5. **Reusability**: Same risk framework works for backtest and live trading
+1. **Real-world risk needs state**: Daily loss limits, rate limiting, violation tracking, adaptive models
+2. **Simpler integration**: Components can maintain their own necessary state
+3. **Clearer responsibility**: Risk components own their risk-specific state  
+4. **Proven pattern**: Current architecture works well for production trading systems
+5. **Future flexibility**: Can always refactor to stateless if research needs change
 
-## Common Patterns
+#### Migration Path
 
-### Conservative Risk Profile
-```python
-{
-    'position_sizers': [
-        {'type': 'percentage', 'percentage': 1.0}  # 1% per position
-    ],
-    'risk_limits': [
-        {'type': 'exposure', 'max_exposure_pct': 10},  # 10% max exposure
-        {'type': 'drawdown', 'max_drawdown_pct': 5},   # 5% max drawdown
-        {'type': 'concentration', 'max_position_pct': 2}  # 2% max per position
-    ]
-}
-```
+If future requirements favor the stateless approach:
 
-### Aggressive Risk Profile
-```python
-{
-    'position_sizers': [
-        {'type': 'kelly', 'kelly_fraction': 0.25}  # Kelly criterion
-    ],
-    'risk_limits': [
-        {'type': 'exposure', 'max_exposure_pct': 50},  # 50% max exposure
-        {'type': 'drawdown', 'max_drawdown_pct': 20},  # 20% max drawdown
-        {'type': 'leverage', 'max_leverage': 2.0}      # 2x leverage allowed
-    ]
-}
-```
+1. **Phase 1**: Extract portfolio state into separate module
+2. **Phase 2**: Convert basic risk limits to stateless functions
+3. **Phase 3**: Keep stateful components (rate limiting, adaptive models) as special cases
+4. **Phase 4**: Execution module becomes the orchestrator between Portfolio and Risk
 
-### Sector-Neutral Profile
-```python
-{
-    'position_sizers': [
-        {'type': 'volatility', 'risk_per_trade': 0.5}  # Risk parity
-    ],
-    'risk_limits': [
-        {'type': 'concentration', 'max_sector_pct': 15},  # Max 15% per sector
-        {'type': 'exposure', 'max_exposure_pct': 30},     # 30% gross exposure
-        {'type': 'symbol_restriction', 'allowed_symbols': sector_neutral_universe}
-    ]
-}
-```
-
-## Testing
-
-Run the test suite:
-```bash
-pytest src/risk/test_risk_portfolio.py -v
-```
-
-Key test areas:
-- Signal to order conversion
-- Risk limit enforcement
-- Portfolio state tracking
-- Multi-strategy coordination
-- Edge cases (insufficient capital, position limits, etc.)
-
-## Future Enhancements
-
-1. **Dynamic Risk Adjustment**: Adjust limits based on market conditions
-2. **Correlation-Based Sizing**: Consider position correlations
-3. **Options Support**: Handle multi-leg option strategies
-4. **Real-time Risk Dashboard**: WebSocket-based risk monitoring
-5. **Machine Learning Integration**: ML-based position sizing
-
-## Summary
-
-The Risk & Portfolio module is the heart of the trading system, sitting between signal generation and execution. By unifying risk management and portfolio tracking into a single component, it ensures that every trading decision considers the full portfolio context, enabling sophisticated multi-strategy trading while maintaining strict risk controls.
+This addendum preserves the stateless risk proposal for future architectural decisions while documenting why we chose the current stateful approach.

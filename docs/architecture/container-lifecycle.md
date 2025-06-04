@@ -159,10 +159,10 @@ def _create_components(self) -> None:
     # 1. Data handlers (no dependencies)
     self.data_handler = self._create_data_handler()
     
-    # 2. Indicators (depend on data)
-    self.indicator_hub = self._create_indicator_hub()
+    # 2. Features (depend on data)
+    self.feature_hub = self._create_feature_hub()
     
-    # 3. Strategies (depend on indicators)
+    # 3. Strategies (depend on features)
     self.strategies = self._create_strategies()
     
     # 4. Risk manager (depends on strategies)
@@ -176,18 +176,18 @@ def _create_components(self) -> None:
 ```python
 def _wire_events(self) -> None:
     """Wire event connections in proper order"""
-    # Data → Indicators
+    # Data → Features
     self.event_bus.subscribe(
         EventType.BAR,
-        self.indicator_hub.on_bar,
+        self.feature_hub.on_bar,
         source=self.data_handler
     )
     
-    # Indicators → Strategies
+    # Features → Strategies
     self.event_bus.subscribe(
-        EventType.INDICATOR,
-        self.strategy.on_indicator,
-        source=self.indicator_hub
+        EventType.FEATURE,
+        self.strategy.on_feature,
+        source=self.feature_hub
     )
     
     # Strategies → Risk

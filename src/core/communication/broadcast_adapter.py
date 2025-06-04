@@ -5,10 +5,12 @@ This module implements the broadcast communication pattern without
 inheritance, following ADMF-PC's protocol-based architecture.
 """
 
-from typing import Dict, Any, List, Set, Optional
+from typing import Dict, Any, List, Set, Optional, Type
 import logging
 
-from ..events.types import Event, EventType
+from ..types.events import Event, EventType
+from ..events.semantic import SemanticEvent, validate_semantic_event
+from ..events.type_flow_analysis import TypeFlowAnalyzer, EventTypeRegistry, ContainerTypeInferencer
 from .protocols import Container
 from .helpers import (
     handle_event_with_metrics,
@@ -43,6 +45,12 @@ class BroadcastAdapter:
         self.event_filter = config.get('event_filter')
         self.allowed_types = set(config.get('allowed_types', []))
         
+        # Type flow analysis components
+        self.enable_type_validation = config.get('enable_type_validation', True)
+        self.registry = EventTypeRegistry()
+        self.type_analyzer = TypeFlowAnalyzer(self.registry)
+        self.type_inferencer = ContainerTypeInferencer(self.registry)
+        
         # Validate configuration
         validate_adapter_config(config, ['source', 'targets'], 'Broadcast')
         
@@ -50,7 +58,7 @@ class BroadcastAdapter:
         self.logger = logging.getLogger(f"adapter.{name}")
         
     def setup(self, containers: Dict[str, Container]) -> None:
-        """Configure broadcast connections.
+        """Configure broadcast connections with type flow validation.
         
         Args:
             containers: Map of container names to instances
@@ -65,7 +73,17 @@ class BroadcastAdapter:
         for target_name in self.target_names:
             if target_name not in containers:
                 raise ValueError(f"Target container '{target_name}' not found")
-            self.target_containers.append(containers[target_name])
+            target = containers[target_name]
+            
+            # Validate type flow compatibility
+            if self.enable_type_validation:
+                self._validate_broadcast_target(self.source_container, target)
+            
+            self.target_containers.append(target)
+        
+        # Perform full broadcast type flow analysis
+        if self.enable_type_validation:
+            self._validate_broadcast_flow(containers)
         
         self.logger.info(
             f"Broadcast adapter '{self.name}' configured: "
@@ -108,7 +126,7 @@ class BroadcastAdapter:
         handle_event_with_metrics(self, event, source)
         
     def route_event(self, event: Event, source: Container) -> None:
-        """Broadcast event to all target containers.
+        """Broadcast event to all target containers with type validation.
         
         Args:
             event: Event to broadcast
@@ -117,7 +135,7 @@ class BroadcastAdapter:
         # Apply filtering if configured
         if not self._should_broadcast(event):
             self.logger.debug(
-                f"Event {event.event_type} filtered out by broadcast rules"
+                f"Event {getattr(event, 'event_type', type(event).__name__)} filtered out by broadcast rules"
             )
             return
         
@@ -125,8 +143,12 @@ class BroadcastAdapter:
         broadcast_count = 0
         for target in self.target_containers:
             try:
+                # Validate event before broadcasting
+                if self.enable_type_validation:
+                    self._validate_event_broadcast(event, source, target)
+                
                 self.logger.debug(
-                    f"Broadcasting {event.event_type} from {source.name} to {target.name}"
+                    f"Broadcasting {getattr(event, 'event_type', type(event).__name__)} from {source.name} to {target.name}"
                 )
                 target.receive_event(event)
                 broadcast_count += 1
@@ -161,6 +183,125 @@ class BroadcastAdapter:
                 return True  # Default to broadcasting on filter error
         
         return True
+    
+    def _validate_broadcast_target(self, source: Container, target: Container) -> None:
+        """Validate that target can handle source's event types.
+        
+        Args:
+            source: Source container
+            target: Target container
+        """
+        try:
+            # Get expected event types for each container
+            source_outputs = self.type_inferencer.get_expected_outputs(source)
+            target_inputs = self.type_inferencer.get_expected_inputs(target)
+            
+            if source_outputs and target_inputs:
+                # Check if any source output can be handled by target
+                compatible_types = source_outputs & target_inputs
+                if not compatible_types:
+                    source_type = self.type_inferencer.infer_container_type(source)
+                    target_type = self.type_inferencer.infer_container_type(target)
+                    
+                    self.logger.warning(
+                        f"Broadcast type flow warning: {source.name} ({source_type}) outputs "
+                        f"{[t.__name__ for t in source_outputs]} but {target.name} ({target_type}) "
+                        f"expects {[t.__name__ for t in target_inputs]}"
+                    )
+                    
+                    if self.config.get('strict_type_validation', False):
+                        raise TypeError(
+                            f"Type flow error: {target.name} cannot handle any events from {source.name}"
+                        )
+                else:
+                    self.logger.debug(
+                        f"Broadcast type flow OK: {source.name} → {target.name} "
+                        f"(compatible: {[t.__name__ for t in compatible_types]})"
+                    )
+                    
+        except Exception as e:
+            self.logger.error(f"Error validating broadcast target {source.name} → {target.name}: {e}")
+            if self.config.get('strict_type_validation', False):
+                raise
+    
+    def _validate_broadcast_flow(self, containers: Dict[str, Container]) -> None:
+        """Validate the complete broadcast type flow.
+        
+        Args:
+            containers: All available containers
+        """
+        try:
+            # Build flow map for this broadcast
+            broadcast_containers = {self.source_name: containers[self.source_name]}
+            for target_name in self.target_names:
+                if target_name in containers:
+                    broadcast_containers[target_name] = containers[target_name]
+            
+            flow_map = self.type_analyzer.analyze_flow(broadcast_containers, [self])
+            
+            # Basic validation - check that source produces something targets can consume
+            source_node = flow_map.get(self.source_name)
+            if source_node:
+                source_outputs = self.type_analyzer._compute_produced_types(source_node)
+                
+                for target_name in self.target_names:
+                    target_node = flow_map.get(target_name)
+                    if target_node:
+                        compatible = source_outputs & target_node.can_receive
+                        if not compatible and source_outputs and target_node.can_receive:
+                            self.logger.warning(
+                                f"Broadcast flow warning: No type compatibility between "
+                                f"{self.source_name} and {target_name}"
+                            )
+            
+            self.logger.debug(f"Broadcast type flow validation completed for '{self.name}'")
+                
+        except Exception as e:
+            self.logger.error(f"Error validating broadcast flow: {e}")
+            if self.config.get('strict_type_validation', False):
+                raise
+    
+    def _validate_event_broadcast(self, event: Any, source: Container, target: Container) -> None:
+        """Validate that a specific event can be broadcast from source to target.
+        
+        Args:
+            event: Event to validate
+            source: Source container
+            target: Target container
+        """
+        try:
+            # Validate semantic event if applicable
+            if isinstance(event, SemanticEvent):
+                if not validate_semantic_event(event):
+                    self.logger.warning(f"Invalid semantic event: {event}")
+                    
+                # Check if target can handle this semantic event type
+                target_inputs = self.type_inferencer.get_expected_inputs(target)
+                event_type = type(event)
+                
+                if target_inputs and event_type not in target_inputs:
+                    self.logger.warning(
+                        f"Broadcast event type mismatch: {target.name} expects "
+                        f"{[t.__name__ for t in target_inputs]} but got {event_type.__name__}"
+                    )
+                    
+                    if self.config.get('strict_type_validation', False):
+                        raise TypeError(
+                            f"Broadcast event type error: {target.name} cannot handle {event_type.__name__}"
+                        )
+            
+            # Additional validation for traditional Event objects
+            elif hasattr(event, 'event_type'):
+                event_type = getattr(event, 'event_type', None)
+                if event_type:
+                    self.logger.debug(
+                        f"Broadcasting {event_type} event from {source.name} to {target.name}"
+                    )
+                    
+        except Exception as e:
+            self.logger.error(f"Error validating event broadcast: {e}")
+            if self.config.get('strict_type_validation', False):
+                raise
 
 
 def create_filtered_broadcast(name: str, config: Dict[str, Any]):

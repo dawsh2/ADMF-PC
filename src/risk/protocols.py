@@ -8,15 +8,7 @@ from typing import Protocol, Optional, Dict, List, Any, Set
 from enum import Enum
 
 from ..core.components.protocols import Component, Capability
-from ..core.types import OrderType, OrderSide
-
-
-class SignalType(Enum):
-    """Signal type enumeration."""
-    ENTRY = "entry"
-    EXIT = "exit"
-    REBALANCE = "rebalance"
-    RISK_EXIT = "risk_exit"
+from ..core.types import OrderType, OrderSide, SignalType
 
 
 @dataclass(frozen=True)
@@ -302,7 +294,8 @@ class PortfolioTrackingCapability(RiskCapability):
     pass
 
 
-# Add missing protocols for backward compatibility
+# DEPRECATED: Legacy protocols for backward compatibility
+# TODO: Migrate code to use RiskPortfolioProtocol instead
 class RiskManager(Protocol):
     """Protocol for risk management components."""
     
@@ -328,7 +321,8 @@ class RiskManager(Protocol):
 
 
 class PortfolioManager(Protocol):
-    """Protocol for portfolio management components."""
+    """DEPRECATED: Protocol for portfolio management components.
+    TODO: Migrate code to use PortfolioStateProtocol instead."""
     
     @abstractmethod
     def get_portfolio_value(self) -> Decimal:

@@ -10,7 +10,7 @@ import logging
 from datetime import datetime
 
 from ..event_bus import EventBus
-from ..types import Event, EventType
+from ...types.events import Event, EventType
 from .event_tracer import EventTracer
 from ...containers.protocols import Container
 

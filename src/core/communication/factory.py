@@ -8,8 +8,8 @@ following ADMF-PC's protocol-based architecture.
 from typing import Dict, Any, Type, List, Optional, Callable
 import logging
 
-from ..logging.container_logger import ContainerLogger
 from ..containers.protocols import Container
+from ..events.type_flow_integration import TypeFlowValidator, validate_adapter_network
 from .protocols import CommunicationAdapter
 from .helpers import create_adapter_with_logging
 
@@ -46,13 +46,17 @@ class AdapterFactory:
     inherit from any base class.
     """
     
-    def __init__(self, logger: Optional[ContainerLogger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None, 
+                 enable_type_validation: bool = True):
         """Initialize the adapter factory.
         
         Args:
             logger: Logger for factory operations
+            enable_type_validation: Enable type flow validation
         """
         self.logger = logger or logging.getLogger(__name__)
+        self.enable_type_validation = enable_type_validation
+        self.type_validator = TypeFlowValidator() if enable_type_validation else None
         
         # Registry of adapter types and their factory functions
         self.adapter_registry: Dict[str, Callable] = {
@@ -95,7 +99,7 @@ class AdapterFactory:
             Configured adapter instance
             
         Raises:
-            ValueError: If adapter type is unknown
+            ValueError: If adapter type is unknown or invalid configuration
         """
         adapter_type = config.get('type')
         if not adapter_type:
@@ -103,6 +107,11 @@ class AdapterFactory:
             
         if adapter_type not in self.adapter_registry:
             raise ValueError(f"Unknown adapter type: {adapter_type}")
+        
+        # Add type validation settings to config if enabled
+        if self.enable_type_validation:
+            config = config.copy()  # Don't modify original
+            config.setdefault('enable_type_validation', True)
             
         self.logger.info(f"Creating {adapter_type} adapter: {name}")
         
@@ -128,7 +137,7 @@ class AdapterFactory:
     def create_adapters_from_config(self, 
                                    adapters_config: List[Dict[str, Any]],
                                    containers: Dict[str, Container]) -> List[Any]:
-        """Create multiple adapters from configuration.
+        """Create multiple adapters from configuration with validation.
         
         Args:
             adapters_config: List of adapter configurations
@@ -136,7 +145,25 @@ class AdapterFactory:
             
         Returns:
             List of configured adapter instances
+            
+        Raises:
+            ValueError: If configuration validation fails
         """
+        # Validate adapter network configuration if type validation is enabled
+        if self.enable_type_validation and self.type_validator:
+            validation_result = validate_adapter_network(
+                adapters_config, containers, strict_mode=False
+            )
+            
+            if not validation_result.valid:
+                error_msg = f"Adapter configuration validation failed: {'; '.join(validation_result.errors)}"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
+            
+            # Log warnings
+            for warning in validation_result.warnings:
+                self.logger.warning(f"Adapter configuration warning: {warning}")
+        
         adapters = []
         
         for adapter_config in adapters_config:
@@ -182,11 +209,72 @@ class AdapterFactory:
                 self.logger.info(f"Stopped adapter: {adapter.name}")
                 
         self.active_adapters.clear()
+    
+    def validate_configuration(self, 
+                              adapters_config: List[Dict[str, Any]],
+                              containers: Dict[str, Container],
+                              strict_mode: bool = False) -> bool:
+        """Validate adapter configuration without creating adapters.
+        
+        Args:
+            adapters_config: List of adapter configurations
+            containers: Available containers
+            strict_mode: If True, treat warnings as errors
+            
+        Returns:
+            True if configuration is valid
+        """
+        if not self.enable_type_validation or not self.type_validator:
+            self.logger.info("Type validation disabled - skipping configuration validation")
+            return True
+            
+        try:
+            validation_result = validate_adapter_network(
+                adapters_config, containers, strict_mode=strict_mode
+            )
+            
+            if validation_result.valid:
+                self.logger.info("Adapter configuration validation passed")
+                
+                # Log warnings even if validation passed
+                for warning in validation_result.warnings:
+                    self.logger.warning(f"Configuration warning: {warning}")
+            else:
+                self.logger.error("Adapter configuration validation failed:")
+                for error in validation_result.errors:
+                    self.logger.error(f"  • {error}")
+                    
+            return validation_result.valid
+            
+        except Exception as e:
+            self.logger.error(f"Error during configuration validation: {e}")
+            return False
+    
+    def get_configuration_report(self, 
+                               adapters_config: List[Dict[str, Any]],
+                               containers: Dict[str, Container]) -> str:
+        """Generate detailed configuration analysis report.
+        
+        Args:
+            adapters_config: List of adapter configurations
+            containers: Available containers
+            
+        Returns:
+            Formatted analysis report
+        """
+        if not self.enable_type_validation or not self.type_validator:
+            return "Type validation disabled - no report available"
+            
+        try:
+            from ..events.type_flow_integration import create_type_flow_report
+            return create_type_flow_report(containers, adapters_config)
+        except Exception as e:
+            return f"Error generating configuration report: {e}"
 
 
 def create_adapter_network(config: Dict[str, Any],
                           containers: Dict[str, Container],
-                          logger: Optional[ContainerLogger] = None) -> AdapterFactory:
+                          logger: Optional[logging.Logger] = None) -> AdapterFactory:
     """Create a complete adapter network from configuration.
     
     This is a convenience function that creates all adapters and

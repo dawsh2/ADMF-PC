@@ -2,7 +2,7 @@
 
 import yaml
 from pathlib import Path
-from .schema_validator import ConfigSchemaValidator
+from .schema_validator import SimpleConfigValidator as ConfigSchemaValidator
 from .schemas import (
     BACKTEST_SCHEMA,
     OPTIMIZATION_SCHEMA,

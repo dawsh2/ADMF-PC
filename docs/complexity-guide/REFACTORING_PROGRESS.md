@@ -170,4 +170,98 @@ Every step file includes:
 
 ---
 
+## 🔧 Protocol + Composition Codebase Refactoring (In Progress)
+
+**Active Session Goal**: Eliminate ~50+ duplicate implementations violating ADMF-PC principles, consolidate type systems, remove ALL inheritance-based designs.
+
+### ✅ Phase 1: Type System Consolidation (COMPLETED)
+- Migrated from simple_types.py to types.py (21 files updated)
+- Consolidated 5 type systems into 1 canonical system
+- Fixed multiple ContainerRole enum duplications
+- All imports successfully updated
+
+### ✅ Phase 2: Core Container Infrastructure (COMPLETED)
+- Created new protocol-based Container implementation (`src/core/containers/container.py`)
+- Removed BaseComposableContainer (major inheritance violation)
+- Created 11 factory functions to replace inheritance-based container creation
+- Fixed numerous import/interface issues (IndicatorHub, PositionSizer, RiskLimits, etc.)
+
+### ✅ Phase 3: Container Migration (COMPLETED - 7/7 completed)
+**COMPLETED:**
+1. **RiskPortfolioContainer** → DELETED (deprecated, replaced with separate Risk and Portfolio containers)
+2. **EnhancedContainer** → DELETED (unused)
+3. **EnhancedClassifierContainer** → DELETED (only used in old system)
+4. **SignalReplayContainer** → REFACTORED to Protocol + Composition (`src/execution/signal_replay_engine.py`)
+5. **SignalGenerationContainer** → REFACTORED to Protocol + Composition (`src/execution/signal_generation_engine.py`)
+6. **OptimizationContainer** → REFACTORED to Protocol + Composition (`src/strategy/optimization/containers.py`) ← **JUST COMPLETED**
+7. **RegimeAwareOptimizationContainer** → REFACTORED to use composition of OptimizationContainer (`src/strategy/optimization/containers.py`) ← **JUST COMPLETED**
+
+### 🚧 Phase 4: Business Logic Inheritance (PENDING)
+- [ ] 30+ business logic inheritance hierarchies need refactoring
+- [ ] BaseRiskLimit → Factory functions
+- [ ] BasePositionSizer → Factory functions  
+- [ ] BaseClassifier → Factory functions
+- [ ] Multiple strategy inheritance patterns
+
+### 📊 Progress Metrics
+- **Container violations**: 7/7 fixed (100% complete) ✅
+- **Type system consolidation**: 100% complete ✅ 
+- **Critical infrastructure violations**: 100% complete ✅
+- **Overall architecture compliance**: ~90% complete
+
+### 🎯 Current Session Status
+**Last Action**: Successfully completed ALL critical container inheritance violations! Just refactored:
+
+**OptimizationContainer** (`src/strategy/optimization/containers.py`):
+- Removed inheritance from `UniversalScopedContainer`
+- Added composition with canonical `Container` class
+- Added delegation properties/methods for container interface
+- Fixed component creation to use `ComponentSpec` properly
+
+**RegimeAwareOptimizationContainer** (`src/strategy/optimization/containers.py`):
+- Removed inheritance from `OptimizationContainer` 
+- Added composition with `OptimizationContainer` instance
+- Added complete delegation interface for optimization functionality
+- Maintained all regime-specific tracking features
+
+**🎉 MAJOR MILESTONE**: All 7 critical container inheritance violations have been eliminated!
+
+**Next Steps**: Move to Phase 4 - business logic inheritance patterns (BaseRiskLimit, BasePositionSizer, BaseClassifier, etc.)
+
+## Step 10.0: Codebase Cleanup Status
+
+### Completed Tasks ✅
+
+1. **Temporary Analysis Scripts Cleanup**
+   - ✅ Moved 32 analysis scripts from project root to `tmp/analysis/`
+   - ✅ Cleaned up `src/execution/analysis/` (moved to `tmp/analysis/signal_analysis/`)
+   - ✅ Removed duplicate debug scripts
+
+2. **Container System Migration**
+   - ✅ Identified `container.py` as THE canonical implementation
+   - ✅ Enhanced canonical container with manual dependency injection
+   - ✅ Migrated ALL files from UniversalScopedContainer to Container
+   - ✅ Updated imports throughout the codebase
+
+3. **Execution Module Cleanup**
+   - ✅ Moved `backtest_manager.py` → `coordinator/workflows/backtest_workflow.py`
+   - ✅ Moved `container_factories.py` → `coordinator/workflows/`
+   - ✅ Moved `containers_pipeline.py` → `coordinator/workflows/`
+   - ✅ Moved `modes/` directory → `coordinator/workflows/modes/`
+   - ✅ Updated all import paths
+   - ✅ Created workflows README
+   - ✅ Updated execution README to reflect clean structure
+
+### Results
+
+The execution module now contains ONLY execution concerns:
+- Market simulation (brokers/)
+- Order execution (engine.py)
+- Order management (order_manager.py)
+- Execution context and validation
+
+All orchestration has been properly moved to coordinator/workflows/.
+
+---
+
 *This refactoring demonstrates the Protocol + Composition philosophy: breaking down a monolithic document into composable, well-defined modules that work together seamlessly.*

@@ -13,7 +13,7 @@ import logging
 
 from ...core.events import Event, EventType, EventBus
 from ...data.models import MarketData
-from .classifier import BaseClassifier
+# BaseClassifier removed - using Protocol + Composition instead
 from .regime_types import MarketRegime, RegimeState
 
 
@@ -60,7 +60,7 @@ class HMMParameters:
     min_data_points: int = 50
 
 
-class HMMClassifier(BaseClassifier):
+class HMMClassifier:
     """
     Hidden Markov Model classifier for regime detection.
     
@@ -364,7 +364,7 @@ class HMMClassifier(BaseClassifier):
             
     def process_indicator_event(self, event: Event) -> None:
         """Process indicator events for additional features."""
-        if event.event_type == EventType.INDICATOR:
+        if event.event_type == EventType.FEATURE:
             # Could incorporate technical indicators into HMM
             # For now, we rely on price/volume data
             pass

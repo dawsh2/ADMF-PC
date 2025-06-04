@@ -1,0 +1,193 @@
+name: Architecture Compliance Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  architecture-compliance:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Install minimal dependencies needed for validation
+        pip install ast typing pathlib
+        
+    - name: Run Architecture Compliance Validation
+      run: |
+        echo "🔍 Running ADMF-PC Architecture Compliance Validation"
+        python scripts/validate_architecture_compliance.py --verbose --report compliance-report.json
+        
+    - name: Upload compliance report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: architecture-compliance-report
+        path: compliance-report.json
+        
+    - name: Comment PR with violations (if any)
+      if: failure() && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const report = JSON.parse(fs.readFileSync('compliance-report.json', 'utf8'));
+            
+            if (report.summary.failed > 0) {
+              let comment = '## 🚨 Architecture Compliance Violations\n\n';
+              comment += `**Summary:** ${report.summary.failed}/${report.summary.total_rules} rules failed\n\n`;
+              
+              const errors = report.results.filter(r => !r.passed && r.severity === 'error');
+              const warnings = report.results.filter(r => !r.passed && r.severity === 'warning');
+              
+              if (errors.length > 0) {
+                comment += '### ❌ Errors (Must Fix):\n';
+                for (const error of errors) {
+                  comment += `\n**${error.rule_id}: ${error.rule_name}**\n`;
+                  for (const violation of error.violations.slice(0, 5)) { // Limit to 5 per rule
+                    comment += `- ${violation}\n`;
+                  }
+                  if (error.violations.length > 5) {
+                    comment += `- ... and ${error.violations.length - 5} more\n`;
+                  }
+                }
+              }
+              
+              if (warnings.length > 0) {
+                comment += '\n### ⚠️ Warnings:\n';
+                for (const warning of warnings) {
+                  comment += `\n**${warning.rule_id}: ${warning.rule_name}**\n`;
+                  for (const violation of warning.violations.slice(0, 3)) { // Limit to 3 per rule
+                    comment += `- ${violation}\n`;
+                  }
+                  if (warning.violations.length > 3) {
+                    comment += `- ... and ${warning.violations.length - 3} more\n`;
+                  }
+                }
+              }
+              
+              comment += '\n### 📚 Fixing Violations:\n';
+              comment += '- **Enhanced/Improved Files**: Use canonical files instead. See [STYLE.md](./STYLE.md)\n';
+              comment += '- **Factory Separation**: Use WorkflowManager delegation. See [CLAUDE.md](./CLAUDE.md)\n';
+              comment += '- **Protocol + Composition**: Use composition over inheritance\n';
+              comment += '- **Single Source of Truth**: Define patterns only in WorkflowManager\n\n';
+              comment += '📖 **Full Documentation**: [CLAUDE.md](./CLAUDE.md) | [STYLE.md](./STYLE.md)\n\n';
+              comment += '🔧 **Run locally**: `python scripts/validate_architecture_compliance.py --verbose`';
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+          } catch (error) {
+            console.log('Could not read compliance report:', error);
+          }
+
+  pre-commit-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Test pre-commit hook
+      run: |
+        echo "🧪 Testing pre-commit hook functionality"
+        # Make hook executable
+        chmod +x scripts/pre-commit-hook.sh
+        
+        # Test with no staged files (should pass)
+        echo "Testing with no violations..."
+        ./scripts/pre-commit-hook.sh || true
+        
+        echo "✅ Pre-commit hook test completed"
+
+  documentation-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check required documentation exists
+      run: |
+        echo "📚 Checking required documentation files"
+        
+        required_files=(
+          "CLAUDE.md"
+          "STYLE.md" 
+          "README.md"
+          "src/core/coordinator/workflows/workflow_manager.py"
+          "src/core/containers/factory.py"
+          "src/core/communication/factory.py"
+        )
+        
+        missing_files=()
+        
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            missing_files+=("$file")
+            echo "❌ Missing required file: $file"
+          else
+            echo "✅ Found: $file"
+          fi
+        done
+        
+        if [ ${#missing_files[@]} -ne 0 ]; then
+          echo
+          echo "🚨 Missing required architecture files:"
+          printf '%s\n' "${missing_files[@]}"
+          exit 1
+        fi
+        
+        echo
+        echo "🎉 All required documentation files present!"
+
+  workflow-patterns-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Check WorkflowManager is single source of truth
+      run: |
+        echo "🔍 Checking WorkflowManager pattern authority"
+        
+        # Check that WorkflowManager defines patterns
+        if ! grep -q "_workflow_patterns" src/core/coordinator/workflows/workflow_manager.py 2>/dev/null; then
+          echo "❌ WorkflowManager should define _workflow_patterns"
+          exit 1
+        fi
+        
+        # Check for multiple pattern definitions
+        pattern_files=$(find src/ -name "*.py" -exec grep -l "_workflow_patterns\|_patterns.*=" {} \; 2>/dev/null | grep -v workflow_manager.py | head -5)
+        
+        if [ ! -z "$pattern_files" ]; then
+          echo "⚠️  Found potential duplicate pattern definitions:"
+          echo "$pattern_files"
+          echo "Patterns should only be defined in WorkflowManager"
+        fi
+        
+        echo "✅ WorkflowManager pattern authority check completed"

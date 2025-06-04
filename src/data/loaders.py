@@ -2,7 +2,7 @@
 Data loaders using Protocol+Composition - NO INHERITANCE!
 
 Simple classes that implement DataLoader protocol through duck typing.
-Enhanced through capabilities, not inheritance.
+No inheritance - protocols are implemented directly.
 """
 
 from typing import Dict, List, Optional, Any, Union
@@ -182,7 +182,7 @@ class SimpleCSVLoader:
 class MemoryEfficientCSVLoader:
     """
     Memory-efficient CSV loader - NO INHERITANCE!
-    Simple class enhanced through capabilities.
+    Simple class that implements DataLoader protocol.
     """
     
     def __init__(

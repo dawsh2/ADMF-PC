@@ -202,7 +202,7 @@ class SignalGenerator(Protocol):
 ### Component Interaction
 
 ```
-BAR_DATA → IndicatorHub → INDICATOR events
+BAR_DATA → FeatureHub → FEATURE events
                 ↓
          StrategyContainer → SIGNAL events
                 ↓
@@ -446,7 +446,7 @@ class ModuleConfiguration:
 
 2. **Strategy Module**
    - Vectorized calculations
-   - Indicator caching
+   - Feature caching
    - Minimal state
 
 3. **Risk Module**

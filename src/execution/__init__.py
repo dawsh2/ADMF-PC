@@ -1,32 +1,32 @@
-"""Execution module for order processing and trade execution."""
+"""Execution module for order processing and trade execution.
+
+Architecture Reference: docs/SYSTEM_ARCHITECTURE_V5.MD#execution-module
+Style Guide: STYLE.md - Canonical execution implementations
+
+This module provides Protocol + Composition execution engine with zero inheritance."""
 
 from .protocols import (
     Broker,
     OrderProcessor,
     ExecutionEngine,
     MarketSimulator,
-    ExecutionCapability,
     OrderStatus,
     FillStatus,
 )
-from .backtest_broker import BacktestBroker
-from .backtest_broker_refactored import BacktestBrokerRefactored
+from .brokers import SimulatedBroker, create_simulated_broker
 from .order_manager import OrderManager
-from .execution_engine import DefaultExecutionEngine
-from .market_simulation import (
-    MarketSimulator,
+from .engine import DefaultExecutionEngine, create_execution_engine
+from .brokers import (
     SlippageModel,
     CommissionModel,
     PercentageSlippageModel,
     TieredCommissionModel
 )
-from .execution_context import ExecutionContext
-from .capabilities import ExecutionCapabilities
-from .backtest_engine import UnifiedBacktestEngine, BacktestConfig, BacktestResults
-from .signal_generation_engine import SignalGenerationContainer, SignalGenerationContainerFactory
-from .signal_replay_engine import SignalReplayContainer, SignalReplayContainerFactory
-from .analysis import SignalAnalysisEngine, SignalAnalysisResult, AnalysisType
-from . import containers  # Import to trigger container registration
+# from .context import ExecutionContext  # Removed - moved to tmp/execution_cleanup/
+# from .capabilities import ExecutionCapabilities  # Removed - capabilities.py doesn't exist
+# Note: modes moved to core/coordinator/workflows/modes/
+# Note: analysis moved to tmp/analysis/signal_analysis
+# Note: containers_pipeline moved to core/coordinator/workflows/
 
 __all__ = [
     # Protocols
@@ -34,31 +34,20 @@ __all__ = [
     "OrderProcessor",
     "ExecutionEngine",
     "MarketSimulator",
-    "ExecutionCapability",
     "OrderStatus",
     "FillStatus",
     # Implementations
-    "BacktestBroker",
-    "BacktestBrokerRefactored",
+    "SimulatedBroker",
+    "create_simulated_broker",
     "OrderManager",
     "DefaultExecutionEngine",
-    "MarketSimulator",
     "SlippageModel",
     "CommissionModel",
     "PercentageSlippageModel",
     "TieredCommissionModel",
-    "ExecutionContext",
-    "ExecutionCapabilities",
-    # Backtesting
-    "UnifiedBacktestEngine",
-    "BacktestConfig",
-    "BacktestResults",
-    # Signal Analysis
-    "SignalGenerationContainer",
-    "SignalGenerationContainerFactory",
-    "SignalReplayContainer",
-    "SignalReplayContainerFactory",
-    "SignalAnalysisEngine",
-    "SignalAnalysisResult",
-    "AnalysisType",
+    # "ExecutionContext",  # Removed - moved to tmp/execution_cleanup/
+    # "ExecutionCapabilities",  # Removed - capabilities.py doesn't exist
+    # Moved to coordinator
+    # "BacktestConfig",
+    # "BacktestResults",
 ]

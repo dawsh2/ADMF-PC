@@ -21,6 +21,7 @@ This phase bridges core functionality with advanced features, introducing sophis
 - Consolidate to ONE implementation per concept
 - Migrate 26 files from old container system
 - Fix 5 competing type systems
+- **[Step 10.0.1: Coordinator Module Consolidation](step-10.0.1-coordinator-consolidation.md)** - Eliminate ~2,500 lines of duplicate coordinator implementations
 - Estimated time: 6 weeks
 
 ### [Step 10.1: Advanced Analytics](step-10.1-advanced-analytics.md)
@@ -300,10 +301,17 @@ Use this checklist to track your progress:
 ## Intermediate Complexity Progress
 
 ### Step 10.0: Critical Codebase Cleanup (MANDATORY FIRST)
+- [x] Container system consolidated (✅ completed)
+- [x] Event type imports fixed (✅ completed)
+- [x] Legacy lifecycle manager removed (✅ completed)
+- [ ] **Step 10.0.1: Coordinator consolidation** (~2,500 lines of duplicates)
+  - [ ] ComposableWorkflowManager merged into coordinator.py
+  - [ ] Duplicate backtest workflows consolidated  
+  - [ ] YAML coordinator integrated via configuration
+  - [ ] Workflow managers simplified to configuration-driven
 - [ ] Type system consolidated (5 → 1)
-- [ ] Container system migrated (26 files)
+- [ ] Remaining duplicate implementations deleted (~50 files)
 - [ ] All inheritance removed
-- [ ] Duplicate implementations deleted (~50 files)
 - [ ] Adjective prefixes removed from filenames
 - [ ] All tests passing after cleanup
 

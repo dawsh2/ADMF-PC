@@ -5,10 +5,12 @@ This module implements the pipeline communication pattern without
 inheritance, following ADMF-PC's protocol-based architecture.
 """
 
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple, Optional, Type
 import logging
 
-from ..events.types import Event, EventType
+from ..types.events import Event, EventType
+from ..events.semantic import SemanticEvent, validate_semantic_event
+from ..events.type_flow_analysis import TypeFlowAnalyzer, EventTypeRegistry, ContainerTypeInferencer
 from .protocols import Container, CommunicationAdapter
 from .helpers import (
     handle_event_with_metrics, 
@@ -39,6 +41,12 @@ class PipelineAdapter:
         self.allow_skip = config.get('allow_skip', False)
         self._is_started = False
         
+        # Type flow analysis components
+        self.enable_type_validation = config.get('enable_type_validation', True)
+        self.registry = EventTypeRegistry()
+        self.type_analyzer = TypeFlowAnalyzer(self.registry)
+        self.type_inferencer = ContainerTypeInferencer(self.registry)
+        
         # Validate configuration
         validate_adapter_config(config, ['containers'], 'Pipeline')
         
@@ -46,7 +54,7 @@ class PipelineAdapter:
         self.logger = logging.getLogger(f"adapter.{name}")
         
     def setup(self, containers: Dict[str, Container]) -> None:
-        """Configure pipeline connections.
+        """Configure pipeline connections with type flow validation.
         
         Args:
             containers: Map of container names to instances
@@ -63,7 +71,16 @@ class PipelineAdapter:
                 
             source = containers[source_name]
             target = containers[target_name]
+            
+            # Validate type flow compatibility
+            if self.enable_type_validation:
+                self._validate_connection(source, target)
+            
             self.connections.append((source, target))
+            
+        # Perform full pipeline type flow analysis
+        if self.enable_type_validation:
+            self._validate_pipeline_flow(containers)
             
         self.logger.info(
             f"Pipeline adapter '{self.name}' configured with {len(self.connections)} connections"
@@ -147,7 +164,7 @@ class PipelineAdapter:
         handle_event_with_metrics(self, event, source)
         
     def route_event(self, event: Event, source: Container) -> None:
-        """Route event to next container in pipeline.
+        """Route event to next container in pipeline with type validation.
         
         Args:
             event: Event to route
@@ -156,10 +173,14 @@ class PipelineAdapter:
         # Find the source in our connections
         for i, (conn_source, conn_target) in enumerate(self.connections):
             if conn_source.name == source.name:
+                # Validate event before routing
+                if self.enable_type_validation:
+                    self._validate_event_routing(event, source, conn_target)
+                
                 # Check if we should skip this stage
-                if self.allow_skip and event.metadata.get('skip_stage'):
+                if self.allow_skip and hasattr(event, 'metadata') and event.metadata.get('skip_stage'):
                     self.logger.debug(
-                        f"Skipping stage {conn_target.name} for event {event.event_type}"
+                        f"Skipping stage {conn_target.name} for event {getattr(event, 'event_type', type(event).__name__)}"
                     )
                     # Find next target
                     if i + 1 < len(self.connections):
@@ -168,7 +189,7 @@ class PipelineAdapter:
                 else:
                     # Normal forwarding
                     self.logger.debug(
-                        f"Forwarding {event.event_type} from {source.name} to {conn_target.name}"
+                        f"Forwarding {getattr(event, 'event_type', type(event).__name__)} from {source.name} to {conn_target.name}"
                     )
                     conn_target.receive_event(event)
                 break
@@ -261,6 +282,132 @@ class PipelineAdapter:
             if hasattr(data_container, 'event_bus'):
                 data_container.event_bus.subscribe(EventType.SYSTEM, broadcast_system_event)
                 self.logger.info(f"Set up SYSTEM event broadcasting from DataContainer")
+    
+    def _validate_connection(self, source: Container, target: Container) -> None:
+        """Validate that target can handle source's event types.
+        
+        Args:
+            source: Source container
+            target: Target container
+            
+        Raises:
+            TypeError: If type flow is invalid
+        """
+        try:
+            # Get expected event types for each container
+            source_outputs = self.type_inferencer.get_expected_outputs(source)
+            target_inputs = self.type_inferencer.get_expected_inputs(target)
+            
+            if source_outputs and target_inputs:
+                # Check if any source output can be handled by target
+                compatible_types = source_outputs & target_inputs
+                if not compatible_types:
+                    source_type = self.type_inferencer.infer_container_type(source)
+                    target_type = self.type_inferencer.infer_container_type(target)
+                    
+                    self.logger.warning(
+                        f"Type flow warning: {source.name} ({source_type}) outputs "
+                        f"{[t.__name__ for t in source_outputs]} but {target.name} ({target_type}) "
+                        f"expects {[t.__name__ for t in target_inputs]}"
+                    )
+                    
+                    # Don't raise exception for warning - let system try to work
+                    # In strict mode, we could raise TypeError here
+                    if self.config.get('strict_type_validation', False):
+                        raise TypeError(
+                            f"Type flow error: {target.name} cannot handle any events from {source.name}"
+                        )
+                else:
+                    self.logger.debug(
+                        f"Type flow OK: {source.name} → {target.name} "
+                        f"(compatible: {[t.__name__ for t in compatible_types]})"
+                    )
+                    
+        except Exception as e:
+            self.logger.error(f"Error validating connection {source.name} → {target.name}: {e}")
+            if self.config.get('strict_type_validation', False):
+                raise
+    
+    def _validate_pipeline_flow(self, containers: Dict[str, Container]) -> None:
+        """Validate the complete pipeline type flow.
+        
+        Args:
+            containers: All available containers
+        """
+        try:
+            # Build flow map for this pipeline
+            pipeline_containers = {name: containers[name] for name in self.containers if name in containers}
+            flow_map = self.type_analyzer.analyze_flow(pipeline_containers, [self])
+            
+            # Validate for appropriate execution mode
+            execution_mode = self.config.get('execution_mode', 'full_backtest')
+            validation_result = self.type_analyzer.validate_mode(flow_map, execution_mode)
+            
+            if not validation_result.valid:
+                error_msg = f"Pipeline type flow validation failed: {'; '.join(validation_result.errors)}"
+                self.logger.error(error_msg)
+                
+                if self.config.get('strict_type_validation', False):
+                    raise TypeError(error_msg)
+            else:
+                self.logger.info(f"Pipeline type flow validation passed for mode '{execution_mode}'")
+                
+            # Log warnings
+            for warning in validation_result.warnings:
+                self.logger.warning(f"Type flow warning: {warning}")
+                
+        except Exception as e:
+            self.logger.error(f"Error validating pipeline flow: {e}")
+            if self.config.get('strict_type_validation', False):
+                raise
+    
+    def _validate_event_routing(self, event: Any, source: Container, target: Container) -> None:
+        """Validate that a specific event can be routed from source to target.
+        
+        Args:
+            event: Event to validate
+            source: Source container
+            target: Target container
+            
+        Raises:
+            TypeError: If event cannot be routed
+        """
+        try:
+            # Validate semantic event if applicable
+            if isinstance(event, SemanticEvent):
+                if not validate_semantic_event(event):
+                    self.logger.warning(f"Invalid semantic event: {event}")
+                    
+                # Check if target can handle this semantic event type
+                target_inputs = self.type_inferencer.get_expected_inputs(target)
+                event_type = type(event)
+                
+                if target_inputs and event_type not in target_inputs:
+                    self.logger.warning(
+                        f"Event type mismatch: {target.name} expects "
+                        f"{[t.__name__ for t in target_inputs]} but got {event_type.__name__}"
+                    )
+                    
+                    if self.config.get('strict_type_validation', False):
+                        raise TypeError(
+                            f"Event type error: {target.name} cannot handle {event_type.__name__}"
+                        )
+            
+            # Additional validation for traditional Event objects
+            elif hasattr(event, 'event_type'):
+                # Get EventType from registry if possible
+                event_type = getattr(event, 'event_type', None)
+                if event_type:
+                    # This would require container interface to declare supported event types
+                    # For now, just log the event type being routed
+                    self.logger.debug(
+                        f"Routing {event_type} event from {source.name} to {target.name}"
+                    )
+                    
+        except Exception as e:
+            self.logger.error(f"Error validating event routing: {e}")
+            if self.config.get('strict_type_validation', False):
+                raise
 
 
 def create_conditional_pipeline(name: str, config: Dict[str, Any]):

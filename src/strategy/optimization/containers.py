@@ -10,15 +10,15 @@ from datetime import datetime
 import logging
 import asyncio
 
-from ...core.containers import UniversalScopedContainer
-from ...core.components import ComponentFactory
+from ...core.containers.container import Container, ContainerConfig, ContainerRole
+from ...core.components import ComponentFactory, ComponentSpec
 from .protocols import OptimizationContainer as OptimizationContainerProtocol
 
 
 logger = logging.getLogger(__name__)
 
 
-class OptimizationContainer(UniversalScopedContainer):
+class OptimizationContainer:
     """
     Specialized container for optimization runs.
     
@@ -34,12 +34,56 @@ class OptimizationContainer(UniversalScopedContainer):
             container_id: Unique container ID
             base_config: Base configuration for components
         """
-        super().__init__(container_id, container_type="optimization")
+        # Create container using composition, not inheritance
+        container_config = ContainerConfig(
+            role=ContainerRole.OPTIMIZATION,
+            name="OptimizationContainer",
+            container_id=container_id,
+            config={'base_config': base_config},
+            capabilities={'optimization.trials', 'optimization.results'}
+        )
+        self._container = Container(container_config)
         self.base_config = base_config
         self.trial_count = 0
         self.results_collector = OptimizationResultsCollector()
         self.regime_tracker = RegimeTracker()
         self.active_trials = {}
+    
+    # Delegation properties for container interface (Protocol + Composition)
+    @property
+    def container_id(self) -> str:
+        """Delegate to composed container."""
+        return self._container.container_id
+    
+    @property
+    def event_bus(self):
+        """Delegate to composed container."""
+        return self._container.event_bus
+    
+    @property 
+    def logger(self):
+        """Delegate to composed container."""
+        return self._container.logger
+    
+    def create_component(self, component_spec: Dict[str, Any]):
+        """Delegate to composed container."""
+        # Convert dict to ComponentSpec if needed
+        if isinstance(component_spec, dict):
+            spec = ComponentSpec(
+                name=component_spec.get('name', 'component'),
+                class_name=component_spec.get('class_name'),
+                parameters=component_spec.get('params', {}),
+                capabilities=component_spec.get('capabilities', [])
+            )
+        else:
+            spec = component_spec
+        return self._container.create_component(spec)
+    
+    def initialize_component(self, component):
+        """Initialize a component."""
+        # Basic initialization - components should handle their own init
+        if hasattr(component, 'initialize') and callable(component.initialize):
+            component.initialize()
     
     def create_trial_instance(self, 
                             parameters: Dict[str, Any],
@@ -393,7 +437,7 @@ class RegimeTracker:
         return stats
 
 
-class RegimeAwareOptimizationContainer(OptimizationContainer):
+class RegimeAwareOptimizationContainer:
     """
     Extended optimization container with regime-specific tracking.
     
@@ -411,10 +455,80 @@ class RegimeAwareOptimizationContainer(OptimizationContainer):
             base_config: Base configuration
             regime_classifiers: List of regime classifier components
         """
-        super().__init__(container_id, base_config)
+        # Create optimization container using composition, not inheritance
+        self._optimization_container = OptimizationContainer(container_id, base_config)
         self.regime_classifiers = regime_classifiers or []
         self.regime_performance: Dict[str, Dict[str, List[Dict]]] = {}
         self.parameter_by_regime: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    
+    # Delegation to composed optimization container
+    @property
+    def container_id(self) -> str:
+        """Delegate to composed optimization container."""
+        return self._optimization_container.container_id
+    
+    @property
+    def event_bus(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.event_bus
+    
+    @property
+    def logger(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.logger
+    
+    @property
+    def base_config(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.base_config
+    
+    @property
+    def trial_count(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.trial_count
+    
+    @property
+    def results_collector(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.results_collector
+    
+    @property
+    def regime_tracker(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.regime_tracker
+    
+    @property
+    def active_trials(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.active_trials
+    
+    def create_trial_instance(self, parameters: Dict[str, Any], trial_id: Optional[str] = None):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.create_trial_instance(parameters, trial_id)
+    
+    def run_trial(self, parameters: Dict[str, Any], evaluator: Callable, trial_id: Optional[str] = None):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.run_trial(parameters, evaluator, trial_id)
+    
+    async def run_trial_async(self, parameters: Dict[str, Any], evaluator: Callable, trial_id: Optional[str] = None):
+        """Delegate to composed optimization container."""
+        return await self._optimization_container.run_trial_async(parameters, evaluator, trial_id)
+    
+    def get_trial_results(self, trial_id: str):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.get_trial_results(trial_id)
+    
+    def cleanup_trial(self, trial_id: str):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.cleanup_trial(trial_id)
+    
+    def record_regime_change(self, regime: str, metadata: Dict[str, Any]):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.record_regime_change(regime, metadata)
+    
+    def get_results_summary(self):
+        """Delegate to composed optimization container."""
+        return self._optimization_container.get_results_summary()
     
     def run_trial_with_regime_tracking(self,
                                      parameters: Dict[str, Any],

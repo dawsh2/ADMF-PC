@@ -2,102 +2,87 @@
 Container system for ADMF-PC.
 
 This package provides the containerized execution infrastructure that
-ensures complete state isolation between parallel executions while
-allowing controlled sharing of read-only services.
+ensures complete state isolation between parallel executions.
 
 Key Components:
-- UniversalScopedContainer: Core container with state isolation
-- ContainerLifecycleManager: Manages multiple container lifecycles
-- ContainerFactory: Creates specialized containers
+- Container: THE canonical container implementation (Protocol + Composition)
+- ContainerConfig: Configuration for containers
+- ContainerRole: Standard container roles
 
 Example Usage:
     ```python
-    # Create a factory
-    factory = ContainerFactory()
+    from core.containers import Container, ContainerConfig, ContainerRole
     
-    # Create a backtest container
-    container_id = factory.create_backtest_container(
-        strategy_spec={
-            'class': 'TrendFollowingStrategy',
-            'parameters': {'fast_period': 10, 'slow_period': 30}
-        },
-        shared_services={
-            'DataProvider': historical_data,
-            'IndicatorHub': shared_indicators
-        }
+    # Create a container
+    config = ContainerConfig(
+        role=ContainerRole.BACKTEST,
+        name="my_backtest",
+        capabilities={'backtest.execution'}
     )
+    container = Container(config)
     
-    # Get the container
-    container = factory.get_container(container_id)
+    # Add components
+    container.add_component("strategy", MyStrategy())
+    container.add_component("data", DataLoader())
     
-    # Start the container
-    container.start()
+    # Wire dependencies manually
+    container.wire_dependencies("strategy", {"data_source": "data"})
+    
+    # Use container with adapters for cross-container communication
+    await container.initialize()
+    await container.start()
     
     # Run backtest...
     
     # Cleanup
-    container.stop()
-    factory.dispose_container(container_id)
+    await container.stop()
     ```
 """
 
-from .universal import (
-    UniversalScopedContainer,
+from .container import (
+    Container,
+    ContainerConfig,
+    ContainerRole,
     ContainerState,
+    # Naming strategy
     ContainerType,
-    ComponentSpec,
-    ContainerMetadata,
-    create_backtest_container
-)
-
-from .lifecycle import (
-    ContainerLifecycleManager,
-    LifecycleEvent,
-    ContainerInfo,
-    get_lifecycle_manager
-)
-
-from .factory import (
-    ContainerFactory
-)
-
-from .naming import (
-    ContainerNamingStrategy,
-    ContainerType as NamingContainerType,
     Phase,
     ClassifierType,
     RiskProfile,
+    ContainerNamingStrategy,
+    # Convenience functions
     create_backtest_container_id,
     create_optimization_container_id,
     create_signal_analysis_container_id
 )
 
+from .protocols import (
+    Container as ContainerProtocol,
+    ComposableContainer,
+    ContainerMetadata,
+    ContainerLimits
+)
 
 __all__ = [
-    # Universal container
-    "UniversalScopedContainer",
-    "ContainerState",
-    "ContainerType",
-    "ComponentSpec",
-    "ContainerMetadata",
-    "create_backtest_container",
-    
-    # Lifecycle management
-    "ContainerLifecycleManager",
-    "LifecycleEvent",
-    "ContainerInfo",
-    "get_lifecycle_manager",
-    
-    # Factory
-    "ContainerFactory",
+    # Canonical container
+    'Container',
+    'ContainerConfig', 
+    'ContainerRole',
+    'ContainerState',
     
     # Naming strategy
-    "ContainerNamingStrategy",
-    "NamingContainerType",
-    "Phase",
-    "ClassifierType",
-    "RiskProfile",
-    "create_backtest_container_id",
-    "create_optimization_container_id",
-    "create_signal_analysis_container_id"
+    'ContainerType',
+    'Phase',
+    'ClassifierType',
+    'RiskProfile',
+    'ContainerNamingStrategy',
+    'create_backtest_container_id',
+    'create_optimization_container_id',
+    'create_signal_analysis_container_id',
+    
+    # Protocols
+    'ContainerProtocol',
+    'ComposableContainer',
+    'ContainerMetadata',
+    'ContainerLimits'
 ]

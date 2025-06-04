@@ -1,0 +1,93 @@
+{
+  "timestamp": "2025-06-04T11:27:47.893200",
+  "summary": {
+    "total_rules": 6,
+    "passed": 2,
+    "failed": 4,
+    "errors": 4,
+    "warnings": 0
+  },
+  "results": [
+    {
+      "rule_id": "R001",
+      "rule_name": "No Enhanced/Improved Files",
+      "passed": false,
+      "severity": "error",
+      "violations": [
+        "tmp/analysis/improved_risk_portfolio.py - Use canonical file instead",
+        "tmp/analysis/improved_capabilities.py - Use canonical file instead",
+        "tmp/debug/test_improved_components.py - Use canonical file instead",
+        "tmp/analysis/optimized_signal_flow.py - Use canonical file instead",
+        "tmp/debug/test_pipeline_backtest_v2.py - Use canonical file instead",
+        "tests/unit/core/logging/test_logging_v3.py - Use canonical file instead"
+      ],
+      "fixable": false
+    },
+    {
+      "rule_id": "R002",
+      "rule_name": "Factory Separation",
+      "passed": false,
+      "severity": "error",
+      "violations": [
+        "src/core/communication/factory.py - Communication factory should not create containers",
+        "src/core/coordinator/workflows/walk_forward_workflow.py - Workflow files should delegate to factories, not create containers directly",
+        "src/core/coordinator/workflows/optimization_workflows.py - Workflow files should delegate to factories, not create containers directly",
+        "src/core/coordinator/workflows/backtest.py - Workflow files should delegate to factories, not create containers directly"
+      ],
+      "fixable": false
+    },
+    {
+      "rule_id": "R003",
+      "rule_name": "Single Source of Truth",
+      "passed": true,
+      "severity": "error",
+      "violations": [],
+      "fixable": false
+    },
+    {
+      "rule_id": "R004",
+      "rule_name": "Protocol + Composition",
+      "passed": false,
+      "severity": "error",
+      "violations": [
+        "examples/pipeline_adapter_example.py:17 - Class ExampleContainer inherits from Container (use composition)",
+        "examples/type_flow_analysis_demo.py:39 - Class MockDataContainer inherits from MockContainer (use composition)",
+        "examples/type_flow_analysis_demo.py:49 - Class MockStrategyContainer inherits from MockContainer (use composition)",
+        "examples/type_flow_analysis_demo.py:62 - Class MockRiskContainer inherits from MockContainer (use composition)",
+        "examples/type_flow_analysis_demo.py:75 - Class MockExecutionContainer inherits from MockContainer (use composition)",
+        "examples/coordinator_integration_example.py:19 - Class CommunicationEnabledCoordinator inherits from WorkflowCoordinator (use composition)",
+        "src/execution/engine.py:27 - Class DefaultExecutionEngine inherits from Component (use composition)",
+        "src/execution/engine.py:27 - Class DefaultExecutionEngine inherits from Lifecycle (use composition)",
+        "src/execution/engine.py:27 - Class DefaultExecutionEngine inherits from EventCapable (use composition)",
+        "src/execution/order_manager.py:25 - Class OrderManager inherits from Component (use composition)"
+      ],
+      "fixable": false
+    },
+    {
+      "rule_id": "R005",
+      "rule_name": "Canonical File Usage",
+      "passed": false,
+      "severity": "error",
+      "violations": [
+        "examples/coordinator_integration_example.py - Imports non-canonical file matching .*enhanced_.*\\.py$",
+        "scripts/validate_scaling_readiness.py - Imports non-canonical file matching .*enhanced_.*\\.py$",
+        "src/core/coordinator/coordinator.py - Imports non-canonical module: containers_pipeline",
+        "src/core/coordinator/workflows/workflow_manager.py - Imports non-canonical module: containers_pipeline",
+        "tmp/analysis/debug_price_tracking.py - Imports non-canonical file matching .*improved_.*\\.py$",
+        "tmp/analysis/validate_step2_requirements.py - Imports non-canonical file matching .*enhanced_.*\\.py$",
+        "tmp/analysis/final_trade_audit.py - Imports non-canonical file matching .*improved_.*\\.py$",
+        "tmp/analysis/improved_capabilities.py - Imports non-canonical file matching .*improved_.*\\.py$",
+        "tmp/risk_cleanup/risk_container.py - Imports non-canonical file matching .*enhanced_.*\\.py$"
+      ],
+      "fixable": false
+    },
+    {
+      "rule_id": "R006",
+      "rule_name": "Workflow Pattern Architecture",
+      "passed": true,
+      "severity": "error",
+      "violations": [],
+      "fixable": false
+    }
+  ]
+}

@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Set, Optional, Tuple
 import logging
 from collections import defaultdict
 
-from ..events.types import Event, EventType
+from ..types.events import Event, EventType
 from .protocols import Container
 from .helpers import (
     handle_event_with_metrics,

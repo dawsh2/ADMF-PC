@@ -219,7 +219,7 @@ Structured logging is mandatory for all components with standardized formats.
 ### Example Impact
 Every event flow is traceable:
 ```
-EVENT_FLOW | backtest_001 | DataStreamer → IndicatorHub | BAR_DATA | SPY 2024-01-15
+EVENT_FLOW | backtest_001 | DataStreamer → FeatureHub | BAR_DATA | SPY 2024-01-15
 EVENT_FLOW | backtest_001 | Strategy → RiskManager | SIGNAL | BUY SPY strength=0.8
 ```
 

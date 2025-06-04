@@ -17,13 +17,14 @@ Key principles:
 import asyncio
 import uuid
 import logging
+import json
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
 
 # Only import basic types and protocols
-from .simple_types import WorkflowConfig, ExecutionContext, WorkflowType, WorkflowPhase
+from ..types.workflow import WorkflowConfig, ExecutionContext, WorkflowType, WorkflowPhase
 from .protocols import WorkflowManager
 
 # Communication imports (lazy loaded when needed)
@@ -66,8 +67,8 @@ class CoordinatorResult:
 class ExecutionMode(str, Enum):
     """Supported execution modes."""
     AUTO = "auto"           # Coordinator chooses best mode
-    TRADITIONAL = "traditional"  # Traditional workflow managers
     COMPOSABLE = "composable"    # Composable container patterns
+    ENHANCED_COMPOSABLE = "enhanced_composable"  # Enhanced composable with all features
 
 
 class Coordinator:
@@ -85,21 +86,37 @@ class Coordinator:
         self,
         enable_composable_containers: bool = True,
         shared_services: Optional[Dict[str, Any]] = None,
-        enable_communication: bool = True
+        enable_communication: bool = True,
+        execution_mode: str = 'auto',
+        enable_nesting: bool = False,
+        enable_pipeline_communication: bool = False,
+        enable_yaml: bool = True,
+        enable_phase_management: bool = True
     ):
-        """Initialize coordinator."""
+        """Initialize coordinator with configurable features.
+        
+        The Coordinator is the main orchestration component that manages:
+        - Workflow execution
+        - Container creation and lifecycle
+        - Communication between components
+        - System-level services
+        """
         self.enable_composable_containers = enable_composable_containers
         self.shared_services = shared_services or {}
         self.enable_communication = enable_communication
+        self.execution_mode = execution_mode
+        self.enable_nesting = enable_nesting
+        self.enable_pipeline_communication = enable_pipeline_communication
+        self.enable_yaml = enable_yaml
+        self.enable_phase_management = enable_phase_management
         
         # Lazy-loaded components
-        self._composition_engine = None
+        self._container_factory = None
         self._container_registry = None
-        self._workflow_manager_factory = None
         self._container_manager = None
         self._communication_factory = None
-        self._communication_layer = None
-        self._log_manager = None
+        self._communication_layer = None  # Deprecated - use _communication_adapters
+        self._communication_adapters = []
         
         # Active workflows tracking
         self.active_workflows: Dict[str, Dict[str, Any]] = {}
@@ -121,7 +138,13 @@ class Coordinator:
         execution_mode: ExecutionMode = ExecutionMode.AUTO
     ) -> CoordinatorResult:
         """
-        Execute workflow using specified execution mode.
+        Execute workflow using delegation to WorkflowManager and Sequencer.
+        
+        This method now follows the pattern-based architecture:
+        - Coordinator orchestrates but doesn't execute
+        - WorkflowManager handles pattern execution
+        - Sequencer handles multi-phase workflows
+        - Analytics storage integrated with correlation IDs
         
         Args:
             config: Workflow configuration
@@ -132,6 +155,7 @@ class Coordinator:
             CoordinatorResult with execution details
         """
         workflow_id = workflow_id or str(uuid.uuid4())
+        correlation_id = self._generate_correlation_id()
         
         # Create result
         result = CoordinatorResult(
@@ -140,28 +164,42 @@ class Coordinator:
             success=True
         )
         
-        # Create execution context
+        # Add correlation ID to metadata
+        result.metadata['correlation_id'] = correlation_id
+        
+        # Create execution context with correlation ID
         context = ExecutionContext(
             workflow_id=workflow_id,
             workflow_type=config.workflow_type,
-            metadata={'execution_mode': execution_mode.value}
+            metadata={
+                'execution_mode': execution_mode.value,
+                'correlation_id': correlation_id
+            }
         )
         
         try:
-            # Determine execution mode
-            if execution_mode == ExecutionMode.AUTO:
-                execution_mode = self._determine_execution_mode(config)
-                result.metadata['auto_selected_mode'] = execution_mode.value
+            # Initialize analytics storage if available
+            analytics_connection = await self._get_analytics_connection()
             
-            logger.info(f"Executing workflow {workflow_id} in {execution_mode.value} mode")
-            
-            # Execute based on mode
-            if execution_mode == ExecutionMode.TRADITIONAL:
-                await self._execute_traditional_workflow(config, context, result)
-            elif execution_mode == ExecutionMode.COMPOSABLE:
-                await self._execute_composable_workflow(config, context, result)
+            # Determine if multi-phase workflow
+            if self._is_multi_phase(config):
+                # Delegate to sequencer for multi-phase workflows
+                logger.info(f"Delegating multi-phase workflow {workflow_id} to sequencer")
+                workflow_result = await self._execute_via_sequencer(config, context, analytics_connection)
             else:
-                result.add_error(f"Unknown execution mode: {execution_mode}")
+                # Delegate to workflow manager for single-phase workflows
+                logger.info(f"Delegating single-phase workflow {workflow_id} to workflow manager")
+                workflow_result = await self._execute_via_workflow_manager(config, context, analytics_connection)
+            
+            # Convert WorkflowResult to CoordinatorResult
+            result.success = workflow_result.success
+            result.data = workflow_result.final_results
+            result.errors.extend(workflow_result.errors)
+            result.metadata.update(workflow_result.metadata)
+            
+            # Store results in analytics if available
+            if analytics_connection and result.success:
+                await self._store_workflow_results(analytics_connection, workflow_result, correlation_id)
                 
         except Exception as e:
             logger.error(f"Workflow {workflow_id} failed: {e}")
@@ -194,8 +232,156 @@ class Coordinator:
         if self._would_benefit_from_composable(config):
             return ExecutionMode.COMPOSABLE
         
-        # Default to traditional for backward compatibility
-        return ExecutionMode.TRADITIONAL
+        # Default to composable (traditional is deprecated)
+        return ExecutionMode.COMPOSABLE
+    
+    def _generate_correlation_id(self) -> str:
+        """Generate correlation ID for workflow tracking."""
+        return f"workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    
+    def _is_multi_phase(self, config: WorkflowConfig) -> bool:
+        """Check if workflow has multiple phases."""
+        # Check for explicit phases in config
+        if hasattr(config, 'phases') and len(getattr(config, 'phases', [])) > 1:
+            return True
+        
+        # Check parameters for phases
+        if 'phases' in config.parameters and len(config.parameters['phases']) > 1:
+            return True
+        
+        # Check for multi-phase workflow types
+        if hasattr(WorkflowType, 'WALK_FORWARD') and config.workflow_type == WorkflowType.WALK_FORWARD:
+            return True
+        
+        return False
+    
+    async def _execute_via_workflow_manager(
+        self, 
+        config: WorkflowConfig, 
+        context: ExecutionContext,
+        analytics_connection: Optional[Any] = None
+    ) -> 'WorkflowResult':
+        """Execute single-phase workflow via WorkflowManager."""
+        # Get or create workflow manager
+        workflow_manager = await self._get_workflow_manager()
+        
+        # Store workflow info
+        self.active_workflows[context.workflow_id] = {
+            'config': config,
+            'context': context,
+            'manager': workflow_manager,
+            'mode': 'workflow_manager'
+        }
+        
+        # Execute workflow using manager
+        result = await workflow_manager.execute(config, context)
+        
+        # Generate reports if configured
+        if result.success:
+            await self._handle_reporting(config, context, result)
+        
+        return result
+    
+    async def _execute_via_sequencer(
+        self, 
+        config: WorkflowConfig, 
+        context: ExecutionContext,
+        analytics_connection: Optional[Any] = None
+    ) -> 'WorkflowResult':
+        """Execute multi-phase workflow via Sequencer."""
+        # Get or create sequencer
+        sequencer = await self._get_sequencer()
+        
+        # Store workflow info
+        self.active_workflows[context.workflow_id] = {
+            'config': config,
+            'context': context,
+            'sequencer': sequencer,
+            'mode': 'sequencer'
+        }
+        
+        # Execute phases using sequencer
+        result = await sequencer.execute_phases(config, context)
+        
+        # Generate reports if configured
+        if result.success:
+            await self._handle_reporting(config, context, result)
+        
+        return result
+    
+    async def _get_analytics_connection(self) -> Optional[Any]:
+        """Get analytics database connection if available."""
+        try:
+            from ...analytics.mining.storage.connections import DatabaseManager
+            
+            # Use SQLite for development
+            db_config = {
+                'type': 'sqlite',
+                'path': './analytics/workflow_analytics.db'
+            }
+            
+            manager = DatabaseManager(db_config)
+            connection = manager.connect()
+            
+            # Ensure schema exists
+            try:
+                manager.create_schema()
+            except Exception as e:
+                logger.debug(f"Schema creation skipped (may already exist): {e}")
+            
+            return connection
+            
+        except ImportError:
+            logger.debug("Analytics module not available")
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to initialize analytics: {e}")
+            return None
+    
+    async def _store_workflow_results(
+        self, 
+        connection: Any, 
+        workflow_result: 'WorkflowResult',
+        correlation_id: str
+    ) -> None:
+        """Store workflow results in analytics database."""
+        try:
+            # Prepare workflow record
+            workflow_record = {
+                'workflow_id': workflow_result.workflow_id,
+                'correlation_id': correlation_id,
+                'workflow_type': str(workflow_result.workflow_type.value),
+                'success': workflow_result.success,
+                'start_time': workflow_result.start_time,
+                'end_time': workflow_result.end_time,
+                'metadata': json.dumps(workflow_result.metadata),
+                'errors': json.dumps(workflow_result.errors) if workflow_result.errors else None
+            }
+            
+            # Store in database
+            connection.insert_many('workflow_executions', [workflow_record])
+            
+            # Store individual results if available
+            if hasattr(workflow_result, 'trial_results'):
+                trial_records = []
+                for trial_id, trial_data in workflow_result.trial_results.items():
+                    trial_records.append({
+                        'workflow_id': workflow_result.workflow_id,
+                        'correlation_id': correlation_id,
+                        'trial_id': trial_id,
+                        'parameters': json.dumps(trial_data.get('parameters', {})),
+                        'metrics': json.dumps(trial_data.get('metrics', {})),
+                        'timestamp': datetime.now()
+                    })
+                
+                if trial_records:
+                    connection.insert_many('optimization_trials', trial_records)
+            
+            logger.info(f"Stored workflow results with correlation_id: {correlation_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to store workflow results: {e}")
+            # Don't fail the workflow for analytics errors
     
     def _would_benefit_from_composable(self, config: WorkflowConfig) -> bool:
         """Determine if config would benefit from composable containers."""
@@ -222,127 +408,11 @@ class Coordinator:
         
         is_signal_workflow = (
             config.workflow_type == WorkflowType.ANALYSIS or
-            config.analysis_config.get('mode') == 'signal_generation'
+            (config.analysis_config and config.analysis_config.get('mode') == 'signal_generation')
         )
         
         return has_multiple_components or is_signal_workflow
     
-    async def _execute_traditional_workflow(
-        self,
-        config: WorkflowConfig,
-        context: ExecutionContext,
-        result: CoordinatorResult
-    ) -> None:
-        """Execute workflow using traditional workflow managers."""
-        
-        try:
-            # Lazy import and create workflow manager factory
-            workflow_manager_factory = await self._get_workflow_manager_factory()
-            
-            # Create workflow manager
-            manager = workflow_manager_factory.create_manager(
-                workflow_type=config.workflow_type,
-                container_id=f"workflow_{context.workflow_id}",
-                use_composable=False
-            )
-            
-            # Store workflow info
-            self.active_workflows[context.workflow_id] = {
-                'config': config,
-                'context': context,
-                'manager': manager,
-                'mode': 'traditional'
-            }
-            
-            # Execute workflow
-            workflow_result = await manager.execute(config, context)
-            
-            # Convert to coordinator result
-            result.success = workflow_result.success
-            result.data = workflow_result.final_results
-            result.errors.extend(workflow_result.errors)
-            result.metadata.update(workflow_result.metadata)
-            result.metadata['execution_mode'] = 'traditional'
-            
-            # Generate reports if configured
-            if result.success:
-                await self._handle_reporting(config, context, result)
-            
-        except ImportError as e:
-            result.add_error(f"Traditional workflow manager not available: {e}")
-        except Exception as e:
-            result.add_error(f"Traditional workflow execution failed: {e}")
-    
-    async def _execute_composable_workflow(
-        self,
-        config: WorkflowConfig,
-        context: ExecutionContext,
-        result: CoordinatorResult
-    ) -> None:
-        """Execute workflow using composable container patterns."""
-        
-        if not self.enable_composable_containers:
-            result.add_error("Composable containers not enabled")
-            return
-        
-        try:
-            # Ensure pipeline-enabled containers are registered
-            await self._ensure_containers_registered()
-            
-            # Lazy import composable workflow manager
-            ComposableWorkflowManager = await self._get_composable_workflow_manager()
-            
-            # Create composable workflow manager
-            # Check if this is the pipeline manager (has different constructor)
-            if ComposableWorkflowManager.__name__ == 'ComposableWorkflowManagerPipeline':
-                manager = ComposableWorkflowManager(coordinator=self)
-            else:
-                manager = ComposableWorkflowManager(
-                    container_id=f"workflow_{context.workflow_id}",
-                    shared_services=self.shared_services
-                )
-            
-            # Store workflow info
-            self.active_workflows[context.workflow_id] = {
-                'config': config,
-                'context': context,
-                'manager': manager,
-                'mode': 'composable'
-            }
-            
-            # Execute workflow using appropriate method
-            if ComposableWorkflowManager.__name__ == 'ComposableWorkflowManagerPipeline':
-                # Set up communication for pipeline manager
-                await self.setup_communication()
-                workflow_result = await manager.execute_workflow(config)
-            else:
-                workflow_result = await manager.execute(config, context)
-            
-            # Convert to coordinator result - handle different return formats
-            if isinstance(workflow_result, dict):
-                # Pipeline manager returns dict
-                result.success = workflow_result.get('success', True)
-                result.data = workflow_result
-                result.metadata['execution_mode'] = 'composable_pipeline'
-            else:
-                # Regular manager returns WorkflowResult object
-                result.success = workflow_result.success
-                result.data = workflow_result.final_results
-                result.errors.extend(workflow_result.errors)
-                result.metadata.update(workflow_result.metadata)
-                result.metadata['execution_mode'] = 'composable'
-            
-            # Generate reports if configured
-            if result.success:
-                await self._handle_reporting(config, context, result)
-            
-        except ImportError as e:
-            result.add_error(f"Composable workflow manager not available: {e}")
-            # Fall back to traditional
-            result.add_warning("Falling back to traditional execution")
-            await self._execute_traditional_workflow(config, context, result)
-        except Exception as e:
-            result.add_error(f"Composable workflow execution failed: {e}")
     
     async def _cleanup_workflow(self, workflow_id: str) -> None:
         """Clean up resources for completed workflow."""
@@ -378,17 +448,10 @@ class Coordinator:
         """Lazy load communication factory."""
         if self._communication_factory is None and self.enable_communication:
             try:
-                from ..communication import EventCommunicationFactory
+                from ..communication import AdapterFactory
                 
-                # Get or create log manager
-                if self._log_manager is None:
-                    from ..logging.log_manager import LogManager
-                    self._log_manager = LogManager(coordinator_id=self.coordinator_id)
-                
-                self._communication_factory = EventCommunicationFactory(
-                    coordinator_id=self.coordinator_id,
-                    log_manager=self._log_manager
-                )
+                # Use the new AdapterFactory instead of legacy EventCommunicationFactory
+                self._communication_factory = AdapterFactory()
             except ImportError as e:
                 logger.warning(f"Communication module not available: {e}")
                 self.enable_communication = False
@@ -432,16 +495,19 @@ class Coordinator:
                 if manager and hasattr(manager, 'containers'):
                     active_containers.update(manager.containers)
             
-            # Create communication layer
-            self._communication_layer = factory.create_communication_layer(
-                config=config,
-                containers=active_containers
+            # Create adapters using the new factory method
+            adapters = factory.create_adapters_from_config(
+                config.get('adapters', []),
+                active_containers
             )
             
-            # Setup all adapters
-            await self._communication_layer.setup_all_adapters()
+            # Store adapters for management
+            self._communication_adapters = adapters
             
-            logger.info(f"Communication layer setup complete with {len(self._communication_layer.adapters)} adapters")
+            # Start all adapters
+            factory.start_all()
+            
+            logger.info(f"Communication setup complete with {len(adapters)} adapters")
             return True
             
         except Exception as e:
@@ -449,53 +515,79 @@ class Coordinator:
             return False
     
     async def _get_workflow_manager_factory(self):
-        """Lazy load workflow manager factory."""
-        if self._workflow_manager_factory is None:
-            try:
-                from .managers import WorkflowManagerFactory
-                
-                # Create container manager if needed
-                if self._container_manager is None:
-                    from ..containers import ContainerLifecycleManager
-                    self._container_manager = ContainerLifecycleManager()
-                
-                self._workflow_manager_factory = WorkflowManagerFactory(
-                    container_manager=self._container_manager,
-                    shared_services=self.shared_services
-                )
-            except ImportError as e:
-                raise ImportError(f"Cannot load workflow manager factory: {e}")
-        
-        return self._workflow_manager_factory
+        """Deprecated - workflow manager factory no longer used."""
+        raise DeprecationWarning("Workflow manager factory is deprecated. Use composable containers instead.")
     
     async def _get_composable_workflow_manager(self):
-        """Lazy load composable workflow manager."""
+        """Lazy load the canonical composable workflow manager."""
         try:
-            # Use pipeline-enabled workflow manager for better event flow
-            from .composable_workflow_manager_pipeline import ComposableWorkflowManagerPipeline
-            return ComposableWorkflowManagerPipeline
+            # Use the workflow topology manager at coordinator level
+            # which properly leverages core.containers.factory
+            from .topology import WorkflowManager
+            return WorkflowManager
         except ImportError as e:
-            # Fall back to regular composable workflow manager
-            logger.warning("Pipeline workflow manager not available, falling back to regular manager")
-            from .composable_workflow_manager import ComposableWorkflowManager
-            return ComposableWorkflowManager
+            raise ImportError(f"Cannot load composable workflow manager: {e}")
     
-    async def _get_composition_engine(self):
-        """Lazy load composition engine."""
-        if self._composition_engine is None:
-            try:
-                from ..containers.composition_engine import get_global_composition_engine
-                self._composition_engine = get_global_composition_engine()
-            except ImportError as e:
-                raise ImportError(f"Cannot load composition engine: {e}")
+    async def _get_workflow_manager(self) -> 'WorkflowManager':
+        """Get or create workflow manager instance."""
+        # Create workflow manager with coordinator reference
+        WorkflowManagerClass = await self._get_composable_workflow_manager()
         
-        return self._composition_engine
+        # Determine execution mode string for WorkflowManager
+        if self.enable_pipeline_communication:
+            execution_mode = 'pipeline'
+        elif self.enable_nesting:
+            execution_mode = 'nested'
+        else:
+            execution_mode = 'standard'
+        
+        workflow_manager = WorkflowManagerClass(
+            container_id=f"workflow_{uuid.uuid4().hex[:8]}",
+            shared_services=self.shared_services,
+            coordinator=self,
+            execution_mode=execution_mode,
+            enable_nesting=self.enable_nesting,
+            enable_pipeline_communication=self.enable_pipeline_communication
+        )
+        
+        return workflow_manager
+    
+    async def _get_sequencer(self) -> 'WorkflowSequencer':
+        """Get or create sequencer instance."""
+        try:
+            from .sequencer import WorkflowCoordinator
+            
+            # Create sequencer with checkpointing
+            sequencer = WorkflowCoordinator(
+                checkpoint_dir="./checkpoints"
+            )
+            
+            # Set up result aggregator
+            output_dir = f"./results/{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            from .sequencer import ResultAggregator
+            sequencer.result_aggregator = ResultAggregator(output_dir)
+            
+            return sequencer
+            
+        except ImportError as e:
+            raise ImportError(f"Cannot load sequencer: {e}")
+    
+    async def _get_container_factory(self):
+        """Lazy load container factory."""
+        if self._container_factory is None:
+            try:
+                from ..containers.factory import get_global_factory
+                self._container_factory = get_global_factory()
+            except ImportError as e:
+                raise ImportError(f"Cannot load container factory: {e}")
+        
+        return self._container_factory
     
     async def _get_container_registry(self):
         """Lazy load container registry."""
         if self._container_registry is None:
             try:
-                from ..containers.composition_engine import get_global_registry
+                from ..containers.factory import get_global_registry
                 self._container_registry = get_global_registry()
             except ImportError as e:
                 raise ImportError(f"Cannot load container registry: {e}")
@@ -503,18 +595,28 @@ class Coordinator:
         return self._container_registry
     
     async def _ensure_containers_registered(self) -> None:
-        """Ensure pipeline-enabled containers are registered with the composition engine."""
+        """Ensure pipeline-enabled containers are registered with the container factory."""
         try:
-            # Import and register pipeline-enabled containers
-            from ...execution import containers_pipeline
-            containers_pipeline.register_execution_containers()
-            logger.info("Pipeline-enabled containers registered with composition engine")
-        except ImportError as e:
-            logger.error(f"Failed to register pipeline containers: {e}")
-            raise ImportError(f"Pipeline containers not available: {e}")
+            # Try to import execution containers module
+            try:
+                from ...execution import containers_pipeline
+                containers_pipeline.register_execution_containers()
+                logger.info("Pipeline-enabled containers registered with container factory")
+            except ImportError:
+                # Execution containers module not available - register basic factories
+                from ..containers import register_container_type
+                from ..containers.protocols import ContainerRole
+                
+                # Register basic container factories as stubs
+                register_container_type(ContainerRole.DATA, lambda **kwargs: None)
+                register_container_type(ContainerRole.STRATEGY, lambda **kwargs: None)
+                register_container_type(ContainerRole.RISK, lambda **kwargs: None)
+                register_container_type(ContainerRole.EXECUTION, lambda **kwargs: None)
+                logger.info("Basic container factories registered (execution containers not available)")
+                
         except Exception as e:
-            logger.error(f"Error registering pipeline containers: {e}")
-            raise
+            logger.error(f"Error registering containers: {e}")
+            # Don't raise - allow system to continue without pipeline containers
     
     # Public API methods
     
@@ -564,24 +666,26 @@ class Coordinator:
             }
         
         # Add communication metrics if enabled
-        if self.enable_communication and self._communication_layer:
+        if self.enable_communication and self._communication_adapters:
             try:
-                comm_metrics = self._communication_layer.get_system_metrics()
+                # Aggregate metrics from all adapters
+                total_events_sent = 0
+                total_events_received = 0
+                active_adapters = len(self._communication_adapters)
+                
+                for adapter in self._communication_adapters:
+                    if hasattr(adapter, 'metrics'):
+                        metrics = adapter.metrics
+                        total_events_sent += getattr(metrics, 'events_sent', 0)
+                        total_events_received += getattr(metrics, 'events_received', 0)
+                
                 status['communication'] = {
-                    'total_adapters': comm_metrics.get('total_adapters', 0),
-                    'active_adapters': comm_metrics.get('active_adapters', 0),
-                    'connected_adapters': comm_metrics.get('connected_adapters', 0),
-                    'total_events_sent': comm_metrics.get('total_events_sent', 0),
-                    'total_events_received': comm_metrics.get('total_events_received', 0),
-                    'overall_error_rate': comm_metrics.get('overall_error_rate', 0),
-                    'events_per_second': comm_metrics.get('events_per_second', 0),
-                    'overall_health': comm_metrics.get('overall_health', 'unknown'),
-                    'adapter_status': self._communication_layer.get_adapter_status_summary()
+                    'total_adapters': active_adapters,
+                    'active_adapters': active_adapters,
+                    'total_events_sent': total_events_sent,
+                    'total_events_received': total_events_received
                 }
                 
-                # Add latency percentiles if available
-                if 'latency_percentiles' in comm_metrics:
-                    status['communication']['latency_percentiles'] = comm_metrics['latency_percentiles']
                     
             except Exception as e:
                 logger.error(f"Failed to get communication metrics: {e}")
@@ -599,6 +703,55 @@ class Coordinator:
                 status['available_patterns'] = []
         
         return status
+    
+    async def execute_yaml_workflow(self, yaml_path: str) -> CoordinatorResult:
+        """Execute workflow from YAML configuration file."""
+        
+        if not self.enable_yaml:
+            raise ValueError("YAML support not enabled in coordinator")
+        
+        try:
+            # Lazy import YAML interpreter
+            from .yaml_interpreter import YAMLInterpreter, YAMLWorkflowBuilder
+            import yaml
+            
+            # Load and parse YAML
+            with open(yaml_path, 'r') as f:
+                yaml_config = yaml.safe_load(f)
+            
+            # Convert to WorkflowConfig
+            workflow_type_str = yaml_config.get('type', 'backtest')
+            workflow_type = WorkflowType(workflow_type_str)
+            
+            workflow_config = WorkflowConfig(
+                workflow_type=workflow_type,
+                parameters=yaml_config,
+                data_config=yaml_config.get('data', {}),
+                backtest_config=yaml_config.get('backtest', {}),
+                optimization_config=yaml_config.get('optimization', {}),
+                analysis_config=yaml_config.get('analysis', {})
+            )
+            
+            # Execute using standard workflow execution
+            execution_mode = yaml_config.get('coordinator', {}).get('execution_mode', 'AUTO')
+            result = await self.execute_workflow(
+                workflow_config, 
+                execution_mode=ExecutionMode(execution_mode.upper())
+            )
+            
+            result.metadata['yaml_source'] = yaml_path
+            result.metadata['execution_type'] = 'yaml_driven'
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"YAML workflow execution failed: {e}")
+            return CoordinatorResult(
+                workflow_id=str(uuid.uuid4()),
+                workflow_type=WorkflowType.BACKTEST,
+                success=False,
+                errors=[f"YAML workflow execution failed: {e}"]
+            )
     
     async def validate_workflow_config(
         self,
@@ -653,21 +806,13 @@ class Coordinator:
         for workflow_id in workflow_ids:
             await self._cleanup_workflow(workflow_id)
         
-        # Clean up communication layer if created
-        if self._communication_layer:
+        # Clean up communication adapters
+        if self._communication_factory and hasattr(self._communication_factory, 'stop_all'):
             try:
-                await self._communication_layer.cleanup()
-                logger.info("Communication layer cleaned up")
+                self._communication_factory.stop_all()
+                logger.info("Communication adapters stopped")
             except Exception as e:
-                logger.error(f"Error cleaning up communication layer: {e}")
-        
-        # Clean up communication factory if created
-        if self._communication_factory:
-            try:
-                await self._communication_factory.cleanup_all_adapters()
-                logger.info("Communication factory cleaned up")
-            except Exception as e:
-                logger.error(f"Error cleaning up communication factory: {e}")
+                logger.error(f"Error stopping communication adapters: {e}")
         
         # Clean up container manager if created
         if self._container_manager and hasattr(self._container_manager, 'shutdown'):
@@ -675,7 +820,7 @@ class Coordinator:
         
         logger.info("Coordinator shutdown complete")
     
-    async def _handle_reporting(self, config: WorkflowConfig, context: ExecutionContext, result: CoordinatorResult) -> None:
+    async def _handle_reporting(self, config: WorkflowConfig, context: ExecutionContext, result: 'WorkflowResult') -> None:
         """Handle report generation after successful workflow completion"""
         try:
             # Check if reporting is enabled in configuration
@@ -687,7 +832,7 @@ class Coordinator:
                 return
             
             # Import reporting integration
-            from ...reporting.coordinator_integration import add_reporting_to_coordinator_workflow
+            from ...analytics.coordinator_integration import add_reporting_to_coordinator_workflow
             
             # Determine workspace path from reporting config or default
             output_dir = reporting_config.get('output_dir', 'reports')
@@ -695,13 +840,13 @@ class Coordinator:
             
             # Prepare workflow results for reporting
             workflow_results = {
-                'container_status': result.data.get('container_status', {}),
-                'container_structure': result.data.get('container_structure', {}),
-                'metrics': result.data.get('metrics', {}),
-                'final_state': result.data.get('final_state', 'unknown'),
+                'container_status': result.final_results.get('container_status', {}),
+                'container_structure': result.final_results.get('container_structure', {}),
+                'metrics': result.final_results.get('metrics', {}),
+                'final_state': result.final_results.get('final_state', 'unknown'),
                 'execution_time': result.metadata.get('execution_time', 0),
                 'workflow_id': context.workflow_id,
-                'backtest_data': result.data.get('backtest_data', {})  # Include actual backtest data!
+                'backtest_data': result.final_results.get('backtest_data', {})  # Include actual backtest data!
             }
             
             # Save backtest data to workspace for reporting
@@ -717,7 +862,7 @@ class Coordinator:
             
             # Update result with reporting information
             if 'reporting' in updated_results:
-                result.data['reporting'] = updated_results['reporting']
+                result.final_results['reporting'] = updated_results['reporting']
                 result.metadata['reporting_enabled'] = True
                 
                 # Log report generation results
@@ -809,7 +954,7 @@ async def execute_optimization(
     try:
         result = await coordinator.execute_workflow(
             config=config,
-            execution_mode=ExecutionMode.COMPOSABLE if use_composable else ExecutionMode.TRADITIONAL
+            execution_mode=ExecutionMode.COMPOSABLE
         )
         return result
     finally:

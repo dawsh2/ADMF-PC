@@ -9,6 +9,7 @@ protocols to gain different capabilities.
 from typing import Protocol, runtime_checkable, Dict, Any, Optional, List, Tuple
 from datetime import datetime
 from enum import Enum
+import pandas as pd
 
 
 class SignalDirection(Enum):
@@ -54,77 +55,88 @@ class Strategy(Protocol):
 
 
 @runtime_checkable
-class Indicator(Protocol):
+class FeatureProvider(Protocol):
     """
-    Protocol for technical indicators.
+    Protocol for stateful feature computation engines.
     
-    Indicators calculate values from price data that can be used
-    by strategies to make trading decisions.
+    FeatureProviders manage incremental feature calculation and maintain
+    the state required for real-time/streaming processing.
     """
     
-    def calculate(self, value: float, timestamp: Optional[datetime] = None) -> Optional[float]:
+    def update_bar(self, symbol: str, bar: Dict[str, float]) -> None:
         """
-        Calculate indicator value for new data point.
+        Update with new bar data for incremental feature calculation.
         
         Args:
-            value: New price value
-            timestamp: Optional timestamp
-            
-        Returns:
-            Calculated indicator value or None if not ready
+            symbol: Symbol to update
+            bar: Bar data with OHLCV fields
         """
         ...
     
-    def update(self, value: float, timestamp: Optional[datetime] = None) -> None:
+    def get_features(self, symbol: str) -> Dict[str, Any]:
         """
-        Update indicator state without returning value.
-        More efficient for streaming updates.
-        """
-        ...
-    
-    @property
-    def value(self) -> Optional[float]:
-        """Current indicator value."""
-        ...
-    
-    @property
-    def ready(self) -> bool:
-        """Whether indicator has enough data to produce values."""
-        ...
-    
-    def reset(self) -> None:
-        """Reset indicator state."""
-        ...
-
-
-@runtime_checkable
-class Feature(Protocol):
-    """
-    Protocol for market features derived from multiple data sources.
-    
-    Features are higher-level market characteristics computed from
-    raw data, indicators, or other features.
-    """
-    
-    def extract(self, data: Dict[str, Any]) -> Dict[str, float]:
-        """
-        Extract feature values from market data.
+        Get current feature values for a symbol.
         
         Args:
-            data: Market data including prices, indicators, etc.
+            symbol: Symbol to get features for
             
         Returns:
             Dict of feature_name -> feature_value
         """
         ...
     
+    def configure_features(self, feature_configs: Dict[str, Dict[str, Any]]) -> None:
+        """
+        Configure which features to compute.
+        
+        Args:
+            feature_configs: Dict mapping feature names to configurations
+        """
+        ...
+    
+    def has_sufficient_data(self, symbol: str, min_bars: int = 50) -> bool:
+        """
+        Check if symbol has sufficient data for feature calculation.
+        
+        Args:
+            symbol: Symbol to check
+            min_bars: Minimum number of bars required
+            
+        Returns:
+            True if sufficient data available
+        """
+        ...
+    
+    def reset(self, symbol: Optional[str] = None) -> None:
+        """Reset feature computation state."""
+        ...
+
+
+@runtime_checkable
+class FeatureExtractor(Protocol):
+    """
+    Protocol for stateless feature extraction functions.
+    
+    FeatureExtractors are pure functions that compute features from
+    complete data series without maintaining state.
+    """
+    
+    def extract_features(self, data: pd.DataFrame, **kwargs) -> Dict[str, Any]:
+        """
+        Extract feature values from market data.
+        
+        Args:
+            data: Market data DataFrame with OHLCV columns
+            **kwargs: Additional parameters for feature computation
+            
+        Returns:
+            Dict of feature_name -> feature_values (Series or scalar)
+        """
+        ...
+    
     @property
     def feature_names(self) -> List[str]:
         """Names of features this extractor produces."""
-        ...
-    
-    def reset(self) -> None:
-        """Reset feature extractor state."""
         ...
 
 

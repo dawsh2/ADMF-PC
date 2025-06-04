@@ -16,7 +16,7 @@ import uuid
 
 from ...data.models import Bar
 from ...core.logging.structured import ContainerLogger
-from ..indicators import SimpleMovingAverage
+from ..components.features import FeatureHub, sma_feature
 from ...risk.protocols import Signal, SignalType, OrderSide
 from decimal import Decimal
 

@@ -49,17 +49,17 @@ This detailed container represents **one backtest instance** used in phases like
 │  ┌──────────────────────────▼───────────────────────────────────────────┐   │
 │  │                    Shared Indicator Architecture                      │   │
 │  │  ┌─────────────────────────────────────────────────────────────┐    │   │
-│  │  │              Indicator Hub (Shared Computation)              │    │   │
+│  │  │               Feature Hub (Shared Computation)                │    │   │
 │  │  │  • MA, RSI, ATR, etc. computed once from streamed data      │    │   │
 │  │  │  • Caches results for efficiency                             │    │   │
-│  │  │  • Emits indicator events to downstream consumers            │    │   │
+│  │  │  • Emits feature events to downstream consumers               │    │   │
 │  │  └─────────────────────────────────────────────────────────────┘    │   │
 │  │                             │                                         │   │
-│  │                             │ Indicator Events                       │   │
+│  │                             │ Feature Events                         │   │
 │  │                             ▼                                         │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
 │                                │                                              │
-│                                │ Indicator Events                            │
+│                                │ Feature Events                              │
 │                ┌───────────────┴────────────────┐                            │
 │                │                                │                            │
 │  ┌─────────────▼─────────────────┐  ┌──────────▼─────────────────────┐     │
@@ -67,7 +67,7 @@ This detailed container represents **one backtest instance** used in phases like
 │  ├───────────────────────────────┤  ├────────────────────────────────┤     │
 │  │ ┌───────────────────────────┐ │  │ ┌────────────────────────────┐ │     │
 │  │ │   HMM Regime Classifier   │ │  │ │ Pattern Regime Classifier  │ │     │
-│  │ │ • Consumes indicator data │ │  │ │ • Consumes indicator data  │ │     │
+│  │ │ • Consumes feature data    │ │  │ │ • Consumes feature data     │ │     │
 │  │ │ • Determines regime state │ │  │ │ • Detects market patterns  │ │     │
 │  │ │ • Bull/Bear/Neutral       │ │  │ │ • Breakout/Range/Trending │ │     │
 │  │ └────────────┬──────────────┘ │  │ └─────────────┬──────────────┘ │     │
@@ -170,7 +170,7 @@ This detailed container represents **one backtest instance** used in phases like
 │  │                  Risk & Execution Layer                   │   │
 │  │  • Same risk management as full backtest                  │   │
 │  │  • Same execution engine                                  │   │
-│  │  • 10-100x faster (no indicator computation)              │   │
+│  │  • 10-100x faster (no feature computation)                │   │
 │  └───────────────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -208,7 +208,7 @@ This detailed container represents **one backtest instance** used in phases like
 Market Data
     │
     ▼
-Indicator Hub ──────────────────┐
+Feature Hub ────────────────────┐
     │                           │
     ▼                           ▼
 Classifier Container        Classifier Container
@@ -287,7 +287,7 @@ class ContainerFactory:
         
         # Add all layers
         container.add_component(DataStreamer(config['data']))
-        container.add_component(IndicatorHub(config['indicators']))
+        container.add_component(FeatureHub(config['features']))
         container.add_component(StrategyLayer(config['strategies']))
         container.add_component(RiskManager(config['risk']))
         container.add_component(ExecutionEngine())
@@ -324,7 +324,7 @@ class ContainerFactory:
 ┌────────────────────────────────────────────────────┐
 │            Complex Container                       │
 │  ┌──────────────────────────────────────────────┐  │
-│  │          Indicator Hub (20+ indicators)      │  │
+│  │           Feature Hub (20+ features)         │  │
 │  └────────────────┬─────────────────────────────┘  │
 │                   │                                │
 │  ┌────────────────┴─────────────────┐             │
@@ -411,10 +411,10 @@ Alternative Diagram:
 │  │                                                                         │  │
 │  │  ┌────────────────┐    ┌─────────────────────────────────────────────┐ │  │
 │  │  │ Historical Data│    │          Indicator Container                 │ │  │
-│  │  │    Streamer    │───▶│  (Encapsulates all indicator computation)    │ │  │
+│  │  │    Streamer    │───▶│  (Encapsulates all feature computation)       │ │  │
 │  │  └────────────────┘    │                                             │ │  │
 │  │                        │  ┌─────────────────────────────────────┐    │ │  │
-│  │                        │  │        Indicator Hub                │    │ │  │
+│  │                        │  │         Feature Hub                 │    │ │  │
 │  │                        │  │  • MA, RSI, ATR, MACD, etc.        │    │ │  │
 │  │                        │  │  • Manages computation order       │    │ │  │
 │  │                        │  │  • Handles dependencies            │    │ │  │
@@ -574,7 +574,7 @@ Main Container
 ```python
 class DataContainer:
     def get_enriched_data(self) -> EnrichedMarketData:
-        """Returns market data with all computed indicators"""
+        """Returns market data with all computed features"""
         
 class ClassificationContainer:
     def process_signals(self, data: EnrichedMarketData) -> List[Signal]:

@@ -68,14 +68,11 @@ from .protocols import (
     require_capability
 )
 
-from .registry import (
+from .factory import (
     ComponentMetadata,
     ComponentRegistry,
     get_registry,
-    register_component
-)
-
-from .factory import (
+    register_component,
     CapabilityEnhancer,
     LifecycleEnhancer,
     EventEnhancer,
@@ -84,12 +81,6 @@ from .factory import (
     create_minimal_component
 )
 
-from .discovery import (
-    ComponentScanner,
-    ComponentFinder,
-    discover_components,
-    auto_discover_components
-)
 
 # Add ComponentSpec for backward compatibility
 from dataclasses import dataclass
@@ -147,12 +138,6 @@ __all__ = [
     "ComponentFactory",
     "create_component",
     "create_minimal_component",
-    
-    # Discovery
-    "ComponentScanner",
-    "ComponentFinder",
-    "discover_components",
-    "auto_discover_components",
     
     # Specs
     "ComponentSpec"

@@ -10,7 +10,7 @@ from typing import Dict, Any, List, Optional, Union, Tuple
 from datetime import datetime
 import logging
 
-from .simple_types import WorkflowConfig, WorkflowType
+from .types import WorkflowConfig, WorkflowType
 from ..config import ConfigSchemaValidator, ValidationResult
 
 
@@ -245,9 +245,9 @@ class YAMLInterpreter:
             }
             
             # Determine needed capabilities
-            if "indicators" in strategy:
-                interpreted_strategy["indicators"] = strategy["indicators"]
-                interpreted_strategy["capabilities"].append("technical_indicators")
+            if "features" in strategy:
+                interpreted_strategy["features"] = strategy["features"]
+                interpreted_strategy["capabilities"].append("technical_features")
             
             if "rules" in strategy:
                 interpreted_strategy["rules"] = strategy["rules"]

@@ -10,11 +10,12 @@ from datetime import datetime
 import logging
 
 from ..protocols import Strategy, SignalDirection
-from ..indicators import (
-    SimpleMovingAverage,
-    ExponentialMovingAverage,
-    ATR,
-    ADX
+from ..components.features import (
+    FeatureHub,
+    sma_feature,
+    ema_feature,
+    atr_feature,
+    adx_feature
 )
 from ..features import TechnicalFeatureExtractor, PricePatternExtractor
 from ..rules import CrossoverRule, ThresholdRule, CompositeRule

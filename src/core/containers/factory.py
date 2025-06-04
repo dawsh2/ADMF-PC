@@ -1,400 +1,559 @@
 """
-Container factory for creating specialized containers.
+Container Factory
 
-This module provides factory methods for creating different types
-of containers with appropriate component configurations.
+This module implements the factory infrastructure for creating Container
+instances from patterns. Used by the Coordinator for workflow orchestration.
 """
 
-from __future__ import annotations
-from typing import Dict, Any, Optional, List, Type
+from typing import Dict, List, Any, Optional, Set, Type, Callable
+import yaml
+from pathlib import Path
 import logging
-from datetime import datetime
+from dataclasses import dataclass, field
 
-from .universal import UniversalScopedContainer, ContainerType
-from .lifecycle import ContainerLifecycleManager
-from .naming import (
-    ContainerNamingStrategy,
-    ContainerType as NamingContainerType,
-    Phase,
-    ClassifierType,
-    RiskProfile,
-    create_backtest_container_id,
-    create_optimization_container_id
+from .protocols import (
+    ComposableContainer, ContainerComposition, 
+    ContainerRole, ContainerMetadata, ContainerLimits,
+    ContainerState
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-class ContainerFactory:
-    """
-    Factory for creating specialized containers.
+@dataclass
+class ContainerPattern:
+    """Definition of a container arrangement pattern."""
+    name: str
+    description: str
+    structure: Dict[str, Any]
+    required_capabilities: Set[str] = field(default_factory=set)
+    default_config: Dict[str, Any] = field(default_factory=dict)
     
-    This factory knows how to create and configure containers
-    for different use cases (backtest, optimization, etc.).
-    """
-    
-    def __init__(self, lifecycle_manager: Optional[ContainerLifecycleManager] = None):
-        """
-        Initialize the container factory.
-        
-        Args:
-            lifecycle_manager: Lifecycle manager to use
-        """
-        self.lifecycle_manager = lifecycle_manager or ContainerLifecycleManager()
-        
-        # Container type configurations
-        self._container_configs: Dict[str, Dict[str, Any]] = {
-            ContainerType.BACKTEST.value: {
-                'components': [
-                    {
-                        'name': 'Portfolio',
-                        'class_name': 'Portfolio',
-                        'params': {'initial_cash': 100000},
-                        'capabilities': ['lifecycle', 'events', 'reset']
-                    },
-                    {
-                        'name': 'RiskManager',
-                        'class_name': 'RiskManager',
-                        'dependencies': ['Portfolio'],
-                        'capabilities': ['lifecycle', 'events']
-                    },
-                    {
-                        'name': 'ExecutionSimulator',
-                        'class_name': 'ExecutionSimulator',
-                        'dependencies': ['Portfolio'],
-                        'capabilities': ['lifecycle', 'events']
-                    }
-                ]
-            },
-            ContainerType.OPTIMIZATION.value: {
-                'components': [
-                    {
-                        'name': 'Portfolio',
-                        'class_name': 'Portfolio',
-                        'params': {'initial_cash': 100000},
-                        'capabilities': ['lifecycle', 'events', 'reset']
-                    },
-                    {
-                        'name': 'MetricsCollector',
-                        'class_name': 'MetricsCollector',
-                        'dependencies': ['Portfolio'],
-                        'capabilities': ['lifecycle', 'events']
-                    }
-                ]
-            },
-            ContainerType.LIVE_TRADING.value: {
-                'components': [
-                    {
-                        'name': 'Portfolio',
-                        'class_name': 'LivePortfolio',
-                        'capabilities': ['lifecycle', 'events', 'stateful']
-                    },
-                    {
-                        'name': 'RiskManager',
-                        'class_name': 'LiveRiskManager',
-                        'dependencies': ['Portfolio'],
-                        'capabilities': ['lifecycle', 'events', 'monitorable']
-                    },
-                    {
-                        'name': 'OrderManager',
-                        'class_name': 'OrderManager',
-                        'dependencies': ['Portfolio', 'RiskManager'],
-                        'capabilities': ['lifecycle', 'events']
-                    },
-                    {
-                        'name': 'BrokerConnector',
-                        'class_name': 'BrokerConnector',
-                        'dependencies': ['OrderManager'],
-                        'capabilities': ['lifecycle', 'events']
-                    }
-                ]
-            },
-            ContainerType.INDICATOR.value: {
-                'components': []  # Indicators added dynamically
-            },
-            ContainerType.DATA.value: {
-                'components': [
-                    {
-                        'name': 'DataStore',
-                        'class_name': 'DataStore',
-                        'capabilities': ['lifecycle']
-                    }
-                ]
-            }
-        }
-    
-    def create_backtest_container(
-        self,
-        strategy_spec: Dict[str, Any],
-        shared_services: Optional[Dict[str, Any]] = None,
-        container_id: Optional[str] = None,
-        additional_components: Optional[List[Dict[str, Any]]] = None,
-        phase: Optional[Phase] = None,
-        classifier: Optional[ClassifierType] = None,
-        risk_profile: Optional[RiskProfile] = None
-    ) -> str:
-        """
-        Create a container for backtesting.
-        
-        Args:
-            strategy_spec: Strategy specification
-            shared_services: Shared services
-            container_id: Optional container ID
-            additional_components: Extra components to add
-            phase: Workflow phase
-            classifier: Classifier type
-            risk_profile: Risk profile
-            
-        Returns:
-            Container ID
-        """
-        # Generate structured container ID if not provided
-        if container_id is None:
-            container_id = create_backtest_container_id(
-                phase=phase or Phase.COMPUTATION,
-                classifier=classifier or ClassifierType.NONE,
-                risk_profile=risk_profile or RiskProfile.BALANCED,
-                metadata={'strategy': strategy_spec.get('name', 'unknown')}
-            )
-        
-        # Get base components
-        components = self._container_configs[ContainerType.BACKTEST.value]['components'].copy()
-        
-        # Add strategy
-        components.append({
-            'name': 'Strategy',
-            'class_name': strategy_spec['class'],
-            'params': strategy_spec.get('parameters', {}),
-            'dependencies': ['Portfolio', 'RiskManager'],
-            'capabilities': strategy_spec.get('capabilities', ['lifecycle', 'events']),
-            'config': strategy_spec.get('config', {})
-        })
-        
-        # Add any additional components
-        if additional_components:
-            components.extend(additional_components)
-        
-        # Create container
-        return self.lifecycle_manager.create_container(
-            container_type=ContainerType.BACKTEST.value,
-            container_id=container_id,
-            shared_services=shared_services,
-            specs=components,
-            initialize=True,
-            start=False
+    @classmethod
+    def from_yaml(cls, yaml_data: Dict[str, Any]) -> 'ContainerPattern':
+        """Create pattern from YAML configuration."""
+        return cls(
+            name=yaml_data['name'],
+            description=yaml_data.get('description', ''),
+            structure=yaml_data['structure'],
+            required_capabilities=set(yaml_data.get('required_capabilities', [])),
+            default_config=yaml_data.get('default_config', {})
         )
+
+
+class ContainerRegistry:
+    """Registry for container types and patterns."""
     
-    def create_optimization_container(
-        self,
-        strategy_spec: Dict[str, Any],
-        trial_id: str,
-        shared_services: Optional[Dict[str, Any]] = None,
-        phase: Optional[Phase] = None,
-        classifier: Optional[ClassifierType] = None
-    ) -> str:
-        """
-        Create a container for optimization trial.
-        
-        Args:
-            strategy_spec: Strategy specification
-            trial_id: Optimization trial ID
-            shared_services: Shared services
-            phase: Workflow phase
-            classifier: Classifier type
-            
-        Returns:
-            Container ID
-        """
-        # Generate structured container ID
-        container_id = create_optimization_container_id(
-            phase=phase or Phase.PHASE1_GRID_SEARCH,
-            trial_number=int(trial_id.split('_')[-1]) if '_' in trial_id else 0,
-            classifier=classifier or ClassifierType.NONE,
-            metadata={'strategy': strategy_spec.get('name', 'unknown')}
-        )
-        
-        # Get base components
-        components = self._container_configs[ContainerType.OPTIMIZATION.value]['components'].copy()
-        
-        # Add strategy with optimization capability
-        strategy_spec = strategy_spec.copy()
-        caps = strategy_spec.get('capabilities', ['lifecycle', 'events'])
-        if 'optimization' not in caps:
-            caps.append('optimization')
-        
-        components.append({
-            'name': 'Strategy',
-            'class_name': strategy_spec['class'],
-            'params': strategy_spec.get('parameters', {}),
-            'dependencies': ['Portfolio'],
-            'capabilities': caps,
-            'config': strategy_spec.get('config', {})
-        })
-        
-        # Create container
-        return self.lifecycle_manager.create_container(
-            container_type=ContainerType.OPTIMIZATION.value,
-            container_id=container_id,
-            shared_services=shared_services,
-            specs=components,
-            initialize=True,
-            start=False
-        )
+    def __init__(self):
+        self._container_factories: Dict[ContainerRole, Callable] = {}
+        self._container_capabilities: Dict[ContainerRole, Set[str]] = {}
+        self._patterns: Dict[str, ContainerPattern] = {}
+        self._load_default_patterns()
     
-    def create_live_trading_container(
+    def register_container_type(
         self,
-        strategy_spec: Dict[str, Any],
-        broker_config: Dict[str, Any],
-        shared_services: Optional[Dict[str, Any]] = None,
-        container_id: Optional[str] = None
-    ) -> str:
-        """
-        Create a container for live trading.
-        
-        Args:
-            strategy_spec: Strategy specification
-            broker_config: Broker configuration
-            shared_services: Shared services
-            container_id: Optional container ID
-            
-        Returns:
-            Container ID
-        """
-        # Get base components
-        components = self._container_configs[ContainerType.LIVE_TRADING.value]['components'].copy()
-        
-        # Update broker configuration
-        for comp in components:
-            if comp['name'] == 'BrokerConnector':
-                comp['config'] = broker_config
-                break
-        
-        # Add strategy
-        components.append({
-            'name': 'Strategy',
-            'class_name': strategy_spec['class'],
-            'params': strategy_spec.get('parameters', {}),
-            'dependencies': ['Portfolio', 'RiskManager'],
-            'capabilities': ['lifecycle', 'events', 'monitorable'],
-            'config': strategy_spec.get('config', {})
-        })
-        
-        # Create container
-        return self.lifecycle_manager.create_container(
-            container_type=ContainerType.LIVE_TRADING.value,
-            container_id=container_id,
-            shared_services=shared_services,
-            specs=components,
-            initialize=True,
-            start=False
-        )
-    
-    def create_indicator_container(
-        self,
-        indicators: List[Dict[str, Any]],
-        shared_services: Optional[Dict[str, Any]] = None,
-        container_id: Optional[str] = None
-    ) -> str:
-        """
-        Create a container for shared indicators.
-        
-        Args:
-            indicators: List of indicator specifications
-            shared_services: Shared services
-            container_id: Optional container ID
-            
-        Returns:
-            Container ID
-        """
-        components = []
-        
-        # Create indicator components
-        for i, indicator_spec in enumerate(indicators):
-            components.append({
-                'name': f"{indicator_spec['type']}_{i}",
-                'class_name': indicator_spec['type'],
-                'params': indicator_spec.get('params', {}),
-                'capabilities': ['events'],
-                'config': indicator_spec.get('config', {})
-            })
-        
-        # Create indicator hub to manage them
-        components.append({
-            'name': 'IndicatorHub',
-            'class_name': 'IndicatorHub',
-            'dependencies': [comp['name'] for comp in components],
-            'capabilities': ['lifecycle', 'events']
-        })
-        
-        # Create container
-        return self.lifecycle_manager.create_container(
-            container_type=ContainerType.INDICATOR.value,
-            container_id=container_id,
-            shared_services=shared_services,
-            specs=components,
-            initialize=True,
-            start=False
-        )
-    
-    def create_custom_container(
-        self,
-        container_type: str,
-        components: List[Dict[str, Any]],
-        shared_services: Optional[Dict[str, Any]] = None,
-        container_id: Optional[str] = None,
-        initialize: bool = True,
-        start: bool = False
-    ) -> str:
-        """
-        Create a custom container with specified components.
-        
-        Args:
-            container_type: Type of container
-            components: Component specifications
-            shared_services: Shared services
-            container_id: Optional container ID
-            initialize: Whether to initialize
-            start: Whether to start
-            
-        Returns:
-            Container ID
-        """
-        return self.lifecycle_manager.create_container(
-            container_type=container_type,
-            container_id=container_id,
-            shared_services=shared_services,
-            specs=components,
-            initialize=initialize,
-            start=start
-        )
-    
-    def register_container_config(
-        self,
-        container_type: str,
-        config: Dict[str, Any]
+        role: ContainerRole,
+        factory_func: Callable,
+        capabilities: Set[str] = None
     ) -> None:
-        """
-        Register a configuration for a container type.
+        """Register a container factory for a role."""
+        self._container_factories[role] = factory_func
+        self._container_capabilities[role] = capabilities or set()
+        logger.info(f"Registered container type: {role.value}")
+    
+    def get_container_factory(self, role: ContainerRole) -> Optional[Callable]:
+        """Get factory function for container role."""
+        return self._container_factories.get(role)
+    
+    def register_pattern(self, pattern: ContainerPattern) -> None:
+        """Register a composition pattern."""
+        self._patterns[pattern.name] = pattern
+        logger.info(f"Registered container pattern: {pattern.name}")
+    
+    def get_pattern(self, pattern_name: str) -> Optional[ContainerPattern]:
+        """Get pattern by name."""
+        return self._patterns.get(pattern_name)
+    
+    def list_available_patterns(self) -> List[str]:
+        """List all available pattern names."""
+        return list(self._patterns.keys())
+    
+    def get_container_capabilities(self, role: ContainerRole) -> Set[str]:
+        """Get capabilities for container role."""
+        return self._container_capabilities.get(role, set())
+    
+    def _load_default_patterns(self) -> None:
+        """Load default container patterns."""
+        # Full Backtest Pattern
+        full_backtest = ContainerPattern(
+            name="full_backtest",
+            description="Complete backtest with data → features → classifier → risk → portfolio → strategy → execution",
+            structure={
+                "root": {
+                    "role": "data",
+                    "children": {
+                        "features": {
+                            "role": "feature",
+                            "children": {
+                                "classifier": {
+                                    "role": "classifier", 
+                                    "children": {
+                                        "risk": {
+                                            "role": "risk",
+                                            "children": {
+                                                "portfolio": {
+                                                    "role": "portfolio",
+                                                    "children": {
+                                                        "strategy": {"role": "strategy"}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "execution": {"role": "execution"}
+                    }
+                }
+            },
+            required_capabilities={"data.historical", "execution.backtest"},
+            default_config={
+                "data": {"source": "historical"},
+                "execution": {"mode": "backtest"}
+            }
+        )
         
-        Args:
-            container_type: Type name
-            config: Container configuration
-        """
-        self._container_configs[container_type] = config
-        logger.info(f"Registered container configuration for type: {container_type}")
+        # Signal Generation Pattern
+        signal_generation = ContainerPattern(
+            name="signal_generation",
+            description="Signal generation only - no execution",
+            structure={
+                "root": {
+                    "role": "data",
+                    "children": {
+                        "features": {
+                            "role": "feature",
+                            "children": {
+                                "classifier": {
+                                    "role": "classifier",
+                                    "children": {
+                                        "strategy": {"role": "strategy"}
+                                    }
+                                }
+                            }
+                        },
+                        "analysis": {"role": "analysis"}
+                    }
+                }
+            },
+            required_capabilities={"data.historical", "analysis.signals"},
+            default_config={
+                "data": {"source": "historical"},
+                "analysis": {"mode": "signal_generation"}
+            }
+        )
+        
+        # Signal Replay Pattern
+        signal_replay = ContainerPattern(
+            name="signal_replay",
+            description="Replay signals for ensemble optimization",
+            structure={
+                "root": {
+                    "role": "signal_log",
+                    "children": {
+                        "ensemble": {
+                            "role": "ensemble",
+                            "children": {
+                                "risk": {
+                                    "role": "risk",
+                                    "children": {
+                                        "portfolio": {
+                                            "role": "portfolio"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "execution": {"role": "execution"}
+                    }
+                }
+            },
+            required_capabilities={"signal_log.replay", "execution.backtest"},
+            default_config={
+                "signal_log": {"source": "phase1_output"},
+                "execution": {"mode": "backtest"}
+            }
+        )
+        
+        # Simple Backtest Pattern  
+        simple_backtest = ContainerPattern(
+            name="simple_backtest",
+            description="Simple backtest - backtest container with peer containers: data, features, classifier(risk→portfolio→strategy), execution",
+            structure={
+                "root": {
+                    "role": "backtest",  # Use backtest container as root for peer containers
+                    "children": {
+                        "data": {
+                            "role": "data"
+                        },
+                        "features": {
+                            "role": "feature"
+                        },
+                        "classifier": {
+                            "role": "classifier",
+                            "children": {
+                                "risk": {
+                                    "role": "risk",
+                                    "children": {
+                                        "portfolio": {
+                                            "role": "portfolio",
+                                            "children": {
+                                                "strategy": {"role": "strategy"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "execution": {"role": "execution"}
+                    }
+                }
+            },
+            required_capabilities={"data.historical", "feature.computation", "risk.management", "execution.backtest"},
+            default_config={
+                "data": {"source": "historical"},
+                "risk": {"initial_capital": 10000},
+                "execution": {"mode": "backtest"}
+            }
+        )
+        
+        # Register all patterns
+        for pattern in [full_backtest, signal_generation, signal_replay, simple_backtest]:
+            self.register_pattern(pattern)
+
+
+class ContainerFactory:
+    """Factory for creating containers according to patterns."""
     
-    def get_container(self, container_id: str) -> UniversalScopedContainer:
-        """Get a container by ID."""
-        return self.lifecycle_manager.get_container(container_id)
+    def __init__(self, registry: ContainerRegistry = None):
+        self.registry = registry or ContainerRegistry()
     
-    def dispose_container(self, container_id: str) -> None:
-        """Dispose of a container."""
-        self.lifecycle_manager.dispose_container(container_id)
-    
-    def list_containers(
+    def create_container(
         self,
-        container_type: Optional[str] = None
-    ) -> List[str]:
-        """List active containers."""
-        return self.lifecycle_manager.list_containers(container_type=container_type)
+        role: ContainerRole,
+        config: Dict[str, Any],
+        container_id: Optional[str] = None
+    ) -> ComposableContainer:
+        """Create a container of specified role."""
+        factory = self.registry.get_container_factory(role)
+        if not factory:
+            raise ValueError(f"No factory registered for container role: {role.value}")
+        
+        # Create container with config
+        container = factory(
+            config=config,
+            container_id=container_id
+        )
+        
+        logger.debug(f"Created container: {role.value} with ID: {container.metadata.container_id}")
+        return container
+    
+    def _infer_required_features(self, config: Dict[str, Any]) -> Set[str]:
+        """Infer required features from strategy configurations."""
+        required_features = set()
+        
+        # Collect strategies from multiple possible locations
+        all_strategies = []
+        
+        # Check top-level strategies
+        strategies = config.get('strategies', [])
+        if not isinstance(strategies, list):
+            strategies = [strategies]
+        all_strategies.extend(strategies)
+        
+        # Check backtest.strategies section
+        backtest_config = config.get('backtest', {})
+        backtest_strategies = backtest_config.get('strategies', [])
+        if not isinstance(backtest_strategies, list):
+            backtest_strategies = [backtest_strategies]
+        all_strategies.extend(backtest_strategies)
+        
+        # Check optimization.strategies section (fallback)
+        optimization_config = config.get('optimization', {})
+        opt_strategies = optimization_config.get('strategies', [])
+        if not isinstance(opt_strategies, list):
+            opt_strategies = [opt_strategies]
+        all_strategies.extend(opt_strategies)
+        
+        # Process all found strategies
+        for strategy_config in all_strategies:
+            strategy_type = strategy_config.get('type', '')
+            parameters = strategy_config.get('parameters', {})
+            
+            # Infer features based on strategy type and parameters
+            if strategy_type == 'momentum':
+                # Momentum strategies typically need SMA and RSI
+                lookback_period = parameters.get('lookback_period', 20)
+                required_features.add(f'SMA_{lookback_period}')
+                
+                rsi_period = parameters.get('rsi_period', 14)
+                required_features.add(f'RSI_{rsi_period}' if rsi_period != 14 else 'RSI')
+                
+            elif strategy_type == 'mean_reversion':
+                # Mean reversion strategies typically need moving averages and Bollinger Bands
+                required_features.update(['SMA_20', 'BB_20', 'RSI'])
+                
+            elif strategy_type == 'trend_following':
+                # Trend following strategies typically need multiple timeframe MAs
+                required_features.update(['SMA_10', 'SMA_20', 'SMA_50', 'MACD'])
+                
+            # Add explicit features if specified in config
+            explicit_features = parameters.get('features', [])
+            required_features.update(explicit_features)
+        
+        return required_features
+
+    def compose_pattern(
+        self,
+        pattern_name: str,
+        config_overrides: Dict[str, Any] = None
+    ) -> ComposableContainer:
+        """Compose containers according to named pattern."""
+        pattern = self.registry.get_pattern(pattern_name)
+        if not pattern:
+            raise ValueError(f"Unknown pattern: {pattern_name}")
+        
+        # Merge default config with overrides
+        base_config = pattern.default_config.copy()
+        if config_overrides:
+            base_config.update(config_overrides)
+        
+        # Infer required features from strategy configurations
+        required_features = self._infer_required_features(base_config)
+        if required_features:
+            logger.info(f"Inferred features from strategy config: {required_features}")
+            # Inject features into feature container config (use 'feature' key to match ContainerRole.FEATURE.value)
+            base_config['feature'] = {
+                'required_features': list(required_features)
+            }
+        
+        # Validate required capabilities
+        if not self._validate_pattern_capabilities(pattern):
+            raise ValueError(f"Pattern '{pattern_name}' requirements not met")
+        
+        # Build container hierarchy
+        root_container = self._build_container_tree(
+            pattern.structure["root"],
+            base_config
+        )
+        
+        logger.info(f"Composed pattern '{pattern_name}' with root container: {root_container.metadata.container_id}")
+        return root_container
+    
+    def compose_custom_pattern(
+        self,
+        structure: Dict[str, Any],
+        config: Dict[str, Any] = None
+    ) -> ComposableContainer:
+        """Compose containers according to custom structure."""
+        if "root" not in structure:
+            raise ValueError("Custom pattern must have 'root' element")
+        
+        config = config or {}
+        
+        # Build container hierarchy
+        root_container = self._build_container_tree(
+            structure["root"],
+            config
+        )
+        
+        logger.info(f"Composed custom pattern with root container: {root_container.metadata.container_id}")
+        return root_container
+    
+    def validate_pattern(self, pattern: ContainerPattern) -> bool:
+        """Validate that pattern is valid and composable."""
+        try:
+            # Check structure validity
+            if "root" not in pattern.structure:
+                return False
+            
+            # Check all required roles are registered
+            required_roles = self._extract_roles_from_structure(pattern.structure["root"])
+            for role in required_roles:
+                if not self.registry.get_container_factory(role):
+                    logger.warning(f"No factory for required role: {role.value}")
+                    return False
+            
+            # Check capabilities
+            if not self._validate_pattern_capabilities(pattern):
+                return False
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Pattern validation error: {e}")
+            return False
+    
+    def _build_container_tree(
+        self,
+        node: Dict[str, Any],
+        base_config: Dict[str, Any],
+        parent_container: ComposableContainer = None
+    ) -> ComposableContainer:
+        """Recursively build container tree from structure definition."""
+        # Extract role and config for this container
+        role = ContainerRole(node["role"])
+        
+        # Get container-specific config
+        container_config = base_config.get(role.value, {}).copy()
+        if "config" in node:
+            container_config.update(node["config"])
+        
+        # Create container
+        container = self.create_container(
+            role=role,
+            config=container_config
+        )
+        
+        # Add to parent if provided
+        if parent_container:
+            parent_container.add_child_container(container)
+        
+        # Recursively create children
+        if "children" in node:
+            for child_name, child_def in node["children"].items():
+                child_container = self._build_container_tree(
+                    child_def,
+                    base_config,
+                    container
+                )
+        
+        return container
+    
+    def _extract_roles_from_structure(self, node: Dict[str, Any]) -> Set[ContainerRole]:
+        """Extract all roles used in structure definition."""
+        roles = {ContainerRole(node["role"])}
+        
+        if "children" in node:
+            for child_def in node["children"].values():
+                roles.update(self._extract_roles_from_structure(child_def))
+        
+        return roles
+    
+    def _validate_pattern_capabilities(self, pattern: ContainerPattern) -> bool:
+        """Validate pattern capability requirements."""
+        if not pattern.required_capabilities:
+            return True
+        
+        # Extract roles and check if they support required capabilities
+        roles = self._extract_roles_from_structure(pattern.structure["root"])
+        
+        available_capabilities = set()
+        for role in roles:
+            available_capabilities.update(self.registry.get_container_capabilities(role))
+        
+        missing_capabilities = pattern.required_capabilities - available_capabilities
+        if missing_capabilities:
+            logger.warning(f"Missing capabilities for pattern '{pattern.name}': {missing_capabilities}")
+            return False
+        
+        return True
+
+
+class PatternManager:
+    """Manager for loading and saving container patterns."""
+    
+    def __init__(self, patterns_dir: Path = None):
+        self.patterns_dir = patterns_dir or Path("config/patterns")
+        self.patterns_dir.mkdir(parents=True, exist_ok=True)
+    
+    def load_pattern_from_file(self, pattern_file: Path) -> ContainerPattern:
+        """Load pattern from YAML file."""
+        with open(pattern_file, 'r') as f:
+            pattern_data = yaml.safe_load(f)
+        
+        return ContainerPattern.from_yaml(pattern_data)
+    
+    def save_pattern_to_file(self, pattern: ContainerPattern, filename: str = None) -> Path:
+        """Save pattern to YAML file."""
+        filename = filename or f"{pattern.name}.yaml"
+        pattern_file = self.patterns_dir / filename
+        
+        pattern_data = {
+            'name': pattern.name,
+            'description': pattern.description,
+            'structure': pattern.structure,
+            'required_capabilities': list(pattern.required_capabilities),
+            'default_config': pattern.default_config
+        }
+        
+        with open(pattern_file, 'w') as f:
+            yaml.dump(pattern_data, f, indent=2, default_flow_style=False)
+        
+        logger.info(f"Saved pattern '{pattern.name}' to {pattern_file}")
+        return pattern_file
+    
+    def load_all_patterns(self) -> List[ContainerPattern]:
+        """Load all patterns from patterns directory."""
+        patterns = []
+        
+        for pattern_file in self.patterns_dir.glob("*.yaml"):
+            try:
+                pattern = self.load_pattern_from_file(pattern_file)
+                patterns.append(pattern)
+                logger.info(f"Loaded pattern: {pattern.name}")
+            except Exception as e:
+                logger.error(f"Error loading pattern from {pattern_file}: {e}")
+        
+        return patterns
+    
+    def create_pattern_from_config(
+        self,
+        name: str,
+        description: str,
+        structure: Dict[str, Any],
+        required_capabilities: Set[str] = None,
+        default_config: Dict[str, Any] = None
+    ) -> ContainerPattern:
+        """Create pattern from configuration data."""
+        return ContainerPattern(
+            name=name,
+            description=description,
+            structure=structure,
+            required_capabilities=required_capabilities or set(),
+            default_config=default_config or {}
+        )
+
+
+# Global registry instance
+_global_registry = ContainerRegistry()
+_global_factory = ContainerFactory(_global_registry)
+
+
+def get_global_registry() -> ContainerRegistry:
+    """Get the global container registry."""
+    return _global_registry
+
+
+def get_global_factory() -> ContainerFactory:
+    """Get the global container factory."""
+    return _global_factory
+
+
+def register_container_type(
+    role: ContainerRole,
+    factory_func: Callable,
+    capabilities: Set[str] = None
+) -> None:
+    """Register a container type with the global registry."""
+    _global_registry.register_container_type(role, factory_func, capabilities)
+
+
+def compose_pattern(
+    pattern_name: str,
+    config_overrides: Dict[str, Any] = None
+) -> ComposableContainer:
+    """Compose containers using global factory."""
+    return _global_factory.compose_pattern(pattern_name, config_overrides)

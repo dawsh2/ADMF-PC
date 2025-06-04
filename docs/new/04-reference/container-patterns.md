@@ -11,7 +11,7 @@ ADMF-PC uses a sophisticated Container Composition Engine that organizes trading
 **Container Roles** (from actual `ContainerRole` enum):
 - `BACKTEST` - Root backtest orchestration
 - `DATA` - Data loading and streaming
-- `INDICATOR` - Technical indicator computation
+- `FEATURE` - Technical feature computation
 - `CLASSIFIER` - Regime classification and pattern detection
 - `RISK` - Risk management and position sizing
 - `PORTFOLIO` - Portfolio state tracking and optimization
@@ -46,7 +46,7 @@ container_pattern: "full_backtest"
 **Container Hierarchy**:
 ```
 Data Container (root)
-├── Indicator Container
+├── Feature Container
 │   └── Classifier Container
 │       └── Risk Container
 │           └── Portfolio Container
@@ -56,7 +56,7 @@ Data Container (root)
 
 **Event Flow**:
 ```
-Data Events → Indicators → Classification → Risk Assessment → Portfolio Updates → Strategy Decisions → Execution Orders
+Data Events → Features → Classification → Risk Assessment → Portfolio Updates → Strategy Decisions → Execution Orders
 ```
 
 **Required Capabilities**: 
@@ -65,7 +65,7 @@ Data Events → Indicators → Classification → Risk Assessment → Portfolio 
 
 **Resource Characteristics**:
 - Memory: 200-500MB depending on data size
-- CPU: Utilizes multiple cores for parallel indicator calculation
+- CPU: Utilizes multiple cores for parallel feature calculation
 - Storage: Temporary files for large datasets
 
 **Use Cases**:
@@ -89,7 +89,7 @@ container_pattern: "simple_backtest"
 ```
 Backtest Container (root orchestrator)
 ├── Data Container (peer)
-├── Indicator Container (peer, auto-inferred)
+├── Feature Container (peer, auto-inferred)
 ├── Classifier Container (peer)
 │   ├── Risk Container (child)
 │   ├── Portfolio Container (child)
@@ -98,8 +98,8 @@ Backtest Container (root orchestrator)
 ```
 
 **Automatic Inference Features**:
-- **Indicator Auto-Detection**: System analyzes strategy configuration and automatically creates required indicators
-- **Minimal Indicator Set**: Only creates indicators actually needed by the strategy
+- **Feature Auto-Detection**: System analyzes strategy configuration and automatically creates required features
+- **Minimal Feature Set**: Only creates features actually needed by the strategy
 - **Optimized Execution**: Streamlined data flow for faster execution
 
 **Example Auto-Inference**:
@@ -112,8 +112,8 @@ strategies:
       slow_period: 20
 
 # System automatically infers and creates:
-# - SMA(10) indicator
-# - SMA(20) indicator
+# - SMA(10) feature
+# - SMA(20) feature
 # - Momentum crossover logic
 ```
 
@@ -137,7 +137,7 @@ container_pattern: "signal_generation"
 **Container Hierarchy**:
 ```
 Data Container (root)
-├── Indicator Container
+├── Feature Container
 ├── Classifier Container
 ├── Strategy Container
 └── Analysis Container (signal capture)
@@ -146,7 +146,7 @@ Data Container (root)
 **Signal Capture Process**:
 1. **Signal Generation**: Strategies generate trading signals with full metadata
 2. **Signal Storage**: Analysis container captures signals with timestamp, strength, confidence
-3. **Metadata Enrichment**: Adds regime context, indicator values, and market conditions
+3. **Metadata Enrichment**: Adds regime context, feature values, and market conditions
 4. **Compression**: Compresses signals for efficient storage and later replay
 
 **Captured Signal Schema**:
@@ -160,7 +160,7 @@ class CapturedSignal:
     confidence: float
     strategy_id: str
     regime_context: Dict[str, Any]
-    indicator_values: Dict[str, float]
+    feature_values: Dict[str, float]
     market_conditions: Dict[str, Any]
 ```
 
@@ -192,7 +192,7 @@ Signal Log Container (root)
 
 **Performance Optimization**:
 - **Skip Data Loading**: No need to reload market data
-- **Skip Indicator Calculation**: Indicators already computed and stored with signals
+- **Skip Feature Calculation**: Features already computed and stored with signals
 - **Focus on Risk/Execution**: Optimizes only risk management and execution parameters
 - **Parallel Execution**: Multiple parameter combinations tested simultaneously
 
@@ -255,7 +255,7 @@ event_routing:
       scope: "PARENT"
       
     - source_role: "DATA"
-      target_role: "INDICATOR"
+      target_role: "FEATURE"
       event_types: ["BarEvent"]
       scope: "CHILDREN"
 ```
@@ -274,7 +274,7 @@ container.publish_event(
 
 # Example event subscription
 container.subscribe_to_events(
-    event_types=[BarEvent, IndicatorEvent],
+    event_types=[BarEvent, FeatureEvent],
     scope=EventScope.DOWNWARD,
     handler=self.handle_market_data
 )
@@ -338,10 +338,10 @@ container_composition:
             source: "csv"
             file_path: "data/SPY_1m.csv"
             
-        indicator_hub:
-          role: "INDICATOR"
+        feature_hub:
+          role: "FEATURE"
           config:
-            indicators: ["SMA", "RSI", "MACD"]
+            features: ["SMA", "RSI", "MACD"]
             
         strategy_engine:
           role: "STRATEGY"
@@ -353,12 +353,12 @@ container_composition:
               
   event_routing:
     - source: "data_loader"
-      target: "indicator_hub"
+      target: "feature_hub"
       events: ["BarEvent"]
       
-    - source: "indicator_hub"
+    - source: "feature_hub"
       target: "strategy_engine"
-      events: ["IndicatorEvent"]
+      events: ["FeatureEvent"]
 ```
 
 ## 💾 Resource Management
@@ -380,7 +380,7 @@ resource_management:
         cpu_cores: 0.2
         storage_mb: 500
         
-      INDICATOR:
+      FEATURE:
         memory_mb: 200  # Moderate for calculations
         cpu_cores: 0.3  # Higher CPU for computations
         storage_mb: 100
@@ -549,7 +549,7 @@ custom_pattern = ContainerPattern(
             "role": "data",
             "children": {
                 "feature_engineer": {
-                    "role": "indicator",  # Reuse indicator role for features
+                    "role": "feature",  # Use feature role for features
                     "children": {
                         "ml_model": {
                             "role": "strategy",
@@ -611,8 +611,8 @@ A: Yes, either programmatically through the ContainerPattern class or via YAML c
 **Q: Which pattern should I use for optimization?**
 A: For large optimizations, use signal_generation first to capture signals, then signal_replay for fast parameter testing.
 
-**Q: How does automatic indicator inference work?**
-A: The system analyzes strategy configurations to determine required indicators and automatically creates only the necessary ones.
+**Q: How does automatic feature inference work?**
+A: The system analyzes strategy configurations to determine required features and automatically creates only the necessary ones.
 
 **Q: Can containers run on different machines?**
 A: Currently containers run on the same machine but are designed for future distributed execution.

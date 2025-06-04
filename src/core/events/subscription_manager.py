@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from weakref import WeakMethod, ref
 import logging
 
-from .types import Event, EventType, EventHandler, EventBusProtocol
+from ..types.events import Event, EventType, EventHandler, EventBusProtocol
 
 
 logger = logging.getLogger(__name__)

@@ -16,24 +16,104 @@ python main.py --config examples/simple_momentum.yaml
 # 5. Produced reproducible results
 ```
 
-## Part 1: The Architecture Story
+## Part 1: The Architecture Story - From First Principles
 
-### Chapter 1: The Reproducibility Crisis
+### Chapter 1: The Inheritance Prison
 
-The journey to ADMF-PC's architecture began with a fundamental problem that plagues quantitative trading systems: **inconsistent execution destroys reproducibility**.
+ADMF-PC's journey began with a fundamental frustration: **inheritance hierarchies in legacy trading systems create rigid prisons that limit what you can build**.
 
 ```
-The Reproducibility Crisis:
+The Inheritance Prison (Legacy System):
 ┌─────────────────────────────────────────────────────────────┐
-│              INCONSISTENT EXECUTION PATTERNS                │
+│                    INHERITANCE HELL                          │
+│                                                              │
+│  BaseComponent                                              │
+│       ↓                                                      │
+│  TradingComponent (inherits 50+ methods you don't need)    │
+│       ↓                                                      │
+│  StrategyBase (adds more required methods)                 │
+│       ↓                                                      │
+│  YourStrategy (buried under layers of complexity)          │
+│                                                              │
+│  Problems:                                                   │
+│  ❌ Can't use external libraries (wrong inheritance)        │
+│  ❌ Can't mix different component types                     │
+│  ❌ Must implement dozens of unused methods                 │
+│  ❌ Simple ideas require complex implementation             │
+│  ❌ Testing requires mocking entire framework               │
+│  ❌ Framework lock-in prevents innovation                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Chapter 2: Protocol + Composition - The Foundation
+
+The breakthrough: **protocols over inheritance, composition over coupling**.
+
+```
+The Foundation: Protocol + Composition
+┌─────────────────────────────────────────────────────────────┐
+│                 WHAT MAKES A STRATEGY?                       │
+│                                                              │
+│  Legacy Answer (Inheritance):                               │
+│  "It must inherit from StrategyBase and implement           │
+│   20+ required methods"                                     │
+│                                                              │
+│  ADMF-PC Answer (Protocol):                                │
+│  "It must generate signals"                                │
+│                                                              │
+│  That's it. Nothing more, nothing less.                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+This simple principle unlocks incredible flexibility:
+
+```
+Protocol + Composition Freedom:
+┌─────────────────────────────────────────────────────────────┐
+│                 COMPOSITION LIBERATION                       │
+│                                                              │
+│  "If it generates signals, it's a strategy"                │
+│                                                              │
+│  signal_generators = [                                      │
+│      # Your custom strategy                                 │
+│      MomentumStrategy(period=20),                          │
+│                                                              │
+│      # ML model from scikit-learn                          │
+│      sklearn.ensemble.RandomForestClassifier(),            │
+│                                                              │
+│      # Simple function                                      │
+│      lambda df: "BUY" if df.rsi > 70 else "SELL",         │
+│                                                              │
+│      # External library                                     │
+│      ta.trend.MACD(df.close).macd_signal,                 │
+│                                                              │
+│      # Neural network                                       │
+│      tensorflow.keras.models.load_model("model.h5"),       │
+│                                                              │
+│      # Even Excel formulas!                                 │
+│      ExcelFormulaStrategy("=IF(A1>B1,'BUY','SELL')")      │
+│  ]                                                          │
+│                                                              │
+│  # ALL work together seamlessly!                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Chapter 3: The Standardization Challenge
+
+With protocol flexibility came a new challenge: **how do you ensure consistent execution when components can be anything?**
+
+```
+The Standardization Problem:
+┌─────────────────────────────────────────────────────────────┐
+│           PROTOCOL FLEXIBILITY vs EXECUTION CONSISTENCY     │
 │                                                             │
 │  Monday: Run backtest → Sharpe ratio: 1.8                 │
 │  Tuesday: Run SAME backtest → Sharpe ratio: 1.2           │
 │                                                             │
 │  What changed? NOTHING in the configuration!               │
 │                                                             │
-│  Hidden problems:                                           │
-│  • Strategy A modified shared indicator cache              │
+│  Hidden problems with flexible components:                  │
+│  • Component A modified shared indicator cache             │
 │  • Components initialized in different order               │
 │  • Event timing varied due to system load                  │
 │  • Execution paths diverged based on runtime conditions    │
@@ -44,24 +124,25 @@ The Reproducibility Crisis:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Chapter 2: The Solution - Isolated Containers
+### Chapter 4: Isolated Containers - Standardized Protocol Execution
 
-The breakthrough: **Standardized container environments that guarantee identical execution**.
+The solution: **Isolated containers that provide standardized execution environments for protocol-compliant components**:
 
 ```
-ADMF-PC Solution: Isolated Containers with Standardized Creation
+Isolated Containers: Protocol + Standardized Execution
 ┌─────────────────────────────────────────────────────────────┐
 │                 ISOLATED CONTAINERS                          │
 │                                                              │
 │  ┌─────────────────────────┐  ┌─────────────────────────┐   │
 │  │      Container 1        │  │      Container 2        │   │
 │  │ ┌─────────────────────┐ │  │ ┌─────────────────────┐ │   │
-│  │ │ Isolated Event Bus  │ │  │ │ Isolated Event Bus  │ │   │
-│  │ │ Fresh State         │ │  │ │ Fresh State         │ │   │
-│  │ │ Standard Init Order │ │  │ │ Standard Init Order │ │   │
+│  │ │ Protocol Components │ │  │ │ Protocol Components │ │   │
+│  │ │ • Signal Generator  │ │  │ │ • Signal Generator  │ │   │
+│  │ │ • Risk Manager      │ │  │ │ • Risk Manager      │ │   │
+│  │ │ • Position Sizer    │ │  │ │ • Position Sizer    │ │   │
 │  │ └─────────────────────┘ │  │ └─────────────────────┘ │   │
 │  │                         │  │                         │   │
-│  │ Initialization:         │  │ Initialization:         │   │
+│  │ Standardized Execution: │  │ Standardized Execution: │   │
 │  │ 1. Create event bus     │  │ 1. Create event bus     │   │
 │  │ 2. Init data handler    │  │ 2. Init data handler    │   │
 │  │ 3. Init indicators      │  │ 3. Init indicators      │   │
@@ -81,32 +162,97 @@ ADMF-PC Solution: Isolated Containers with Standardized Creation
 ```
 
 Key insights:
+- **Protocol Flexibility**: Any component following the protocol works
 - **Isolated Event Buses**: Each container has its own event bus, preventing cross-contamination
 - **Standardized Creation**: Components always initialized in the same order
 - **Fresh State**: Every run starts with pristine state
 - **Deterministic Execution**: Same inputs always produce same outputs
+- **Parallelized Backtesting**: Multiple isolated containers can test different parameter combinations simultaneously with a single pass over the data
 
-### Chapter 3: Making Containers Talk - Adapters
+### Chapter 5: The Hierarchical Communication Problem
 
-Isolation created a new challenge: **How do isolated containers communicate without coupling?**
+After implementing isolated containers, a new challenge emerged: **hierarchical container nesting created rigid event flow patterns**.
 
 ```
-The Communication Solution: Pluggable Adapters
+The Rigid Event Flow Problem:
+┌─────────────────────────────────────────────────────────────┐
+│           HIERARCHICAL CONTAINERS = FIXED EVENT FLOW        │
+│                                                             │
+│  Classifier Container                                       │
+│       ↓ (events must flow down)                            │
+│  Risk Container                                             │
+│       ↓ (events must flow down)                            │
+│  Portfolio Container                                        │
+│       ↓ (events must flow down)                            │
+│  Strategy Container                                         │
+│                                                             │
+│  Problem: What if you want strategies to broadcast to       │
+│  multiple risk containers? Or risk to feed back to         │
+│  classifier? YOU CAN'T - hierarchy dictates flow!          │
+│                                                             │
+│  This led to the combinatorial explosion problem...        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Chapter 6: The Combinatorial Explosion
+
+With rigid hierarchical communication, testing different organizational patterns became computationally intractable:
+
+```
+The Combinatorial Explosion:
+┌─────────────────────────────────────────────────────────────┐
+│              TESTING DIFFERENT ORGANIZATIONS                │
+│                                                             │
+│  Consider testing:                                          │
+│  - 3 market classifiers (HMM, Pattern, ML)                │
+│  - 3 risk profiles (Conservative, Balanced, Aggressive)    │
+│  - 5 portfolios (Equal Weight, Risk Parity, etc.)          │
+│  - 20 strategies (various momentum, mean reversion, etc.)   │
+│                                                             │
+│  That's 900 possible combinations!                         │
+│                                                             │
+│  Traditional approach with rigid hierarchy:                │
+│  for classifier in [HMM, Pattern, ML]:                    │
+│    for risk_profile in [Conservative, Balanced, Aggressive]:│
+│      for portfolio in [EqualWeight, RiskParity, ...]:      │
+│        for strategy in [Momentum1, MeanRev1, ...]:         │
+│          run_full_backtest()  # 900 times!                 │
+│                                                             │
+│  Problems:                                                  │
+│  • 900× computation time                                   │
+│  • 900× memory usage                                       │
+│  • Expensive calculations repeated unnecessarily           │
+│  • No ability to reuse intermediate results                │
+│  • Cannot reorganize hierarchy for different questions     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Chapter 7: Pluggable Adapters - Decoupled Communication
+
+The solution: **Adapters that decouple event flow from container hierarchy**:
+
+```
+Adapters: Protocol-Based Event Routing
 ┌─────────────────────────────────────────────────────────────┐
 │                    ADAPTER PATTERNS                          │
+│                                                              │
+│  All adapters work with ANY protocol-compliant component:  │
 │                                                              │
 │  Pipeline Adapter (Sequential Processing):                  │
 │  ┌────────┐    ┌────────┐    ┌────────┐    ┌────────┐      │
 │  │  Data  │───▶│Indicator│───▶│Strategy│───▶│  Risk  │      │
 │  └────────┘    └────────┘    └────────┘    └────────┘      │
+│   Protocol:     Protocol:     Protocol:     Protocol:       │
+│   DataSource    Indicator     Signal        RiskManager     │
+│                                Generator                     │
 │                                                              │
 │  Broadcast Adapter (One to Many):                           │
 │              ┌────────┐                                      │
-│              │Strategy1│                                      │
+│              │Strategy1│ (Protocol: SignalGenerator)         │
 │  ┌────────┐  ├────────┤                                      │
-│  │Indicator│─▶│Strategy2│                                      │
+│  │Indicator│─▶│Strategy2│ (Protocol: SignalGenerator)         │
 │  │  Hub   │  ├────────┤                                      │
-│  └────────┘  │Strategy3│                                      │
+│  └────────┘  │Strategy3│ (Protocol: SignalGenerator)         │
 │              └────────┘                                      │
 │                                                              │
 │  Hierarchical Adapter (Context Flow):                       │
@@ -124,6 +270,39 @@ The Communication Solution: Pluggable Adapters
 │  • Communication patterns configurable via YAML             │
 │  • No code changes to switch patterns                       │
 │  • Complete data flow visibility                            │
+│  • Enables smart computational reuse                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Chapter 8: The Coordinator - Standardized Orchestration
+
+With flexible protocol-based components and adapters, we needed **standardized orchestration**:
+
+```
+The Coordinator: Protocol Orchestration
+┌─────────────────────────────────────────────────────────────┐
+│                      COORDINATOR                            │
+│                                                              │
+│  YAML Configuration                                         │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ components:                                          │    │
+│  │   - protocol: SignalGenerator                       │    │
+│  │     implementation: momentum_strategy               │    │
+│  │   - protocol: RiskManager                          │    │
+│  │     implementation: portfolio_risk                  │    │
+│  │ adapters:                                            │    │
+│  │   - type: pipeline                                   │    │
+│  │     containers: [data, strategy, risk, execution]   │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                           ↓                                  │
+│                      Coordinator                            │
+│                           ↓                                  │
+│  1. Validate all components implement required protocols   │
+│  2. Create isolated containers with protocol components     │
+│  3. Wire adapters based on protocol compatibility          │
+│  4. Execute workflow with guaranteed protocol contracts     │
+│                           ↓                                  │
+│                    Reproducible Results                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -149,41 +328,38 @@ adapters:
 
 ---
 
-## Part 2: Container Deep Dive
-
-### The Real Purpose: Efficient Combinatorial Search
-
-Before diving into container mechanics, understand the core problem ADMF-PC solves: **combinatorial explosion in trading system research**.
-
-Consider a realistic trading system with:
-- 3 market classifiers (HMM, Pattern, ML)
-- 3 risk profiles (Conservative, Balanced, Aggressive)  
-- 5 portfolios (Equal Weight, Risk Parity, etc.)
-- 20 strategies (various momentum, mean reversion, etc.)
-
-That's **900 possible combinations**. Testing each separately would require 900 full backtests. ADMF-PC's hierarchical containers solve this through **smart reuse**.
+## Part 2: How Protocols Enable Smart Computational Reuse
 
 ### The Hierarchy Principle: Fix Expensive, Vary Cheap
+
+With adapters decoupling communication from hierarchy, we can organize for efficiency:
 
 ```
 The Golden Rule of Container Organization:
 ┌─────────────────────────────────────────────────────────────┐
 │  Least variations → Outermost container (computed once)     │
 │  Most variations → Innermost container (computed many times)│
+│                                                              │
+│  All components connected by protocol contracts!            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **Example**: If you rarely change classifiers but often test new strategies:
 
 ```
+ADMF-PC Approach: Protocol-based reuse
 ┌─────────────────────────────────────────────────────────────┐
 │               HMM Classifier Container                       │
+│          Protocol: MarketRegimeClassifier                   │
 │          (Expensive computation - done ONCE)               │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │            Conservative Risk Profile                 │   │
+│  │         Protocol: RiskManager                       │   │
 │  │         (Moderate computation - done 3x)            │   │
 │  │  ┌─────────────┬─────────────┬─────────────────┐    │   │
 │  │  │ Strategy 1  │ Strategy 2  │ ... Strategy 20 │    │   │
+│  │  │  Protocol:  │  Protocol:  │    Protocol:    │    │   │
+│  │  │SignalGen    │SignalGen    │   SignalGen     │    │   │
 │  │  │(Cheap - 20x)│(Cheap - 20x)│  (Cheap - 20x)  │    │   │
 │  │  └─────────────┴─────────────┴─────────────────┘    │   │
 │  └─────────────────────────────────────────────────────┘   │
@@ -194,7 +370,7 @@ The Golden Rule of Container Organization:
 
 ### Invertible Hierarchies: Organize by Research Question
 
-The breakthrough insight: **the same components can be reorganized based on what you're optimizing**.
+The breakthrough insight: **the same protocol-compliant components can be reorganized based on what you're optimizing**.
 
 #### Research Question 1: "How does my strategy perform across conditions?"
 **Strategy-Outer Organization**
@@ -205,6 +381,7 @@ The breakthrough insight: **the same components can be reorganized based on what
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │             Momentum Strategy                        │   │
+│  │        Protocol: SignalGenerator                    │   │
 │  │        (Complex logic computed once)                 │   │
 │  │                                                     │   │
 │  │  ┌─────────────┬─────────────┬─────────────────┐    │   │
@@ -228,6 +405,7 @@ The breakthrough insight: **the same components can be reorganized based on what
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │               HMM Bull Detector                      │   │
+│  │        Protocol: MarketRegimeClassifier             │   │
 │  │        (Expensive ML training done once)            │   │
 │  │                                                     │   │
 │  │  ┌─────────────┬─────────────┬─────────────────┐    │   │
@@ -241,6 +419,86 @@ The breakthrough insight: **the same components can be reorganized based on what
 │  └─────────────────────────────────────────────────────┘   │
 │                                                             │
 │  Answer: "In bull markets, Momentum + Aggressive works best"│
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Three Container Hierarchies for Different Questions
+
+ADMF-PC enables you to reorganize the same components based on your research question:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  THE SAME COMPONENTS                         │
+│                                                             │
+│  Data │ Indicators │ 3 Classifiers │ 3 Risk │ 20 Strategies│
+└─────────────────────────────────────────────────────────────┘
+                                │
+                   Can be organized 3 ways
+                                ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   THREE HIERARCHIES                         │
+│                                                             │
+│  1. Strategy-Outer (test strategy across conditions)       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Strategy A                                          │   │
+│  │  ├─ Classifier 1 → Risk 1,2,3                      │   │
+│  │  ├─ Classifier 2 → Risk 1,2,3                      │   │
+│  │  └─ Classifier 3 → Risk 1,2,3                      │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  2. Classifier-Outer (find best strategies per regime)     │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ HMM Classifier                                      │   │
+│  │  ├─ Risk Profile 1 → Strategies 1-20               │   │
+│  │  ├─ Risk Profile 2 → Strategies 1-20               │   │
+│  │  └─ Risk Profile 3 → Strategies 1-20               │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  3. Risk-Outer (optimize risk parameters)                  │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ Conservative Risk Profile                           │   │
+│  │  ├─ Classifier 1 → Strategies 1-20                 │   │
+│  │  ├─ Classifier 2 → Strategies 1-20                 │   │
+│  │  └─ Classifier 3 → Strategies 1-20                 │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Same 180 combinations, different computational efficiency! │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Container Performance Benefits
+
+Here's the concrete computational savings from smart container organization:
+
+```
+Flat Organization (Inefficient):
+┌─────────────────────────────────────────────────────────────┐
+│  180 separate backtests                                     │
+│  ┌─────┐ ┌─────┐ ┌─────┐     ┌─────┐                       │
+│  │ HMM │ │ HMM │ │ HMM │ ... │ HMM │                       │
+│  │ Cons│ │ Cons│ │ Cons│     │ Aggr│                       │
+│  │ St1 │ │ St2 │ │ St3 │     │ St20│                       │
+│  └─────┘ └─────┘ └─────┘     └─────┘                       │
+│                                                             │
+│  HMM computed 180 times! Massive waste.                    │
+└─────────────────────────────────────────────────────────────┘
+
+Hierarchical Organization (Efficient):
+┌─────────────────────────────────────────────────────────────┐
+│  Smart reuse: 1 + 3 + 60 = 64 computations                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                HMM Classifier                        │   │
+│  │           (Computed once - expensive)               │   │
+│  │  ┌─────────────┬─────────────┬─────────────────┐    │   │
+│  │  │Conservative │ Balanced    │ Aggressive      │    │   │
+│  │  │(Computed 3x)│(Computed 3x)│(Computed 3x)    │    │   │
+│  │  │ ├─ Strat 1  │ ├─ Strat 1  │ ├─ Strat 1      │    │   │
+│  │  │ ├─ Strat 2  │ ├─ Strat 2  │ ├─ Strat 2      │    │   │
+│  │  │ └─ ... 20   │ └─ ... 20   │ └─ ... 20       │    │   │
+│  │  └─────────────┴─────────────┴─────────────────┘    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Result: 65% reduction in computation time!                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -277,9 +535,51 @@ Real research involves multiple phases with different questions:
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Three-Tier Component Architecture
+
+ADMF-PC optimizes resource usage by using the right component tier for each task:
+
+#### Tier 1: Functions (Lightweight Execution)
+- **Pure functions** with no state or side effects
+- **Minimal memory footprint** - perfect for parallel execution
+- **Use for**: Strategy logic, calculations, transformations
+
+#### Tier 2: Stateful Components (Managed State)
+- **Controlled state** with fresh instances per run
+- **Medium resource usage** - state tracking without full container overhead  
+- **Use for**: Position tracking, performance calculation, regime detection
+
+#### Tier 3: Containers (Full Infrastructure)
+- **Complete isolation** with event buses and lifecycle management
+- **High resource usage** - justified for complex coordination
+- **Use for**: Data pipelines, execution engines, production systems
+
+### Smart Resource Allocation by Workflow
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                    RESOURCE OPTIMIZATION                       │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  Simple Backtest:                                             │
+│  • 3 containers + 2 functions + 1 stateful = ~500MB          │
+│                                                                │
+│  Research Phase (5000 parameter combinations):                │
+│  • 2 containers + 5,000 functions + 5,000 stateful = ~2GB    │
+│  • vs 5,000 full containers = ~50GB                           │
+│  • 🚀 25x memory efficiency!                                  │
+│  • Single data pass: All strategies share one data stream     │
+│  • True parallelization: Independent processing, shared data  │
+│                                                                │
+│  Live Trading:                                                │
+│  • 4 containers + 4 functions + 1 stateful = ~1GB            │
+│  • Focus: Maximum reliability over resource efficiency        │
+└────────────────────────────────────────────────────────────────┘
+```
+
 ### Three Execution Patterns
 
-ADMF-PC provides three standardized patterns optimized for different use cases:
+All patterns work with identical protocol-compliant components - the same code runs in backtesting and live trading:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -289,7 +589,8 @@ ADMF-PC provides three standardized patterns optimized for different use cases:
 │  1. Full Backtest Pattern                                   │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ Data → Indicators → Strategies → Risk → Execution   │    │
-│  │                                                     │    │
+│  │  ↓        ↓           ↓           ↓        ↓       │    │
+│  │ Protocol Protocol  Protocol   Protocol  Protocol    │    │
 │  │ Use: Complete strategy testing                      │    │
 │  │ Speed: Baseline (1x)                                │    │
 │  └─────────────────────────────────────────────────────┘    │
@@ -298,6 +599,7 @@ ADMF-PC provides three standardized patterns optimized for different use cases:
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ Data → Indicators → Strategies → Signal Logger      │    │
 │  │                    (No execution!)                  │    │
+│  │ All components follow same protocols as Pattern 1!  │    │
 │  │ Use: Capture signals for analysis                   │    │
 │  │ Speed: 2-3x faster (no execution overhead)          │    │
 │  └─────────────────────────────────────────────────────┘    │
@@ -305,157 +607,173 @@ ADMF-PC provides three standardized patterns optimized for different use cases:
 │  3. Signal Replay Pattern                                   │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │ Signal Logs → Weight Optimizer → Risk → Execution   │    │
-│  │            (No recalculation!)                      │    │
+│  │ Protocol:     Protocol:         Protocol Protocol   │    │
+│  │ SignalSource  SignalProcessor   Same as above!      │    │
 │  │ Use: Test ensemble weights, risk parameters         │    │
 │  │ Speed: 10-100x faster!                              │    │
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
+
+**Live Trading Transition**: Switching from backtesting to live trading requires only a configuration change (`--live` flag) that swaps data sources and execution adapters - all strategy logic, risk management, and signal processing code remains identical.
+```
 ```
 
-### Container Configuration Example
+## Part 3: The Coordinator - Standardized Protocol Orchestration
+
+### From YAML to Results
+
+The Coordinator serves as the **universal interpreter** that orchestrates protocol-compliant components:
+
+```
+The Coordinator: Protocol Orchestration
+┌─────────────────────────────────────────────────────────────┐
+│                      COORDINATOR                            │
+│                                                             │
+│  YAML Configuration ──────▶ Coordinator ──────▶ Results     │
+│                                  │                          │
+│                                  ├─ Validate protocols      │
+│                                  ├─ Create containers       │
+│                                  ├─ Wire adapters          │
+│                                  ├─ Execute workflow        │
+│                                  └─ Aggregate results       │
+│                                                             │
+│  One Interface for Everything:                             │
+│  coordinator.execute_workflow_from_yaml("config.yaml")      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Workflow Composition
+
+The Coordinator enables **workflow composition** - building complex workflows from protocol-compliant building blocks:
+
+```
+Workflow Building Blocks → Composite Workflows
+┌─────────────────────────────────────────────────────────────┐
+│                  WORKFLOW COMPOSITION                        │
+│                                                              │
+│  Simple Building Blocks:        Composite Workflows:        │
+│  ┌──────────────┐              ┌─────────────────────────┐  │
+│  │   Backtest   │              │ Multi-Phase Optimization│  │
+│  ├──────────────┤              │ ┌─────────────────────┐ │  │
+│  │ Optimization │   ────▶      │ │ 1. Parameter Search │ │  │
+│  ├──────────────┤              │ │ 2. Regime Analysis  │ │  │
+│  │   Analysis   │              │ │ 3. Ensemble Weights │ │  │
+│  ├──────────────┤              │ │ 4. Risk Tuning      │ │  │
+│  │  Validation  │              │ │ 5. Final Validation │ │  │
+│  └──────────────┘              │ └─────────────────────┘ │  │
+│                                └─────────────────────────┘  │
+│                                                              │
+│  No new code required - just compose in YAML!              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Multi-Phase Workflow Example
 
 ```yaml
-# Define container hierarchy in YAML
-containers:
-  - type: data
-    name: market_data_source
-    
-  - type: indicator_hub
-    name: shared_indicators
-    indicators: ["SMA_20", "RSI_14", "ATR_14"]
-    
-  - type: classifier
-    name: hmm_regime_detector
-    children:
-      - type: risk_profile
-        name: conservative
-        max_position_pct: 2.0
-        children:
-          - type: strategy
-            name: momentum_conservative
-            fast_period: 10
-            slow_period: 30
-            
-      - type: risk_profile
-        name: aggressive
-        max_position_pct: 5.0
-        children:
-          - type: strategy
-            name: momentum_aggressive
-            fast_period: 5
-            slow_period: 20
+# Complex 4-phase optimization workflow
+workflow:
+  type: regime_adaptive_optimization
+  
+  phases:
+    - name: parameter_discovery
+      type: optimization
+      algorithm: grid_search
+      capture_signals: true  # Save for later replay
+      
+    - name: regime_analysis
+      type: analysis
+      input: phase1_results
+      group_by: market_regime
+      
+    - name: ensemble_optimization
+      type: optimization
+      mode: signal_replay  # 100x faster!
+      input: phase1_signals
+      
+    - name: validation
+      type: backtest
+      parameters: phase3_optimal
+      data_split: test
 ```
 
-### Protocol + Composition: Breaking Free from Inheritance
+### Workspace Management with Event Tracing
 
-The legacy system's inheritance hierarchy created a **rigid prison** that limited what you could build:
+The Coordinator implements sophisticated **workspace management** that integrates SQL analytics with detailed event tracing, enabling both signal replay optimization and comprehensive post-analysis:
 
 ```
-The Inheritance Prison (Legacy System):
+Workspace Structure with Event Tracing
 ┌─────────────────────────────────────────────────────────────┐
-│                    INHERITANCE HELL                          │
+│                   INTEGRATED WORKSPACE                       │
 │                                                              │
-│  BaseComponent                                              │
-│       ↓                                                      │
-│  TradingComponent (inherits 50+ methods you don't need)    │
-│       ↓                                                      │
-│  StrategyBase (adds more required methods)                 │
-│       ↓                                                      │
-│  YourStrategy (buried under layers of complexity)          │
+│  ./results/workflow_123/                                    │
+│  ├── metrics/           # High-level performance data       │
+│  │   ├── trial_0.json   # Sharpe, drawdown, etc.          │
+│  │   └── summary.json   # Aggregated statistics            │
+│  ├── events/            # Detailed behavioral traces        │
+│  │   ├── trial_0.jsonl  # Complete event stream            │
+│  │   └── patterns/      # Discovered event patterns        │
+│  ├── signals/           # Signal generation outputs         │
+│  │   ├── trial_0.jsonl  # For signal replay               │
+│  │   └── metadata.json  # Signal quality metrics           │
+│  ├── analysis/          # Cross-phase insights             │
+│  │   ├── regime_analysis.json                              │
+│  │   ├── pattern_library.json                              │
+│  │   └── event_correlations.json                           │
+│  └── metadata/          # Workflow coordination            │
+│      ├── workflow_config.yaml                              │
+│      └── correlation_ids.json  # Links metrics to events   │
 │                                                              │
-│  Problems:                                                   │
-│  ❌ Can't use external libraries (wrong inheritance)        │
-│  ❌ Can't mix different component types                     │
-│  ❌ Must implement dozens of unused methods                 │
-│  ❌ Simple ideas require complex implementation             │
-│  ❌ Testing requires mocking entire framework               │
+│  The correlation_id is the key that bridges everything:    │
+│  • Metrics tell you WHAT worked                            │
+│  • Events tell you WHY it worked                           │
+│  • Patterns enable predictive insights                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-ADMF-PC's **Protocol + Composition** approach liberates you:
+### Dynamic Workflow Creation
 
-```
-Protocol + Composition Freedom:
-┌─────────────────────────────────────────────────────────────┐
-│                 COMPOSITION LIBERATION                       │
-│                                                              │
-│  "If it generates signals, it's a strategy"                │
-│                                                              │
-│  signal_generators = [                                      │
-│      # Your custom strategy                                 │
-│      MomentumStrategy(period=20),                          │
-│                                                              │
-│      # ML model from scikit-learn                          │
-│      sklearn.ensemble.RandomForestClassifier(),            │
-│                                                              │
-│      # Simple function                                      │
-│      lambda df: "BUY" if df.rsi > 70 else "SELL",         │
-│                                                              │
-│      # External library                                     │
-│      ta.trend.MACD(df.close).macd_signal,                 │
-│                                                              │
-│      # Neural network                                       │
-│      tensorflow.keras.models.load_model("model.h5"),       │
-│                                                              │
-│      # Even Excel formulas!                                 │
-│      ExcelFormulaStrategy("=IF(A1>B1,'BUY','SELL')")      │
-│  ]                                                          │
-│                                                              │
-│  # ALL work together seamlessly!                           │
-└─────────────────────────────────────────────────────────────┘
-```
+Create new workflows entirely through configuration:
 
-### Real-World Example: The Power of Composition
-
-Consider building an adaptive trading system that combines multiple approaches:
-
-```
-Legacy System (Inheritance Nightmare):
-┌─────────────────────────────────────────────────────────────┐
-│  class AdaptiveStrategy(StrategyBase):                      │
-│      def __init__(self):                                    │
-│          super().__init__()  # Forced framework baggage    │
-│          # ❌ Can only use other StrategyBase classes      │
-│          self.ma_strategy = MAStrategy()  # OK             │
-│          # self.ml_model = RandomForest()  # ❌ ERROR!     │
-│          # self.ta_lib = talib.RSI  # ❌ ERROR!           │
-│                                                              │
-│      # Must implement 20+ required methods:                 │
-│      def initialize(self): pass                             │
-│      def on_start(self): pass                               │
-│      def on_data(self): pass                                │
-│      def on_order(self): pass                               │
-│      def on_fill(self): pass                                │
-│      # ... 15 more methods you don't need!                 │
-└─────────────────────────────────────────────────────────────┘
-
-ADMF-PC (Composition Freedom):
-┌─────────────────────────────────────────────────────────────┐
-│  class AdaptiveEnsemble:                                    │
-│      def __init__(self):                                    │
-│          # ✅ Mix ANY components freely!                    │
-│          self.components = {                                │
-│              'trend': MovingAverageCrossover(10, 30),      │
-│              'ml': joblib.load('rf_model.pkl'),            │
-│              'momentum': lambda df: df.rsi > 70,           │
-│              'sentiment': TwitterSentimentAPI(),           │
-│              'options': QuantLibPricer(),                  │
-│          }                                                  │
-│                                                              │
-│      def generate_signal(self, data):                      │
-│          # Combine signals however you want                 │
-│          signals = []                                       │
-│          for name, component in self.components.items():   │
-│              if hasattr(component, 'predict'):             │
-│                  signal = component.predict(data)          │
-│              elif callable(component):                     │
-│                  signal = component(data)                  │
-│              signals.append(signal)                        │
-│          return self.combine(signals)                      │
-└─────────────────────────────────────────────────────────────┘
+```yaml
+# Custom workflow combining multiple patterns
+workflow:
+  name: "adaptive_risk_ensemble"
+  
+  phases:
+    # Phase 1: Find best strategies
+    - name: strategy_discovery
+      type: optimization
+      container_pattern: full_backtest
+      
+    # Phase 2: Analyze risk characteristics  
+    - name: risk_analysis
+      type: analysis
+      container_pattern: signal_generation
+      analyze: risk_metrics
+      
+    # Phase 3: Optimize risk parameters
+    - name: risk_optimization
+      type: optimization
+      container_pattern: signal_replay
+      optimize: risk_parameters
+      
+    # Phase 4: Create adaptive ensemble
+    - name: ensemble_creation
+      type: optimization
+      combine: [phase1_strategies, phase3_risk_params]
+      
+    # Phase 5: Walk-forward validation
+    - name: validation
+      type: validation
+      method: walk_forward
+      window: 252  # 1 year
 ```
 
-### Testing: Night and Day Difference
+## Part 4: Testing and Extension
+
+### Testing: Pure and Simple
+
+Because of protocols, testing becomes trivial:
 
 ```
 Legacy Testing (Inheritance Burden):
@@ -479,7 +797,7 @@ Legacy Testing (Inheritance Burden):
 │      assert result == "BUY"                                │
 └─────────────────────────────────────────────────────────────┘
 
-ADMF-PC Testing (Pure Simplicity):
+Protocol Testing (Pure Simplicity):
 ┌─────────────────────────────────────────────────────────────┐
 │  def test_simple_strategy():                                │
 │      # ✅ Test exactly what you care about!               │
@@ -535,484 +853,41 @@ Start Simple, Enhance Gradually:
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+### Adding New Capabilities
 
-## Part 3: The Coordinator - Your Command Center
-
-### From YAML to Results
-
-The Coordinator serves as the **universal interpreter** that transforms YAML configurations into running systems:
-
-```
-The Coordinator: Universal YAML Interpreter
-┌─────────────────────────────────────────────────────────────┐
-│                      COORDINATOR                            │
-│                                                             │
-│  YAML Configuration ──────▶ Coordinator ──────▶ Results     │
-│                                  │                          │
-│                                  ├─ Parse configuration     │
-│                                  ├─ Create containers       │
-│                                  ├─ Wire adapters          │
-│                                  ├─ Execute workflow        │
-│                                  └─ Aggregate results       │
-│                                                             │
-│  One Interface for Everything:                             │
-│  coordinator.execute_workflow_from_yaml("config.yaml")      │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Workflow Composition
-
-The Coordinator enables **workflow composition** - building complex workflows from simple building blocks:
-
-```
-Workflow Building Blocks → Composite Workflows
-┌─────────────────────────────────────────────────────────────┐
-│                  WORKFLOW COMPOSITION                        │
-│                                                              │
-│  Simple Building Blocks:        Composite Workflows:        │
-│  ┌──────────────┐              ┌─────────────────────────┐  │
-│  │   Backtest   │              │ Multi-Phase Optimization│  │
-│  ├──────────────┤              │ ┌─────────────────────┐ │  │
-│  │ Optimization │   ────▶      │ │ 1. Parameter Search │ │  │
-│  ├──────────────┤              │ │ 2. Regime Analysis  │ │  │
-│  │   Analysis   │              │ │ 3. Ensemble Weights │ │  │
-│  ├──────────────┤              │ │ 4. Risk Tuning      │ │  │
-│  │  Validation  │              │ │ 5. Final Validation │ │  │
-│  └──────────────┘              │ └─────────────────────┘ │  │
-│                                └─────────────────────────┘  │
-│                                                              │
-│  No new code required - just compose in YAML!              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Multi-Phase Workflow Example
-
-```yaml
-# Complex 4-phase optimization workflow
-workflow:
-  type: regime_adaptive_optimization
-  
-  phases:
-    - name: parameter_discovery
-      type: optimization
-      algorithm: grid_search
-      capture_signals: true  # Save for later replay
-      
-    - name: regime_analysis
-      type: analysis
-      input: phase1_results
-      group_by: market_regime
-      
-    - name: ensemble_optimization
-      type: optimization
-      mode: signal_replay  # 100x faster!
-      input: phase1_signals
-      
-    - name: validation
-      type: backtest
-      parameters: phase3_optimal
-      data_split: test
-```
-
-### Workspace Management
-
-The Coordinator implements sophisticated **workspace management** for multi-phase workflows:
-
-```
-Workspace Structure for Multi-Phase Workflows
-┌─────────────────────────────────────────────────────────────┐
-│                   WORKSPACE MANAGEMENT                       │
-│                                                              │
-│  Coordinator creates workspace:                             │
-│  ./results/workflow_123/                                    │
-│  ├── signals/           # Phase 1 outputs                   │
-│  │   ├── trial_0.jsonl                                      │
-│  │   ├── trial_1.jsonl                                      │
-│  │   └── ...                                                │
-│  ├── performance/       # Backtest results                  │
-│  │   ├── trial_0.json                                       │
-│  │   └── summary.json                                       │
-│  ├── analysis/          # Analysis outputs                  │
-│  │   ├── regime_optimal_params.json                         │
-│  │   └── ensemble_weights.json                              │
-│  ├── checkpoints/       # Resumability                      │
-│  │   └── phase_2_complete.checkpoint                        │
-│  └── metadata/          # Configuration                     │
-│      └── workflow_config.yaml                               │
-│                                                              │
-│  Benefits:                                                   │
-│  • Each phase reads previous outputs                        │
-│  • Checkpointing enables resume from any phase             │
-│  • All intermediate results inspectable                     │
-│  • Natural workflow composition through files               │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Phase Data Flow
-
-```
-Multi-Phase Data Flow Through Workspace
-┌─────────────────────────────────────────────────────────────┐
-│  Phase 1: Parameter Discovery                               │
-│  ├─ Input: Market data                                      │
-│  ├─ Process: Grid search with signal capture                │
-│  └─ Output: signals/*.jsonl, performance/*.json             │
-│                           ↓                                  │
-│  Phase 2: Regime Analysis                                   │
-│  ├─ Input: performance/*.json                               │
-│  ├─ Process: Group by regime, find best params              │
-│  └─ Output: analysis/regime_optimal_params.json             │
-│                           ↓                                  │
-│  Phase 3: Ensemble Optimization                             │
-│  ├─ Input: signals/*.jsonl, regime_optimal_params.json      │
-│  ├─ Process: Test weight combinations (100x faster!)        │
-│  └─ Output: analysis/ensemble_weights.json                  │
-│                           ↓                                  │
-│  Phase 4: Validation                                        │
-│  ├─ Input: All optimized parameters                         │
-│  ├─ Process: Out-of-sample testing                          │
-│  └─ Output: Final performance metrics                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Dynamic Workflow Creation
-
-Create new workflows entirely through configuration:
-
-```yaml
-# Custom workflow combining multiple patterns
-workflow:
-  name: "adaptive_risk_ensemble"
-  
-  phases:
-    # Phase 1: Find best strategies
-    - name: strategy_discovery
-      type: optimization
-      container_pattern: full_backtest
-      
-    # Phase 2: Analyze risk characteristics  
-    - name: risk_analysis
-      type: analysis
-      container_pattern: signal_generation
-      analyze: risk_metrics
-      
-    # Phase 3: Optimize risk parameters
-    - name: risk_optimization
-      type: optimization
-      container_pattern: signal_replay
-      optimize: risk_parameters
-      
-    # Phase 4: Create adaptive ensemble
-    - name: ensemble_creation
-      type: optimization
-      combine: [phase1_strategies, phase3_risk_params]
-      
-    # Phase 5: Walk-forward validation
-    - name: validation
-      type: validation
-      method: walk_forward
-      window: 252  # 1 year
-```
-
-### Benefits of the Coordinator Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   COORDINATOR BENEFITS                       │
-│                                                              │
-│  1. Single Entry Point                                      │
-│     coordinator.execute_workflow_from_yaml("any.yaml")      │
-│                                                              │
-│  2. Workflow Composition                                     │
-│     • Build complex from simple                             │
-│     • No new code required                                  │
-│     • Reuse proven components                               │
-│                                                              │
-│  3. Reproducibility Guaranteed                              │
-│     • Standardized execution paths                          │
-│     • Workspace captures all state                          │
-│     • Configuration defines behavior                        │
-│                                                              │
-│  4. Flexibility Through Configuration                       │
-│     • Change workflows via YAML                             │
-│     • Test different approaches                             │
-│     • A/B test strategies                                   │
-│                                                              │
-│  5. Built-in Best Practices                                │
-│     • Automatic checkpointing                               │
-│     • Result aggregation                                    │
-│     • Resource management                                   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Part 4: Extending the System - Signal Processing Example
-
-Let's see how easy it is to extend ADMF-PC with new capabilities. We'll implement a **signal processor** that enhances trading signals in real-time during backtesting or live trading:
-
-```
-The Need: Process Signals Before Execution
-┌─────────────────────────────────────────────────────────────┐
-│  Problem: Raw strategy signals often need enhancement       │
-│  • Too many signals (need rate limiting)                   │
-│  • Low confidence signals (need filtering)                 │
-│  • Regime-dependent adjustments (need context)             │
-│  • Correlation issues (need portfolio awareness)           │
-│                                                             │
-│  Solution: Signal Processor Container                       │
-│  • Sits between strategy and risk management               │
-│  • Enhances signals in real-time                          │
-│  • Configurable transformations                            │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Step 1: Create the Signal Processor Container
+Because everything is protocol-based, extending is simple:
 
 ```python
-# New container type - just implement the protocol!
+# Want to add signal processing? Just implement the protocol!
 class SignalProcessorContainer:
-    """Processes and enhances signals before execution"""
+    """Processes signals - that's the only requirement"""
     
-    def __init__(self, config):
-        self.min_confidence = config.get('min_confidence', 0.5)
-        self.regime_boost = config.get('regime_boost', {})
-        self.rate_limit = config.get('rate_limit', '1H')
-        self.correlation_filter = config.get('correlation_filter', True)
-        
-        # State tracking
-        self.signal_history = {}
-        self.current_regime = None
-        self.portfolio_correlation = {}
-        
     def process_event(self, event):
-        """Transform signals based on configuration"""
-        
-        if event.type == "REGIME":
-            # Update regime context
-            self.current_regime = event.regime
-            return None
-            
-        elif event.type == "SIGNAL":
-            # Apply signal transformations
-            signal = event
-            
-            # 1. Confidence filter
-            if signal.confidence < self.min_confidence:
-                return None  # Reject low confidence
-            
-            # 2. Regime adjustment
-            if self.current_regime in self.regime_boost:
-                signal.strength *= self.regime_boost[self.current_regime]
-            
-            # 3. Rate limiting
-            if not self._check_rate_limit(signal):
-                return None  # Too many signals
-            
-            # 4. Correlation filter
-            if self.correlation_filter and self._is_correlated(signal):
-                return None  # Too correlated with existing positions
-            
-            # Emit enhanced signal
-            return SignalEvent(
-                symbol=signal.symbol,
-                action=signal.action,
-                strength=signal.strength,
-                metadata={'processor': 'enhanced', 'regime': self.current_regime}
-            )
-    
-    def _check_rate_limit(self, signal):
-        """Enforce rate limits per symbol"""
-        symbol = signal.symbol
-        now = signal.timestamp
-        
-        if symbol in self.signal_history:
-            last_signal = self.signal_history[symbol]
-            if (now - last_signal).total_seconds() < 3600:  # 1 hour
-                return False
-                
-        self.signal_history[symbol] = now
-        return True
+        """Protocol: EventProcessor"""
+        if event.type == "SIGNAL":
+            # Your logic here
+            return enhanced_signal
 ```
 
-### Step 2: Wire It Into Your Trading Pipeline
+Wire it in via YAML:
 
 ```yaml
-# Add signal processor to your backtest configuration
 workflow:
-  type: backtest
-  
-  containers:
-    # Standard containers
-    - type: data
-      name: market_data
+  components:
+    - protocol: SignalGenerator
+      implementation: momentum_strategy
       
-    - type: indicator_hub
-      name: indicators
+    - protocol: SignalProcessor  # NEW!
+      implementation: signal_enhancer
       
-    - type: strategy
-      name: momentum_strategy
-      parameters:
-        fast_period: 10
-        slow_period: 30
-    
-    # NEW: Signal processor between strategy and risk!
-    - type: signal_processor
-      name: signal_enhancer
-      config:
-        min_confidence: 0.7
-        regime_boost:
-          BULL: 1.5    # Boost signals in bull market
-          BEAR: 0.7    # Reduce in bear market
-          NEUTRAL: 1.0
-        rate_limit: "1H"  # Max 1 signal per hour per symbol
-        correlation_filter: true
-    
-    - type: risk_manager
-      name: portfolio_risk
-      
-    - type: execution
-      name: executor
+    - protocol: RiskManager
+      implementation: portfolio_risk
 
-# Configure adapters to include processor in pipeline
-adapters:
-  - type: pipeline
-    containers: [market_data, indicators, momentum_strategy, 
-                signal_enhancer, portfolio_risk, executor]
-    #                          ↑ NEW: Processor in the flow!
-```
-
-### Step 3: Create Advanced Processing Workflows
-
-```yaml
-# Multi-stage signal processing workflow
-workflow:
-  name: "Ensemble with ML Enhancement"
-  
-  # Stack multiple processors!
-  signal_processors:
-    # First: Ensemble combiner
-    - type: ensemble_processor
-      name: signal_combiner
-      strategies: [momentum, mean_reversion, ml_predictor]
-      weights: [0.4, 0.3, 0.3]
-      
-    # Second: ML quality scorer
-    - type: ml_signal_scorer
-      name: quality_filter
-      model_path: "models/signal_quality.pkl"
-      min_score: 0.6
-      
-    # Third: Risk-aware filter
-    - type: portfolio_aware_processor
-      name: risk_filter
-      max_correlated_positions: 3
-      max_sector_exposure: 0.3
-      
-  # Wire them in sequence
   adapters:
     - type: pipeline
-      containers: [data, indicators, strategies, signal_combiner,
-                  quality_filter, risk_filter, risk_manager, executor]
+      # Adapter connects based on protocols
+      flow: [SignalGenerator, SignalProcessor, RiskManager]
 ```
-
-### The Complete Signal Processing Architecture
-
-```
-Signal Processing Pipeline - Flexible Enhancement
-┌─────────────────────────────────────────────────────────────┐
-│                 SIGNAL PROCESSING PIPELINE                   │
-│                                                              │
-│  Market Data                                                │
-│       ↓                                                      │
-│  Indicators                                                 │
-│       ↓                                                      │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │  Strategies (Generate Raw Signals)                  │    │
-│  │  • Momentum: "BUY AAPL, strength=0.8"              │    │
-│  │  • Mean Rev: "SELL GOOGL, strength=0.6"            │    │
-│  │  • ML Model: "BUY MSFT, strength=0.9"              │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                           ↓                                  │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │  Signal Processor Chain (Your Extensions!)          │    │
-│  │                                                     │    │
-│  │  1. Ensemble Combiner                              │    │
-│  │     → Weighted average of strategies               │    │
-│  │                                                     │    │
-│  │  2. Confidence Filter                              │    │
-│  │     → Remove signals below threshold               │    │
-│  │                                                     │    │
-│  │  3. Regime Adjuster                                │    │
-│  │     → Boost/reduce based on market regime          │    │
-│  │                                                     │    │
-│  │  4. Rate Limiter                                   │    │
-│  │     → Prevent overtrading                          │    │
-│  │                                                     │    │
-│  │  5. Correlation Filter                             │    │
-│  │     → Avoid concentrated positions                 │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                           ↓                                  │
-│              Enhanced, Filtered Signals                     │
-│                           ↓                                  │
-│                    Risk Management                           │
-│                           ↓                                  │
-│                      Execution                               │
-│                                                              │
-│  Benefits:                                                   │
-│  • Process signals without changing strategies              │
-│  • Chain multiple processors                                │
-│  • Configure via YAML                                       │
-│  • Test different processing approaches                      │
-│  • Works in backtest AND live trading                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Real-World Usage Examples
-
-```python
-# Example 1: A/B test different signal processors
-config_a = {
-    'signal_processor': {
-        'min_confidence': 0.8,
-        'rate_limit': '30M'
-    }
-}
-
-config_b = {
-    'signal_processor': {
-        'min_confidence': 0.6,
-        'rate_limit': '1H',
-        'regime_boost': {'BULL': 1.5}
-    }
-}
-
-# Run both and compare results
-result_a = coordinator.execute_workflow_from_yaml("config_a.yaml")
-result_b = coordinator.execute_workflow_from_yaml("config_b.yaml")
-
-# Example 2: Production deployment with multiple processors
-production_config = """
-signal_processors:
-  - type: ml_signal_enhancer
-    model: "production/signal_enhancer_v3.pkl"
-    
-  - type: risk_aware_filter
-    max_portfolio_correlation: 0.7
-    max_drawdown_contribution: 0.02
-    
-  - type: execution_optimizer
-    minimize_market_impact: true
-    smart_routing: true
-"""
-```
-
-### This Extension Demonstrates
-
-1. **Protocol Power**: Any component that processes signals works - no inheritance needed
-2. **Pipeline Flexibility**: Insert processors anywhere in the pipeline via configuration
-3. **Composition Benefits**: Chain multiple processors for sophisticated logic
-4. **Configuration Control**: Change processing behavior through YAML, not code
-5. **Universal Application**: Same processors work in backtest, paper, and live trading
 
 ### What You Can Build with Extensions
 
@@ -1027,28 +902,104 @@ signal_processors:
 │  • Portfolio Optimizers - Mean-variance, risk parity       │
 │  • Alert Systems - Slack, email, SMS notifications        │
 │                                                              │
-│  All following the same pattern shown above!               │
+│  All following the same protocol pattern shown above!      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## Summary: The Complete Architecture
 
-ADMF-PC's architecture solves the fundamental challenges of quantitative trading systems:
+ADMF-PC's architecture is built on a foundation of **protocols and composition**:
 
-1. **Isolated Containers** ensure reproducibility and enable massive parallelization
-2. **Adapters** provide flexible communication without coupling
-3. **Hierarchical Composition** minimizes computation through smart nesting
-4. **Protocol + Composition** enables mixing any components regardless of source
-5. **The Coordinator** orchestrates everything through simple YAML configuration
-6. **Workspace Management** enables sophisticated multi-phase workflows
+1. **Protocol + Composition** (Foundation) → Ultimate flexibility, escape inheritance prison
+2. **Isolated Containers** → Reproducibility with protocol components
+3. **Pluggable Adapters** → Flexible protocol-based communication, solve hierarchy rigidity
+4. **Smart Organization** → Efficient computation through protocols
+5. **The Coordinator** → Standardized protocol orchestration
+6. **Multi-Phase Workflows** → Complex research through simple building blocks
 
 The result is a system where:
-- Ideas can be tested in minutes instead of days
-- Results are perfectly reproducible
-- Any component can work with any other
-- Complex workflows emerge from simple building blocks
-- Everything is controlled through configuration, not code
+- **Any component that follows the protocol works** - no inheritance required
+- **Results are perfectly reproducible** through standardized isolated execution
+- **Communication patterns are flexible** through protocol-based adapters
+- **Computation is efficient** through smart hierarchical reuse
+- **Everything is standardized** through YAML-driven coordination
+- **Complex systems emerge** from simple protocol-compliant components
 
-This architecture transforms trading system development from a programming challenge into a configuration exercise, enabling researchers to focus on what matters: understanding markets and developing profitable strategies.
+This architecture transforms trading system development from fighting framework constraints into composing protocol-compliant components, enabling researchers to focus on what matters: understanding markets and developing profitable strategies.
+
+--- [NOT ACCURATE, PLACEHOLDER ONLY]
+
+## References and Deep Dives
+
+### Core Architecture
+- **Container Types and Composition**: `docs/detailed-container-diagrams.md`
+  - Hierarchical container structure
+  - Component nesting patterns
+  - Performance characteristics by container type
+  - Container factory patterns
+
+### Communication System
+- **Event Communication Adapters**: `docs/event-communication-diagrams.md`
+  - Semantic event system architecture
+  - Adapter types and selection criteria
+  - Schema evolution and type safety
+  - Performance tier optimization
+  
+- **When to Use Adapters**: `docs/adapter_benefits.md`
+  - Decision framework for adapter vs. simple routing
+  - Real-world scenarios and ROI analysis
+  - Multi-phase workflow patterns
+
+### Combinatorial Search Optimization
+- **Container Organization for Search**: `docs/container-organization-patterns_v3.md`
+  - Combinatorial search optimization principles
+  - Invertible hierarchies based on research questions
+  - Multi-phase search workflows
+  - Computational efficiency through smart hierarchy
+
+### Component Architecture
+- **Three-Tier Components**: `docs/functional-stateful-containers.md`
+  - Function vs stateful vs container trade-offs
+  - Resource optimization patterns
+  - Workflow-specific component selection
+  - Memory efficiency comparisons
+
+### Advanced Features
+- **Event Tracing and Data Mining**: `docs/data-mining-architecture.md`
+  - Comprehensive event tracing architecture
+  - Post-optimization analysis patterns
+  - Pattern discovery and validation
+  - Real-time pattern monitoring
+
+### Implementation Guides
+- **Container Development**: `src/containers/` 
+  - Base container protocols and interfaces
+  - Standard container implementations
+  - Testing patterns and examples
+
+- **Workflow Configuration**: `examples/workflows/`
+  - Golden path YAML configurations
+  - Multi-phase workflow templates
+  - Performance optimization examples
+
+### Extension Points
+- **Custom Adapters**: `src/adapters/`
+  - Adapter base classes and protocols
+  - Performance tier implementations
+  - Integration with logging system
+
+- **Signal Processing**: `src/signal_processors/`
+  - Signal enhancement patterns
+  - Real-time processing examples
+  - Integration with ML pipelines
+
+### Operational Guides
+- **Deployment Patterns**: `docs/deployment/`
+  - Local vs. distributed configurations
+  - Scaling and performance tuning
+  - Monitoring and debugging
+
+- **Development Workflow**: `docs/development/`
+  - Setup and testing environment
+  - Debugging techniques
+  - Performance profiling

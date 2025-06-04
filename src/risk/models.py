@@ -14,30 +14,10 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
 import uuid
 
-
-class OrderSide(Enum):
-    """Order side enumeration."""
-    BUY = 1
-    SELL = -1
-
-
-class OrderType(Enum):
-    """Order type enumeration."""
-    MARKET = "MARKET"
-    LIMIT = "LIMIT"
-    STOP = "STOP"
-    STOP_LIMIT = "STOP_LIMIT"
-
-
-class SignalType(Enum):
-    """Signal type enumeration."""
-    ENTRY = "entry"
-    EXIT = "exit"
-    SCALE_IN = "scale_in"
-    SCALE_OUT = "scale_out"
+# Import shared types from core (single source of truth)
+from ..core.types import OrderSide, OrderType, SignalType
 
 
 @dataclass

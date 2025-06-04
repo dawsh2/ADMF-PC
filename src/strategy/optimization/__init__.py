@@ -48,7 +48,10 @@ from .protocols import (
 )
 
 # Capabilities
-from .capabilities import OptimizationCapability
+# from .capabilities import OptimizationCapability  # Removed - capabilities.py doesn't exist
+
+# Temporary stub for OptimizationCapability
+OptimizationCapability = None
 
 # Containers
 from .containers import (

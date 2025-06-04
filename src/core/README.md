@@ -42,15 +42,14 @@ Components communicate through isolated event buses, preventing cross-contaminat
 src/core/
 ├── components/           # Component framework
 │   ├── protocols.py     # Core protocols and capabilities
-│   ├── registry.py      # Component registration and discovery
-│   ├── factory.py       # Component creation with enhancement
-│   └── discovery.py     # Automatic component discovery
+│   ├── registry.py      # Component registration
+│   └── factory.py       # Component creation with enhancement
 │
 ├── containers/          # Container system
-│   ├── universal.py     # Universal scoped container
-│   ├── bootstrap.py     # Container initialization
-│   ├── lifecycle.py     # Lifecycle management
-│   └── factory.py       # Specialized container creation
+│   ├── container.py     # Universal container implementation
+│   ├── protocols.py     # Container protocols
+│   ├── naming.py        # Container naming conventions
+│   └── factory.py       # Container creation and patterns
 │
 ├── coordinator/         # Workflow orchestration
 │   ├── coordinator.py   # Main coordinator
@@ -87,9 +86,8 @@ src/core/
 The component system provides the foundation for building modular, reusable components:
 
 - **Protocols**: Define interfaces that components can implement
-- **Registry**: Central registration and discovery of components
+- **Registry**: Central registration of components
 - **Factory**: Creates components with automatic capability enhancement
-- **Discovery**: Automatically finds and registers components
 
 Example:
 ```python
@@ -304,7 +302,7 @@ async def run_backtest():
     coordinator = Coordinator(
         shared_services={
             'data_provider': HistoricalDataProvider(),
-            'indicator_hub': IndicatorHub()
+            'feature_hub': FeatureHub()
         }
     )
     

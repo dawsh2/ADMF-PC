@@ -12,156 +12,111 @@ import uuid
 
 from ..protocols import Strategy, SignalDirection
 from ...risk.protocols import Signal, SignalType, OrderSide
+from ...core.logging.structured import StructuredLogger, LogContext
 
 
 class MomentumStrategy:
     """
-    Momentum-based trading strategy.
+    Stateless momentum-based trading strategy.
     
-    This is a simple class with no inheritance. It implements the
-    Strategy protocol methods, making it compatible with the system.
+    This strategy consumes features from FeatureHub and makes pure
+    decisions based on current feature values. No state is maintained.
     
     Features:
-    - Price momentum calculation
-    - RSI-based signals
-    - No inheritance required
+    - Pure decision logic based on SMA momentum
+    - RSI-based signal filtering
+    - Completely stateless - no internal state storage
+    - Protocol + Composition compliant
     """
     
     def __init__(self, 
-                 lookback_period: int = 20,
-                 momentum_threshold: float = 0.0005,  # Lowered from 0.02 to 0.0005 for minute data
-                 rsi_period: int = 14,
+                 momentum_threshold: float = 0.02,
                  rsi_oversold: float = 30,
-                 rsi_overbought: float = 70):
+                 rsi_overbought: float = 70,
+                 component_id: str = None):
         """
         Initialize momentum strategy.
         
         Args:
-            lookback_period: Period for momentum calculation
-            momentum_threshold: Minimum momentum for signal
-            rsi_period: RSI calculation period
+            momentum_threshold: Minimum momentum for signal generation
             rsi_oversold: RSI oversold threshold
             rsi_overbought: RSI overbought threshold
         """
-        # Parameters
-        self.lookback_period = lookback_period
+        # Configuration only - no state!
         self.momentum_threshold = momentum_threshold
-        self.rsi_period = rsi_period
         self.rsi_oversold = rsi_oversold
         self.rsi_overbought = rsi_overbought
         
-        # State
-        self.price_history: List[float] = []
-        self.rsi_values: List[float] = []
-        
-        # Internal calculation state
-        self._gains: List[float] = []
-        self._losses: List[float] = []
+        # Logging setup
+        self.component_id = component_id or f"momentum_strategy_{uuid.uuid4().hex[:8]}"
+        context = LogContext(
+            container_id="strategy_container",
+            component_id=self.component_id,
+            correlation_id=None
+        )
+        self.logger = StructuredLogger(__name__, context)
         
     @property
     def name(self) -> str:
         """Strategy name for identification."""
         return "momentum_strategy"
     
-    def get_required_indicators(self) -> Set[str]:
+    def get_required_features(self) -> Set[str]:
         """
-        Return indicators required by this strategy.
+        Return features required by this strategy.
         
-        This allows the IndicatorContainer to compute shared indicators
-        instead of the strategy calculating them internally.
+        This allows the FeatureHub to compute shared features
+        instead of duplicating calculations.
         """
         return {
-            f"SMA_{self.lookback_period}",  # For momentum calculation
-            "RSI"  # For RSI-based signals
+            "sma_fast",   # Fast SMA for momentum
+            "sma_slow",   # Slow SMA for momentum  
+            "rsi"         # RSI for signal filtering
         }
     
-    def generate_signals(self, strategy_input: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def generate_signals(self, strategy_input: Dict[str, Any]) -> List[Signal]:
         """
-        Generate trading signals from market data and indicators.
+        Generate trading signals from market data and features.
         
-        This method is called by StrategyContainer with combined
-        market data and computed indicators.
+        This is a STATELESS function that makes decisions based purely
+        on current feature values from FeatureHub.
         """
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"🎯 MomentumStrategy.generate_signals() called!")
+        self.logger.info("Stateless MomentumStrategy.generate_signals() called")
         
         market_data = strategy_input.get('market_data', {})
-        indicators = strategy_input.get('indicators', {})
+        features = strategy_input.get('features', {})
         timestamp = strategy_input.get('timestamp', datetime.now())
-        
-        logger.info(f"   Market data: {list(market_data.keys())} symbols")
-        logger.info(f"   Indicators: {indicators}")
-        logger.info(f"   Timestamp: {timestamp}")
         
         signals = []
         
-        # Process each symbol in market data
+        # Process each symbol - pure stateless decision logic
         for symbol, data in market_data.items():
-            logger.info(f"   📊 Processing symbol: {symbol}, data: {data}")
             price = data.get('close', data.get('price'))
-            logger.info(f"   💰 Extracted price: {price}")
             if price is None:
-                logger.info(f"   ❌ No price found for {symbol}, skipping")
                 continue
             
-            # Get indicators for this symbol
-            symbol_indicators = indicators.get(symbol, {})
+            # Get features for this symbol from FeatureHub
+            symbol_features = features.get(symbol, {})
             
-            # Update price history for momentum calculation
-            self.price_history.append(price)
-            if len(self.price_history) > self.lookback_period * 2:
-                self.price_history.pop(0)
+            # Extract required features
+            sma_fast = symbol_features.get('sma_fast')
+            sma_slow = symbol_features.get('sma_slow')
+            rsi = symbol_features.get('rsi')
             
-            # Need enough data for momentum
-            if len(self.price_history) < self.lookback_period:
-                # Debug logging for price history
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.debug(f"Not enough price history: {len(self.price_history)}/{self.lookback_period}")
+            # Skip if required features not available
+            if any(x is None for x in [sma_fast, sma_slow, rsi]):
+                self.logger.debug("Missing features for %s", symbol)
                 continue
             
-            # No cooldown - let risk management handle position limits
+            # Pure stateless momentum calculation
+            momentum = (sma_fast - sma_slow) / sma_slow if sma_slow != 0 else 0.0
             
-            # Get indicators - use shared indicators if available, fallback to internal calculation
-            rsi = symbol_indicators.get('RSI')
-            if rsi is None:
-                rsi = self._calculate_rsi(price)
+            self.logger.debug(
+                "Signal analysis for %s: momentum=%.6f, rsi=%.2f", 
+                symbol, momentum, rsi
+            )
             
-            # Use SMA from indicators for momentum calculation
-            sma_key = f'SMA_{self.lookback_period}'
-            sma = symbol_indicators.get(sma_key)
-            
-            if sma is not None and price is not None:
-                # Calculate momentum using SMA (price relative to moving average)
-                # This is more stable than simple rate of change
-                momentum = (price - sma) / sma if sma != 0 else 0.0
-                logger.info(f"   Using SMA-based momentum: price={price}, sma={sma}, momentum={momentum}")
-            else:
-                # Fallback to internal calculation
-                momentum = self._calculate_momentum()
-                logger.info(f"   Using internal momentum calculation: {momentum}")
-            
-            # Debug logging for signal conditions
-            logger.info(f"🎯 SIGNAL ANALYSIS: momentum={momentum:.6f}, rsi={rsi:.2f}, threshold={self.momentum_threshold}")
-            logger.info(f"   RSI bounds: oversold={self.rsi_oversold}, overbought={self.rsi_overbought}")
-            logger.info(f"   Current price: {price}, SMA: {sma if sma is not None else 'N/A'}")
-            logger.info(f"   Momentum conditions: momentum > threshold? {momentum > self.momentum_threshold}, momentum < -threshold? {momentum < -self.momentum_threshold}")
-            logger.info(f"   RSI conditions: rsi < overbought? {rsi < self.rsi_overbought}, rsi > oversold? {rsi > self.rsi_oversold}")
-            
-            # Log the actual signal decision logic
-            if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
-                logger.info(f"   💡 BULLISH signal triggered!")
-            elif momentum < -self.momentum_threshold and rsi > self.rsi_oversold:
-                logger.info(f"   💡 BEARISH signal triggered!")
-            elif rsi < self.rsi_oversold and momentum > 0:
-                logger.info(f"   💡 OVERSOLD REVERSAL signal triggered!")
-            elif rsi > self.rsi_overbought and momentum < 0:
-                logger.info(f"   💡 OVERBOUGHT REVERSAL signal triggered!")
-            else:
-                logger.info(f"   ❌ No signal conditions met")
-            
-            # Generate signal based on momentum and RSI
+            # Stateless signal generation logic
             signal = None
             
             if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
@@ -177,6 +132,8 @@ class MomentumStrategy:
                     metadata={
                         'momentum': float(momentum),
                         'rsi': float(rsi),
+                        'sma_fast': float(sma_fast),
+                        'sma_slow': float(sma_slow),
                         'reason': 'Positive momentum with room to run'
                     }
                 )
@@ -194,46 +151,15 @@ class MomentumStrategy:
                     metadata={
                         'momentum': float(momentum),
                         'rsi': float(rsi),
+                        'sma_fast': float(sma_fast),
+                        'sma_slow': float(sma_slow),
                         'reason': 'Negative momentum with room to fall'
-                    }
-                )
-                
-            elif rsi < self.rsi_oversold and momentum > 0:
-                # Oversold with positive momentum - potential reversal
-                signal = Signal(
-                    signal_id=str(uuid.uuid4()),
-                    strategy_id=self.name,
-                    symbol=symbol,
-                    signal_type=SignalType.ENTRY,
-                    side=OrderSide.BUY,
-                    strength=Decimal('0.5'),  # Lower confidence for reversal
-                    timestamp=timestamp,
-                    metadata={
-                        'momentum': float(momentum),
-                        'rsi': float(rsi),
-                        'reason': 'Oversold reversal signal'
-                    }
-                )
-                
-            elif rsi > self.rsi_overbought and momentum < 0:
-                # Overbought with negative momentum - potential reversal
-                signal = Signal(
-                    signal_id=str(uuid.uuid4()),
-                    strategy_id=self.name,
-                    symbol=symbol,
-                    signal_type=SignalType.ENTRY,
-                    side=OrderSide.SELL,
-                    strength=Decimal('0.5'),  # Lower confidence for reversal
-                    timestamp=timestamp,
-                    metadata={
-                        'momentum': float(momentum),
-                        'rsi': float(rsi),
-                        'reason': 'Overbought reversal signal'
                     }
                 )
             
             if signal:
                 signals.append(signal)
+                self.logger.info("Generated %s signal for %s", signal.side.name, symbol)
         
         return signals
     
@@ -252,64 +178,14 @@ class MomentumStrategy:
         signals = self.generate_signals(strategy_input)
         return signals[0] if signals else None
     
-    def _calculate_momentum(self) -> float:
-        """Calculate price momentum."""
-        if len(self.price_history) < self.lookback_period:
-            return 0.0
-        
-        # Simple rate of change
-        current_price = self.price_history[-1]
-        past_price = self.price_history[-self.lookback_period]
-        
-        if past_price == 0:
-            return 0.0
-        
-        return (current_price - past_price) / past_price
-    
-    def _calculate_rsi(self, current_price: float) -> float:
-        """Calculate RSI indicator."""
-        if len(self.price_history) < 2:
-            return 50.0  # Neutral
-        
-        # Calculate price change
-        prev_price = self.price_history[-2] if len(self.price_history) > 1 else current_price
-        change = current_price - prev_price
-        
-        # Track gains and losses
-        gain = max(0, change)
-        loss = max(0, -change)
-        
-        self._gains.append(gain)
-        self._losses.append(loss)
-        
-        # Limit history
-        if len(self._gains) > self.rsi_period:
-            self._gains.pop(0)
-            self._losses.pop(0)
-        
-        # Need enough data
-        if len(self._gains) < self.rsi_period:
-            return 50.0
-        
-        # Calculate average gain/loss
-        avg_gain = sum(self._gains) / len(self._gains)
-        avg_loss = sum(self._losses) / len(self._losses)
-        
-        if avg_loss == 0:
-            return 100.0  # No losses = RSI 100
-        
-        rs = avg_gain / avg_loss
-        rsi = 100 - (100 / (1 + rs))
-        
-        return rsi
-    
     def reset(self) -> None:
-        """Reset strategy state."""
-        self.price_history.clear()
-        self.rsi_values.clear()
-        self._gains.clear()
-        self._losses.clear()
-        self.last_signal_time = None
+        """
+        Reset strategy state.
+        
+        Since this strategy is stateless, reset does nothing.
+        All state is managed by FeatureHub.
+        """
+        pass  # No state to reset!
     
     # Note: Optimization methods are added by OptimizationCapability
     # when the strategy is created through ComponentFactory.
