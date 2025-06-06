@@ -1,66 +1,94 @@
-# Multi-Strategy Test Configuration
-# Tests the new sub-container architecture for multiple strategies
-
-workflow:
-  type: "backtest"
-  name: "Multi-Strategy Test"
-
-data:
-  source: "csv"
-  file_path: "data/SPY_1m.csv"
-  symbols: ["SPY"]
-  max_bars: 50
-
-# Enable comprehensive logging for debugging
-logging:
-  enabled_events: ["SIGNAL", "ORDER", "FILL", "PORTFOLIO", "TRADE_LOOP"]
-
-strategies:
-  - name: "momentum_strategy"
-    type: "momentum"
-    enabled: true
-    allocation: 0.6
-    weight: 1.0
-    parameters:
-      lookback_period: 20
-      rsi_period: 14
-      rsi_oversold: 40  # More sensitive (was 45)
-      rsi_overbought: 60  # More sensitive (was 55)  
-      momentum_threshold: 0.0001  # More sensitive (was 0.0002)
-  
-  - name: "mean_reversion_strategy"
-    type: "mean_reversion"
-    enabled: true
-    allocation: 0.4
-    weight: 0.8
-    parameters:
-      lookback_period: 15
-      entry_threshold: 0.8  # More sensitive (was 1.0)
-      exit_threshold: 0.2   # More sensitive (was 0.5)
-
-signal_aggregation:
-  method: "weighted_voting"
-  min_confidence: 0.5
-
-risk:
-  initial_capital: 100000
-  position_sizers:
-    - name: "fixed_size"
-      type: "fixed"
-      size: 1000  # Much smaller position size to test risk limits
-  limits:
-    - type: "position"
-      max_position: 5000
-    - type: "exposure"
-      max_exposure_pct: 80
+# Multi-Strategy Backtest using EVENT_FLOW_ARCHITECTURE
+# Tests multiple strategies and risk profiles simultaneously
+# This will create 3 strategies × 3 risk profiles = 9 portfolio containers
 
 backtest:
-  initial_capital: 100000
-  commission:
-    type: "fixed"
-    value: 1.0
-  currency: "USD"
-
-output:
-  path: "results/multi_strategy_test/"
-  generate_report: true
+  name: "Multi-Strategy Test"
+  mode: "backtest"
+  
+  # Data configuration
+  data:
+    symbols: ["SPY"]
+    start_date: "2023-01-01"
+    end_date: "2023-12-31"
+    source: "csv"
+    
+  # Feature configuration
+  features:
+    indicators:
+      - name: "sma_20"
+        type: "sma"
+        period: 20
+      - name: "sma_50"
+        type: "sma" 
+        period: 50
+      - name: "rsi"
+        type: "rsi"
+        period: 14
+  
+  # Multiple strategies to test
+  strategies:
+    - type: "momentum"
+      name: "conservative_momentum"
+      sma_period: 20
+      rsi_threshold_long: 30    # More conservative (truly oversold)
+      rsi_threshold_short: 70   # More conservative (truly overbought)
+      
+    - type: "momentum" 
+      name: "aggressive_momentum"
+      sma_period: 20
+      rsi_threshold_long: 45    # Less conservative
+      rsi_threshold_short: 55   # Less conservative
+      
+    - type: "momentum"
+      name: "fast_momentum"
+      sma_period: 10           # Faster signals
+      rsi_threshold_long: 35   
+      rsi_threshold_short: 65
+      
+  # Multiple risk profiles
+  risk_profiles:
+    - type: "conservative"
+      name: "low_risk"
+      max_position_percent: 0.05  # 5% max per position
+      max_position_value: 25000
+      max_drawdown: 0.10
+      base_position_percent: 0.01
+      
+    - type: "moderate"
+      name: "med_risk"
+      max_position_percent: 0.10  # 10% max per position
+      max_position_value: 50000
+      max_drawdown: 0.15
+      base_position_percent: 0.02
+      
+    - type: "aggressive"
+      name: "high_risk"
+      max_position_percent: 0.20  # 20% max per position
+      max_position_value: 100000
+      max_drawdown: 0.25
+      base_position_percent: 0.05
+      
+  # Execution configuration
+  execution:
+    fill_probability: 1.0
+    partial_fill_probability: 0.0
+    random_seed: 42
+    slippage:
+      base: 0.0001
+      volume_factor: 0.00001
+      random_factor: 0.0001
+    commission:
+      per_share: 0.01
+      minimum: 1.0
+      maximum: 10.0
+      
+  # Portfolio configuration
+  portfolio:
+    initial_capital: 100000
+    
+  # Output configuration
+  output:
+    results_dir: "./results/multi_strategy_test"
+    save_trades: true
+    save_metrics: true

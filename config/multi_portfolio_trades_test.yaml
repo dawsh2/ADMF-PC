@@ -1,0 +1,94 @@
+# Multi-Portfolio Independent Trading Test
+# Designed to generate trades across MULTIPLE portfolios to verify independent tracking
+# Uses different RSI thresholds that will trigger at different market conditions
+
+backtest:
+  name: "Multi-Portfolio Trading Test"
+  mode: "backtest"
+  
+  # Data configuration
+  data:
+    symbols: ["SPY"]
+    start_date: "2023-01-01"
+    end_date: "2023-12-31"
+    source: "csv"
+    
+  # Feature configuration
+  features:
+    indicators:
+      - name: "sma_20"
+        type: "sma"
+        period: 20
+      - name: "sma_50"
+        type: "sma" 
+        period: 50
+      - name: "rsi"
+        type: "rsi"
+        period: 14
+  
+  # Multiple strategies with DIFFERENT trigger points to ensure independent trading
+  strategies:
+    - type: "momentum"
+      name: "ultra_aggressive"
+      sma_period: 20
+      rsi_threshold_long: 50    # Very relaxed - will trigger often
+      rsi_threshold_short: 50   # Very relaxed - will trigger often
+      
+    - type: "momentum" 
+      name: "moderate"
+      sma_period: 20
+      rsi_threshold_long: 40    # Moderate
+      rsi_threshold_short: 60   # Moderate
+      
+    - type: "momentum"
+      name: "conservative"
+      sma_period: 20
+      rsi_threshold_long: 35    # Conservative but not too much
+      rsi_threshold_short: 65   # Conservative but not too much
+      
+  # Multiple risk profiles with DIFFERENT position sizes
+  risk_profiles:
+    - type: "conservative"
+      name: "tiny_positions"
+      max_position_percent: 0.01  # 1% max - very small trades
+      max_position_value: 10000
+      max_drawdown: 0.05
+      base_position_percent: 0.005  # 0.5% base
+      
+    - type: "moderate"
+      name: "small_positions"
+      max_position_percent: 0.03  # 3% max - small trades
+      max_position_value: 30000
+      max_drawdown: 0.10
+      base_position_percent: 0.015  # 1.5% base
+      
+    - type: "aggressive"
+      name: "large_positions"
+      max_position_percent: 0.10  # 10% max - larger trades
+      max_position_value: 100000
+      max_drawdown: 0.20
+      base_position_percent: 0.05   # 5% base
+      
+  # Execution configuration - deterministic
+  execution:
+    fill_probability: 1.0
+    partial_fill_probability: 0.0
+    random_seed: 42
+    slippage:
+      base: 0.0001
+      volume_factor: 0.00001
+      random_factor: 0.0001
+    commission:
+      per_share: 0.01
+      minimum: 1.0
+      maximum: 10.0
+      
+  # Portfolio configuration
+  portfolio:
+    initial_capital: 100000
+    
+  # Output configuration
+  output:
+    results_dir: "./results/multi_portfolio_trades_test"
+    save_trades: true
+    save_metrics: true

@@ -942,6 +942,183 @@ When proposing new files, always ask:
 "Should this be temporary (tmp/) or enhance existing canonical implementation?"
 ```
 
+## Stateless Services and Parameter Search Patterns
+
+### Core Principle: Stateless Functions with Runtime Parameters
+
+**For parameter search and dynamic generation, use stateless functions that receive parameters at runtime, not classes that store parameters.**
+
+### ✅ Correct Pattern:
+```python
+# Stateless service - parameters passed at runtime
+def momentum_strategy(features: Dict, bar: Dict, params: Dict) -> Dict:
+    """Pure function - no internal state"""
+    return calculate_signal(features, params)
+
+# Usage in parameter search:
+# 1000 portfolios can share 1 function instance
+for portfolio in portfolios:
+    signal = momentum_strategy(features, bar, portfolio.strategy_params)
+```
+
+### ❌ Anti-Pattern:
+```python
+# Don't create instances per parameter combination
+class MomentumStrategy:
+    def __init__(self, fast_period, slow_period):
+        self.fast_period = fast_period  # Wasteful state storage
+
+# This would create 1000 instances for 1000 portfolios!
+strategies = {}
+for combo in parameter_combinations:
+    strategies[combo.id] = MomentumStrategy(combo.fast, combo.slow)
+```
+
+### When to Use Factories
+
+Use factories ONLY for complex orchestration:
+
+| Use Factory For                    | Don't Use Factory For        |
+|------------------------------------|------------------------------|
+| Container orchestration            | Stateless functions          |
+| Adapter wiring                     | Simple parameter objects     |
+| Topology composition               | Pure calculations            |
+| Complex dependency injection       | Decorator-registered items   |
+
+**Decision Tree**:
+```
+┌─────────────────────────────────────┐
+│ Does creation require orchestration? │
+│ (wiring, lifecycle, dependencies)    │
+└─────────────┬───────────────────────┘
+              │
+        ┌─────┴─────┐
+        │    YES    │ → Use Factory
+        │           │   (Containers, Adapters, Topologies)
+        └───────────┘
+              │
+        ┌─────┴─────┐
+        │    NO     │ → Direct Creation or Decorator
+        │           │   (Stateless functions, Simple objects)
+        └───────────┘
+```
+
+### Discovery Patterns and Decorators
+
+ADMF-PC uses a decorator-based discovery system for strategies, classifiers, and features:
+
+#### ✅ Use Decorators For:
+```python
+# Strategies
+@strategy(
+    feature_config={
+        'sma': {'params': ['sma_period'], 'default': 20},
+        'rsi': {'params': ['rsi_period'], 'default': 14}
+    }
+)
+def momentum_strategy(features: Dict, bar: Dict, params: Dict) -> Dict:
+    # Pure function implementation
+    pass
+
+# Classifiers
+@classifier(
+    regime_types=['trending_up', 'trending_down', 'ranging'],
+    features=['sma_fast', 'sma_slow']
+)
+def trend_classifier(features: Dict, params: Dict) -> Dict:
+    # Pure function implementation
+    pass
+
+# Features/Indicators
+@feature(
+    params=['period'],
+    min_history=20
+)
+def sma(data: pd.Series, period: int) -> float:
+    return data.rolling(period).mean().iloc[-1]
+```
+
+#### Benefits of Decorator Discovery:
+1. **Auto-discovery**: Components found automatically at startup
+2. **Feature Requirements**: Strategies declare needed features
+3. **Parameter Metadata**: Default values and constraints
+4. **Type Safety**: Registry provides typed resolution
+5. **Plugin Architecture**: Easy to add new components
+
+### Parameter Search Architecture
+
+```
+Parameter Search Flow:
+┌─────────────────────────────────────────────────────────────┐
+│                     Configuration Phase                      │
+├─────────────────────────────────────────────────────────────┤
+│ strategies:                                                  │
+│   - type: momentum                                          │
+│     parameters:                                             │
+│       fast: [10, 20]  ─┐                                   │
+│       slow: [30, 40]   ├─→ Cartesian Product              │
+│                        │   Creates 4 combinations          │
+│ risk:                  │                                   │
+│   - type: conservative │                                   │
+│     max_position: [0.1, 0.2] → 2 combinations            │
+└────────────────────────┴───────────────────────────────────┘
+                                 ↓
+┌─────────────────────────────────────────────────────────────┐
+│                      Runtime Phase                           │
+├─────────────────────────────────────────────────────────────┤
+│ 8 Portfolio Containers Created (4 strategy × 2 risk combos) │
+│                                                             │
+│ Portfolio_001: {strategy: momentum(10,30), risk: cons(0.1)}│
+│ Portfolio_002: {strategy: momentum(10,30), risk: cons(0.2)}│
+│ Portfolio_003: {strategy: momentum(10,40), risk: cons(0.1)}│
+│ ... etc                                                     │
+│                                                             │
+│ BUT: Only 1 momentum function + 1 conservative validator!   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Event-Driven Parameter Routing
+
+How parameters flow through events:
+```
+┌────────────────────┐
+│   Portfolio_001    │
+│ params: {fast: 10} │
+└─────────┬──────────┘
+          │ ORDER_REQUEST
+          │ {order: ...,
+          │  risk_params: {max_pos: 0.1}}
+          ↓
+┌────────────────────┐
+│  Risk Service      │
+│  Adapter           │ → validator.validate(order, params)
+└─────────┬──────────┘   Uses 0.1 from event
+          │ ORDER
+          ↓
+┌────────────────────┐
+│    Execution       │
+└────────────────────┘
+```
+
+### Architecture Benefits
+
+This pattern enables:
+- **Massive parallelization**: 1000 portfolios, 3 strategy functions
+- **Zero state contamination**: Parameters in events, not objects
+- **Efficient resource usage**: Minimal object creation
+- **Clear parameter flow**: Track via event payloads
+- **Dynamic discovery**: Components found via decorators
+
+### The Pattern is Consistent:
+
+| Component       | Instance Count | Parameter Combinations | Where Parameters Live   | Discovery Method |
+|-----------------|----------------|------------------------|-------------------------|------------------|
+| Risk Validators | One per type   | Unlimited              | In ORDER_REQUEST event  | Direct creation  |
+| Strategies      | One per type   | Unlimited              | Passed to function call | @strategy        |
+| Classifiers     | One per type   | Unlimited              | Passed to function call | @classifier      |
+| Features        | One per type   | Unlimited              | Passed to function call | @feature         |
+| Portfolios      | One per combo  | N/A                    | In container state      | Factory pattern  |
+
 ## Summary
 
 ### The Golden Rules
@@ -975,6 +1152,16 @@ When proposing new files, always ask:
    - Disposable scripts, debug files, status reports
    - Prevents root directory chaos
    - Everything in tmp/ can be deleted without consequence
+
+9. **Stateless services with runtime parameters**
+   - Pure functions for strategies, classifiers, risk
+   - Parameters passed at runtime, not stored
+   - Enables massive parallelization
+
+10. **Decorator-based discovery**
+    - Use @strategy, @classifier, @feature decorators
+    - Auto-discovery at startup
+    - Feature requirements declared in metadata
 
 ### Quick Reference
 

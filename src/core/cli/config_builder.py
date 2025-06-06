@@ -36,7 +36,7 @@ def build_workflow_config(args: CLIArgs, base_config: Dict[str, Any]) -> Workflo
     workflow_config = WorkflowConfig(
         workflow_type=WorkflowType(mode if mode in ['backtest', 'optimization', 'live'] else 'backtest'),
         parameters=base_config,  # Store entire YAML config for access to all sections
-        data_config=base_config.get('data', {}),
+        data_config=backtest_config.get('data', base_config.get('data', {})),  # Try backtest.data first, then top-level data
         backtest_config=backtest_config,
         optimization_config=base_config.get('optimization', {}),
         analysis_config=base_config.get('analysis', {})

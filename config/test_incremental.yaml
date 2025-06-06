@@ -1,0 +1,62 @@
+# Incremental Test Configuration
+# This configuration drives the incremental testing of the ADMF-PC system
+# following the test plan in checklist_20250106.md
+
+name: "Incremental System Test"
+type: "backtest"  # Using backtest type as base
+description: "Incremental testing starting with Phase 1.1 - Root container only"
+
+# Reference our custom workflow
+workflow: incremental_test
+
+# Test phase configuration
+test_phase: "1.1"  # Current phase - will be updated as we progress
+
+# Workflow parameters
+parameters:
+  test_phase: "1.1"
+  
+  # Phase 1.1 specific config
+  validate_lifecycle: true
+  log_level: "INFO"
+  
+  # Future phase configurations (commented out)
+  # Phase 1.2 - Symbol-timeframe container
+  # symbols: ["SPY"]
+  # timeframe: "1d"
+  
+  # Phase 1.3 - Data subcontainer
+  # data_source: "csv"
+  # csv_path: "data/SPY.csv"
+  
+  # Phase 1.4 - Multiple symbols
+  # symbols: ["SPY", "QQQ"]
+  # timeframes: ["1m", "1d"]
+
+# Minimal data config (not used in Phase 1.1 but required by schema)
+data:
+  symbols: ["SPY"]
+  start_date: "2024-01-01"
+  end_date: "2024-01-01"
+  
+# Minimal backtest config for container creation
+backtest:
+  strategies: []  # No strategies for Phase 1.1
+  risk_profiles: []  # No risk profiles for Phase 1.1
+  portfolio:
+    initial_capital: 100000
+  
+# Event tracing enabled by default
+tracing:
+  enabled: true
+  max_events: 1000
+  
+# Execution control
+bars: 0  # No data bars for Phase 1.1 - just lifecycle testing
+
+# Human checkpoint configuration
+checkpoints:
+  phase_1_1:
+    - "Review logs for container creation sequence"
+    - "Confirm canonical behavior patterns"
+    - "Verify clean shutdown"

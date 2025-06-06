@@ -1,338 +1,206 @@
 """
-Momentum trading strategy implementation.
+Momentum Strategy for EVENT_FLOW_ARCHITECTURE
 
-This module provides both stateful (container-based) and stateless implementations
-of the momentum strategy to support the unified architecture transition.
+This module contains pure functions that generate trading signals based on momentum indicators.
+No state, no inheritance - just functions that take features and return signals.
 """
 
-from typing import Dict, Any, Optional, List, Set
-from datetime import datetime
-from decimal import Decimal
-import uuid
+from typing import Dict, Any, Optional
+import logging
 
-from ..protocols import Strategy, SignalDirection
-from ...risk.protocols import Signal, SignalType, OrderSide
-from ...core.logging.structured import StructuredLogger, LogContext
-from ...core.components.protocols import StatelessStrategy
+from ...core.containers.discovery import strategy
+
+logger = logging.getLogger(__name__)
 
 
-class StatelessMomentumStrategy:
-    """
-    Stateless momentum trading strategy for unified architecture.
-    
-    Implements the StatelessStrategy protocol for use as a lightweight
-    service in the event-driven architecture. All state is passed as
-    parameters - no internal state is maintained.
-    """
-    
-    def __init__(self):
-        """Initialize stateless momentum strategy."""
-        # No configuration stored - everything comes from params
-        pass
-    
-    def generate_signal(
-        self, 
-        features: Dict[str, Any], 
-        bar: Dict[str, Any], 
-        params: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Generate a trading signal from features and current bar.
-        
-        Pure function implementation - no side effects or state changes.
-        
-        Args:
-            features: Calculated indicators from FeatureHub
-                - sma_fast: Fast moving average
-                - sma_slow: Slow moving average  
-                - rsi: Relative strength index
-            bar: Current market bar with OHLCV data
-            params: Strategy parameters
-                - momentum_threshold: Min momentum for signals (default: 0.02)
-                - rsi_oversold: RSI oversold level (default: 30)
-                - rsi_overbought: RSI overbought level (default: 70)
-                
-        Returns:
-            Signal dict with direction, strength, and metadata
-        """
-        # Extract parameters with defaults
-        momentum_threshold = params.get('momentum_threshold', 0.02)
-        rsi_oversold = params.get('rsi_oversold', 30)
-        rsi_overbought = params.get('rsi_overbought', 70)
-        
-        # Get required features
-        sma_fast = features.get('sma_fast')
-        sma_slow = features.get('sma_slow')
-        rsi = features.get('rsi')
-        
-        # Return empty signal if features missing
-        if any(x is None for x in [sma_fast, sma_slow, rsi]):
-            return {
-                'direction': 'flat',
-                'strength': 0.0,
-                'metadata': {'reason': 'Missing required features'}
-            }
-        
-        # Calculate momentum
-        momentum = (sma_fast - sma_slow) / sma_slow if sma_slow != 0 else 0.0
-        
-        # Generate signal based on momentum and RSI
-        if momentum > momentum_threshold and rsi < rsi_overbought:
-            # Bullish signal
-            return {
-                'direction': 'long',
-                'strength': min(momentum / (momentum_threshold * 2), 1.0),
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'sma_fast': sma_fast,
-                    'sma_slow': sma_slow,
-                    'reason': 'Positive momentum with room to run'
-                }
-            }
-        elif momentum < -momentum_threshold and rsi > rsi_oversold:
-            # Bearish signal
-            return {
-                'direction': 'short',
-                'strength': min(abs(momentum) / (momentum_threshold * 2), 1.0),
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'sma_fast': sma_fast,
-                    'sma_slow': sma_slow,
-                    'reason': 'Negative momentum with room to fall'
-                }
-            }
-        else:
-            # No signal
-            return {
-                'direction': 'flat',
-                'strength': 0.0,
-                'metadata': {
-                    'momentum': momentum,
-                    'rsi': rsi,
-                    'reason': 'No clear momentum signal'
-                }
-            }
-    
-    @property
-    def required_features(self) -> List[str]:
-        """List of feature names this strategy requires."""
-        return ['sma_fast', 'sma_slow', 'rsi']
-
-
-# Stateless factory function
-def create_stateless_momentum() -> StatelessMomentumStrategy:
-    """Create a stateless momentum strategy instance."""
-    return StatelessMomentumStrategy()
-
-
-class MomentumStrategy:
-    """
-    Stateless momentum-based trading strategy.
-    
-    This strategy consumes features from FeatureHub and makes pure
-    decisions based on current feature values. No state is maintained.
-    
-    Features:
-    - Pure decision logic based on SMA momentum
-    - RSI-based signal filtering
-    - Completely stateless - no internal state storage
-    - Protocol + Composition compliant
-    """
-    
-    def __init__(self, 
-                 momentum_threshold: float = 0.02,
-                 rsi_oversold: float = 30,
-                 rsi_overbought: float = 70,
-                 component_id: str = None):
-        """
-        Initialize momentum strategy.
-        
-        Args:
-            momentum_threshold: Minimum momentum for signal generation
-            rsi_oversold: RSI oversold threshold
-            rsi_overbought: RSI overbought threshold
-        """
-        # Configuration only - no state!
-        self.momentum_threshold = momentum_threshold
-        self.rsi_oversold = rsi_oversold
-        self.rsi_overbought = rsi_overbought
-        
-        # Logging setup
-        self.component_id = component_id or f"momentum_strategy_{uuid.uuid4().hex[:8]}"
-        context = LogContext(
-            container_id="strategy_container",
-            component_id=self.component_id,
-            correlation_id=None
-        )
-        self.logger = StructuredLogger(__name__, context)
-        
-    @property
-    def name(self) -> str:
-        """Strategy name for identification."""
-        return "momentum_strategy"
-    
-    def get_required_features(self) -> Set[str]:
-        """
-        Return features required by this strategy.
-        
-        This allows the FeatureHub to compute shared features
-        instead of duplicating calculations.
-        """
-        return {
-            "sma_fast",   # Fast SMA for momentum
-            "sma_slow",   # Slow SMA for momentum  
-            "rsi"         # RSI for signal filtering
-        }
-    
-    def generate_signals(self, strategy_input: Dict[str, Any]) -> List[Signal]:
-        """
-        Generate trading signals from market data and features.
-        
-        This is a STATELESS function that makes decisions based purely
-        on current feature values from FeatureHub.
-        """
-        self.logger.info("Stateless MomentumStrategy.generate_signals() called")
-        
-        market_data = strategy_input.get('market_data', {})
-        features = strategy_input.get('features', {})
-        timestamp = strategy_input.get('timestamp', datetime.now())
-        
-        signals = []
-        
-        # Process each symbol - pure stateless decision logic
-        for symbol, data in market_data.items():
-            price = data.get('close', data.get('price'))
-            if price is None:
-                continue
-            
-            # Get features for this symbol from FeatureHub
-            symbol_features = features.get(symbol, {})
-            
-            # Extract required features
-            sma_fast = symbol_features.get('sma_fast')
-            sma_slow = symbol_features.get('sma_slow')
-            rsi = symbol_features.get('rsi')
-            
-            # Skip if required features not available
-            if any(x is None for x in [sma_fast, sma_slow, rsi]):
-                self.logger.debug("Missing features for %s", symbol)
-                continue
-            
-            # Pure stateless momentum calculation
-            momentum = (sma_fast - sma_slow) / sma_slow if sma_slow != 0 else 0.0
-            
-            self.logger.debug(
-                "Signal analysis for %s: momentum=%.6f, rsi=%.2f", 
-                symbol, momentum, rsi
-            )
-            
-            # Stateless signal generation logic
-            signal = None
-            
-            if momentum > self.momentum_threshold and rsi < self.rsi_overbought:
-                # Bullish momentum, not overbought
-                signal = Signal(
-                    signal_id=str(uuid.uuid4()),
-                    strategy_id=self.name,
-                    symbol=symbol,
-                    signal_type=SignalType.ENTRY,
-                    side=OrderSide.BUY,
-                    strength=Decimal(str(min(momentum / (self.momentum_threshold * 2), 1.0))),
-                    timestamp=timestamp,
-                    metadata={
-                        'momentum': float(momentum),
-                        'rsi': float(rsi),
-                        'sma_fast': float(sma_fast),
-                        'sma_slow': float(sma_slow),
-                        'reason': 'Positive momentum with room to run'
-                    }
-                )
-                
-            elif momentum < -self.momentum_threshold and rsi > self.rsi_oversold:
-                # Bearish momentum, not oversold
-                signal = Signal(
-                    signal_id=str(uuid.uuid4()),
-                    strategy_id=self.name,
-                    symbol=symbol,
-                    signal_type=SignalType.ENTRY,
-                    side=OrderSide.SELL,
-                    strength=Decimal(str(min(abs(momentum) / (self.momentum_threshold * 2), 1.0))),
-                    timestamp=timestamp,
-                    metadata={
-                        'momentum': float(momentum),
-                        'rsi': float(rsi),
-                        'sma_fast': float(sma_fast),
-                        'sma_slow': float(sma_slow),
-                        'reason': 'Negative momentum with room to fall'
-                    }
-                )
-            
-            if signal:
-                signals.append(signal)
-                self.logger.info("Generated %s signal for %s", signal.side.name, symbol)
-        
-        return signals
-    
-    def generate_signal(self, market_data: Dict[str, Any]) -> Optional[Signal]:
-        """
-        Backward compatibility method for single signal generation.
-        
-        This delegates to generate_signals for consistency.
-        """
-        strategy_input = {
-            'market_data': {'UNKNOWN': market_data},
-            'indicators': {},
-            'timestamp': market_data.get('timestamp', datetime.now())
-        }
-        
-        signals = self.generate_signals(strategy_input)
-        return signals[0] if signals else None
-    
-    def reset(self) -> None:
-        """
-        Reset strategy state.
-        
-        Since this strategy is stateless, reset does nothing.
-        All state is managed by FeatureHub.
-        """
-        pass  # No state to reset!
-    
-    # Note: Optimization methods are added by OptimizationCapability
-    # when the strategy is created through ComponentFactory.
-    # This keeps the strategy class clean and focused on its core purpose.
-
-
-# Example of creating the strategy with capabilities
-def create_momentum_strategy(config: Dict[str, Any] = None) -> Any:
-    """
-    Factory function to create momentum strategy with capabilities.
-    
-    This would typically use ComponentFactory to add capabilities.
-    """
-    # Default configuration
-    default_config = {
-        'lookback_period': 20,
-        'momentum_threshold': 0.02,
-        'rsi_period': 14,
-        'rsi_oversold': 30,
-        'rsi_overbought': 70
+@strategy(
+    feature_config={
+        'sma': {'params': ['fast_period', 'slow_period'], 'default': 20},
+        'rsi': {'params': ['rsi_period'], 'default': 14}
     }
+)
+def momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Generate momentum-based trading signals.
     
-    if config:
-        default_config.update(config)
+    This is a pure function - no state maintained between calls.
     
-    # Create strategy instance
-    strategy = MomentumStrategy(**default_config)
+    Args:
+        features: Dictionary of computed features (SMA, RSI, etc.)
+        bar: Current market bar data
+        params: Strategy parameters
+        
+    Returns:
+        Signal dictionary or None if no signal
+    """
+    # Extract parameters
+    sma_period = params.get('sma_period', 20)
+    rsi_threshold_long = params.get('rsi_threshold_long', 30)
+    rsi_threshold_short = params.get('rsi_threshold_short', 70)
     
-    # In real usage, this would use ComponentFactory:
-    # from core.components import ComponentFactory
-    # 
-    # strategy = ComponentFactory().create_component({
-    #     'class': 'MomentumStrategy',
-    #     'params': default_config,
-    #     'capabilities': ['strategy', 'lifecycle', 'events', 'optimization']
-    # })
+    logger.debug(f"Momentum strategy called with features: {list(features.keys())}, params: {params}")
     
-    return strategy
+    # Get required features
+    price = bar.get('close', 0)
+    sma_key = f'sma_{sma_period}'
+    sma = features.get(sma_key)
+    rsi = features.get('rsi')
+    
+    # Check if we have required features
+    if sma is None or rsi is None:
+        logger.debug(f"Missing features: sma_{sma_period}={sma}, rsi={rsi}")
+        return None
+    
+    # Generate signal based on momentum logic
+    signal = None
+    
+    # Long signal: Price above SMA and RSI oversold
+    if price > sma and rsi < rsi_threshold_long:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'long',
+            'strength': min(1.0, (rsi_threshold_long - rsi) / rsi_threshold_long),
+            'price': price,
+            'reason': f'Momentum long: price > SMA{sma_period} and RSI < {rsi_threshold_long}',
+            'indicators': {
+                'price': price,
+                'sma': sma,
+                'rsi': rsi
+            }
+        }
+        logger.info(f"Generated LONG signal: price={price}, sma={sma}, rsi={rsi}")
+    
+    # Short signal: Price below SMA and RSI overbought
+    elif price < sma and rsi > rsi_threshold_short:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'short',
+            'strength': min(1.0, (rsi - rsi_threshold_short) / (100 - rsi_threshold_short)),
+            'price': price,
+            'reason': f'Momentum short: price < SMA{sma_period} and RSI > {rsi_threshold_short}',
+            'indicators': {
+                'price': price,
+                'sma': sma,
+                'rsi': rsi
+            }
+        }
+        logger.info(f"Generated SHORT signal: price={price}, sma={sma}, rsi={rsi}")
+    
+    return signal
+
+
+# Alternative momentum strategies with different logic
+
+@strategy(
+    name='dual_momentum',
+    indicators={
+        'sma': {'params': ['fast_period', 'slow_period'], 'defaults': {'fast_period': 10, 'slow_period': 30}}
+    }
+)
+def dual_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Dual momentum strategy using fast and slow moving averages.
+    """
+    # Extract parameters
+    fast_period = params.get('fast_period', 10)
+    slow_period = params.get('slow_period', 30)
+    
+    # Get features
+    price = bar.get('close', 0)
+    fast_sma = features.get(f'sma_{fast_period}')
+    slow_sma = features.get(f'sma_{slow_period}')
+    
+    if fast_sma is None or slow_sma is None:
+        return None
+    
+    # Generate signal based on crossover
+    signal = None
+    
+    # Long signal: Fast MA crosses above slow MA
+    if fast_sma > slow_sma and price > fast_sma:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'long',
+            'strength': min(1.0, (fast_sma - slow_sma) / slow_sma),
+            'price': price,
+            'reason': f'Dual momentum long: SMA{fast_period} > SMA{slow_period}',
+            'indicators': {
+                'price': price,
+                'fast_sma': fast_sma,
+                'slow_sma': slow_sma
+            }
+        }
+    
+    # Short signal: Fast MA crosses below slow MA
+    elif fast_sma < slow_sma and price < fast_sma:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'short',
+            'strength': min(1.0, (slow_sma - fast_sma) / slow_sma),
+            'price': price,
+            'reason': f'Dual momentum short: SMA{fast_period} < SMA{slow_period}',
+            'indicators': {
+                'price': price,
+                'fast_sma': fast_sma,
+                'slow_sma': slow_sma
+            }
+        }
+    
+    return signal
+
+
+@strategy(
+    name='price_momentum',
+    indicators={
+        'price_history': {'params': ['lookback_period'], 'default': 20}
+    }
+)
+def price_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Simple price momentum based on rate of change.
+    """
+    # Extract parameters
+    lookback = params.get('lookback_period', 20)
+    threshold = params.get('momentum_threshold', 0.02)  # 2% threshold
+    
+    # Calculate price momentum
+    price = bar.get('close', 0)
+    lookback_price = features.get(f'close_{lookback}')  # Price N bars ago
+    
+    if lookback_price is None or lookback_price == 0:
+        return None
+    
+    # Calculate momentum
+    momentum = (price - lookback_price) / lookback_price
+    
+    # Generate signal
+    signal = None
+    
+    if momentum > threshold:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'long',
+            'strength': min(1.0, momentum / (threshold * 2)),
+            'price': price,
+            'reason': f'Price momentum long: {momentum:.2%} over {lookback} bars',
+            'indicators': {
+                'price': price,
+                'lookback_price': lookback_price,
+                'momentum': momentum
+            }
+        }
+    elif momentum < -threshold:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'short',
+            'strength': min(1.0, abs(momentum) / (threshold * 2)),
+            'price': price,
+            'reason': f'Price momentum short: {momentum:.2%} over {lookback} bars',
+            'indicators': {
+                'price': price,
+                'lookback_price': lookback_price,
+                'momentum': momentum
+            }
+        }
+    
+    return signal

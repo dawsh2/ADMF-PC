@@ -47,8 +47,8 @@ from .signal_replay import (
     WeightedSignalAggregator
 )
 
-from .indicator_inference import (
-    infer_indicators_from_strategies,
+from .feature_inference import (
+    infer_features_from_strategies,
     get_strategy_requirements,
     validate_strategy_configuration
 )
@@ -95,8 +95,8 @@ __all__ = [
     "SignalReplayer",
     "WeightedSignalAggregator",
     
-    # Indicator Inference
-    "infer_indicators_from_strategies",
+    # Feature Inference
+    "infer_features_from_strategies",
     "get_strategy_requirements",
     "validate_strategy_configuration"
 ]

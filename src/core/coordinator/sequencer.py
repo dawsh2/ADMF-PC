@@ -25,6 +25,8 @@ import uuid
 from ..containers import Container
 from ..events import Event, EventType
 from .protocols import ResultStreamer, CheckpointManager
+from ..tracing import enable_tracing, disable_tracing, get_tracer
+from ..events.tracing import EventTracer
 
 logger = logging.getLogger(__name__)
 
@@ -410,6 +412,8 @@ class WorkflowCoordinator:
         self.checkpointing = CheckpointManager(checkpoint_dir)
         self.phase_transitions = PhaseTransition()
         self.result_aggregator: Optional[ResultAggregator] = None
+        self.event_tracer: Optional[EventTracer] = None
+        self.execution_tracer = get_tracer()  # Get the lightweight tracer
         
     def execute_phase(self, phase_name: str, phase_func: Callable) -> Any:
         """Execute phase with checkpointing and error recovery."""
@@ -476,6 +480,16 @@ class WorkflowCoordinator:
         
         # Initialize workflow state
         self.workflow_state = WorkflowState(context.workflow_id)
+        
+        # Initialize tracing for this workflow
+        enable_tracing()
+        logger.info("🔍 Execution tracing enabled for workflow")
+        
+        # Initialize event tracer with correlation ID
+        self.event_tracer = EventTracer(
+            correlation_id=context.correlation_id,
+            max_events=10000
+        )
         
         # Check for existing checkpoint
         restored_state = self.checkpointing.restore_state(context.workflow_id)
@@ -564,10 +578,30 @@ class WorkflowCoordinator:
                 'phase3_outputs': self.phase_transitions.phase3_outputs
             }
             
+            # Add execution trace summary
+            if self.execution_tracer.enabled:
+                self.execution_tracer.print_flow_summary()
+                result.final_results['trace_summary'] = self.execution_tracer.verify_canonical_flow()
+            
+            # Add event trace summary
+            if self.event_tracer:
+                result.final_results['event_trace_summary'] = self.event_tracer.get_summary()
+            
         except Exception as e:
             logger.error(f"Multi-phase execution failed: {e}")
             result.add_error(str(e))
             result.success = False
+        finally:
+            # Ensure tracing data is persisted for phase transitions
+            if self.event_tracer:
+                trace_output_dir = Path(config.parameters.get('output_dir', './results')) / 'traces'
+                trace_output_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Save trace summary
+                trace_file = trace_output_dir / f"{context.workflow_id}_traces.json"
+                with open(trace_file, 'w') as f:
+                    json.dump(self.event_tracer.get_summary(), f, indent=2)
+                logger.info(f"Saved event traces to {trace_file}")
         
         return result
     

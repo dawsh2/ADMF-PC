@@ -1,7 +1,10 @@
 """
-Configuration builders for different workflow patterns.
+DEPRECATED - NOT NEEDED IN UNIFIED ARCHITECTURE
 
-Builds pattern-specific configurations from WorkflowConfig objects.
+Configuration builders were used for pattern-specific configurations.
+The unified architecture uses a single universal topology for all workflows.
+
+KEPT FOR BACKWARD COMPATIBILITY ONLY - WILL BE REMOVED
 """
 
 import logging
@@ -29,11 +32,11 @@ class ConfigBuilder:
         
         # Automatic indicator inference
         if strategies:
-            from ....strategy.components.indicator_inference import infer_indicators_from_strategies
-            required_indicators = infer_indicators_from_strategies(strategies)
+            from ....strategy.components.feature_inference import infer_features_from_strategies
+            required_features = infer_features_from_strategies(strategies)
             
-            container_config['indicator'] = {
-                'required_indicators': list(required_indicators),
+            container_config['feature'] = {
+                'required_features': list(required_features),
                 'cache_size': 1000
             }
             

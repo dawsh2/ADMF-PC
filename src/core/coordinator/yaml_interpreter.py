@@ -10,7 +10,7 @@ from typing import Dict, Any, List, Optional, Union, Tuple
 from datetime import datetime
 import logging
 
-from .types import WorkflowConfig, WorkflowType
+from ..types.workflow import WorkflowConfig, WorkflowType
 from ..config import ConfigSchemaValidator, ValidationResult
 
 

@@ -4,10 +4,23 @@ Strategy implementations for ADMF-PC.
 All strategies are simple classes with no inheritance.
 They implement the Strategy protocol and can be enhanced
 with capabilities through ComponentFactory.
+
+Now includes pure function strategies decorated with @strategy
+for automatic discovery.
 """
 
 # Import only what doesn't have external dependencies
 from .momentum import MomentumStrategy, create_momentum_strategy
+
+# Import pure function strategies for discovery
+from .stateless_momentum import (
+    momentum_strategy, 
+    dual_momentum_strategy, 
+    price_momentum_strategy
+)
+from .mean_reversion_simple import mean_reversion_strategy
+from .trend_following import trend_following_strategy
+from .simple_trend import simple_trend_strategy
 
 # Lazy imports for strategies with external dependencies
 def _import_mean_reversion():
@@ -58,9 +71,20 @@ def get_strategy_class(strategy_type: str):
 
 
 __all__ = [
+    # Classes
     "MomentumStrategy",
     "create_momentum_strategy",
     "get_strategy_class",
+    
+    # Pure function strategies (decorated)
+    "momentum_strategy",
+    "dual_momentum_strategy",
+    "price_momentum_strategy",
+    "mean_reversion_strategy",
+    "trend_following_strategy",
+    "simple_trend_strategy",
+    
+    # Lazy imports
     "_import_mean_reversion",
     "_import_trend_following",
     "_import_arbitrage",

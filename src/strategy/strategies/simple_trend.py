@@ -19,6 +19,7 @@ from ...core.logging.structured import ContainerLogger
 from ..components.features import FeatureHub, sma_feature
 from ...risk.protocols import Signal, SignalType, OrderSide
 from decimal import Decimal
+from ...core.containers.discovery import strategy
 
 
 class SimpleTrendStrategy:
@@ -257,3 +258,107 @@ class SimpleTrendStrategy:
             "container_id": self.container_id,
             "last_signal_time": self.last_signal_time.isoformat() if self.last_signal_time else None
         }
+
+
+# Pure function version for EVENT_FLOW_ARCHITECTURE
+@strategy(
+    name='simple_trend',
+    indicators={
+        'sma': {'params': ['fast_period', 'slow_period'], 
+                'defaults': {'fast_period': 10, 'slow_period': 20}}
+    }
+)
+def simple_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Pure function simple trend following strategy using SMA crossover.
+    
+    Args:
+        features: Calculated indicators from FeatureHub
+        bar: Current market bar with OHLCV data
+        params: Strategy parameters (fast_period, slow_period)
+        
+    Returns:
+        Signal dict or None
+    """
+    # Extract parameters
+    fast_period = params.get('fast_period', 10)
+    slow_period = params.get('slow_period', 20)
+    
+    # Get features
+    price = bar.get('close', 0)
+    fast_sma = features.get(f'sma_{fast_period}')
+    slow_sma = features.get(f'sma_{slow_period}')
+    
+    # Check if we have required features
+    if fast_sma is None or slow_sma is None:
+        return None
+    
+    # Previous values for crossover detection (if available)
+    prev_fast = features.get(f'prev_sma_{fast_period}')
+    prev_slow = features.get(f'prev_sma_{slow_period}')
+    
+    # Generate signal based on crossover
+    signal = None
+    
+    # Bullish crossover: fast crosses above slow
+    if prev_fast and prev_slow:
+        if prev_fast <= prev_slow and fast_sma > slow_sma:
+            signal = {
+                'symbol': bar.get('symbol'),
+                'direction': 'long',
+                'strength': 0.8,
+                'price': price,
+                'reason': f'Bullish crossover: SMA{fast_period} crossed above SMA{slow_period}',
+                'indicators': {
+                    'price': price,
+                    'fast_sma': fast_sma,
+                    'slow_sma': slow_sma
+                }
+            }
+            logger.info(f"Generated LONG signal: fast_sma={fast_sma}, slow_sma={slow_sma}")
+            
+        # Bearish crossover: fast crosses below slow
+        elif prev_fast >= prev_slow and fast_sma < slow_sma:
+            signal = {
+                'symbol': bar.get('symbol'),
+                'direction': 'short',
+                'strength': 0.8,
+                'price': price,
+                'reason': f'Bearish crossover: SMA{fast_period} crossed below SMA{slow_period}',
+                'indicators': {
+                    'price': price,
+                    'fast_sma': fast_sma,
+                    'slow_sma': slow_sma
+                }
+            }
+            logger.info(f"Generated SHORT signal: fast_sma={fast_sma}, slow_sma={slow_sma}")
+    
+    # If no previous values, just check current state
+    elif fast_sma > slow_sma:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'long',
+            'strength': 0.6,  # Lower strength without crossover confirmation
+            'price': price,
+            'reason': f'Bullish trend: SMA{fast_period} > SMA{slow_period}',
+            'indicators': {
+                'price': price,
+                'fast_sma': fast_sma,
+                'slow_sma': slow_sma
+            }
+        }
+    elif fast_sma < slow_sma:
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'short',
+            'strength': 0.6,  # Lower strength without crossover confirmation
+            'price': price,
+            'reason': f'Bearish trend: SMA{fast_period} < SMA{slow_period}',
+            'indicators': {
+                'price': price,
+                'fast_sma': fast_sma,
+                'slow_sma': slow_sma
+            }
+        }
+    
+    return signal

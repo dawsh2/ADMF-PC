@@ -39,6 +39,9 @@ class SelectiveAdapter:
         self.default_target = config.get('default_target')
         self.route_by_type = config.get('route_by_type', {})
         
+        # Optional: Only subscribe to specific event types
+        self.subscribe_types = config.get('subscribe_types', [])
+        
         # Containers
         self.source_container: Optional[Container] = None
         self.target_containers: Dict[str, Container] = {}
@@ -95,7 +98,17 @@ class SelectiveAdapter:
         handler = lambda event: self.handle_event(event, self.source_container)
         
         if hasattr(self.source_container, 'event_bus'):
-            self.source_container.event_bus.subscribe_all(handler)
+            # Subscribe to specific event types if configured, otherwise all
+            from ..types.events import EventType
+            
+            if self.subscribe_types:
+                # Only subscribe to specified types
+                for event_type in self.subscribe_types:
+                    self.source_container.event_bus.subscribe(event_type, handler)
+            else:
+                # Subscribe to all known event types
+                for event_type in EventType:
+                    self.source_container.event_bus.subscribe(event_type, handler)
             
         self.logger.info(f"Selective adapter '{self.name}' started")
         

@@ -1,7 +1,11 @@
 """
-Parameter analysis for multi-parameter workflow detection.
+SIMPLIFIED FOR UNIFIED ARCHITECTURE
 
-Analyzes configuration to detect when multi-parameter execution is needed.
+This module now only helps detect parameter grids for the unified architecture.
+No longer used for pattern detection - just parameter expansion.
+
+DEPRECATED - Parameter expansion is now handled directly in
+WorkflowManager._expand_parameter_combinations().
 """
 
 import logging

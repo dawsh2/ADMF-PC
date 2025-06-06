@@ -20,6 +20,7 @@ from ..components.features import (
 from ..features import TechnicalFeatureExtractor, PricePatternExtractor
 from ..rules import CrossoverRule, ThresholdRule, CompositeRule
 from ..rules import TrailingStopRule, VolatilityBasedRule
+from ...core.containers.discovery import strategy
 
 
 logger = logging.getLogger(__name__)
@@ -390,3 +391,113 @@ def create_trend_following_strategy(config: Dict[str, Any] = None) -> Any:
     # })
     
     return strategy
+
+
+# Pure function version for EVENT_FLOW_ARCHITECTURE
+@strategy(
+    name='trend_following',
+    indicators={
+        'sma': {'params': ['fast_ma_period', 'slow_ma_period', 'trend_ma_period'], 
+                'defaults': {'fast_ma_period': 20, 'slow_ma_period': 50, 'trend_ma_period': 200}},
+        'adx': {'params': ['adx_period'], 'default': 14},
+        'atr': {'params': ['atr_period'], 'default': 14}
+    }
+)
+def trend_following_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Pure function trend following strategy.
+    
+    Args:
+        features: Calculated indicators from FeatureHub
+        bar: Current market bar with OHLCV data
+        params: Strategy parameters
+        
+    Returns:
+        Signal dict or None
+    """
+    # Extract parameters
+    fast_period = params.get('fast_ma_period', 20)
+    slow_period = params.get('slow_ma_period', 50)
+    trend_period = params.get('trend_ma_period', 200)
+    adx_threshold = params.get('adx_threshold', 25)
+    
+    # Get features
+    price = bar.get('close', 0)
+    fast_ma = features.get(f'sma_{fast_period}')
+    slow_ma = features.get(f'sma_{slow_period}')
+    trend_ma = features.get(f'sma_{trend_period}')
+    adx = features.get('adx')
+    atr = features.get('atr')
+    
+    # Check if we have required features
+    if any(x is None for x in [fast_ma, slow_ma, trend_ma, adx]):
+        logger.debug(f"Missing features for trend following")
+        return None
+    
+    # Check if trend is strong enough
+    if adx < adx_threshold:
+        return None
+    
+    # Calculate trend alignment
+    bullish_score = 0
+    if price > fast_ma:
+        bullish_score += 0.25
+    if fast_ma > slow_ma:
+        bullish_score += 0.25
+    if slow_ma > trend_ma:
+        bullish_score += 0.25
+    if price > trend_ma:
+        bullish_score += 0.25
+    
+    bearish_score = 0
+    if price < fast_ma:
+        bearish_score += 0.25
+    if fast_ma < slow_ma:
+        bearish_score += 0.25
+    if slow_ma < trend_ma:
+        bearish_score += 0.25
+    if price < trend_ma:
+        bearish_score += 0.25
+    
+    # Generate signal based on trend alignment
+    signal = None
+    
+    if bullish_score >= 0.75:  # Strong bullish alignment
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'long',
+            'strength': min(1.0, adx / adx_threshold),
+            'price': price,
+            'reason': f'Trend following long: alignment={bullish_score}, ADX={adx:.1f}',
+            'indicators': {
+                'price': price,
+                'fast_ma': fast_ma,
+                'slow_ma': slow_ma,
+                'trend_ma': trend_ma,
+                'adx': adx,
+                'atr': atr,
+                'trend_alignment': bullish_score
+            }
+        }
+        logger.info(f"Generated LONG signal: price={price}, ADX={adx:.1f}")
+        
+    elif bearish_score >= 0.75:  # Strong bearish alignment
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'short',
+            'strength': min(1.0, adx / adx_threshold),
+            'price': price,
+            'reason': f'Trend following short: alignment={bearish_score}, ADX={adx:.1f}',
+            'indicators': {
+                'price': price,
+                'fast_ma': fast_ma,
+                'slow_ma': slow_ma,
+                'trend_ma': trend_ma,
+                'adx': adx,
+                'atr': atr,
+                'trend_alignment': bearish_score
+            }
+        }
+        logger.info(f"Generated SHORT signal: price={price}, ADX={adx:.1f}")
+    
+    return signal

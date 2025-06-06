@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from decimal import Decimal
 
-from ..core.events.types import Event
-from ..core.types import OrderType, OrderSide
+from ..core.types.events import Event
+from ..core.types.trading import OrderType, OrderSide
 
 
 class OrderStatus(Enum):

@@ -1,8 +1,8 @@
 """
-Basic HTML Report Generator for ADMF-PC Backtest Results
+Human-Readable Results Formatting for ADMF-PC
 
-This module creates static HTML reports from backtest results stored in the 
-workspace management system.
+Converts raw backtest results into readable tables and summaries.
+Also includes HTML report generation from workspace data.
 """
 
 from pathlib import Path
@@ -14,6 +14,222 @@ import plotly.express as px
 from plotly.utils import PlotlyJSONEncoder
 from datetime import datetime
 import logging
+
+
+def format_backtest_results(results: Dict[str, Any]) -> str:
+    """Format backtest results into human-readable output."""
+    
+    output = []
+    output.append("=" * 80)
+    output.append("BACKTEST RESULTS SUMMARY")
+    output.append("=" * 80)
+    
+    # Overall summary
+    best_combo = results.get('best_combination', {})
+    all_results = results.get('all_results', {})
+    
+    output.append(f"📊 Total Portfolios Tested: {len(all_results)}")
+    output.append(f"📈 Best Portfolio: {best_combo.get('combo_id', 'N/A')}")
+    
+    if best_combo.get('metrics'):
+        best_return = best_combo['metrics'].get('total_return', 0) * 100
+        best_trades = best_combo['metrics'].get('trades', 0)
+        output.append(f"🏆 Best Return: {best_return:.3f}%")
+        output.append(f"🔄 Best Trades: {best_trades}")
+    
+    output.append("")
+    
+    # Portfolio comparison table
+    output.append("PORTFOLIO PERFORMANCE COMPARISON")
+    output.append("-" * 80)
+    output.append(f"{'ID':<6} {'Strategy':<15} {'Risk':<12} {'Trades':<7} {'Return%':<8} {'Sharpe':<8} {'MaxDD%':<8}")
+    output.append("-" * 80)
+    
+    # Sort by return (best first)
+    sorted_results = sorted(
+        all_results.items(), 
+        key=lambda x: x[1].get('metrics', {}).get('total_return', 0), 
+        reverse=True
+    )
+    
+    for combo_id, result in sorted_results:
+        metrics = result.get('metrics', {})
+        params = result.get('parameters', {})
+        
+        strategy_name = params.get('strategy_params', {}).get('name', 'unknown')[:14]
+        risk_name = params.get('risk_params', {}).get('name', 'unknown')[:11]
+        
+        trades = metrics.get('trades', 0)
+        total_return = metrics.get('total_return', 0) * 100
+        sharpe = metrics.get('sharpe_ratio', 0)
+        max_dd = metrics.get('max_drawdown', 0) * 100
+        
+        # Format numbers nicely
+        return_str = f"{total_return:+.3f}" if total_return != 0 else "0.000"
+        sharpe_str = f"{sharpe:.2f}" if sharpe != 0 else "0.00"
+        dd_str = f"{max_dd:.3f}" if max_dd != 0 else "0.000"
+        
+        output.append(f"{combo_id:<6} {strategy_name:<15} {risk_name:<12} {trades:<7} {return_str:<8} {sharpe_str:<8} {dd_str:<8}")
+    
+    output.append("")
+    
+    # Strategy breakdown
+    strategy_summary = {}
+    risk_summary = {}
+    
+    for combo_id, result in all_results.items():
+        params = result.get('parameters', {})
+        metrics = result.get('metrics', {})
+        
+        strategy = params.get('strategy_params', {}).get('name', 'unknown')
+        risk = params.get('risk_params', {}).get('name', 'unknown')
+        trades = metrics.get('trades', 0)
+        
+        # Count by strategy
+        if strategy not in strategy_summary:
+            strategy_summary[strategy] = {'portfolios': 0, 'total_trades': 0, 'active_portfolios': 0}
+        strategy_summary[strategy]['portfolios'] += 1
+        strategy_summary[strategy]['total_trades'] += trades
+        if trades > 0:
+            strategy_summary[strategy]['active_portfolios'] += 1
+        
+        # Count by risk
+        if risk not in risk_summary:
+            risk_summary[risk] = {'portfolios': 0, 'total_trades': 0, 'active_portfolios': 0}
+        risk_summary[risk]['portfolios'] += 1
+        risk_summary[risk]['total_trades'] += trades
+        if trades > 0:
+            risk_summary[risk]['active_portfolios'] += 1
+    
+    # Strategy analysis
+    output.append("STRATEGY ANALYSIS")
+    output.append("-" * 40)
+    for strategy, stats in strategy_summary.items():
+        active = stats['active_portfolios']
+        total = stats['portfolios']
+        trades = stats['total_trades']
+        output.append(f"📋 {strategy}:")
+        output.append(f"   - {active}/{total} portfolios traded")
+        output.append(f"   - {trades} total trades")
+        if active == 0:
+            output.append(f"   - ❌ No trades generated")
+        output.append("")
+    
+    # Risk profile analysis  
+    output.append("RISK PROFILE ANALYSIS")
+    output.append("-" * 40)
+    for risk, stats in risk_summary.items():
+        active = stats['active_portfolios']
+        total = stats['portfolios']
+        trades = stats['total_trades']
+        output.append(f"⚖️  {risk}:")
+        output.append(f"   - {active}/{total} portfolios traded")
+        output.append(f"   - {trades} total trades")
+        if trades > 0:
+            output.append(f"   - Avg trades per active portfolio: {trades/max(1,active):.1f}")
+        output.append("")
+    
+    # Execution summary
+    bar_count = results.get('bar_count', 0)
+    output.append("EXECUTION SUMMARY")
+    output.append("-" * 40)
+    output.append(f"📊 Market bars processed: {bar_count}")
+    output.append(f"🏛️  Portfolio containers: {len(all_results)}")
+    
+    total_trades = sum(r.get('metrics', {}).get('trades', 0) for r in all_results.values())
+    active_portfolios = sum(1 for r in all_results.values() if r.get('metrics', {}).get('trades', 0) > 0)
+    
+    output.append(f"📈 Total trades across all portfolios: {total_trades}")
+    output.append(f"🔄 Active portfolios (with trades): {active_portfolios}/{len(all_results)}")
+    
+    if total_trades > 0:
+        output.append(f"📊 Average trades per active portfolio: {total_trades/active_portfolios:.1f}")
+    
+    output.append("")
+    output.append("=" * 80)
+    
+    return "\n".join(output)
+
+
+def format_portfolio_details(results: Dict[str, Any], combo_id: str) -> str:
+    """Format detailed information for a specific portfolio."""
+    
+    if combo_id not in results.get('all_results', {}):
+        return f"Portfolio {combo_id} not found in results."
+    
+    portfolio = results['all_results'][combo_id]
+    params = portfolio.get('parameters', {})
+    metrics = portfolio.get('metrics', {})
+    
+    output = []
+    output.append("=" * 60)
+    output.append(f"PORTFOLIO {combo_id} DETAILS")
+    output.append("=" * 60)
+    
+    # Strategy parameters
+    strategy_params = params.get('strategy_params', {})
+    output.append("STRATEGY CONFIGURATION:")
+    for key, value in strategy_params.items():
+        output.append(f"  {key}: {value}")
+    output.append("")
+    
+    # Risk parameters
+    risk_params = params.get('risk_params', {})
+    output.append("RISK CONFIGURATION:")
+    for key, value in risk_params.items():
+        output.append(f"  {key}: {value}")
+    output.append("")
+    
+    # Performance metrics
+    output.append("PERFORMANCE METRICS:")
+    total_value = metrics.get('total_value', 0)
+    total_return = metrics.get('total_return', 0) * 100
+    trades = metrics.get('trades', 0)
+    sharpe = metrics.get('sharpe_ratio', 0)
+    max_dd = metrics.get('max_drawdown', 0) * 100
+    
+    output.append(f"  Final Value: ${total_value:,.2f}")
+    output.append(f"  Total Return: {total_return:+.3f}%")
+    output.append(f"  Trades: {trades}")
+    output.append(f"  Sharpe Ratio: {sharpe:.3f}")
+    output.append(f"  Max Drawdown: {max_dd:.3f}%")
+    
+    # Positions
+    positions = metrics.get('positions', {})
+    if positions:
+        output.append("")
+        output.append("OPEN POSITIONS:")
+        for symbol, pos in positions.items():
+            qty = pos.get('quantity', 0)
+            avg_price = pos.get('avg_price', 0)
+            current_price = pos.get('current_price', 0)
+            pnl = pos.get('pnl', 0)
+            output.append(f"  {symbol}: {qty} shares @ ${avg_price:.2f} (current: ${current_price:.2f}, P&L: ${pnl:.2f})")
+    else:
+        output.append("")
+        output.append("OPEN POSITIONS: None (all flat)")
+    
+    output.append("")
+    output.append("=" * 60)
+    
+    return "\n".join(output)
+
+
+def save_results_report(results: Dict[str, Any], output_dir: str = "./results") -> str:
+    """Save formatted results to a file."""
+    import os
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = os.path.join(output_dir, f"backtest_report_{timestamp}.txt")
+    
+    report = format_backtest_results(results)
+    
+    with open(filename, 'w') as f:
+        f.write(report)
+    
+    return filename
 
 
 class BacktestReportGenerator:

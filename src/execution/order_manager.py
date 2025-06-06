@@ -16,7 +16,7 @@ from .protocols import (
     Order, OrderStatus, OrderProcessor, Fill,
     OrderType, OrderSide
 )
-from ..core.infrastructure.validation import ValidationResult
+from .engine import ValidationResult
 
 
 logger = logging.getLogger(__name__)

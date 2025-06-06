@@ -7,10 +7,12 @@ Main entry point - orchestrates CLI parsing, configuration, and workflow executi
 
 import asyncio
 import logging
+import time
 
 # Import core modules
-from src.core.coordinator.coordinator import Coordinator, ExecutionMode
-from src.core.cli import parse_arguments, build_workflow_from_cli
+from src.core.coordinator.coordinator import Coordinator
+from src.core.cli import parse_arguments
+from src.core.cli.config_builder import build_workflow_from_cli
 from src.core.utils.logging import setup_logging, configure_event_logging
 
 
@@ -29,8 +31,7 @@ def handle_execution_result(result) -> int:
     # Handle different result formats
     if hasattr(result, 'success') and result.success:
         logger.info("Workflow completed successfully")
-        if hasattr(result, 'data') and result.data:
-            logger.info(f"Results: {result.data}")
+        # Note: Detailed results now printed in human-readable format by main()
         return 0
     elif hasattr(result, 'success'):
         logger.error("Workflow failed")
@@ -86,7 +87,6 @@ async def main():
     
     # Create and run coordinator
     coordinator = Coordinator(
-        enable_composable_containers=True,
         enable_communication=True,
         enable_yaml=True
     )
@@ -98,12 +98,17 @@ async def main():
         start_time = time.time()
         
         result = await coordinator.execute_workflow(
-            workflow_config,
-            execution_mode=ExecutionMode.COMPOSABLE
+            workflow_config
         )
         
         elapsed = time.time() - start_time
         logger.info(f"✅ Workflow execution completed in {elapsed:.2f} seconds")
+        
+        # Format results in human-readable format
+        if result and hasattr(result, 'success') and result.success and hasattr(result, 'data'):
+            from src.analytics.basic_report import format_backtest_results
+            readable_report = format_backtest_results(result.data)
+            print("\n" + readable_report)
         
     except Exception as e:
         logger.error(f"Workflow execution failed: {e}")

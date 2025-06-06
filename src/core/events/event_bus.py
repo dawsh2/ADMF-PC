@@ -113,7 +113,7 @@ class EventBus(EventBusProtocol):
                 
                 logger.debug(
                     f"Handler {handler} subscribed to {event_type} "
-                    f"in container {self.container_id}"
+                    f"in container {self.container_id} (bus id: {id(self)})"
                 )
     
     def unsubscribe(self, event_type: Union[EventType, str], handler: EventHandler) -> None:
@@ -140,6 +140,30 @@ class EventBus(EventBusProtocol):
                 logger.debug(
                     f"Handler {handler} unsubscribed from {event_type} "
                     f"in container {self.container_id}"
+                )
+    
+    def subscribe_all(self, handler: EventHandler) -> None:
+        """
+        Subscribe a handler to ALL event types (wildcard subscription).
+        
+        This handler will receive every event published to this event bus,
+        regardless of type. Useful for logging, debugging, or event capture.
+        
+        Args:
+            handler: The handler function to call for all events
+        """
+        with self._lock:
+            # Use a special wildcard key
+            wildcard_key = '*'  # Special key for all events
+            
+            if handler not in self._subscribers[wildcard_key]:
+                self._subscribers[wildcard_key].append(handler)
+                self._handler_refs[handler].add(wildcard_key)
+                self._cache_dirty = True
+                
+                logger.debug(
+                    f"Handler {handler} subscribed to ALL events "
+                    f"in container {self.container_id} (bus id: {id(self)})"
                 )
     
     def unsubscribe_all(self, handler: EventHandler) -> None:
@@ -184,8 +208,17 @@ class EventBus(EventBusProtocol):
         """Get handlers for an event type, using cache if possible."""
         with self._lock:
             if self._cache_dirty or event_type not in self._handler_cache:
+                # Get specific handlers for this event type
+                specific_handlers = list(self._subscribers.get(event_type, []))
+                
+                # Add wildcard handlers (subscribed to all events)
+                wildcard_handlers = list(self._subscribers.get('*', []))
+                
+                # Combine them, with specific handlers first
+                all_handlers = specific_handlers + wildcard_handlers
+                
                 # Create immutable tuple for thread-safe access
-                handlers = tuple(self._subscribers.get(event_type, []))
+                handlers = tuple(all_handlers)
                 self._handler_cache[event_type] = handlers
                 if event_type in self._handler_cache:
                     self._cache_dirty = False

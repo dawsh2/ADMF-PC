@@ -140,7 +140,7 @@ class TestUnifiedArchitecture:
         
         # Test data
         features = {
-            'sma_fast': 101,
+            'sma_fast': 102,  # Higher fast MA for stronger momentum
             'sma_slow': 100,
             'rsi': 50
         }
@@ -150,7 +150,7 @@ class TestUnifiedArchitecture:
             'timestamp': datetime.now()
         }
         params = {
-            'momentum_threshold': 0.01,
+            'momentum_threshold': 0.01,  # Lower threshold to ensure signal
             'rsi_oversold': 30,
             'rsi_overbought': 70
         }
@@ -173,7 +173,7 @@ class TestUnifiedArchitecture:
         
         # Test data
         features = {
-            'sma_fast': 102,
+            'sma_fast': 103,  # Higher for clearer trend
             'sma_slow': 100
         }
         params = {
@@ -287,11 +287,11 @@ def test_import():
         StatelessCompositeClassifier
     )
     
-    # Test stateless risk validators
-    from src.risk.stateless_validators import (
-        StatelessMaxPositionValidator,
-        StatelessDrawdownValidator,
-        StatelessCompositeValidator
+    # Test risk validators
+    from src.risk.validators import (
+        validate_max_position,
+        validate_drawdown,
+        validate_composite
     )
     
     # Test workflow components

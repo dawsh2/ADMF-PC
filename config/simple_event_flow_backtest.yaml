@@ -1,0 +1,68 @@
+# Simple backtest using EVENT_FLOW_ARCHITECTURE
+# This demonstrates the new streamlined architecture with:
+# - Symbol-Timeframe containers for data/features
+# - Portfolio containers for strategy/risk
+# - Execution container for order processing
+
+backtest:
+  name: "Simple Event Flow Backtest"
+  mode: "backtest"  # backtest, signal_generation, or signal_replay
+  
+  # Data configuration
+  data:
+    symbols: ["SPY"]
+    start_date: "2023-01-01"
+    end_date: "2023-12-31"
+    source: "csv"
+    
+  # Feature configuration
+  features:
+    indicators:
+      - name: "sma_20"
+        type: "sma"
+        period: 20
+      - name: "sma_50"
+        type: "sma"
+        period: 50
+      - name: "rsi"
+        type: "rsi"
+        period: 14
+  
+  # Strategy configuration (stateless services)
+  strategies:
+    - type: "momentum"
+      sma_period: 20
+      rsi_threshold_long: 45    # Relaxed for more signals
+      rsi_threshold_short: 55
+      
+  # Risk configuration
+  risk_profiles:
+    - type: "conservative"
+      max_position_percent: 0.1  # 10% max per position
+      max_position_value: 50000
+      max_drawdown: 0.15
+      base_position_percent: 0.02
+      
+  # Execution configuration
+  execution:
+    fill_probability: 1.0      # 100% fills for determinism
+    partial_fill_probability: 0.0  # No partial fills for determinism
+    random_seed: 42            # Fixed seed for reproducible slippage
+    slippage:
+      base: 0.0001
+      volume_factor: 0.00001
+      random_factor: 0.0001
+    commission:
+      per_share: 0.01
+      minimum: 1.0
+      maximum: 10.0
+      
+  # Portfolio configuration
+  portfolio:
+    initial_capital: 100000
+    
+  # Output configuration
+  output:
+    results_dir: "./results/event_flow_backtest"
+    save_trades: true
+    save_metrics: true

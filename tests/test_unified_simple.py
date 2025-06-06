@@ -85,10 +85,10 @@ def test_stateless_components():
     
     print("✓ Stateless trend classifier works")
     
-    # Test stateless risk validator
-    from src.risk.stateless_validators import StatelessMaxPositionValidator
+    # Test risk validator
+    from src.risk.validators import validate_max_position
     
-    validator = StatelessMaxPositionValidator()
+    validator = validate_max_position
     
     order = {
         'symbol': 'SPY',
@@ -104,13 +104,13 @@ def test_stateless_components():
     }
     market_data = {'close': 100}
     
-    result = validator.validate_order(order, portfolio_state, risk_limits, market_data)
+    result = validator(order, portfolio_state, risk_limits, market_data)
     assert result is not None
     assert 'approved' in result
     assert isinstance(result['approved'], bool)
     assert 'risk_metrics' in result
     
-    print("✓ Stateless position validator works")
+    print("✓ Position validator works")
 
 
 def test_parameter_expansion():

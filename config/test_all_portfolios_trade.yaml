@@ -1,0 +1,90 @@
+# Test configuration to ensure ALL portfolios generate trades
+# Uses very relaxed thresholds and guaranteed trigger conditions
+
+backtest:
+  name: "All Portfolios Trade Test"
+  mode: "backtest"
+  
+  # Data configuration
+  data:
+    symbols: ["SPY"]
+    start_date: "2023-01-01"
+    end_date: "2023-01-31"  # One month of data
+    source: "csv"
+    
+  # Feature configuration
+  features:
+    indicators:
+      - name: "sma_20"
+        type: "sma"
+        period: 20
+      - name: "sma_50"
+        type: "sma" 
+        period: 50
+      - name: "rsi"
+        type: "rsi"
+        period: 14
+  
+  # All strategies with VERY relaxed thresholds to ensure trading
+  strategies:
+    - type: "momentum"
+      name: "strategy_1"
+      sma_period: 20
+      rsi_threshold_long: 45    # Will trigger on most upward moves
+      rsi_threshold_short: 55   # Will trigger on most downward moves
+      
+    - type: "momentum" 
+      name: "strategy_2"
+      sma_period: 20
+      rsi_threshold_long: 40    # Even more relaxed
+      rsi_threshold_short: 60   
+      
+    - type: "momentum"
+      name: "strategy_3"
+      sma_period: 20
+      rsi_threshold_long: 35    # Most relaxed
+      rsi_threshold_short: 65
+      
+  # Risk profiles with varying position sizes
+  risk_profiles:
+    - type: "conservative"
+      name: "risk_1"
+      max_position_percent: 0.02  # 2% position size
+      max_position_value: 20000
+      max_drawdown: 0.05
+      
+    - type: "moderate"
+      name: "risk_2"
+      max_position_percent: 0.05  # 5% position size
+      max_position_value: 50000
+      max_drawdown: 0.10
+      
+    - type: "aggressive"
+      name: "risk_3"
+      max_position_percent: 0.10  # 10% position size
+      max_position_value: 100000
+      max_drawdown: 0.20
+      
+  # Execution configuration - deterministic
+  execution:
+    fill_probability: 1.0
+    partial_fill_probability: 0.0
+    random_seed: 42
+    slippage:
+      base: 0.0001
+      volume_factor: 0.00001
+      random_factor: 0.0001
+    commission:
+      per_share: 0.01
+      minimum: 1.0
+      maximum: 10.0
+      
+  # Portfolio configuration
+  portfolio:
+    initial_capital: 100000
+    
+  # Output configuration
+  output:
+    results_dir: "./results/all_portfolios_trade_test"
+    save_trades: true
+    save_metrics: true

@@ -31,14 +31,14 @@ class TracedEventBus(EventBus):
     adding tracing capabilities without changing the interface.
     """
     
-    def __init__(self, name: str = "traced_bus"):
+    def __init__(self, container_id: str = "traced_bus"):
         """
         Initialize TracedEventBus.
         
         Args:
-            name: Name for this event bus instance
+            container_id: Container ID for this event bus instance
         """
-        super().__init__(name)
+        super().__init__(container_id)
         self.tracer: Optional[EventTracer] = None
         self._current_processing_event: Optional[str] = None
         self._processing_stack: list[str] = []  # Stack for nested event handling
@@ -51,7 +51,7 @@ class TracedEventBus(EventBus):
             tracer: EventTracer instance to use for tracing events
         """
         self.tracer = tracer
-        logger.info(f"EventBus '{self.name}' now tracing with correlation_id: {tracer.correlation_id}")
+        logger.info(f"EventBus '{self.container_id}' now tracing with correlation_id: {tracer.correlation_id}")
         
     def set_correlation_id(self, correlation_id: str):
         """
@@ -62,23 +62,24 @@ class TracedEventBus(EventBus):
         """
         if self.tracer:
             self.tracer.correlation_id = correlation_id
-            logger.info(f"EventBus '{self.name}' correlation_id updated to: {correlation_id}")
+            logger.info(f"EventBus '{self.container_id}' correlation_id updated to: {correlation_id}")
             
-    def publish(self, event: Event, source: Optional[Container] = None):
+    def publish(self, event: Event) -> None:
         """
         Publish event with automatic tracing.
         
         Args:
             event: Event to publish
-            source: Optional container that is publishing the event
         """
         # Add causation if we're currently processing another event
         if self._current_processing_event:
             event.metadata['causation_id'] = self._current_processing_event
             
-        # Trace the event if tracer is attached and source is provided
-        if self.tracer and source:
-            traced = self.tracer.trace_event(event, source.metadata.name)
+        # Trace the event if tracer is attached
+        if self.tracer is not None:
+            # Get source container from event metadata or use bus container_id
+            source_container = event.source_id or self.container_id
+            traced = self.tracer.trace_event(event, source_container)
             traced.emitted_at = datetime.now()
             
             # Log trace info at debug level
@@ -86,6 +87,8 @@ class TracedEventBus(EventBus):
                 f"Event traced: {traced.event_type} "
                 f"[{traced.event_id}] from {traced.source_container}"
             )
+        else:
+            logger.debug(f"TracedEventBus publishing {event.event_type} without tracer (tracer={self.tracer})")
             
         # Normal publish through parent class
         super().publish(event)

@@ -3,30 +3,40 @@ Market classification components for Step 3.
 
 This module provides classifiers and containers for regime detection
 and adaptive trading based on market conditions.
+
+Now includes pure function classifiers decorated with @classifier
+for automatic discovery.
 """
 
 # Step 3 Components
 from .regime_types import (
-    MarketRegime,
     RegimeChangeEvent,
     RegimeState,
     ClassificationFeatures,
     ClassifierConfig
 )
 
-from .classifier import (
-    ClassifierProtocol,
-    BaseClassifier,
-    DummyClassifier
+# Import pure function classifiers for discovery
+from .classifiers import (
+    MarketRegime,
+    trend_classifier,
+    volatility_classifier,
+    momentum_regime_classifier
 )
 
-from .pattern_classifier import PatternClassifier
+# from .classifier import (
+#     ClassifierProtocol,
+#     BaseClassifier,
+#     DummyClassifier
+# )
 
-from .classifier_container import (
-    ClassifierContainer,
-    create_test_classifier_container,
-    create_conservative_classifier_container
-)
+# from .pattern_classifier import PatternClassifier
+
+# from .classifier_container import (
+#     ClassifierContainer,
+#     create_test_classifier_container,
+#     create_conservative_classifier_container
+# )
 
 __all__ = [
     # Types and Events
@@ -37,15 +47,20 @@ __all__ = [
     'ClassifierConfig',
     
     # Base Classes
-    'ClassifierProtocol',
-    'BaseClassifier',
-    'DummyClassifier',
+    # 'ClassifierProtocol',
+    # 'BaseClassifier',
+    # 'DummyClassifier',
     
-    # Implementations
-    'PatternClassifier',
+    # Implementations (removed - using pure functions now)
+    # 'PatternClassifier',
+    
+    # Pure function classifiers (decorated)
+    'trend_classifier',
+    'volatility_classifier',
+    'momentum_regime_classifier',
     
     # Containers
-    'ClassifierContainer',
-    'create_test_classifier_container',
-    'create_conservative_classifier_container'
+    # 'ClassifierContainer',
+    # 'create_test_classifier_container',
+    # 'create_conservative_classifier_container'
 ]

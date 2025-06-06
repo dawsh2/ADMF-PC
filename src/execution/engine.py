@@ -13,7 +13,7 @@ from decimal import Decimal
 from ..core.logging.structured import StructuredLogger, LogContext
 
 from ..core.components.protocols import Component, Lifecycle, EventCapable
-from ..core.events.types import Event, EventType
+from ..core.types.events import Event, EventType
 from .protocols import (
     ExecutionEngine, Order, Fill, OrderStatus, FillType, FillStatus,
     OrderType, OrderSide, Broker, OrderProcessor, MarketSimulator as MarketSimulatorProtocol

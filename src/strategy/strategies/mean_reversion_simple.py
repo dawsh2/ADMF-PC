@@ -12,6 +12,7 @@ import logging
 from ...risk.protocols import Signal as RiskSignal
 from ...execution.protocols import OrderSide
 from ...core.components.protocols import StatelessStrategy
+from ...core.containers.discovery import strategy
 
 logger = logging.getLogger(__name__)
 
@@ -311,3 +312,92 @@ def create_mean_reversion_strategy(config: Dict[str, Any] = None) -> MeanReversi
         default_config.update(config)
     
     return MeanReversionStrategy(**default_config)
+
+
+# Pure function version for EVENT_FLOW_ARCHITECTURE
+@strategy(
+    name='mean_reversion',
+    indicators={
+        'bollinger': {'params': ['period', 'num_std'], 'defaults': {'period': 20, 'num_std': 2}},
+        'rsi': {'params': ['rsi_period'], 'default': 14}
+    }
+)
+def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Pure function mean reversion strategy using Bollinger Bands.
+    
+    Args:
+        features: Calculated indicators (bollinger_upper, bollinger_middle, bollinger_lower, rsi)
+        bar: Current market bar with OHLCV data
+        params: Strategy parameters (entry_threshold, exit_threshold)
+        
+    Returns:
+        Signal dict or None
+    """
+    # Extract parameters
+    entry_threshold = params.get('entry_threshold', 2.0)
+    exit_threshold = params.get('exit_threshold', 0.5)
+    
+    # Get current price
+    price = bar.get('close', 0)
+    
+    # Get required features
+    upper_band = features.get('bollinger_upper')
+    middle_band = features.get('bollinger_middle')
+    lower_band = features.get('bollinger_lower')
+    rsi = features.get('rsi')
+    
+    # Check if we have required features
+    if any(x is None for x in [upper_band, middle_band, lower_band]) or price <= 0:
+        logger.debug(f"Missing features for mean reversion: upper={upper_band}, middle={middle_band}, lower={lower_band}")
+        return None
+    
+    # Calculate z-score
+    band_width = upper_band - middle_band
+    if band_width > 0:
+        z_score = (price - middle_band) / (band_width / 2)
+    else:
+        z_score = 0
+    
+    # Generate signal
+    signal = None
+    
+    if z_score < -entry_threshold:
+        # Oversold - expect reversion up
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'long',
+            'strength': min(abs(z_score) / entry_threshold, 1.0),
+            'price': price,
+            'reason': f'Mean reversion long: z-score={z_score:.2f} < -{entry_threshold}',
+            'indicators': {
+                'price': price,
+                'upper_band': upper_band,
+                'middle_band': middle_band,
+                'lower_band': lower_band,
+                'z_score': z_score,
+                'rsi': rsi
+            }
+        }
+        logger.info(f"Generated LONG signal: price={price}, z_score={z_score:.2f}")
+        
+    elif z_score > entry_threshold:
+        # Overbought - expect reversion down
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'short',
+            'strength': min(z_score / entry_threshold, 1.0),
+            'price': price,
+            'reason': f'Mean reversion short: z-score={z_score:.2f} > {entry_threshold}',
+            'indicators': {
+                'price': price,
+                'upper_band': upper_band,
+                'middle_band': middle_band,
+                'lower_band': lower_band,
+                'z_score': z_score,
+                'rsi': rsi
+            }
+        }
+        logger.info(f"Generated SHORT signal: price={price}, z_score={z_score:.2f}")
+    
+    return signal

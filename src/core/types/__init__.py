@@ -11,8 +11,8 @@ This package contains all type definitions organized by domain:
 
 # Re-export commonly used types for convenience
 from .trading import (
-    OrderSide, OrderType, SignalType, FillType, FillStatus, OrderStatus,
-    Signal, Order, Position
+    Bar, Position, Order, Fill, Signal,
+    OrderType, OrderSide, SignalType
 )
 
 from .events import (

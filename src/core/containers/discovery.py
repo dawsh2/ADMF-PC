@@ -1,0 +1,538 @@
+"""
+Component Discovery System for ADMF-PC
+
+This module provides automatic discovery and registration of containers,
+strategies, classifiers, and other components using decorators and module scanning.
+
+Key Features:
+- Auto-discovery via decorators
+- Plugin-based architecture
+- Configuration-driven registration
+- Type-safe component resolution
+"""
+
+import importlib
+import inspect
+import pkgutil
+from typing import Dict, Any, Type, Callable, Set, Optional, List
+from dataclasses import dataclass, field
+from pathlib import Path
+import logging
+from enum import Enum
+
+from .protocols import ContainerRole, Container
+from ..types.events import EventBusProtocol
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ComponentInfo:
+    """Information about a discoverable component."""
+    name: str
+    component_type: str  # 'container', 'strategy', 'classifier', 'risk_validator'
+    role: Optional[ContainerRole] = None
+    factory: Optional[Callable] = None
+    capabilities: Set[str] = field(default_factory=set)
+    dependencies: Set[str] = field(default_factory=set)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class ComponentRegistry:
+    """
+    Registry for auto-discovered components.
+    
+    Supports:
+    - Decorator-based registration
+    - Module scanning
+    - Configuration-driven discovery
+    - Type-safe resolution
+    """
+    
+    def __init__(self):
+        self._components: Dict[str, ComponentInfo] = {}
+        self._factories: Dict[str, Callable] = {}
+        self._by_type: Dict[str, List[str]] = {}
+        self._by_role: Dict[ContainerRole, List[str]] = {}
+    
+    def register_component(self, info: ComponentInfo) -> None:
+        """Register a component."""
+        self._components[info.name] = info
+        
+        if info.factory:
+            self._factories[info.name] = info.factory
+        
+        # Index by type
+        if info.component_type not in self._by_type:
+            self._by_type[info.component_type] = []
+        self._by_type[info.component_type].append(info.name)
+        
+        # Index by role (for containers)
+        if info.role:
+            if info.role not in self._by_role:
+                self._by_role[info.role] = []
+            self._by_role[info.role].append(info.name)
+        
+        logger.debug(f"Registered component: {info.name} ({info.component_type})")
+    
+    def get_component(self, name: str) -> Optional[ComponentInfo]:
+        """Get component info by name."""
+        return self._components.get(name)
+    
+    def get_factory(self, name: str) -> Optional[Callable]:
+        """Get factory function by name."""
+        return self._factories.get(name)
+    
+    def get_components_by_type(self, component_type: str) -> List[ComponentInfo]:
+        """Get all components of a specific type."""
+        names = self._by_type.get(component_type, [])
+        return [self._components[name] for name in names]
+    
+    def get_containers_by_role(self, role: ContainerRole) -> List[ComponentInfo]:
+        """Get all containers for a specific role."""
+        names = self._by_role.get(role, [])
+        return [self._components[name] for name in names]
+    
+    def list_components(self) -> List[str]:
+        """List all registered component names."""
+        return list(self._components.keys())
+
+
+# Global registry instance
+_global_registry = ComponentRegistry()
+
+
+def get_component_registry() -> ComponentRegistry:
+    """Get the global component registry."""
+    return _global_registry
+
+
+# Decorator-based registration
+
+def container(
+    role: ContainerRole,
+    name: Optional[str] = None,
+    capabilities: Optional[Set[str]] = None,
+    dependencies: Optional[Set[str]] = None,
+    **metadata
+):
+    """
+    Decorator to register a container class.
+    
+    Example:
+        @container(ContainerRole.STRATEGY, capabilities={'signal.generation'})
+        class MomentumContainer:
+            def __init__(self, config): ...
+    """
+    def decorator(cls):
+        component_name = name or cls.__name__
+        
+        def factory(config: Dict[str, Any], **kwargs):
+            return cls(config, **kwargs)
+        
+        info = ComponentInfo(
+            name=component_name,
+            component_type='container',
+            role=role,
+            factory=factory,
+            capabilities=capabilities or set(),
+            dependencies=dependencies or set(),
+            metadata=metadata
+        )
+        
+        _global_registry.register_component(info)
+        
+        # Add registry info to class for debugging
+        cls._component_info = info
+        
+        return cls
+    
+    return decorator
+
+
+def strategy(
+    name: Optional[str] = None,
+    features: Optional[List[str]] = None,
+    feature_config: Optional[Dict[str, Any]] = None,
+    **metadata
+):
+    """
+    Decorator to register a strategy function or class.
+    
+    Example:
+        @strategy(
+            features=['sma', 'rsi'],
+            feature_config={
+                'sma': {'params': ['sma_period'], 'default': 20},
+                'rsi': {'params': ['rsi_period'], 'default': 14}
+            }
+        )
+        def momentum_strategy(features, bar, params):
+            # Strategy logic
+            return signal
+    """
+    def decorator(func_or_class):
+        component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
+        
+        factory = func_or_class if callable(func_or_class) else lambda: func_or_class
+        
+        # Process feature config metadata
+        features_meta = feature_config or {}
+        
+        # Auto-generate feature requirements from feature config
+        if features_meta and not features:
+            features_list = []
+            for feat_name, feat_config in features_meta.items():
+                features_list.append(feat_name)
+        else:
+            features_list = features or []
+        
+        info = ComponentInfo(
+            name=component_name,
+            component_type='strategy',
+            factory=factory,
+            capabilities={'signal.generation'},
+            metadata={
+                'features': features_list,
+                'feature_config': features_meta,
+                **metadata
+            }
+        )
+        
+        _global_registry.register_component(info)
+        
+        # Add registry info for debugging
+        if hasattr(func_or_class, '__dict__'):
+            func_or_class._component_info = info
+        
+        return func_or_class
+    
+    return decorator
+
+
+def classifier(
+    name: Optional[str] = None,
+    regime_types: Optional[List[str]] = None,
+    **metadata
+):
+    """
+    Decorator to register a classifier.
+    
+    Example:
+        @classifier(regime_types=['bull', 'bear', 'sideways'])
+        def trend_classifier(features, params):
+            return regime
+    """
+    def decorator(func_or_class):
+        component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
+        
+        factory = func_or_class if callable(func_or_class) else lambda: func_or_class
+        
+        info = ComponentInfo(
+            name=component_name,
+            component_type='classifier',
+            factory=factory,
+            capabilities={'regime.classification'},
+            metadata={
+                'regime_types': regime_types or [],
+                **metadata
+            }
+        )
+        
+        _global_registry.register_component(info)
+        
+        if hasattr(func_or_class, '__dict__'):
+            func_or_class._component_info = info
+        
+        return func_or_class
+    
+    return decorator
+
+
+def risk_validator(
+    name: Optional[str] = None,
+    validation_types: Optional[List[str]] = None,
+    **metadata
+):
+    """
+    Decorator to register a risk validator.
+    
+    Example:
+        @risk_validator(validation_types=['position_size', 'drawdown'])
+        def position_risk_validator(order, portfolio_state, params):
+            return validation_result
+    """
+    def decorator(func_or_class):
+        component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
+        
+        factory = func_or_class if callable(func_or_class) else lambda: func_or_class
+        
+        info = ComponentInfo(
+            name=component_name,
+            component_type='risk_validator',
+            factory=factory,
+            capabilities={'risk.validation'},
+            metadata={
+                'validation_types': validation_types or [],
+                **metadata
+            }
+        )
+        
+        _global_registry.register_component(info)
+        
+        if hasattr(func_or_class, '__dict__'):
+            func_or_class._component_info = info
+        
+        return func_or_class
+    
+    return decorator
+
+
+def feature(
+    name: Optional[str] = None,
+    params: Optional[List[str]] = None,
+    min_history: Optional[int] = None,
+    dependencies: Optional[List[str]] = None,
+    **metadata
+):
+    """
+    Decorator to register a feature/indicator function.
+    
+    Example:
+        @feature(params=['period'], min_history=20)
+        def sma(data: pd.Series, period: int) -> float:
+            return data.rolling(period).mean().iloc[-1]
+            
+        @feature(
+            params=['fast_period', 'slow_period'], 
+            dependencies=['sma'],
+            min_history=50
+        )
+        def sma_crossover(data: pd.Series, fast_period: int, slow_period: int) -> Dict[str, float]:
+            fast_sma = sma(data, fast_period)
+            slow_sma = sma(data, slow_period)
+            return {'fast': fast_sma, 'slow': slow_sma, 'signal': fast_sma > slow_sma}
+    """
+    def decorator(func_or_class):
+        component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
+        
+        factory = func_or_class if callable(func_or_class) else lambda: func_or_class
+        
+        # Calculate min_history if not provided but params are
+        if min_history is None and params:
+            # Try to infer from parameter names
+            period_params = [p for p in params if 'period' in p.lower()]
+            if period_params:
+                # Use the first period parameter as a hint
+                metadata['auto_min_history'] = True
+        
+        info = ComponentInfo(
+            name=component_name,
+            component_type='feature',
+            factory=factory,
+            capabilities={'feature.calculation'},
+            dependencies=set(dependencies or []),
+            metadata={
+                'params': params or [],
+                'min_history': min_history,
+                **metadata
+            }
+        )
+        
+        _global_registry.register_component(info)
+        
+        if hasattr(func_or_class, '__dict__'):
+            func_or_class._component_info = info
+        
+        return func_or_class
+    
+    return decorator
+
+
+# Auto-discovery functions
+
+def discover_components_in_module(module_name: str) -> int:
+    """
+    Discover and register components in a module.
+    
+    Args:
+        module_name: Module to scan (e.g., 'src.strategy.strategies')
+        
+    Returns:
+        Number of components discovered
+    """
+    try:
+        module = importlib.import_module(module_name)
+        count = 0
+        
+        for name, obj in inspect.getmembers(module):
+            # Check if object has component info (was decorated)
+            if hasattr(obj, '_component_info'):
+                count += 1
+                logger.debug(f"Discovered component: {name} in {module_name}")
+        
+        return count
+        
+    except ImportError as e:
+        logger.warning(f"Could not import module {module_name}: {e}")
+        return 0
+
+
+def discover_components_in_package(package_name: str) -> int:
+    """
+    Recursively discover components in a package.
+    
+    Args:
+        package_name: Package to scan (e.g., 'src.strategy')
+        
+    Returns:
+        Number of components discovered
+    """
+    try:
+        package = importlib.import_module(package_name)
+        total_count = 0
+        
+        # First, discover in the package itself
+        total_count += discover_components_in_module(package_name)
+        
+        # Then recursively discover in submodules
+        if hasattr(package, '__path__'):
+            for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
+                full_module_name = f"{package_name}.{modname}"
+                
+                if ispkg:
+                    # Recursively scan subpackages
+                    total_count += discover_components_in_package(full_module_name)
+                else:
+                    # Scan module
+                    total_count += discover_components_in_module(full_module_name)
+        
+        return total_count
+        
+    except ImportError as e:
+        logger.warning(f"Could not import package {package_name}: {e}")
+        return 0
+
+
+def auto_discover_all_components() -> Dict[str, int]:
+    """
+    Auto-discover all components in the ADMF-PC system.
+    
+    Returns:
+        Dict with component counts by package
+    """
+    packages_to_scan = [
+        'src.strategy.strategies',
+        'src.strategy.classifiers', 
+        'src.risk',
+        'src.execution',
+        'src.data',
+        'src.analytics'
+    ]
+    
+    results = {}
+    total_discovered = 0
+    
+    for package in packages_to_scan:
+        count = discover_components_in_package(package)
+        results[package] = count
+        total_discovered += count
+        
+        if count > 0:
+            logger.info(f"Discovered {count} components in {package}")
+    
+    logger.info(f"Total components discovered: {total_discovered}")
+    return results
+
+
+# Configuration-driven discovery
+
+def load_components_from_config(config_path: str) -> int:
+    """
+    Load component registrations from a YAML/JSON config file.
+    
+    Example config:
+    ```yaml
+    components:
+      containers:
+        - name: "advanced_momentum_container"
+          role: "strategy"
+          module: "src.custom.containers.momentum"
+          class: "AdvancedMomentumContainer"
+          capabilities: ["signal.generation", "risk.aware"]
+      
+      strategies:
+        - name: "ml_momentum"
+          module: "src.custom.strategies.ml"
+          function: "ml_momentum_strategy"
+          features: ["sma", "rsi", "volume"]
+    ```
+    """
+    import yaml
+    from pathlib import Path
+    
+    config_file = Path(config_path)
+    if not config_file.exists():
+        logger.warning(f"Config file not found: {config_path}")
+        return 0
+    
+    with open(config_file, 'r') as f:
+        if config_path.endswith('.yaml') or config_path.endswith('.yml'):
+            config = yaml.safe_load(f)
+        else:
+            import json
+            config = json.load(f)
+    
+    components_config = config.get('components', {})
+    total_loaded = 0
+    
+    # Load containers
+    for container_config in components_config.get('containers', []):
+        try:
+            module = importlib.import_module(container_config['module'])
+            cls = getattr(module, container_config['class'])
+            
+            role = ContainerRole(container_config['role'])
+            capabilities = set(container_config.get('capabilities', []))
+            
+            def factory(config: Dict[str, Any], **kwargs):
+                return cls(config, **kwargs)
+            
+            info = ComponentInfo(
+                name=container_config['name'],
+                component_type='container',
+                role=role,
+                factory=factory,
+                capabilities=capabilities
+            )
+            
+            _global_registry.register_component(info)
+            total_loaded += 1
+            
+        except Exception as e:
+            logger.error(f"Failed to load container {container_config.get('name')}: {e}")
+    
+    # Load strategies
+    for strategy_config in components_config.get('strategies', []):
+        try:
+            module = importlib.import_module(strategy_config['module'])
+            func = getattr(module, strategy_config['function'])
+            
+            info = ComponentInfo(
+                name=strategy_config['name'],
+                component_type='strategy',
+                factory=func,
+                capabilities={'signal.generation'},
+                metadata={
+                    'features': strategy_config.get('features', [])
+                }
+            )
+            
+            _global_registry.register_component(info)
+            total_loaded += 1
+            
+        except Exception as e:
+            logger.error(f"Failed to load strategy {strategy_config.get('name')}: {e}")
+    
+    logger.info(f"Loaded {total_loaded} components from config: {config_path}")
+    return total_loaded

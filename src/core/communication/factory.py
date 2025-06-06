@@ -36,6 +36,7 @@ from .selective_adapter import (
     create_load_balanced_router,
     create_content_based_router
 )
+from .risk_service_adapter import RiskServiceAdapter
 
 
 class AdapterFactory:
@@ -83,6 +84,9 @@ class AdapterFactory:
             'capability_router': create_capability_based_router,
             'load_balanced_router': create_load_balanced_router,
             'content_router': create_content_based_router,
+            
+            # Risk service adapter
+            'risk_service': lambda n, c: create_adapter_with_logging(RiskServiceAdapter, n, c),
         }
         
         # Active adapter instances

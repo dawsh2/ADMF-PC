@@ -1,113 +1,118 @@
 """
-File: src/core/types.py
-Status: ACTIVE
-Architecture Ref: SYSTEM_ARCHITECTURE_v5.md#shared-types
-Dependencies: enum, decimal, datetime
+Trading-related types for ADMF-PC.
 
-Shared types used across multiple modules.
-Breaks circular dependencies by providing common type definitions.
+Simple dataclasses for trading concepts - no complex inheritance.
 """
 
-from enum import Enum
-from decimal import Decimal
+from dataclasses import dataclass
 from datetime import datetime
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Optional, Dict, Any
+from enum import Enum
 
 
-class OrderSide(Enum):
-    """Order side enumeration."""
-    BUY = 1
-    SELL = -1
-
-
-class OrderType(Enum):
+# Simple enums for compatibility
+class OrderType(str, Enum):
     """Order type enumeration."""
-    MARKET = "MARKET"
-    LIMIT = "LIMIT"
-    STOP = "STOP"
-    STOP_LIMIT = "STOP_LIMIT"
+    MARKET = "market"
+    LIMIT = "limit"
+    STOP = "stop"
+    STOP_LIMIT = "stop_limit"
 
 
-class SignalType(Enum):
+class OrderSide(str, Enum):
+    """Order side enumeration."""
+    BUY = "buy"
+    SELL = "sell"
+
+
+class SignalType(str, Enum):
     """Signal type enumeration."""
     ENTRY = "entry"
     EXIT = "exit"
     REBALANCE = "rebalance"
-    RISK_EXIT = "risk_exit"
 
 
-class FillType(Enum):
-    """Fill type enumeration."""
-    PARTIAL = "partial"
-    FULL = "full"
-
-
-class FillStatus(Enum):
-    """Fill status enumeration."""
-    PENDING = "pending"
-    EXECUTED = "executed"
-    FAILED = "failed"
-
-
-class OrderStatus(Enum):
-    """Order status enumeration."""
-    PENDING = "pending"
-    PARTIALLY_FILLED = "partially_filled"
-    FILLED = "filled"
-    CANCELLED = "cancelled"
-    REJECTED = "rejected"
-
-
-# Core data structures
-@dataclass(frozen=True)
-class Signal:
-    """Trading signal from strategy."""
-    signal_id: str
-    strategy_id: str
+@dataclass
+class Bar:
+    """Market bar data (OHLCV)."""
     symbol: str
-    signal_type: SignalType
-    side: OrderSide
-    strength: Decimal  # -1 to 1, magnitude indicates confidence
     timestamp: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
     
-    def __post_init__(self):
-        """Validate signal strength."""
-        if not Decimal('-1') <= self.strength <= Decimal('1'):
-            raise ValueError(f"Signal strength must be between -1 and 1, got {self.strength}")
-
-
-@dataclass(frozen=True)
-class Order:
-    """Trading order to be executed."""
-    order_id: str
-    symbol: str
-    side: OrderSide
-    order_type: OrderType
-    quantity: Decimal
-    price: Optional[Decimal] = None  # None for market orders
-    stop_price: Optional[Decimal] = None  # For stop orders
-    time_in_force: str = "GTC"  # GTC, IOC, FOK, etc.
-    timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            'symbol': self.symbol,
+            'timestamp': self.timestamp.isoformat() if isinstance(self.timestamp, datetime) else str(self.timestamp),
+            'open': self.open,
+            'high': self.high,
+            'low': self.low,
+            'close': self.close,
+            'volume': self.volume
+        }
 
 
 @dataclass
 class Position:
-    """Current position in a symbol."""
+    """Position in a security."""
     symbol: str
-    quantity: Decimal
-    average_price: Decimal
-    current_price: Optional[Decimal] = None
-    unrealized_pnl: Optional[Decimal] = None
-    realized_pnl: Decimal = Decimal('0')
-    timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    quantity: float
+    avg_price: float
+    current_price: float
+    market_value: float
     
     @property
-    def market_value(self) -> Optional[Decimal]:
-        """Calculate market value of position."""
-        if self.current_price is not None:
-            return self.quantity * self.current_price
-        return None
+    def unrealized_pnl(self) -> float:
+        """Calculate unrealized P&L."""
+        return (self.current_price - self.avg_price) * self.quantity
+    
+    @property
+    def pnl_percent(self) -> float:
+        """Calculate P&L percentage."""
+        if self.avg_price == 0:
+            return 0.0
+        return (self.current_price - self.avg_price) / self.avg_price
+
+
+@dataclass
+class Order:
+    """Trading order."""
+    order_id: str
+    symbol: str
+    direction: str  # 'long' or 'short'
+    quantity: float
+    order_type: str  # 'market', 'limit', etc.
+    price: Optional[float] = None
+    timestamp: Optional[datetime] = None
+    portfolio_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class Fill:
+    """Order execution fill."""
+    fill_id: str
+    order_id: str
+    symbol: str
+    direction: str
+    quantity: float
+    price: float
+    timestamp: datetime
+    portfolio_id: Optional[str] = None
+    commission: float = 0.0
+    metadata: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class Signal:
+    """Trading signal."""
+    symbol: str
+    direction: str  # 'long', 'short', 'flat'
+    strength: float  # 0.0 to 1.0
+    timestamp: datetime
+    source: str  # Strategy that generated the signal
+    metadata: Optional[Dict[str, Any]] = None

@@ -65,10 +65,8 @@ class CoordinatorResult:
 
 
 class ExecutionMode(str, Enum):
-    """Supported execution modes."""
-    AUTO = "auto"           # Coordinator chooses best mode
-    COMPOSABLE = "composable"    # Composable container patterns
-    ENHANCED_COMPOSABLE = "enhanced_composable"  # Enhanced composable with all features
+    """Supported execution modes - simplified to remove confusion."""
+    AUTO = "auto"           # Default mode - uses containers automatically
 
 
 class Coordinator:
@@ -84,12 +82,8 @@ class Coordinator:
     
     def __init__(
         self,
-        enable_composable_containers: bool = True,
         shared_services: Optional[Dict[str, Any]] = None,
         enable_communication: bool = True,
-        execution_mode: str = 'auto',
-        enable_nesting: bool = False,
-        enable_pipeline_communication: bool = False,
         enable_yaml: bool = True,
         enable_phase_management: bool = True
     ):
@@ -100,15 +94,18 @@ class Coordinator:
         - Container creation and lifecycle
         - Communication between components
         - System-level services
+        
+        Note: Containers are now the default and only execution model.
         """
-        self.enable_composable_containers = enable_composable_containers
         self.shared_services = shared_services or {}
         self.enable_communication = enable_communication
-        self.execution_mode = execution_mode
-        self.enable_nesting = enable_nesting
-        self.enable_pipeline_communication = enable_pipeline_communication
         self.enable_yaml = enable_yaml
         self.enable_phase_management = enable_phase_management
+        
+        # Deprecated attributes - kept for backward compatibility
+        self.enable_composable_containers = True  # Always true in unified architecture
+        self.enable_nesting = False  # Deprecated
+        self.enable_pipeline_communication = False  # Deprecated
         
         # Lazy-loaded components
         self._container_factory = None
@@ -124,7 +121,7 @@ class Coordinator:
         # Coordinator ID for communication
         self.coordinator_id = f"coordinator_{uuid.uuid4().hex[:8]}"
         
-        logger.info(f"Coordinator initialized (composable: {enable_composable_containers}, communication: {enable_communication})")
+        logger.info(f"Coordinator initialized (communication: {enable_communication})")
     
     @property
     def communication_layer(self):
@@ -134,8 +131,7 @@ class Coordinator:
     async def execute_workflow(
         self,
         config: WorkflowConfig,
-        workflow_id: Optional[str] = None,
-        execution_mode: ExecutionMode = ExecutionMode.AUTO
+        workflow_id: Optional[str] = None
     ) -> CoordinatorResult:
         """
         Execute workflow using delegation to WorkflowManager and Sequencer.
@@ -149,7 +145,6 @@ class Coordinator:
         Args:
             config: Workflow configuration
             workflow_id: Optional workflow ID
-            execution_mode: How to execute the workflow
             
         Returns:
             CoordinatorResult with execution details
@@ -172,7 +167,6 @@ class Coordinator:
             workflow_id=workflow_id,
             workflow_type=config.workflow_type,
             metadata={
-                'execution_mode': execution_mode.value,
                 'correlation_id': correlation_id
             }
         )
@@ -212,28 +206,8 @@ class Coordinator:
         return result
     
     def _determine_execution_mode(self, config: WorkflowConfig) -> ExecutionMode:
-        """Automatically determine best execution mode."""
-        
-        # Check if config explicitly requests container pattern
-        container_pattern = config.parameters.get('container_pattern')
-        if container_pattern and self.enable_composable_containers:
-            return ExecutionMode.COMPOSABLE
-        
-        # Check for complex multi-pattern workflows
-        if config.parameters.get('use_multiple_patterns', False):
-            return ExecutionMode.COMPOSABLE
-        
-        # Check for parallel optimization with different patterns
-        if (config.workflow_type == WorkflowType.OPTIMIZATION and 
-            config.parameters.get('parallel_patterns', False)):
-            return ExecutionMode.COMPOSABLE
-        
-        # Check if composable containers would provide benefit
-        if self._would_benefit_from_composable(config):
-            return ExecutionMode.COMPOSABLE
-        
-        # Default to composable (traditional is deprecated)
-        return ExecutionMode.COMPOSABLE
+        """Return default execution mode - containers are now the only mode."""
+        return ExecutionMode.AUTO
     
     def _generate_correlation_id(self) -> str:
         """Generate correlation ID for workflow tracking."""
@@ -523,31 +497,23 @@ class Coordinator:
         try:
             # Use the workflow topology manager at coordinator level
             # which properly leverages core.containers.factory
-            from .topology import WorkflowManager
-            return WorkflowManager
+            from .topology import TopologyBuilder
+            return TopologyBuilder
         except ImportError as e:
             raise ImportError(f"Cannot load composable workflow manager: {e}")
     
     async def _get_workflow_manager(self) -> 'WorkflowManager':
         """Get or create workflow manager instance."""
-        # Create workflow manager with coordinator reference
+        # Create workflow manager (TopologyBuilder) with coordinator reference
         WorkflowManagerClass = await self._get_composable_workflow_manager()
         
-        # Determine execution mode string for WorkflowManager
-        if self.enable_pipeline_communication:
-            execution_mode = 'pipeline'
-        elif self.enable_nesting:
-            execution_mode = 'nested'
-        else:
-            execution_mode = 'standard'
-        
+        # Create instance with minimal parameters
+        # The deprecated execution_mode, enable_nesting, and enable_pipeline_communication
+        # are handled internally by TopologyBuilder for backward compatibility
         workflow_manager = WorkflowManagerClass(
             container_id=f"workflow_{uuid.uuid4().hex[:8]}",
             shared_services=self.shared_services,
-            coordinator=self,
-            execution_mode=execution_mode,
-            enable_nesting=self.enable_nesting,
-            enable_pipeline_communication=self.enable_pipeline_communication
+            coordinator=self
         )
         
         return workflow_manager
@@ -604,15 +570,29 @@ class Coordinator:
                 logger.info("Pipeline-enabled containers registered with container factory")
             except ImportError:
                 # Execution containers module not available - register basic factories
-                from ..containers import register_container_type
+                from ..containers import register_container_type, Container, ContainerConfig
                 from ..containers.protocols import ContainerRole
                 
-                # Register basic container factories as stubs
-                register_container_type(ContainerRole.DATA, lambda **kwargs: None)
-                register_container_type(ContainerRole.STRATEGY, lambda **kwargs: None)
-                register_container_type(ContainerRole.RISK, lambda **kwargs: None)
-                register_container_type(ContainerRole.EXECUTION, lambda **kwargs: None)
-                logger.info("Basic container factories registered (execution containers not available)")
+                # Create a generic factory function for containers
+                def create_container_factory(role: ContainerRole):
+                    def factory(config: Dict[str, Any], container_id: Optional[str] = None):
+                        return Container(ContainerConfig(
+                            role=role,
+                            name=config.get('name', f'{role.value}_container'),
+                            container_id=container_id,
+                            config=config,
+                            capabilities=set()
+                        ))
+                    return factory
+                
+                # Register container factories for all needed roles
+                register_container_type(ContainerRole.DATA, create_container_factory(ContainerRole.DATA))
+                register_container_type(ContainerRole.PORTFOLIO, create_container_factory(ContainerRole.PORTFOLIO))
+                register_container_type(ContainerRole.EXECUTION, create_container_factory(ContainerRole.EXECUTION))
+                register_container_type(ContainerRole.STRATEGY, create_container_factory(ContainerRole.STRATEGY))
+                register_container_type(ContainerRole.RISK, create_container_factory(ContainerRole.RISK))
+                register_container_type(ContainerRole.FEATURE, create_container_factory(ContainerRole.FEATURE))
+                logger.info("Container factories registered with proper Container creation")
                 
         except Exception as e:
             logger.error(f"Error registering containers: {e}")
@@ -733,10 +713,10 @@ class Coordinator:
             )
             
             # Execute using standard workflow execution
-            execution_mode = yaml_config.get('coordinator', {}).get('execution_mode', 'AUTO')
+            execution_mode = yaml_config.get('coordinator', {}).get('execution_mode', 'auto')
             result = await self.execute_workflow(
                 workflow_config, 
-                execution_mode=ExecutionMode(execution_mode.upper())
+                execution_mode=ExecutionMode(execution_mode.lower())
             )
             
             result.metadata['yaml_source'] = yaml_path

@@ -81,6 +81,12 @@ from .factory import (
     create_minimal_component
 )
 
+# Import Feature Dispatcher
+try:
+    from .feature_dispatcher import FeatureDispatcher
+except ImportError:
+    # Feature dispatcher may not be available in all environments
+    FeatureDispatcher = None
 
 # Add ComponentSpec for backward compatibility
 from dataclasses import dataclass
@@ -140,5 +146,9 @@ __all__ = [
     "create_minimal_component",
     
     # Specs
-    "ComponentSpec"
+    "ComponentSpec",
 ]
+
+# Add FeatureDispatcher if available
+if FeatureDispatcher is not None:
+    __all__.append("FeatureDispatcher")

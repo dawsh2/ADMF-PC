@@ -21,6 +21,7 @@ class EventType(Enum):
     
     # Trading events
     SIGNAL = auto()
+    ORDER_REQUEST = auto()  # Portfolio requests order validation
     ORDER = auto()
     FILL = auto()
     CANCEL = auto()
@@ -46,6 +47,11 @@ class EventType(Enum):
     FEATURE = auto()  # Individual feature update
     META_LABEL = auto()
     METRIC = auto()
+    
+    # Risk events
+    RISK_CHECK = auto()  # Portfolio requests risk validation
+    RISK_APPROVED = auto()  # Risk service approves order
+    RISK_REJECTED = auto()  # Risk service rejects order
     RISK_UPDATE = auto()  # For risk limit changes
     
     # Control events

@@ -10,6 +10,8 @@ Following Protocol + Composition architecture:
 - Stateful hub for streaming/incremental updates
 - No inheritance, just composition
 - Maximum parallelization potential for stateless functions
+
+Now includes @feature decorators for automatic discovery.
 """
 
 import pandas as pd
@@ -19,9 +21,16 @@ from datetime import datetime
 from collections import deque, defaultdict
 import logging
 
+from ...core.containers.discovery import feature
+
 logger = logging.getLogger(__name__)
 
 
+@feature(
+    name='sma',
+    params=['period'],
+    min_history='period'
+)
 def sma_feature(prices: pd.Series, period: int) -> pd.Series:
     """
     Calculate Simple Moving Average feature.
@@ -38,6 +47,11 @@ def sma_feature(prices: pd.Series, period: int) -> pd.Series:
     return prices.rolling(window=period, min_periods=period).mean()
 
 
+@feature(
+    name='ema',
+    params=['period', 'smoothing'],
+    min_history='period'
+)
 def ema_feature(prices: pd.Series, period: int, smoothing: float = 2.0) -> pd.Series:
     """
     Calculate Exponential Moving Average feature.
@@ -56,6 +70,11 @@ def ema_feature(prices: pd.Series, period: int, smoothing: float = 2.0) -> pd.Se
     return prices.ewm(alpha=alpha, adjust=False).mean()
 
 
+@feature(
+    name='rsi',
+    params=['period'],
+    min_history='period + 1'  # Need one extra for diff
+)
 def rsi_feature(prices: pd.Series, period: int = 14) -> pd.Series:
     """
     Calculate Relative Strength Index feature.
@@ -78,6 +97,12 @@ def rsi_feature(prices: pd.Series, period: int = 14) -> pd.Series:
     return rsi
 
 
+@feature(
+    name='macd',
+    params=['fast', 'slow', 'signal'],
+    min_history='slow + signal',
+    dependencies=['ema']
+)
 def macd_feature(prices: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> Dict[str, pd.Series]:
     """
     Calculate MACD feature components.
@@ -106,6 +131,12 @@ def macd_feature(prices: pd.Series, fast: int = 12, slow: int = 26, signal: int 
     }
 
 
+@feature(
+    name='bollinger_bands',
+    params=['period', 'std_dev'],
+    min_history='period',
+    dependencies=['sma']
+)
 def bollinger_bands_feature(prices: pd.Series, period: int = 20, std_dev: float = 2.0) -> Dict[str, pd.Series]:
     """
     Calculate Bollinger Bands feature components.
@@ -132,6 +163,12 @@ def bollinger_bands_feature(prices: pd.Series, period: int = 20, std_dev: float 
     }
 
 
+@feature(
+    name='atr',
+    params=['period'],
+    min_history='period + 1',  # Need one extra for shift
+    input_type='ohlc'  # Indicates it needs OHLC data, not just close
+)
 def atr_feature(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14) -> pd.Series:
     """
     Calculate Average True Range feature.
@@ -159,6 +196,12 @@ def atr_feature(high: pd.Series, low: pd.Series, close: pd.Series, period: int =
     return atr
 
 
+@feature(
+    name='stochastic',
+    params=['k_period', 'd_period'],
+    min_history='k_period + d_period',
+    input_type='ohlc'
+)
 def stochastic_feature(high: pd.Series, low: pd.Series, close: pd.Series, 
                       k_period: int = 14, d_period: int = 3) -> Dict[str, pd.Series]:
     """

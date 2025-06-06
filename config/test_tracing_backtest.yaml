@@ -1,0 +1,51 @@
+# Test configuration for event tracing in single-phase workflow
+type: backtest
+
+# Enable event tracing
+tracing:
+  enabled: true
+  max_events: 10000
+
+# Simple backtest configuration
+mode: backtest
+symbols: ['SPY']
+start_date: '2023-01-01'
+end_date: '2023-01-10'
+
+backtest:
+  data:
+    source: csv
+    file_path: ./data/SPY.csv
+  
+  features:
+    indicators:
+      - name: sma_20
+        type: sma
+        period: 20
+      - name: rsi
+        type: rsi
+        period: 14
+  
+  strategies:
+    - type: momentum
+      name: test_momentum
+      sma_period: 20
+      rsi_threshold_long: 45
+      rsi_threshold_short: 55
+  
+  risk_profiles:
+    - type: conservative
+      max_position_size: 0.2
+      max_total_exposure: 0.8
+  
+  portfolio:
+    initial_capital: 100000
+  
+  execution:
+    commission: 0.001
+    slippage: 0.0005
+
+# Enable reporting to see results
+reporting:
+  enabled: true
+  output_dir: reports/test_tracing

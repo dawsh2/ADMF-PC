@@ -2,7 +2,7 @@
 Container Factory
 
 This module implements the factory infrastructure for creating Container
-instances from patterns. Used by the Coordinator for workflow orchestration.
+instances from patterns. Now enhanced with auto-discovery capabilities.
 """
 
 from typing import Dict, List, Any, Optional, Set, Type, Callable
@@ -16,6 +16,7 @@ from .protocols import (
     ContainerRole, ContainerMetadata, ContainerLimits,
     ContainerState
 )
+from .discovery import get_component_registry, auto_discover_all_components, load_components_from_config
 
 
 logger = logging.getLogger(__name__)
@@ -43,13 +44,53 @@ class ContainerPattern:
 
 
 class ContainerRegistry:
-    """Registry for container types and patterns."""
+    """Registry for container types and patterns with auto-discovery support."""
     
     def __init__(self):
         self._container_factories: Dict[ContainerRole, Callable] = {}
         self._container_capabilities: Dict[ContainerRole, Set[str]] = {}
         self._patterns: Dict[str, ContainerPattern] = {}
+        self._auto_discovery_done = False
         self._load_default_patterns()
+    
+    def _ensure_auto_discovery(self) -> None:
+        """Ensure auto-discovery has been performed."""
+        if not self._auto_discovery_done:
+            logger.info("Performing component auto-discovery...")
+            
+            # Try to load from config first
+            config_paths = [
+                "./config/components.yaml",
+                "./config/plugins.yaml",
+                "~/.admf-pc/components.yaml"
+            ]
+            
+            for config_path in config_paths:
+                try:
+                    loaded = load_components_from_config(config_path)
+                    if loaded > 0:
+                        logger.info(f"Loaded {loaded} components from {config_path}")
+                except Exception as e:
+                    logger.debug(f"Could not load config {config_path}: {e}")
+            
+            # Auto-discover decorated components
+            discovered = auto_discover_all_components()
+            total_discovered = sum(discovered.values())
+            
+            if total_discovered > 0:
+                logger.info(f"Auto-discovered {total_discovered} components")
+            
+            # Register discovered containers with registry
+            registry = get_component_registry()
+            for role in ContainerRole:
+                containers = registry.get_containers_by_role(role)
+                if containers:
+                    # Use the first discovered container for this role as default
+                    container_info = containers[0]
+                    self.register_container_type(role, container_info.factory, container_info.capabilities)
+                    logger.debug(f"Auto-registered container for role {role.value}: {container_info.name}")
+            
+            self._auto_discovery_done = True
     
     def register_container_type(
         self,
@@ -64,6 +105,8 @@ class ContainerRegistry:
     
     def get_container_factory(self, role: ContainerRole) -> Optional[Callable]:
         """Get factory function for container role."""
+        # Perform auto-discovery if not done yet
+        self._ensure_auto_discovery()
         return self._container_factories.get(role)
     
     def register_pattern(self, pattern: ContainerPattern) -> None:

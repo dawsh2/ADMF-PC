@@ -1,18 +1,18 @@
 """
-Configuration analysis and building for workflow patterns.
+Configuration analysis and building for unified architecture.
 
 This module handles:
-- Pattern detection based on workflow configuration
-- Multi-parameter analysis
-- Pattern-specific configuration building
+- Multi-parameter analysis (still useful for parameter grids)
+- Configuration building helpers
 """
 
-from .pattern_detector import PatternDetector
+# Pattern detector removed - unified architecture doesn't need it!
+# from .pattern_detector import PatternDetector
 from .parameter_analysis import ParameterAnalyzer
 from .config_builders import ConfigBuilder
 
 __all__ = [
-    'PatternDetector',
+    # 'PatternDetector',  # REMOVED - no pattern detection in unified architecture
     'ParameterAnalyzer', 
     'ConfigBuilder'
 ]

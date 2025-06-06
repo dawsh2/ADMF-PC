@@ -106,8 +106,11 @@ class BroadcastAdapter:
                 for event_type in self.allowed_types:
                     self.source_container.event_bus.subscribe(event_type, handler)
             else:
-                # Subscribe to all events (implementation specific)
-                self.source_container.event_bus.subscribe_all(handler)
+                # Subscribe to common event types since subscribe_all doesn't exist
+                # We'll subscribe to all known event types
+                from ..types.events import EventType
+                for event_type in EventType:
+                    self.source_container.event_bus.subscribe(event_type, handler)
         
         self.logger.info(f"Broadcast adapter '{self.name}' started")
         

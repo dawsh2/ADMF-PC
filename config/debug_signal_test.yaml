@@ -1,0 +1,70 @@
+# Debug configuration to understand signal generation
+# Only 10 days of data with debug logging
+
+backtest:
+  name: "Debug Signal Test"
+  mode: "backtest"
+  
+  # Data configuration - SHORT PERIOD
+  data:
+    symbols: ["SPY"]
+    start_date: "2023-01-01"
+    end_date: "2023-01-10"  # Only 10 days for debugging
+    source: "csv"
+    
+  # Feature configuration
+  features:
+    indicators:
+      - name: "sma_20"
+        type: "sma"
+        period: 20
+      - name: "sma_10"  # Also add sma_10 for fast_momentum
+        type: "sma" 
+        period: 10
+      - name: "rsi"
+        type: "rsi"
+        period: 14
+  
+  # Test all three strategy types
+  strategies:
+    - type: "momentum"
+      name: "conservative_momentum"
+      sma_period: 20
+      rsi_threshold_long: 30    
+      rsi_threshold_short: 70   
+      
+    - type: "momentum" 
+      name: "aggressive_momentum"
+      sma_period: 20
+      rsi_threshold_long: 45    
+      rsi_threshold_short: 55   
+      
+    - type: "momentum"
+      name: "fast_momentum"
+      sma_period: 10           # Uses sma_10 instead of sma_20
+      rsi_threshold_long: 35   
+      rsi_threshold_short: 65
+      
+  # Simple risk profile
+  risk_profiles:
+    - type: "moderate"
+      name: "test_risk"
+      max_position_percent: 0.10  
+      max_position_value: 50000
+      max_drawdown: 0.15
+      
+  # Execution configuration
+  execution:
+    fill_probability: 1.0
+    partial_fill_probability: 0.0
+    random_seed: 42
+      
+  # Portfolio configuration
+  portfolio:
+    initial_capital: 100000
+    
+  # Output configuration
+  output:
+    results_dir: "./results/debug_signal_test"
+    save_trades: true
+    save_metrics: true

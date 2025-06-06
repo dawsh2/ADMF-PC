@@ -576,8 +576,8 @@ class Container:
     
     async def initialize(self) -> None:
         """Initialize the container and all components."""
-        if self._state != ContainerState.CREATED:
-            logger.warning(f"Container {self.name} already initialized")
+        if self._state not in (ContainerState.UNINITIALIZED, ContainerState.STOPPED):
+            logger.warning(f"Container {self.name} already initialized (state: {self._state})")
             return
         
         self._set_state(ContainerState.INITIALIZING)
@@ -600,10 +600,8 @@ class Container:
     
     async def start(self) -> None:
         """Start the container and begin processing."""
-        if self._state != ContainerState.INITIALIZED:
-            raise RuntimeError(f"Container {self.name} not initialized")
-        
-        self._set_state(ContainerState.STARTING)
+        if self._state not in (ContainerState.INITIALIZED, ContainerState.STOPPED):
+            raise RuntimeError(f"Container {self.name} not in proper state for starting (current: {self._state})")
         
         try:
             # Start all components
