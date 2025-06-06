@@ -349,6 +349,90 @@ def feature(
     return decorator
 
 
+def execution_model(
+    name: Optional[str] = None,
+    model_type: str = 'slippage',  # 'slippage', 'commission', 'liquidity'
+    params: Optional[Dict[str, Any]] = None,
+    **metadata
+):
+    """
+    Decorator for execution model classes/functions.
+    
+    Enables dynamic discovery and configuration of execution models for backtesting
+    different market conditions (slippage, commission structures, etc.).
+    
+    Args:
+        name: Optional custom name for the model
+        model_type: Type of execution model ('slippage', 'commission', 'liquidity')
+        params: Default parameters for the model
+        **metadata: Additional metadata (e.g., description, tags)
+    
+    Example:
+        @execution_model(model_type='slippage', params={'base_pct': 0.001})
+        class PercentageSlippageModel:
+            def __init__(self, base_pct: float = 0.001):
+                self.base_pct = base_pct
+            
+            def calculate_slippage(self, order, market_price, market_data):
+                return market_price * self.base_pct
+                
+        @execution_model(model_type='commission')
+        def zero_commission(order, fill_price, fill_quantity):
+            return 0.0
+    """
+    def decorator(cls_or_func):
+        component_name = name or getattr(cls_or_func, '__name__', str(cls_or_func))
+        
+        # Create factory based on whether it's a class or function
+        if inspect.isclass(cls_or_func):
+            # For classes, factory instantiates with params
+            def factory(**kwargs):
+                merged_params = {**(params or {}), **kwargs}
+                return cls_or_func(**merged_params)
+        else:
+            # For functions, factory returns the function itself
+            factory = cls_or_func
+        
+        # Extract parameter info
+        extracted_params = params or {}
+        if not extracted_params:
+            # Try to extract from signature
+            if inspect.isclass(cls_or_func) and hasattr(cls_or_func, '__init__'):
+                sig = inspect.signature(cls_or_func.__init__)
+                for param_name, param in sig.parameters.items():
+                    if param_name not in ['self', 'args', 'kwargs'] and param.default != inspect.Parameter.empty:
+                        extracted_params[param_name] = param.default
+        
+        info = ComponentInfo(
+            name=component_name,
+            component_type='execution_model',
+            factory=factory,
+            capabilities={f'execution.{model_type}'},
+            dependencies=set(),
+            metadata={
+                'model_type': model_type,
+                'params': extracted_params,
+                **metadata
+            }
+        )
+        
+        _global_registry.register_component(info)
+        
+        # Add metadata to the object for runtime introspection
+        if hasattr(cls_or_func, '__dict__'):
+            cls_or_func._component_info = info
+            cls_or_func._execution_model_metadata = {
+                'name': component_name,
+                'model_type': model_type,
+                'params': extracted_params,
+                **metadata
+            }
+        
+        return cls_or_func
+    
+    return decorator
+
+
 # Auto-discovery functions
 
 def discover_components_in_module(module_name: str) -> int:

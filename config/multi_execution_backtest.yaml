@@ -1,0 +1,101 @@
+# Multi-Execution Model Backtest Configuration
+# This demonstrates testing strategies with different execution models
+
+mode: backtest
+
+backtest:
+  data:
+    source: csv
+    csv_path: data/SPY.csv
+    symbols: [SPY]
+    start_date: "2020-01-01"
+    end_date: "2023-12-31"
+    
+  features:
+    indicators:
+      - name: sma_20
+        type: sma
+        period: 20
+      - name: rsi
+        type: rsi
+        period: 14
+
+  # Single strategy to focus on execution differences
+  strategies:
+    - type: momentum
+      sma_period: 20
+      rsi_threshold_long: 30
+      rsi_threshold_short: 70
+
+  # Single risk profile
+  risk_profiles:
+    - type: conservative
+      max_position_size: 0.1
+      max_portfolio_risk: 0.2
+      max_drawdown: 0.15
+
+  # Multiple execution models to test
+  execution_models:
+    # Zero cost execution (ideal scenario)
+    - type: zero_cost
+      slippage:
+        type: zero
+      commission:
+        type: zero
+        
+    # Retail broker execution
+    - type: retail
+      slippage:
+        type: percentage
+        params:
+          base_slippage_pct: 0.001  # 0.1%
+          volatility_multiplier: 2.0
+          volume_impact_factor: 0.1
+      commission:
+        type: per_share
+        params:
+          rate_per_share: 0.005
+          minimum_commission: 1.0
+          maximum_commission: 10.0
+          
+    # High-frequency trading execution
+    - type: hft
+      slippage:
+        type: volume_impact
+        params:
+          permanent_impact_factor: 0.0001
+          temporary_impact_factor: 0.0002
+          liquidity_threshold: 0.01
+      commission:
+        type: percentage
+        params:
+          commission_percent: 0.0001  # 0.01%
+          minimum_commission: 0.0
+          
+    # Adverse market conditions
+    - type: adverse
+      slippage:
+        type: percentage
+        params:
+          base_slippage_pct: 0.005  # 0.5% - high slippage
+          volatility_multiplier: 5.0
+          volume_impact_factor: 0.5
+      commission:
+        type: percentage
+        params:
+          commission_percent: 0.002  # 0.2%
+          minimum_commission: 5.0
+
+  portfolio:
+    initial_capital: 100000
+    
+  execution:
+    # Default execution settings (overridden by execution_models)
+    fill_probability: 0.98
+    partial_fill_probability: 0.05
+
+output:
+  results_dir: results/execution_comparison/
+  save_trades: true
+  save_metrics: true
+  save_signals: true

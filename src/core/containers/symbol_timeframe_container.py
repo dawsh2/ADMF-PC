@@ -144,8 +144,30 @@ class SymbolTimeframeContainer(Container):
             # Import data handler
             from ...data.csv_handler import CSVDataHandler
             
+            # Determine file path - use configured path or infer from symbol/timeframe
+            file_path = self.data_config.get('file_path')
+            
+            if not file_path:
+                # Use path resolver to infer path
+                from ...data.path_resolver import resolve_data_path
+                
+                # Get data directory from config or use default
+                data_dir = self.data_config.get('data_dir', './data')
+                
+                # Try to resolve path based on symbol and timeframe
+                resolved_path = resolve_data_path(self.symbol, self.timeframe, data_dir)
+                
+                if resolved_path:
+                    file_path = str(resolved_path)
+                    logger.info(f"Auto-resolved data path: {self.symbol} {self.timeframe} -> {file_path}")
+                else:
+                    # Fallback to simple pattern
+                    file_path = f'{data_dir}/{self.symbol}.csv'
+                    logger.warning(f"Could not resolve specific path for {self.symbol} {self.timeframe}, "
+                                 f"falling back to: {file_path}")
+            
             return CSVDataHandler(
-                file_path=self.data_config.get('file_path', f'./data/{self.symbol}.csv'),
+                file_path=file_path,
                 symbol=self.symbol,
                 timeframe=self.timeframe,
                 event_handler=self._handle_market_data,

@@ -9,6 +9,7 @@ from decimal import Decimal
 from dataclasses import dataclass
 
 from ..protocols import Order, OrderSide
+from ...core.containers.discovery import execution_model
 
 
 class SlippageModel(Protocol):
@@ -45,6 +46,14 @@ class MarketConditions:
         return (self.bid + self.ask) / Decimal("2")
 
 
+@execution_model(
+    model_type='slippage',
+    params={
+        'base_slippage_pct': 0.001,
+        'volatility_multiplier': 2.0,
+        'volume_impact_factor': 0.1
+    }
+)
 class PercentageSlippageModel:
     """Simple percentage-based slippage model."""
     
@@ -104,6 +113,16 @@ class PercentageSlippageModel:
         return total_slippage
 
 
+@execution_model(
+    model_type='slippage',
+    name='volume_impact',
+    params={
+        'permanent_impact_factor': 0.0001,
+        'temporary_impact_factor': 0.0002,
+        'liquidity_threshold': 0.01
+    },
+    description='Advanced slippage model based on market impact theory'
+)
 class VolumeImpactSlippageModel:
     """Advanced slippage model based on market impact theory."""
     
@@ -172,6 +191,11 @@ class VolumeImpactSlippageModel:
         return total_slippage
 
 
+@execution_model(
+    model_type='slippage',
+    name='fixed',
+    params={'slippage_amount': 0.01}
+)
 class FixedSlippageModel:
     """Fixed slippage model for simple scenarios."""
     
@@ -195,6 +219,11 @@ class FixedSlippageModel:
         return self.slippage_amount
 
 
+@execution_model(
+    model_type='slippage',
+    name='zero',
+    description='Zero slippage for ideal execution scenarios'
+)
 class ZeroSlippageModel:
     """Zero slippage model for ideal execution scenarios."""
     

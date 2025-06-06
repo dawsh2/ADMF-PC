@@ -45,9 +45,9 @@ def test_stateless_components():
     print("\nTesting stateless components...")
     
     # Test stateless momentum strategy
-    from src.strategy.strategies.momentum import StatelessMomentumStrategy
+    from src.strategy.strategies.momentum import momentum_strategy
     
-    strategy = StatelessMomentumStrategy()
+    # Strategy is now a pure function
     
     # Test with sample data
     features = {
@@ -58,7 +58,7 @@ def test_stateless_components():
     bar = {'close': 100}
     params = {'momentum_threshold': 0.01}
     
-    signal = strategy.generate_signal(features, bar, params)
+    signal = momentum_strategy(features, bar, params)
     assert signal is not None
     assert signal['direction'] in ['long', 'short', 'flat']
     assert 'strength' in signal
@@ -67,9 +67,9 @@ def test_stateless_components():
     print("✓ Stateless momentum strategy works")
     
     # Test stateless classifier
-    from src.strategy.classifiers.stateless_classifiers import StatelessTrendClassifier
+    from src.strategy.classifiers.classifiers import trend_classifier
     
-    classifier = StatelessTrendClassifier()
+    # Classifier is now a pure function
     
     features = {
         'sma_fast': 102,
@@ -77,7 +77,7 @@ def test_stateless_components():
     }
     params = {'trend_threshold': 0.02}
     
-    regime = classifier.classify_regime(features, params)
+    regime = trend_classifier(features, params)
     assert regime is not None
     assert 'regime' in regime
     assert 'confidence' in regime

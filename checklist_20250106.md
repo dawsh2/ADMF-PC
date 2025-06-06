@@ -138,22 +138,22 @@ c) **Strategy Pull Pattern**:
 - [x] How are components registered / discovered by the system? → Using decorator-based discovery (@strategy, @classifier, @feature)
 - [x] Does containers/ need a factory? What about components? → Yes, containers use factory; components use decorators
 - [x] Are we properly using the config/ directory? → Yes, but needs organization into subdirectories
-- [ ] Why no data/featurehub container files? Should each type get its own file?
+- [ ] Why no data or featurehub container files? Should each type get its own file?
 - [ ] What is event_flow_adapter.py under coordinator? And infrastructure.py?
 - [ ] Are we using typed/semantic events? Should we per data-mining docs?
 - [ ] Code smell: grep for 'unified' and 'compose' terms
 - [ ] Do we need custom logging module now that we have tracing?
-- [ ] Why so many files under types/? Duplicate decimals.py?
+- [ ] Why so many files under types/? Duplicate decimals.py under utils/ (remove if so)?
 - [ ] Rename 'stateless_*' files to canonical names (remove 'stateless' prefix)
 
 ### Final Step of Phase 0:
 - [ ] Review each incremental testing phase for missing steps
 
 ## Incremental Testing Plan 📋
-- [ ] Implement portfolio-specific trace files
+- [ ] Implement portfolio-specific trace files and consider how to structure event tracing for scale while parallezing (see data-mining doc)
 
 ### Low Priority:
-- [ ] Improve root event bus access pattern for portfolios
+- [ ] Improve root event bus access pattern for portfolios -- anti-pattern? Portfolio should be isolated and we should use adapters to bridge to them.
 - [ ] Build query interface for event mining
 
 ## Architecture Validation Questions 🤔

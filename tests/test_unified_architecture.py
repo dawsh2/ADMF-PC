@@ -103,16 +103,15 @@ class TestUnifiedArchitecture:
         
         # Test trend classifier
         trend = manager._create_stateless_classifier('trend', {})
-        assert hasattr(trend, 'classify_regime')
-        assert hasattr(trend, 'required_features')
+        assert callable(trend)  # Pure function
         
         # Test volatility classifier
         vol = manager._create_stateless_classifier('volatility', {})
-        assert hasattr(vol, 'classify_regime')
+        assert callable(vol)  # Pure function
         
-        # Test composite classifier
+        # Test composite classifier (defaults to trend)
         composite = manager._create_stateless_classifier('composite', {})
-        assert hasattr(composite, 'classify_regime')
+        assert callable(composite)  # Pure function
     
     def test_stateless_risk_validator_creation(self):
         """Test creation of stateless risk validator components."""
@@ -120,16 +119,15 @@ class TestUnifiedArchitecture:
         
         # Test position validator
         position = manager._create_stateless_risk_validator('position', {})
-        assert hasattr(position, 'validate_order')
-        assert hasattr(position, 'calculate_position_size')
+        assert callable(position)  # Pure function
         
         # Test conservative profile (uses composite)
         conservative = manager._create_stateless_risk_validator('conservative', {})
-        assert hasattr(conservative, 'validate_order')
+        assert callable(conservative)  # Pure function
         
         # Test aggressive profile (uses composite)
         aggressive = manager._create_stateless_risk_validator('aggressive', {})
-        assert hasattr(aggressive, 'validate_order')
+        assert callable(aggressive)  # Pure function
     
     def test_stateless_strategy_call(self):
         """Test calling a stateless strategy."""

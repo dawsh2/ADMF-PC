@@ -8,6 +8,7 @@ from typing import List, Tuple, Protocol
 from decimal import Decimal
 
 from ..protocols import Order
+from ...core.containers.discovery import execution_model
 
 
 class CommissionModel(Protocol):
@@ -23,6 +24,11 @@ class CommissionModel(Protocol):
         ...
 
 
+@execution_model(
+    model_type='commission',
+    name='zero',
+    description='Zero commission for brokers like Alpaca'
+)
 class ZeroCommissionModel:
     """Zero commission model for brokers like Alpaca."""
     
@@ -36,6 +42,15 @@ class ZeroCommissionModel:
         return Decimal("0.0")
 
 
+@execution_model(
+    model_type='commission',
+    name='per_share',
+    params={
+        'rate_per_share': 0.005,
+        'minimum_commission': 1.0,
+        'maximum_commission': 10.0
+    }
+)
 class PerShareCommissionModel:
     """Per-share commission model."""
     
@@ -69,6 +84,14 @@ class PerShareCommissionModel:
         return commission
 
 
+@execution_model(
+    model_type='commission',
+    name='percentage',
+    params={
+        'commission_percent': 0.001,
+        'minimum_commission': 1.0
+    }
+)
 class PercentageCommissionModel:
     """Percentage-based commission model."""
     
@@ -98,6 +121,14 @@ class PercentageCommissionModel:
         return max(commission, self.minimum_commission)
 
 
+@execution_model(
+    model_type='commission',
+    name='tiered',
+    params={
+        'minimum_commission': 1.0
+    },
+    description='Commission with tiered rates based on trade value'
+)
 class TieredCommissionModel:
     """Commission model with tiered rates based on trade value."""
     
@@ -136,6 +167,11 @@ class TieredCommissionModel:
         return max(commission, self.minimum_commission)
 
 
+@execution_model(
+    model_type='commission',
+    name='fixed',
+    params={'commission_per_trade': 1.0}
+)
 class FixedCommissionModel:
     """Fixed commission per trade model."""
     

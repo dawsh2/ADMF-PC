@@ -597,8 +597,13 @@ class TopologyBuilder:
         # 4. Create Execution Container (shared across all portfolios)
         from ..containers.execution_container import ExecutionContainer
         
+        # Get default execution config
+        default_exec_config = config.parameters.get('backtest', {}).get('execution', {})
+        
+        # If we have multiple execution models, we'll handle them via adapter
+        # For now, create container with default config
         execution_container = ExecutionContainer(
-            execution_config=config.parameters.get('backtest', {}).get('execution', {}),
+            execution_config=default_exec_config,
             container_id='execution'
         )
         
@@ -679,7 +684,7 @@ class TopologyBuilder:
         Expand parameter grid into individual combinations.
         
         Example:
-        - 20 strategies × 3 risk profiles = 60 combinations
+        - 20 strategies × 3 risk profiles × 2 execution models = 120 combinations
         - Each gets its own portfolio container with unique combo_id
         """
         combinations = []
@@ -690,6 +695,7 @@ class TopologyBuilder:
         strategy_params = backtest_config.get('strategies', [{}])
         risk_params = backtest_config.get('risk_profiles', [{}])
         classifier_params = backtest_config.get('classifiers', [{}])
+        execution_params = backtest_config.get('execution_models', [{}])
         
         # Ensure they're lists
         if not isinstance(strategy_params, list):
@@ -698,28 +704,33 @@ class TopologyBuilder:
             risk_params = [risk_params]
         if not isinstance(classifier_params, list):
             classifier_params = [classifier_params]
+        if not isinstance(execution_params, list):
+            execution_params = [execution_params]
         
         # Generate all combinations
         combo_id = 0
         for strat in strategy_params:
             for risk in risk_params:
                 for classifier in classifier_params:
-                    combinations.append({
-                        'combo_id': f'c{combo_id:04d}',
-                        'strategy_params': strat,
-                        'risk_params': risk,
-                        'classifier_params': classifier
-                    })
-                    combo_id += 1
+                    for execution in execution_params:
+                        combinations.append({
+                            'combo_id': f'c{combo_id:04d}',
+                            'strategy_params': strat,
+                            'risk_params': risk,
+                            'classifier_params': classifier,
+                            'execution_params': execution
+                        })
+                        combo_id += 1
         
         return combinations
     
     def _create_stateless_components(self, config: WorkflowConfig) -> Dict[str, Any]:
-        """Create stateless strategy, classifier, and risk components."""
+        """Create stateless strategy, classifier, risk, and execution components."""
         components = {
             'strategies': {},
             'classifiers': {},
-            'risk_validators': {}
+            'risk_validators': {},
+            'execution_models': {}
         }
         
         # Create strategy instances (stateless)
@@ -741,6 +752,12 @@ class TopologyBuilder:
             validator = self._create_stateless_risk_validator(risk_type, risk_config)
             components['risk_validators'][risk_type] = validator
         
+        # Create execution model instances (stateless)
+        for exec_config in backtest_config.get('execution_models', []):
+            exec_type = exec_config.get('type', 'standard')
+            exec_models = self._create_stateless_execution_models(exec_type, exec_config)
+            components['execution_models'][exec_type] = exec_models
+        
         return components
     
     def _create_stateless_strategy(self, strategy_type: str, config: Dict[str, Any]) -> Any:
@@ -761,7 +778,7 @@ class TopologyBuilder:
             
             try:
                 if strategy_type == 'momentum':
-                    from ...strategy.strategies.stateless_momentum import momentum_strategy
+                    from ...strategy.strategies.momentum import momentum_strategy
                     return momentum_strategy
                 elif strategy_type == 'mean_reversion':
                     from ...strategy.strategies.mean_reversion_simple import mean_reversion_strategy
@@ -808,7 +825,7 @@ class TopologyBuilder:
             logger.warning(f"Classifier '{registry_name}' not found in registry, trying direct import")
             
             try:
-                from ...strategy.classifiers.stateless_classifiers import (
+                from ...strategy.classifiers.classifiers import (
                     trend_classifier,
                     volatility_classifier,
                     momentum_regime_classifier
@@ -830,23 +847,88 @@ class TopologyBuilder:
     def _create_stateless_risk_validator(self, risk_type: str, config: Dict[str, Any]) -> Any:
         """Create a stateless risk validator instance."""
         # Import risk validator modules
-        from ...risk.stateless_validators import (
-            create_stateless_position_validator,
-            create_stateless_drawdown_validator,
-            create_stateless_composite_validator
+        from ...risk.validators import (
+            position_validator,
+            drawdown_validator,
+            composite_validator
         )
         
         if risk_type == 'position':
-            return create_stateless_position_validator()
+            return position_validator
         elif risk_type == 'drawdown':
-            return create_stateless_drawdown_validator()
+            return drawdown_validator
         elif risk_type in ['conservative', 'moderate', 'aggressive', 'composite']:
             # All risk profiles use composite validator with different params
-            return create_stateless_composite_validator()
+            return composite_validator
         else:
             # Fallback placeholder for other validators
             logger.warning(f"Risk validator type '{risk_type}' not yet converted to stateless")
             return {'type': risk_type, 'config': config, 'stateless': True}
+    
+    def _create_stateless_execution_models(self, exec_type: str, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Create stateless execution models (slippage, commission) using discovery system."""
+        from ..containers.discovery import get_component_registry
+        
+        registry = get_component_registry()
+        
+        models = {}
+        
+        # Create slippage model
+        slippage_config = config.get('slippage', {})
+        slippage_type = slippage_config.get('type', 'percentage')
+        
+        # Try to get from registry first
+        slippage_info = registry.get_component(slippage_type)
+        if not slippage_info:
+            # Try with model suffix
+            slippage_info = registry.get_component(f'{slippage_type}_slippage')
+        
+        if slippage_info:
+            # Use factory to create instance with config params
+            params = slippage_config.get('params', {})
+            models['slippage'] = slippage_info.factory(**params)
+        else:
+            # Fallback - import directly
+            logger.warning(f"Slippage model '{slippage_type}' not found in registry, using fallback")
+            from ...execution.brokers.slippage import PercentageSlippageModel, ZeroSlippageModel
+            
+            if slippage_type == 'zero':
+                models['slippage'] = ZeroSlippageModel()
+            else:
+                models['slippage'] = PercentageSlippageModel()
+        
+        # Create commission model
+        commission_config = config.get('commission', {})
+        commission_type = commission_config.get('type', 'zero')
+        
+        # Try to get from registry first
+        commission_info = registry.get_component(commission_type)
+        if not commission_info:
+            # Try with model suffix
+            commission_info = registry.get_component(f'{commission_type}_commission')
+        
+        if commission_info:
+            # Use factory to create instance with config params
+            params = commission_config.get('params', {})
+            models['commission'] = commission_info.factory(**params)
+        else:
+            # Fallback - import directly
+            logger.warning(f"Commission model '{commission_type}' not found in registry, using fallback")
+            from ...execution.brokers.commission import ZeroCommissionModel, PerShareCommissionModel
+            
+            if commission_type == 'per_share':
+                models['commission'] = PerShareCommissionModel()
+            else:
+                models['commission'] = ZeroCommissionModel()
+        
+        # Add liquidity model if specified
+        liquidity_config = config.get('liquidity', {})
+        if liquidity_config:
+            liquidity_type = liquidity_config.get('type', 'perfect')
+            # Similar pattern for liquidity models when they have decorators
+            models['liquidity'] = {'type': liquidity_type, 'config': liquidity_config}
+        
+        return models
     
     def _get_strategy_feature_requirements(self, strategy_type: str, config: Dict[str, Any]) -> List[str]:
         """
@@ -1030,7 +1112,32 @@ class TopologyBuilder:
         else:
             logger.warning("No strategy services found or no feature containers to wire")
         
-        # 2. Risk Service Adapter: portfolios → ORDER_REQUEST → risk → ORDER → execution
+        # 2. Execution Service Adapter: Apply combo-specific execution models
+        if portfolio_container_names and 'execution' in topology['containers']:
+            # Get execution models
+            execution_models = topology.get('stateless_components', {}).get('execution_models', {})
+            
+            if execution_models:
+                # Build combo -> execution model mapping
+                combo_execution_mapping = {}
+                for combo in topology['parameter_combinations']:
+                    combo_id = combo['combo_id']
+                    exec_type = combo.get('execution_params', {}).get('type', 'standard')
+                    combo_execution_mapping[combo_id] = exec_type
+                
+                # Create execution service adapter
+                from ..communication.execution_service_adapter import ExecutionServiceAdapter
+                exec_service_adapter = ExecutionServiceAdapter(
+                    name='execution_service',
+                    execution_models=execution_models,
+                    combo_execution_mapping=combo_execution_mapping,
+                    root_event_bus=root_event_bus
+                )
+                exec_service_adapter.start()
+                adapters.append(exec_service_adapter)
+                logger.info(f"Created execution service adapter for {len(execution_models)} execution model types")
+        
+        # 3. Risk Service Adapter: portfolios → ORDER_REQUEST → risk → ORDER → execution
         # Create risk service adapter to bridge isolated portfolios to root bus
         if portfolio_container_names and 'execution' in topology['containers']:
             # Get stateless risk validators
@@ -1038,8 +1145,8 @@ class TopologyBuilder:
             
             # Add a default composite validator if none exist
             if not risk_validators:
-                from ...risk.validators import validate_composite
-                risk_validators['default'] = validate_composite
+                from ...risk.validators import validate_composite, create_validator_wrapper
+                risk_validators['default'] = create_validator_wrapper(validate_composite)
                 logger.info("Created default composite risk validator")
             
             # Create risk service adapter
@@ -1712,10 +1819,10 @@ class TopologyBuilder:
     ) -> Optional[Dict[str, Any]]:
         """Call a stateless strategy to generate a signal."""
         try:
-            # Check if it's a real stateless strategy with generate_signal method
-            if hasattr(strategy, 'generate_signal'):
-                # Call the actual stateless strategy
-                signal = strategy.generate_signal(features, bar, params)
+            # Check if it's a callable function (pure function strategy)
+            if callable(strategy):
+                # Call the pure function strategy directly
+                signal = strategy(features, bar, params)
                 
                 # Add bar metadata to signal if not flat
                 if signal and signal.get('direction') != 'flat':
@@ -1751,10 +1858,10 @@ class TopologyBuilder:
     ) -> Dict[str, Any]:
         """Call a stateless risk validator to validate an order."""
         try:
-            # Check if it's a real stateless validator with validate_order method
-            if hasattr(validator, 'validate_order'):
-                # Call the actual stateless validator
-                return validator.validate_order(order, portfolio_state, risk_params, market_data)
+            # Check if it's a callable function (pure function validator)
+            if callable(validator):
+                # Call the pure function validator directly
+                return validator(order, portfolio_state, risk_params, market_data)
                 
             # Fallback for placeholder validators
             elif isinstance(validator, dict) and validator.get('stateless'):
@@ -1783,10 +1890,10 @@ class TopologyBuilder:
     ) -> Dict[str, Any]:
         """Call a stateless classifier to detect market regime."""
         try:
-            # Check if it's a real stateless classifier with classify_regime method
-            if hasattr(classifier, 'classify_regime'):
-                # Call the actual stateless classifier
-                return classifier.classify_regime(features, params)
+            # Check if it's a callable function (pure function classifier)
+            if callable(classifier):
+                # Call the pure function classifier directly
+                return classifier(features, params)
                 
             # Fallback for placeholder classifiers
             elif isinstance(classifier, dict) and classifier.get('stateless'):

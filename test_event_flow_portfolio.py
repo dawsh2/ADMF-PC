@@ -66,11 +66,11 @@ async def test_event_flow():
     )
     
     # 2. Set up stateless services
-    from src.strategy.strategies.stateless_momentum import momentum_strategy
-    from src.risk.validators import validate_composite
+    from src.strategy.strategies.momentum import momentum_strategy
+    # Risk validators are used by RiskServiceAdapter, not directly by portfolio
     
     portfolio_container.set_strategy_service(momentum_strategy)
-    portfolio_container.set_risk_validator(validate_composite)
+    # Risk validation happens through RiskServiceAdapter, not directly in portfolio
     
     # 3. Wire up communication
     adapter_factory = AdapterFactory()

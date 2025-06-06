@@ -1,0 +1,50 @@
+# Test configuration demonstrating automatic path inference
+# No explicit file paths needed - they're inferred from symbol and timeframe
+
+mode: backtest
+
+backtest:
+  data:
+    source: csv
+    # Only specify the data directory, not individual file paths
+    data_dir: data/
+    
+  # Multiple symbols with different timeframes
+  # The system will look for:
+  # - SPY_1m.csv for SPY 1-minute data
+  # - SPY_1d.csv or SPY.csv for SPY daily data
+  # - QQQ_5m.csv for QQQ 5-minute data
+  symbol_configs:
+    - symbol: SPY
+      timeframes: ['1m', '1d']  # Will look for SPY_1m.csv and SPY_1d.csv
+      
+    - symbol: QQQ
+      timeframes: ['5m']  # Will look for QQQ_5m.csv
+      
+    - symbol: AAPL
+      timeframes: ['1h']  # Will look for AAPL_1h.csv
+      
+  features:
+    indicators:
+      - name: sma_20
+        type: sma
+        period: 20
+      - name: rsi
+        type: rsi
+        period: 14
+
+  strategies:
+    - type: momentum
+      sma_period: 20
+      rsi_threshold_long: 30
+      rsi_threshold_short: 70
+
+  risk_profiles:
+    - type: conservative
+      max_position_size: 0.1
+
+  portfolio:
+    initial_capital: 100000
+
+output:
+  results_dir: results/path_inference_test/

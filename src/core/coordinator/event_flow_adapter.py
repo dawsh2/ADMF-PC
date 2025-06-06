@@ -90,12 +90,11 @@ async def run_event_flow_backtest(config: Dict[str, Any]) -> WorkflowResult:
                 # Set up stateless services
                 strategy_type = strategy_config.get('type', 'momentum')
                 if strategy_type == 'momentum':
-                    from ...strategy.strategies.stateless_momentum import momentum_strategy
+                    from ...strategy.strategies.momentum import momentum_strategy
                     portfolio.set_strategy_service(momentum_strategy)
                 
                 risk_type = risk_config.get('type', 'conservative')
-                from ...risk.validators import validate_composite
-                portfolio.set_risk_validator(validate_composite)
+                # Risk validation happens through RiskServiceAdapter, not directly in portfolio
                 
                 containers[portfolio_id] = portfolio
                 portfolio_containers.append(portfolio)

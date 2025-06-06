@@ -10,10 +10,10 @@ for automatic discovery.
 """
 
 # Import only what doesn't have external dependencies
-from .momentum import MomentumStrategy, create_momentum_strategy
+# Old class-based strategies are being phased out
 
 # Import pure function strategies for discovery
-from .stateless_momentum import (
+from .momentum import (
     momentum_strategy, 
     dual_momentum_strategy, 
     price_momentum_strategy
