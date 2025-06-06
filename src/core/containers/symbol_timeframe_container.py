@@ -18,7 +18,7 @@ from datetime import datetime
 
 from ..events import EventBus, Event, EventType
 from ...data.models import Bar
-from .protocols import ComposableContainer, ContainerMetadata, ContainerState, ContainerRole
+from .protocols import Container as ContainerProtocol, ContainerMetadata, ContainerState, ContainerRole
 from .container import Container, ContainerConfig
 from ..tracing import trace, TracePoint
 

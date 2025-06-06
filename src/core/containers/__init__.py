@@ -58,7 +58,6 @@ from .container import (
 
 from .protocols import (
     Container as ContainerProtocol,
-    ComposableContainer,
     ContainerMetadata,
     ContainerLimits
 )
@@ -82,7 +81,6 @@ __all__ = [
     
     # Protocols
     'ContainerProtocol',
-    'ComposableContainer',
     'ContainerMetadata',
     'ContainerLimits'
 ]

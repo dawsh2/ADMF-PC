@@ -1,10 +1,11 @@
 # ADMF-PC Event Flow Architecture: The Next Evolution
 
 ## Executive Summary
+This is an event-driven quantitative trading framework that's under active development. We've strived to perfect the architecture to allow parallelization with isolation of state between seperate instances. We've worked hard to ensure the system is modular and flexible, so it's able to accomplish whatever a research can throw at it elegantly. The system should stay out of the users way, but enable maximal flexibility and reproducability. 
 
-The core idea of the system is using containers to isolate state where necassary in a parallelized backtest, and leveraging that the data transformation pipeline is linear: Data-->BARS-->Features-->FEATURE/BAR-->Strategy & Classifiers-->SIGNAL & ClassifierChange-->Portfolio-->ORDER_REQUEST-->Risk-->ORDER-->Execution (applying stateless functional slippage/commission etc)-->FILL-->PORTFOLIO_UPATE (more or less). It's clearly an event driven system, and to communicate with otherwise isolated containers, we had to devise an adapter, these are under src/core/communication (but since we've simplified the topology into a universal linear flow, we may not need these more extravagent adapters now, but still need a way to communicate from root event bus to containers). We take these primitives - containers, events and cross-communication - and use them to create standardized topologies that dynamicaly generate and wire up the proper system for whatever we're testing (e.g, a multi-asset, multi-strategy, multi-portfolio backtest -- since it uses the same fundemental topology, it should be as easy to wire up as a single backtest). We then leverage this concept to use standardize topologies sequentially to simplify the handling of e.g, train test splits, while maintaing reproducability through the standardization of the process and no state leakage since containers are destroyed after every sequence. At a higher level we combine these sequenced topologies into what we call a Workflow, see the Adaptive Ensemble for an example. Notably, the system is interfaced through YAML files (which ensures consistent, well-tested execution paths and proper creation/destruction of containers to guarentee reproducability), which the Coordinator interprets and delegates appropriately. To keep the parallelization tractable we've implemented event tracing. 
+The core idea of the system is using containers to isolate state where necassary in a parallelized backtest, and leveraging the idea that the data transformation pipeline is linear, e.g: Data-->BARS-->Features-->FEATURE/BAR-->Strategy & Classifiers-->SIGNAL & ClassifierChange-->Portfolio-->ORDER_REQUEST-->Risk-->ORDER-->Execution (applying stateless functional slippage/commission etc)-->FILL-->PORTFOLIO_UPATE (more or less). We take these primitives - containers, events and cross-container-communication-adapters - and use them to create standardized topologies that dynamicaly generate and wire up the proper structure for whatever we're testing. To handle more complex workflows, such as train/test splitting, walkforward validation, we simply recycle the topologies between phases, and use sequencer to orchestrate (which further delegates responsbilities to other modules when appropriate, i.e optimization or analysis). This ensures each phase is created identically to the previous one, while guarenteeing no leakge of state since all components are destroyed at the end of each phase. At a higher level we combine these sequenced topologies into what we call a Workflow, see the Adaptive Ensemble for an example. Notably, the system is interfaced through YAML files (which ensures consistent, well-tested execution paths and proper creation/destruction of containers to guarentee reproducability), which the Coordinator interprets and delegates appropriately to the TopologyBuilder and Sequencer, depending on the Workflow. Lastly, to improve observability nad keep the parallelization tractable we've implemented event tracing, which introduced many tangential benefits. 
 
-NOTE: The sequencer will be adapted to handle batching for memory intensive operations. It already has all the logic necassary. The coordinator may be expanded to handle computing across multiple computers. Maybe it is indeed best that Coordinator handle data storage locations. 
+NOTE: The sequencer will be adapted to handle batching for memory intensive operations as it already has all the logic necassary. The Coordinator may be expanded to handle computing across multiple computers. Maybe it is indeed best that Coordinator handle data storage locations. 
 
 ## Part 1: Core Architecture Components
 
@@ -211,9 +212,6 @@ Execution Container
 
 NOTE: We also maintain two alternative topologies: one for signal generation, which is identical to above but terminates at the 'SIGNALS' line, and other for signal replay, containing the remainder. New topologies can be introduced to incorporate new components, see the 'Signal Filter' examples below, where we overview how to extend the system.
 
-## Part 4: Dynamic Architecture - Zero Hard-Wiring
-
-The most powerful aspect of this architecture is its complete dynamic nature. Unlike traditional trading systems where components are explicitly wired together, ADMF-PC uses a discovery and event-driven approach where **nothing is hardcoded**.
 
 ### 1. Discovery System
 
@@ -237,21 +235,6 @@ class VolumeImpactSlippageModel:
         # Slippage calculation logic
 ```
 
-### 2. Automatic Path Resolution
-
-Data files are discovered automatically based on symbol and timeframe:
-
-```yaml
-# Instead of specifying paths:
-symbol_configs:
-  - symbol: SPY
-    file_path: /data/SPY_1m.csv  # ❌ Not needed!
-
-# The system infers paths:
-symbol_configs:
-  - symbol: SPY
-    timeframes: ['1m', '1d']  # ✅ Finds SPY_1m.csv and SPY_1d.csv automatically
-```
 
 ### 3. Dynamic Parameter Grid Expansion
 
@@ -328,17 +311,6 @@ execution_models:
   - type: adverse_market   # New execution model automatically available
 ```
 
-### 6. Benefits of Dynamic Architecture
-
-1. **Infinite Scalability**: Add components without touching existing code
-2. **Clean Testing**: Test strategies under different market conditions (execution models) without modifying strategy code
-3. **Perfect Isolation**: Each parameter combination runs in complete isolation
-4. **Automatic Discovery**: New components are immediately available
-5. **Configuration-Driven**: Entire system behavior controlled through YAML
-6. **No Dependency Hell**: Components don't know about each other - only events
-
-This dynamic architecture means the difference between a system that requires constant maintenance and one that scales effortlessly with your research needs.
-
 ### 7. Natural Multi-Asset Support
 
 Symbol containers make multi-asset backtesting trivial:
@@ -366,12 +338,6 @@ Old Architecture:                      New Architecture:
 ├── Shared Infrastructure             ├── 2-3 Symbol Containers
 └── Total: 75+ Containers             └── Total: ~27 Containers (60% reduction!)
 ```
-
-### 4. Perfect Isolation Where Needed
-
-- **Symbol Containers**: Isolated for clean multi-symbol separation
-- **Portfolio Containers**: Isolated for parallel parameter testing
-- **Stateless Services**: No isolation needed (no state to contaminate!)
 
 ## Part 5: Common Use Cases
 
@@ -585,19 +551,10 @@ class PortfolioContainer:
         self.update_position(fill)
 ```
 
-## Part 8: Migration Path
-
-For teams migrating from the old architecture:
-
-1. **Remove complex adapters** - the linear flow handles everything
-2. **Keep portfolio containers** - they still manage state
-3. **Simplify configuration** - no adapter patterns needed
 
 ## Summary
 
-The new EVENT_FLOW_ARCHITECTURE represents a major simplification while maintaining all the power of the original Protocol + Composition design:
 
-- **No complex adapters** - linear flow handles all cases
 - **Natural multi-asset support** through Symbol containers
 - **Perfect isolation** only where needed
 - **Massive parallelization** with minimal overhead

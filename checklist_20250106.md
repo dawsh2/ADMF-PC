@@ -138,16 +138,26 @@ c) **Strategy Pull Pattern**:
 - [x] How are components registered / discovered by the system? → Using decorator-based discovery (@strategy, @classifier, @feature)
 - [x] Does containers/ need a factory? What about components? → Yes, containers use factory; components use decorators
 - [x] Are we properly using the config/ directory? → Yes, but needs organization into subdirectories
-- [ ] Why no data or featurehub container files? Should each type get its own file?
-- [ ] What is event_flow_adapter.py under coordinator? And infrastructure.py?
-- [ ] Are we using typed/semantic events? Should we per data-mining docs?
-- [ ] Code smell: grep for 'unified' and 'compose' terms
+- [x] Why no data or featurehub container files? Should each type get its own file? → Found specialized container types (SymbolTimeframeContainer, PortfolioContainer, ExecutionContainer) which is an anti-pattern. Should use ONE generic Container class with composable components instead of specialized types. This allows flexibility to split/merge functionality as needed.
+- [x] What is event_flow_adapter.py under coordinator? And infrastructure.py? → DELETED BOTH. event_flow_adapter.py was a lingering prototype that bypassed proper architecture. infrastructure.py was overengineered with mixed concerns (shared resources, compute pools) that belong elsewhere.
+- [x] Are we using typed/semantic events? Should we per data-mining docs? → semantic.py exists with typed events but NOT actively used. System uses simple Event + EventType. Since event tracing will be the primary source of truth for performance validation, semantic events become MORE important - they provide structure for analysis. Consider gradual adoption as we rely more on event mining.
+- [x] Code smell: grep for 'unified' and 'compose' terms → Found multiple migration layers of technical debt:
+  - "unified architecture" comments everywhere (old migration)
+  - "composable containers" with enable_composable_containers=True hardcoded (another old migration)
+  - "composite" usage is legitimate (for composite validators/classifiers)
+  - Need cleanup: remove all migration-related comments and deprecated flags
 - [ ] Do we need custom logging module now that we have tracing?
 - [ ] Why so many files under types/? Duplicate decimals.py under utils/ (remove if so)?
 - [ ] Rename 'stateless_*' files to canonical names (remove 'stateless' prefix)
 
 ### Final Step of Phase 0:
 - [ ] Review each incremental testing phase for missing steps
+- [ ] Implement semantic events throughout the system for meaningful event tracing:
+  - Replace simple Event(type, payload) with typed semantic events
+  - Ensure correlation_id flows through entire pipeline
+  - Add causation_id to link related events
+  - Include business context (strategy_id, portfolio_id, regime)
+  - Validate events are self-documenting for analysis
 
 ## Incremental Testing Plan 📋
 - [ ] Implement portfolio-specific trace files and consider how to structure event tracing for scale while parallezing (see data-mining doc)
@@ -429,3 +439,65 @@ src/core/coordinator/
 - Human checkpoints for validation
 - Incremental complexity addition
 - Each step must work before proceeding
+
+## Topology Refactor Plan 🏗️ ✅ COMPLETED
+
+### ~~Current~~ Resolved Issues:
+1. ~~**topology.py is 2,296 lines**~~ - Reduced to ~1,056 lines after refactor
+2. ~~**Specialized container types**~~ - Now using generic Container + components pattern
+3. ~~**Hardcoded pipeline order**~~ - Moved to modular topology files
+4. ~~**Mixed responsibilities**~~ - TopologyBuilder is now a thin orchestrator
+
+### Vision:
+
+#### 1. Container Architecture:
+- **ONE generic Container class** that holds components
+- **Components** provide specific functionality (DataStreamer, FeatureCalculator, PortfolioState, etc.)
+- **No specialized container types** - just Container + Components
+
+Example:
+```python
+# Instead of SymbolTimeframeContainer:
+data_container = Container("spy_1m_data")
+data_container.add_component(DataStreamer(symbol="SPY", timeframe="1m"))
+
+feature_container = Container("spy_1m_features")
+feature_container.add_component(FeatureCalculator(indicators=["sma_20", "rsi_14"]))
+```
+
+#### 2. Topology Structure:
+```
+topologies/
+├── backtest.py         # Full pipeline: data → features → strategies → portfolios → risk → execution
+├── signal_generation.py # Just: data → features → strategies (save signals)
+├── signal_replay.py    # Just: signals → portfolios → risk → execution
+└── helpers/
+    ├── container_builder.py  # Helper for creating containers with components
+    └── adapter_wiring.py    # Helper for wiring containers together
+```
+
+#### 3. TopologyBuilder Role:
+- **Thin orchestrator** that delegates to topology modules
+- **Reads topology files** to understand pipeline structure
+- **Delegates to factories**:
+  - ContainerFactory for creating containers
+  - AdapterFactory for creating adapters
+- **Does NOT hardcode** container types or pipeline order
+
+#### 4. Benefits:
+- **Easy reordering**: Want risk before portfolio? Just change topology file
+- **Easy splitting**: Want separate data and features? Create two containers
+- **Easy extensions**: Add SignalFilter? Create component, add to topology
+- **Modular testing**: Each topology can be tested independently
+
+### Implementation Steps ✅:
+1. ✅ Created topologies/ directory structure
+2. ✅ Extracted topology-specific code from topology.py
+3. ✅ Refactored containers to use generic Container + Components pattern
+4. ✅ Updated TopologyBuilder to be a thin orchestrator
+5. ⏳ Test with incremental complexity (next step)
+6. ✅ **DELETED all deprecated code**:
+   - ✅ Removed _create_*_adapters methods (334 lines)
+   - ✅ Removed _run_*_execution methods (464 lines)
+   - ✅ Removed old _create_*_topology methods (262 lines)
+   - ✅ Total: ~1,060 lines deleted

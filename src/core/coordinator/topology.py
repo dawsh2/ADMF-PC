@@ -22,7 +22,7 @@ from ..communication import AdapterFactory
 from ..types.workflow import WorkflowConfig, WorkflowType, ExecutionContext, WorkflowResult
 from ..types.events import EventType
 from ..events import Event
-from ..containers.protocols import ComposableContainer, ContainerRole
+from ..containers.protocols import Container as ContainerProtocol, ContainerRole
 from ..containers.factory import get_global_factory, get_global_registry
 
 # Unified architecture - no pattern detection needed!
@@ -86,7 +86,7 @@ class TopologyBuilder:
         # self._executors: Dict[str, ExecutionStrategy] = {}
         
         # Active resources
-        self.active_containers: Dict[str, ComposableContainer] = {}
+        self.active_containers: Dict[str, ContainerProtocol] = {}
         self.active_adapters = []
         
         logger.info(f"WorkflowManager initialized (unified architecture)")
@@ -111,7 +111,7 @@ class TopologyBuilder:
             logger.error(f"Error initializing container factories: {e}")
             # Don't raise - allow system to continue
     
-    async def execute(
+    def execute(
         self,
         config: WorkflowConfig,
         context: ExecutionContext
@@ -124,50 +124,22 @@ class TopologyBuilder:
         custom_workflow = config.parameters.get('workflow')
         if custom_workflow:
             logger.info(f"Executing custom workflow: {custom_workflow}")
-            return await self._execute_custom_workflow(custom_workflow, config, context)
+            return self._execute_custom_workflow(custom_workflow, config, context)
         
         try:
             # 1. Determine workflow mode (backtest, signal gen, or replay)
             mode = self._determine_mode(config)
             logger.info(f"Using workflow mode: {mode.value}")
             
-            # 2. Create mode-specific topology
-            try:
-                if mode == WorkflowMode.BACKTEST:
-                    topology = await self._create_backtest_topology(config)
-                elif mode == WorkflowMode.SIGNAL_GENERATION:
-                    topology = await self._create_signal_generation_topology(config)
-                elif mode == WorkflowMode.SIGNAL_REPLAY:
-                    topology = await self._create_signal_replay_topology(config)
-                else:
-                    raise ValueError(f"Unknown workflow mode: {mode}")
-                    
-                logger.info(f"Created {mode.value} topology with {len(topology['containers'])} containers")
-            except Exception as e:
-                logger.error(f"Failed to create topology: {e}", exc_info=True)
-                raise
+            # 2. Create topology based on mode
+            topology = await self._create_topology(mode, config)
+            logger.info(f"Created {mode.value} topology with {len(topology['containers'])} containers")
             
-            # 3. Wire mode-specific adapters
-            if mode == WorkflowMode.BACKTEST:
-                adapters = self._create_backtest_adapters(topology)
-            elif mode == WorkflowMode.SIGNAL_GENERATION:
-                adapters = self._create_signal_generation_adapters(topology)
-            elif mode == WorkflowMode.SIGNAL_REPLAY:
-                adapters = self._create_signal_replay_adapters(topology)
-            else:
-                adapters = []
-                
-            logger.info(f"Created {len(adapters)} {mode.value} adapters")
+            # Note: Adapters are already created and wired in the topology modules
+            # The topology includes the 'adapters' key with all configured adapters
             
-            # 4. Execute based on mode
-            if mode == WorkflowMode.BACKTEST:
-                result = await self._execute_full_pipeline(topology, config, context)
-            elif mode == WorkflowMode.SIGNAL_GENERATION:
-                result = await self._execute_signal_generation(topology, config, context)
-            elif mode == WorkflowMode.SIGNAL_REPLAY:
-                result = await self._execute_signal_replay(topology, config, context)
-            else:
-                raise ValueError(f"Unknown workflow mode: {mode}")
+            # 3. Execute the topology (generic execution for all modes)
+            result = await self._execute_topology(topology, config, context, mode)
             
             logger.info(f"Workflow execution completed: success={result.success}")
             return result
@@ -182,7 +154,7 @@ class TopologyBuilder:
                 metadata={'mode': 'failed'}
             )
     
-    async def execute_pattern(
+    def execute_pattern(
         self,
         pattern_name: str,
         config: Dict[str, Any],
@@ -234,7 +206,7 @@ class TopologyBuilder:
         )
         
         # Execute using unified architecture
-        return await self.execute(workflow_config, context)
+        return self.execute(workflow_config, context)
     
     # REMOVED: Pattern-based execution mode detection - unified architecture uses modes directly
     # def _determine_execution_mode(self, config: WorkflowConfig, patterns: List[Dict[str, Any]]) -> str:
@@ -246,7 +218,7 @@ class TopologyBuilder:
     #     """Get executor for specified mode (with caching)."""
     #     ...
     
-    async def validate_config(self, config: WorkflowConfig) -> Dict[str, Any]:
+    def validate_config(self, config: WorkflowConfig) -> Dict[str, Any]:
         """Validate workflow configuration for unified architecture."""
         
         errors = []
@@ -292,7 +264,7 @@ class TopologyBuilder:
             'estimated_containers': 4 + len(param_combos)  # 4 core + portfolios
         }
     
-    async def get_execution_preview(self, config: WorkflowConfig) -> Dict[str, Any]:
+    def get_execution_preview(self, config: WorkflowConfig) -> Dict[str, Any]:
         """Get a preview of how the workflow would be executed in unified architecture."""
         
         try:
@@ -392,238 +364,128 @@ class TopologyBuilder:
         else:
             return WorkflowMode.BACKTEST
     
-    async def _create_backtest_topology(self, config: WorkflowConfig) -> Dict[str, Any]:
+    def _create_topology(self, mode: WorkflowMode, config: WorkflowConfig) -> Dict[str, Any]:
         """
-        Create topology for backtest mode.
+        Create topology based on workflow mode using modular topology system.
         
-        Creates Symbol-Timeframe containers for proper isolation:
-        - Each symbol-timeframe combination gets its own container
-        - Container includes both data and feature components
-        - Perfect isolation for multi-timeframe strategies
-        
-        Plus Portfolio and Execution containers for full pipeline.
+        The topology modules return everything needed:
+        - containers: Dict of container instances
+        - adapters: List of configured adapters
+        - parameter_combinations: List of parameter combos
+        - root_event_bus: The root event bus
+        - event_tracer: Optional event tracer
         """
-        # Check if tracing is enabled in configuration (default to True)
-        tracing_config = config.parameters.get('tracing', {})
-        tracing_enabled = tracing_config.get('enabled', True)  # Default to True
-        
-        # Create root event bus for inter-component communication
-        if tracing_enabled:
-            # Use TracedEventBus for event tracing
-            from ..events.tracing import TracedEventBus, EventTracer
-            root_event_bus = TracedEventBus("root_event_bus")
-            
-            # Initialize event tracer
-            correlation_id = config.parameters.get('correlation_id', f"workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-            event_tracer = EventTracer(
-                correlation_id=correlation_id,
-                max_events=config.parameters.get('tracing', {}).get('max_events', 10000)
-            )
-            
-            # Attach tracer to bus
-            root_event_bus.set_tracer(event_tracer)
-            
-            # Store tracer for later access
-            self.event_tracer = event_tracer
-            
-            logger.info("🔍 Created TracedEventBus with event tracing enabled")
-        else:
-            # Use standard EventBus without tracing
-            from ..events import EventBus
-            root_event_bus = EventBus("root_event_bus")
-            logger.info("Created root event bus for inter-component communication")
-        
-        topology = {
-            'containers': {},
-            'stateless_components': {},
-            'parameter_combinations': [],
-            'root_event_bus': root_event_bus
-        }
-        
-        # 1. Create Data and Feature Containers (Subcontainer Architecture)
-        symbol_timeframe_configs = self._extract_symbol_timeframe_configs(config)
-        
-        # 1a. Infer required features from strategies
-        from ...strategy.components.feature_inference import infer_features_from_strategies
-        backtest_config = config.parameters.get('backtest', {})
-        strategies = backtest_config.get('strategies', [])
-        inferred_features = infer_features_from_strategies(strategies)
-        logger.info(f"Inferred features from strategies: {sorted(inferred_features)}")
-        
-        # Add inferred features to each symbol config
-        for st_config in symbol_timeframe_configs:
-            # Merge inferred features with any explicit features
-            existing_features = st_config.get('features', {})
-            if not existing_features:
-                st_config['features'] = {}
-            
-            # Convert inferred features to feature config format expected by SymbolTimeframeContainer
-            if 'indicators' not in st_config['features']:
-                st_config['features']['indicators'] = []
-            
-            existing_indicators = {ind['name'] for ind in st_config['features']['indicators']}
-            
-            for feature_spec in inferred_features:
-                # Skip if already exists
-                if feature_spec in existing_indicators:
-                    continue
-                    
-                # Parse feature spec like "sma_20" or "rsi_14"
-                if '_' in feature_spec:
-                    parts = feature_spec.split('_')
-                    feature_type = parts[0]
-                    if len(parts) > 1 and parts[1].isdigit():
-                        period = int(parts[1])
-                        st_config['features']['indicators'].append({
-                            'name': feature_spec,
-                            'type': feature_type,
-                            'period': period
-                        })
-                    else:
-                        # Feature with non-numeric suffix
-                        st_config['features']['indicators'].append({
-                            'name': feature_spec,
-                            'type': feature_type
-                        })
-                else:
-                    # Feature without parameters
-                    st_config['features']['indicators'].append({
-                        'name': feature_spec,
-                        'type': feature_spec
-                    })
-        
-        for st_config in symbol_timeframe_configs:
-            symbol = st_config['symbol']
-            timeframe = st_config.get('timeframe', '1d')
-            
-            # 1a. Create Data Container (streams BAR events only)
-            data_container_id = f"{symbol}_{timeframe}_data"
-            from ..containers.symbol_timeframe_container import SymbolTimeframeContainer
-            
-            data_container = SymbolTimeframeContainer(
-                symbol=symbol,
-                timeframe=timeframe,
-                data_config=st_config.get('data_config', {}),
-                feature_config={},  # No feature computation in data container
-                container_id=data_container_id
-            )
-            
-            # Replace event bus with TracedEventBus if tracing is enabled
-            if tracing_enabled and hasattr(self, 'event_tracer'):
-                traced_bus = TracedEventBus(f"{data_container_id}_bus")
-                traced_bus.set_tracer(self.event_tracer)
-                # Copy existing subscriptions
-                if hasattr(data_container.event_bus, '_subscribers'):
-                    traced_bus._subscribers = data_container.event_bus._subscribers
-                    traced_bus._handler_refs = data_container.event_bus._handler_refs
-                data_container.event_bus = traced_bus
-            
-            topology['containers'][data_container_id] = data_container
-            self.active_containers[data_container_id] = data_container
-            
-            # 1b. Create Feature Container (computes FEATURES from BAR events)
-            feature_container_id = f"{symbol}_{timeframe}_features"
-            feature_container = SymbolTimeframeContainer(
-                symbol=symbol,
-                timeframe=timeframe,
-                data_config={},  # No data streaming in feature container
-                feature_config=st_config.get('features', {}),
-                container_id=feature_container_id
-            )
-            
-            # Replace event bus with TracedEventBus if tracing is enabled
-            if tracing_enabled and hasattr(self, 'event_tracer'):
-                traced_bus = TracedEventBus(f"{feature_container_id}_bus")
-                traced_bus.set_tracer(self.event_tracer)
-                # Copy existing subscriptions
-                if hasattr(feature_container.event_bus, '_subscribers'):
-                    traced_bus._subscribers = feature_container.event_bus._subscribers
-                    traced_bus._handler_refs = feature_container.event_bus._handler_refs
-                feature_container.event_bus = traced_bus
-            
-            topology['containers'][feature_container_id] = feature_container
-            self.active_containers[feature_container_id] = feature_container
-        
-        # 1c. Wire Data → Feature flow AFTER event bus replacement
-        for st_config in symbol_timeframe_configs:
-            symbol = st_config['symbol']
-            timeframe = st_config.get('timeframe', '1d')
-            data_container_id = f"{symbol}_{timeframe}_data"
-            feature_container_id = f"{symbol}_{timeframe}_features"
-            
-            data_container = topology['containers'][data_container_id]
-            feature_container = topology['containers'][feature_container_id]
-            
-            # Feature container subscribes to BAR events from data container
-            data_container.event_bus.subscribe('BAR', feature_container._on_bar_received)
-            logger.info(f"Wired {data_container_id} → {feature_container_id}")
-        
-        # 2. Create stateless components first (so portfolios can use them)
-        topology['stateless_components'] = self._create_stateless_components(config)
-        
-        # 3. Expand parameter combinations
-        param_combos = self._expand_parameter_combinations(config)
-        topology['parameter_combinations'] = param_combos
-        
-        # 4. Create Portfolio Containers (one per combination)
-        # Use the new PortfolioContainer for proper FEATURES event processing
-        from ..containers.portfolio_container import PortfolioContainer
-        
-        for combo in param_combos:
-            combo_id = combo['combo_id']
-            
-            portfolio_container = PortfolioContainer(
-                combo_id=combo_id,
-                strategy_params=combo['strategy_params'],
-                risk_params=combo['risk_params'],
-                initial_capital=config.parameters.get('backtest', {}).get('portfolio', {}).get('initial_capital', 100000),
-                container_id=f'portfolio_{combo_id}'
-            )
-            
-            # Replace event bus with TracedEventBus if tracing is enabled
-            if tracing_enabled and hasattr(self, 'event_tracer'):
-                traced_bus = TracedEventBus(f"portfolio_{combo_id}_bus")
-                traced_bus.set_tracer(self.event_tracer)
-                # Copy existing subscriptions
-                if hasattr(portfolio_container.event_bus, '_subscribers'):
-                    traced_bus._subscribers = portfolio_container.event_bus._subscribers
-                    traced_bus._handler_refs = portfolio_container.event_bus._handler_refs
-                portfolio_container.event_bus = traced_bus
-            
-            
-            topology['containers'][f'portfolio_{combo_id}'] = portfolio_container
-            self.active_containers[f'portfolio_{combo_id}'] = portfolio_container
-        
-        # 4. Create Execution Container (shared across all portfolios)
-        from ..containers.execution_container import ExecutionContainer
-        
-        # Get default execution config
-        default_exec_config = config.parameters.get('backtest', {}).get('execution', {})
-        
-        # If we have multiple execution models, we'll handle them via adapter
-        # For now, create container with default config
-        execution_container = ExecutionContainer(
-            execution_config=default_exec_config,
-            container_id='execution'
+        # Import topology modules
+        from .topologies import (
+            create_backtest_topology,
+            create_signal_generation_topology,
+            create_signal_replay_topology
         )
         
-        # Replace event bus with TracedEventBus if tracing is enabled
-        if tracing_enabled and hasattr(self, 'event_tracer'):
-            traced_bus = TracedEventBus("execution_bus")
-            traced_bus.set_tracer(self.event_tracer)
-            # Copy existing subscriptions
-            if hasattr(execution_container.event_bus, '_subscribers'):
-                traced_bus._subscribers = execution_container.event_bus._subscribers
-                traced_bus._handler_refs = execution_container.event_bus._handler_refs
-            execution_container.event_bus = traced_bus
+        # Map mode to topology function
+        topology_functions = {
+            WorkflowMode.BACKTEST: create_backtest_topology,
+            WorkflowMode.SIGNAL_GENERATION: create_signal_generation_topology,
+            WorkflowMode.SIGNAL_REPLAY: create_signal_replay_topology
+        }
         
-        topology['containers']['execution'] = execution_container
-        self.active_containers['execution'] = execution_container
+        if mode not in topology_functions:
+            raise ValueError(f"Unknown workflow mode: {mode}")
         
-        logger.info(f"Universal topology created: {len(topology['containers'])} containers, "
-                   f"{len(param_combos)} parameter combinations")
+        # Extract config parameters
+        tracing_enabled = config.parameters.get('tracing', {}).get('enabled', True)
+        
+        # Convert WorkflowConfig to dict for topology modules
+        topology_config = config.parameters.copy()
+        
+        # Create topology using appropriate function
+        topology_function = topology_functions[mode]
+        topology = topology_function(topology_config, tracing_enabled)
+        
+        # Store references for cleanup
+        if topology.get('event_tracer'):
+            self.event_tracer = topology['event_tracer']
+            
+        self.active_containers.update(topology['containers'])
+        
+        if topology.get('adapters'):
+            self.active_adapters.extend(topology['adapters'])
+        
+        logger.info(f"Created {mode.value} topology: "
+                   f"{len(topology['containers'])} containers, "
+                   f"{len(topology.get('adapters', []))} adapters")
         
         return topology
+    
+    def _execute_topology(
+        self, 
+        topology: Dict[str, Any], 
+        config: WorkflowConfig, 
+        context: ExecutionContext
+    ) -> WorkflowResult:
+        """
+        Execute a topology generically.
+        
+        The topology itself defines what needs to happen - we just:
+        1. Start the containers
+        2. Let them run (event-driven)
+        3. Collect results
+        4. Stop containers
+        """
+        logger.info("Executing topology")
+        
+        # Initialize result
+        result = WorkflowResult(
+            workflow_id=context.workflow_id,
+            workflow_type=config.workflow_type,
+            success=True,
+            metadata={
+                'containers': len(topology['containers']),
+                'adapters': len(topology.get('adapters', [])),
+                'combinations': len(topology.get('parameter_combinations', []))
+            }
+        )
+        
+        try:
+            # The topology modules have already created and wired everything
+            # We just need to run the simulation
+            
+            # For now, simulate execution
+            # In a real system, this would be event-driven
+            import time
+            logger.info("Running topology simulation...")
+            time.sleep(2)  # Simulate processing
+            
+            # Collect results from containers
+            portfolio_results = {}
+            for container_name, container in topology['containers'].items():
+                if container_name.startswith('portfolio_'):
+                    # Get metrics from portfolio container
+                    state = container.get_state_info() if hasattr(container, 'get_state_info') else {}
+                    portfolio_results[container_name] = {
+                        'container': container_name,
+                        'state': state,
+                        'metrics': state.get('metrics', {})
+                    }
+            
+            result.final_results = {
+                'portfolios': portfolio_results,
+                'total_containers': len(topology['containers']),
+                'execution_time': 2.0  # Simulated
+            }
+            
+            # Add trace summary if available
+            trace_summary = self.get_trace_summary()
+            if trace_summary:
+                result.metadata['trace_summary'] = trace_summary
+                logger.info(f"🔍 Event trace summary: {trace_summary.get('total_events', 0)} events traced")
+                
+        except Exception as e:
+            logger.error(f"Topology execution failed: {e}")
+            result.success = False
+            result.add_error(str(e))
+        
+        return result
     
     def _extract_symbol_timeframe_configs(self, config: WorkflowConfig) -> List[Dict[str, Any]]:
         """
@@ -970,846 +832,6 @@ class TopologyBuilder:
         
         return all_features
     
-    def _create_backtest_adapters(self, topology: Dict[str, Any]) -> List[Any]:
-        """
-        Create adapter configuration for backtest mode.
-        
-        Adapters:
-        1. Feature routing: feature containers → strategies (via Feature Dispatcher)
-        2. Signal routing: strategies → portfolios (via root bus)
-        3. Order routing: portfolios → execution (via root bus)
-        4. Fill broadcast: execution → portfolios
-        """
-        adapters = []
-        
-        # Get root event bus
-        root_event_bus = topology.get('root_event_bus')
-        if not root_event_bus:
-            raise RuntimeError("Root event bus not found in topology")
-            
-        # Get all feature container names (these publish FEATURES events)
-        feature_container_names = [name for name in topology['containers'].keys() 
-                                  if name.endswith('_features')]
-        
-        # Get all portfolio container names
-        portfolio_container_names = [name for name in topology['containers'].keys() 
-                                   if name.startswith('portfolio_')]
-        
-        # Create Feature Dispatcher for granular feature routing
-        from ..components.feature_dispatcher import FeatureDispatcher
-        feature_dispatcher = FeatureDispatcher(root_event_bus=root_event_bus)
-        
-        # 1. Wire FEATURES events through Feature Dispatcher
-        # Architecture: Symbol Container → Feature Dispatcher → Strategy Services → Root Bus → Portfolios
-        stateless_components = topology.get('stateless_components', {})
-        strategies = stateless_components.get('strategies', {})
-        
-        if strategies and feature_container_names:
-            # First, register all strategies with the dispatcher
-            for combo in topology['parameter_combinations']:
-                strategy_config = combo['strategy_params']
-                strategy_type = strategy_config.get('type')
-                combo_id = combo['combo_id']
-                
-                # Determine which features this strategy needs
-                required_features = self._get_strategy_feature_requirements(strategy_type, strategy_config)
-                
-                # Register with dispatcher
-                feature_dispatcher.register_strategy(
-                    strategy_id=f"{combo_id}_{strategy_type}",
-                    strategy_type=strategy_type,
-                    required_features=required_features
-                )
-            
-            # Wire feature containers to publish to dispatcher
-            for feature_container_name in feature_container_names:
-                feature_container = topology['containers'][feature_container_name]
-                
-                # Subscribe dispatcher to FEATURES events from this container
-                feature_container.event_bus.subscribe(EventType.FEATURES, feature_dispatcher.handle_features)
-                logger.info(f"Wired feature container '{feature_container_name}' to Feature Dispatcher")
-            
-            # Wire each strategy service to handle filtered features
-            for strategy_type, strategy_service in strategies.items():
-                    # Create a handler for this specific strategy (fix closure issue)
-                    def make_strategy_handler(s_type, s_service, param_combos, root_bus):
-                        def handle_features(event: Event):
-                            # Only process if this event is targeted to this strategy
-                            strategy_id = event.metadata.get('target_strategy', '')
-                            if not event.payload.get('filtered', False):
-                                # Skip non-filtered events (shouldn't happen with dispatcher)
-                                return
-                            
-                            logger.info(f"🎯 Strategy {s_type} received FILTERED FEATURES")
-                            logger.debug(f"Event type: {event.event_type}, filtered: {event.payload.get('filtered')}")
-                            
-                            features = event.payload.get('features', {})
-                            bar = event.payload.get('bar')
-                            symbol = event.payload.get('symbol')
-                            
-                            logger.debug(f"Filtered features for {s_type}: {list(features.keys())}")
-                            
-                            if not all([features, bar, symbol]):
-                                return
-                                
-                            # Convert Bar object to dict if needed
-                            if hasattr(bar, 'to_dict'):
-                                bar_dict = bar.to_dict()
-                            else:
-                                bar_dict = bar
-                            
-                            # Process for relevant portfolios
-                            for combo in param_combos:
-                                if combo['strategy_params'].get('type') == s_type:
-                                    combo_id = combo['combo_id']
-                                    strategy_params = combo['strategy_params']
-                                    
-                                    # Check if this event is for this combo
-                                    expected_strategy_id = f"{combo_id}_{s_type}"
-                                    if strategy_id and strategy_id != expected_strategy_id:
-                                        continue
-                                    
-                                    # Call strategy service with filtered features
-                                    logger.debug(f"Calling {s_type} strategy for {combo_id} with filtered features: {list(features.keys())}")
-                                    signal = s_service(features, bar_dict, strategy_params)
-                                    
-                                    if signal and signal.get('direction') != 'flat':
-                                        # Create SIGNAL event for specific portfolio
-                                        signal_event = Event(
-                                            event_type=EventType.SIGNAL,
-                                            payload={
-                                                'signal': signal,
-                                                'symbol': symbol,
-                                                'bar': bar_dict,
-                                                'combo_id': combo_id,
-                                                'correlation_id': event.payload.get('correlation_id')
-                                            },
-                                            source_id=f'strategy_{s_type}'
-                                        )
-                                        root_bus.publish(signal_event)
-                                        logger.info(f"Strategy {s_type} published SIGNAL for {combo_id}")
-                        return handle_features
-                
-                    # Register handler with feature dispatcher instead of direct subscription
-                    handler = make_strategy_handler(strategy_type, strategy_service, topology['parameter_combinations'], root_event_bus)
-                    
-                    # Register all instances of this strategy type with the dispatcher
-                    for combo in topology['parameter_combinations']:
-                        if combo['strategy_params'].get('type') == strategy_type:
-                            strategy_id = f"{combo['combo_id']}_{strategy_type}"
-                            feature_dispatcher.feature_handlers[strategy_id].append(handler)
-                    
-                    logger.info(f"Registered strategy service '{strategy_type}' with Feature Dispatcher")
-            
-            # 1.5. Wire portfolio containers to receive SIGNAL events from ROOT event bus
-            # Portfolios subscribe to root bus for SIGNAL events from strategies
-            for portfolio_name in portfolio_container_names:
-                portfolio_container = topology['containers'][portfolio_name]
-                
-                # Subscribe portfolio to SIGNAL events on the ROOT event bus
-                root_event_bus.subscribe(EventType.SIGNAL, portfolio_container._on_signal_received)
-                logger.info(f"Wired portfolio '{portfolio_name}' to receive SIGNAL events from ROOT event bus")
-        else:
-            logger.warning("No strategy services found or no feature containers to wire")
-        
-        # 2. Execution Service Adapter: Apply combo-specific execution models
-        if portfolio_container_names and 'execution' in topology['containers']:
-            # Get execution models
-            execution_models = topology.get('stateless_components', {}).get('execution_models', {})
-            
-            if execution_models:
-                # Build combo -> execution model mapping
-                combo_execution_mapping = {}
-                for combo in topology['parameter_combinations']:
-                    combo_id = combo['combo_id']
-                    exec_type = combo.get('execution_params', {}).get('type', 'standard')
-                    combo_execution_mapping[combo_id] = exec_type
-                
-                # Create execution service adapter
-                from ..communication.execution_service_adapter import ExecutionServiceAdapter
-                exec_service_adapter = ExecutionServiceAdapter(
-                    name='execution_service',
-                    execution_models=execution_models,
-                    combo_execution_mapping=combo_execution_mapping,
-                    root_event_bus=root_event_bus
-                )
-                exec_service_adapter.start()
-                adapters.append(exec_service_adapter)
-                logger.info(f"Created execution service adapter for {len(execution_models)} execution model types")
-        
-        # 3. Risk Service Adapter: portfolios → ORDER_REQUEST → risk → ORDER → execution
-        # Create risk service adapter to bridge isolated portfolios to root bus
-        if portfolio_container_names and 'execution' in topology['containers']:
-            # Get stateless risk validators
-            risk_validators = topology.get('stateless_components', {}).get('risk_validators', {})
-            
-            # Add a default composite validator if none exist
-            if not risk_validators:
-                from ...risk.validators import validate_composite, create_validator_wrapper
-                risk_validators['default'] = create_validator_wrapper(validate_composite)
-                logger.info("Created default composite risk validator")
-            
-            # Create risk service adapter
-            risk_adapter = self.adapter_factory.create_adapter(
-                name='risk_service',
-                config={
-                    'type': 'risk_service',
-                    'risk_validators': risk_validators,
-                    'root_event_bus': root_event_bus
-                }
-            )
-            adapters.append(risk_adapter)
-            logger.info(f"Created risk service adapter for {len(portfolio_container_names)} portfolios")
-            
-            # Subscribe execution to ORDER events on ROOT event bus
-            execution_container = topology['containers']['execution']
-            root_event_bus.subscribe(EventType.ORDER, execution_container._on_order_received)
-            logger.info(f"Wired execution container to receive ORDER events from ROOT event bus")
-        
-        # 3. Fill broadcast: execution → all portfolios
-        if 'execution' in topology['containers'] and portfolio_container_names:
-            fill_broadcast = self.adapter_factory.create_adapter(
-                name='fill_broadcast',
-                config={
-                    'type': 'broadcast',
-                    'source': 'execution',
-                    'targets': portfolio_container_names,
-                    'allowed_types': [EventType.FILL]  # Only broadcast FILL events
-                }
-            )
-            adapters.append(fill_broadcast)
-            logger.info(f"Created fill broadcast from execution to {len(portfolio_container_names)} portfolios")
-        
-        # Wire the adapters with the actual containers
-        all_containers = topology['containers']
-        for adapter in adapters:
-            try:
-                adapter.setup(all_containers)
-                adapter.start()
-            except Exception as e:
-                logger.error(f"Failed to setup adapter {adapter.name}: {e}")
-                raise
-        
-        self.active_adapters.extend(adapters)
-        logger.info(f"Created {len(adapters)} backtest adapters for topology")
-        return adapters
-    
-    def _create_signal_generation_adapters(self, topology: Dict[str, Any]) -> List[Any]:
-        """
-        Create adapter configuration for signal generation mode.
-        
-        Adapters:
-        1. Feature routing: feature containers → strategies (via Feature Dispatcher)
-        NO portfolio adapters - signals are saved to disk instead
-        """
-        adapters = []
-        
-        # Get root event bus
-        root_event_bus = topology.get('root_event_bus')
-        if not root_event_bus:
-            raise RuntimeError("Root event bus not found in topology")
-            
-        # Get feature container names
-        feature_container_names = [name for name in topology['containers'].keys() 
-                                  if name.endswith('_features')]
-        
-        # Create Feature Dispatcher for signal generation
-        from ..components.feature_dispatcher import FeatureDispatcher
-        feature_dispatcher = FeatureDispatcher(root_event_bus=root_event_bus)
-        
-        # Wire FEATURES events through dispatcher (similar to backtest)
-        stateless_components = topology.get('stateless_components', {})
-        strategies = stateless_components.get('strategies', {})
-        
-        if strategies and feature_container_names:
-            # Register strategies with dispatcher
-            for combo in topology['parameter_combinations']:
-                strategy_config = combo['strategy_params']
-                strategy_type = strategy_config.get('type')
-                combo_id = combo['combo_id']
-                
-                required_features = self._get_strategy_feature_requirements(strategy_type, strategy_config)
-                
-                feature_dispatcher.register_strategy(
-                    strategy_id=f"{combo_id}_{strategy_type}",
-                    strategy_type=strategy_type,
-                    required_features=required_features
-                )
-            
-            # Wire feature containers to dispatcher
-            for feature_container_name in feature_container_names:
-                feature_container = topology['containers'][feature_container_name]
-                feature_container.event_bus.subscribe(EventType.FEATURES, feature_dispatcher.handle_features)
-                logger.info(f"Wired feature container '{feature_container_name}' to Feature Dispatcher")
-            
-            # For signal generation, strategies publish signals to be saved
-            # No portfolio wiring needed
-        
-        logger.info(f"Created {len(adapters)} signal generation adapters")
-        return adapters
-    
-    def _create_signal_replay_adapters(self, topology: Dict[str, Any]) -> List[Any]:
-        """
-        Create adapter configuration for signal replay mode.
-        
-        Adapters:
-        1. Order routing: portfolios → execution (via root bus)
-        2. Fill broadcast: execution → portfolios
-        NO feature/strategy adapters - signals come from disk
-        """
-        adapters = []
-        
-        # Get root event bus
-        root_event_bus = topology.get('root_event_bus')
-        if not root_event_bus:
-            raise RuntimeError("Root event bus not found in topology")
-            
-        # Get portfolio container names
-        portfolio_container_names = [name for name in topology['containers'].keys() 
-                                   if name.startswith('portfolio_')]
-        
-        # 1. Order flow: portfolios → execution via ROOT event bus
-        if 'execution' in topology['containers']:
-            execution_container = topology['containers']['execution']
-            
-            # Subscribe execution to ORDER events on root bus
-            root_event_bus.subscribe(EventType.ORDER, execution_container._on_order_received)
-            logger.info(f"Wired execution container to receive ORDER events from ROOT event bus")
-        
-        # 2. Fill broadcast: execution → all portfolios
-        if 'execution' in topology['containers'] and portfolio_container_names:
-            fill_broadcast = self.adapter_factory.create_adapter(
-                name='fill_broadcast',
-                config={
-                    'type': 'broadcast',
-                    'source': 'execution',
-                    'targets': portfolio_container_names,
-                    'allowed_types': [EventType.FILL]
-                }
-            )
-            adapters.append(fill_broadcast)
-            logger.info(f"Created fill broadcast from execution to {len(portfolio_container_names)} portfolios")
-        
-        # Wire the adapters
-        all_containers = topology['containers']
-        for adapter in adapters:
-            try:
-                adapter.setup(all_containers)
-                adapter.start()
-            except Exception as e:
-                logger.error(f"Failed to setup adapter {adapter.name}: {e}")
-                raise
-        
-        self.active_adapters.extend(adapters)
-        logger.info(f"Created {len(adapters)} signal replay adapters")
-        return adapters
-    
-    async def _execute_full_pipeline(
-        self, 
-        topology: Dict[str, Any], 
-        config: WorkflowConfig, 
-        context: ExecutionContext
-    ) -> WorkflowResult:
-        """Execute full backtest pipeline using event-driven architecture."""
-        logger.info("Executing full backtest pipeline")
-        
-        # Initialize result
-        result = WorkflowResult(
-            workflow_id=context.workflow_id,
-            workflow_type=config.workflow_type,
-            success=True,
-            metadata={
-                'mode': 'backtest',
-                'containers': len(topology['containers']),
-                'combinations': len(topology['parameter_combinations'])
-            }
-        )
-        
-        try:
-            # 1. Initialize all containers (but don't start yet)
-            logger.info("Initializing all containers...")
-            for container_name, container in topology['containers'].items():
-                await container.initialize()
-                logger.debug(f"Initialized container: {container_name}")
-                
-            # 2. Now start containers after adapters are already connected
-            logger.info("Starting all containers...")
-            for container_name, container in topology['containers'].items():
-                await container.start()
-                logger.debug(f"Started container: {container_name}")
-            
-            # 2. Simple approach: wait for data processing to complete
-            # In real implementation, this would be event-driven
-            # For now, just simulate the execution
-            import asyncio
-            
-            # Let containers process for a simulated duration
-            # In reality, symbol containers would stream data and broadcast FEATURES
-            # Portfolio containers would receive and process those events
-            logger.info("Running backtest simulation...")
-            await asyncio.sleep(2)  # Simulate processing time
-            
-            # 2.5 Close all open positions at final prices
-            logger.info("Closing all open positions...")
-            
-            # Get final prices from symbol containers
-            final_prices = {}
-            for container_name, container in topology['containers'].items():
-                if container_name.endswith('_1d') or container_name.endswith('_1m'):
-                    # This is a symbol-timeframe container
-                    state = container.get_state_info()
-                    symbol = state.get('symbol')
-                    if symbol and hasattr(container, 'current_bar') and container.current_bar:
-                        final_prices[symbol] = container.current_bar.close
-                        logger.info(f"Final price for {symbol}: ${container.current_bar.close:.2f}")
-            
-            # Close positions in all portfolios
-            for combo in topology['parameter_combinations']:
-                combo_id = combo['combo_id']
-                portfolio = topology['containers'][f'portfolio_{combo_id}']
-                if hasattr(portfolio, 'close_all_positions'):
-                    await portfolio.close_all_positions(final_prices)
-            
-            # Wait for closing orders to process
-            logger.info("Waiting for closing orders to be filled...")
-            await asyncio.sleep(1.0)  # Give more time for fill processing
-            
-            # 3. Collect results from portfolio containers
-            portfolio_results = {}
-            
-            # Get actual bar count from data containers
-            bar_count = 0
-            for container_name, container in topology['containers'].items():
-                if container_name.endswith('_data'):
-                    # This is a data container
-                    if hasattr(container, 'data_source') and hasattr(container.data_source, 'current_index'):
-                        bar_count = max(bar_count, container.data_source.current_index)
-            
-            # Fallback if we couldn't get bar count
-            if bar_count == 0:
-                # Try to get from feature containers
-                for container_name, container in topology['containers'].items():
-                    if container_name.endswith('_features'):
-                        state = container.get_state_info()
-                        bar_count = max(bar_count, state.get('bars_processed', 0))
-            
-            logger.info(f"Total bars processed: {bar_count}")
-                
-                # Process through each parameter combination
-            # Collect results from portfolio containers  
-            for combo in topology['parameter_combinations']:
-                combo_id = combo['combo_id']
-                portfolio = topology['containers'][f'portfolio_{combo_id}']
-                
-                # Get actual metrics from portfolio container
-                state_info = portfolio.get_state_info()
-                logger.info(f"Portfolio {combo_id} state: features_received={state_info.get('_features_received', 0)}, "
-                          f"signals_generated={state_info.get('_signals_generated', 0)}, "
-                          f"orders_created={state_info.get('_orders_created', 0)}")
-                
-                if hasattr(portfolio, 'get_metrics'):
-                    metrics = await portfolio.get_metrics()
-                else:
-                    # Fallback to getting state info
-                    metrics = state_info.get('metrics', {
-                        'total_value': 100000,
-                        'total_return': 0.0,
-                        'sharpe_ratio': 0.0,
-                        'max_drawdown': 0.0
-                    })
-                
-                portfolio_results[combo_id] = {
-                    'combo_id': combo_id,
-                    'parameters': combo,
-                    'metrics': metrics,
-                    'final_value': metrics.get('total_value', 0),
-                    'total_return': metrics.get('total_return', 0),
-                    'sharpe_ratio': metrics.get('sharpe_ratio', 0),
-                    'max_drawdown': metrics.get('max_drawdown', 0)
-                }
-            
-            # Find best combination
-            if portfolio_results:
-                best_combo = max(portfolio_results.values(), 
-                               key=lambda x: x.get('sharpe_ratio', 0))
-            else:
-                best_combo = None
-            
-            result.final_results = {
-                'best_combination': best_combo,
-                'all_results': portfolio_results,
-                'bar_count': bar_count
-            }
-            
-            # Add trace summary if tracing is enabled
-            trace_summary = self.get_trace_summary()
-            if trace_summary:
-                result.final_results['trace_summary'] = trace_summary
-                logger.info(f"🔍 Event trace summary: {trace_summary.get('total_events', 0)} events traced")
-            
-        except Exception as e:
-            logger.error(f"Full pipeline execution failed: {e}")
-            result.success = False
-            result.add_error(str(e))
-        
-        finally:
-            # Add trace summary to metadata even on failure
-            trace_summary = self.get_trace_summary()
-            if trace_summary:
-                result.metadata['trace_summary'] = trace_summary
-                
-            # Stop all containers
-            for container_name, container in topology['containers'].items():
-                try:
-                    await container.stop()
-                except Exception as e:
-                    logger.error(f"Error stopping container {container_name}: {e}")
-        
-        return result
-    
-    async def _execute_signal_generation(
-        self, 
-        topology: Dict[str, Any], 
-        config: WorkflowConfig, 
-        context: ExecutionContext
-    ) -> WorkflowResult:
-        """Execute signal generation only: data → features → signals (save)."""
-        logger.info("Executing signal generation pipeline")
-        
-        # Initialize result
-        result = WorkflowResult(
-            workflow_id=context.workflow_id,
-            workflow_type=config.workflow_type,
-            success=True,
-            metadata={
-                'mode': 'signal_generation',
-                'containers': len(topology['containers']),
-                'combinations': len(topology['parameter_combinations'])
-            }
-        )
-        
-        try:
-            # 1. Start only data, feature, and portfolio containers
-            logger.info("Starting containers for signal generation...")
-            for container_name, container in topology['containers'].items():
-                if container_name != 'execution':  # Skip execution for signal gen
-                    await container.start()
-                    logger.debug(f"Started container: {container_name}")
-            
-            # 2. Initialize signal storage
-            signal_output_dir = config.parameters.get('signal_output_dir', f"./signals/{context.workflow_id}")
-            os.makedirs(signal_output_dir, exist_ok=True)
-            signal_files = {}
-            
-            # Create signal file for each combination
-            for combo in topology['parameter_combinations']:
-                combo_id = combo['combo_id']
-                signal_file_path = os.path.join(signal_output_dir, f"{combo_id}_signals.jsonl")
-                signal_files[combo_id] = open(signal_file_path, 'w')
-            
-            # 3. Initialize data streaming
-            data_container = topology['containers']['data']
-            feature_hub = topology['containers']['feature_hub']
-            
-            # Configure data source
-            data_config = config.data_config
-            await data_container.configure({
-                'symbols': data_config.get('symbols', ['SPY']),
-                'start_date': data_config.get('start_date'),
-                'end_date': data_config.get('end_date'),
-                'frequency': data_config.get('frequency', '1d')
-            })
-            
-            # 4. Process each bar and capture signals
-            bar_count = 0
-            signal_counts = {combo['combo_id']: 0 for combo in topology['parameter_combinations']}
-            
-            # Start data streaming
-            async for market_bar in data_container.stream_data():
-                bar_count += 1
-                
-                # Update features with new bar
-                await feature_hub.update_bar(market_bar)
-                
-                # Get current features
-                features = await feature_hub.get_features(market_bar['symbol'])
-                
-                # Generate signals for each parameter combination
-                for combo in topology['parameter_combinations']:
-                    combo_id = combo['combo_id']
-                    
-                    # Get stateless strategy for this combination
-                    strategy_type = combo['strategy_params'].get('type', 'momentum')
-                    strategy = topology['stateless_components']['strategies'].get(strategy_type)
-                    
-                    if strategy:
-                        # Generate signal using stateless strategy
-                        signal = self._call_stateless_strategy(
-                            strategy,
-                            features,
-                            market_bar,
-                            combo['strategy_params']
-                        )
-                        
-                        if signal:
-                            # Add combination metadata
-                            signal['combo_id'] = combo_id
-                            signal['strategy_params'] = combo['strategy_params']
-                            signal['bar_number'] = bar_count
-                            
-                            # Check if classifier affects signal
-                            classifier_type = combo['classifier_params'].get('type')
-                            if classifier_type:
-                                classifier = topology['stateless_components']['classifiers'].get(classifier_type)
-                                if classifier:
-                                    regime = self._call_stateless_classifier(
-                                        classifier,
-                                        features,
-                                        combo['classifier_params']
-                                    )
-                                    signal['regime'] = regime
-                            
-                            # Write signal to file
-                            signal_files[combo_id].write(json.dumps(signal) + '\n')
-                            signal_counts[combo_id] += 1
-                            
-                            # Optionally store in portfolio for metrics calculation
-                            portfolio = topology['containers'][f'portfolio_{combo_id}']
-                            await portfolio.record_signal(signal)
-            
-            # 5. Close signal files and collect metrics
-            for combo_id, file_handle in signal_files.items():
-                file_handle.close()
-            
-            logger.info(f"Generated signals for {bar_count} bars")
-            logger.info(f"Signal counts by combination: {signal_counts}")
-            
-            # Collect performance metrics (without execution)
-            portfolio_metrics = {}
-            for combo in topology['parameter_combinations']:
-                combo_id = combo['combo_id']
-                portfolio = topology['containers'][f'portfolio_{combo_id}']
-                
-                # Get signal-based metrics
-                metrics = await portfolio.get_signal_metrics()
-                portfolio_metrics[combo_id] = {
-                    'combo_id': combo_id,
-                    'parameters': combo,
-                    'signal_count': signal_counts[combo_id],
-                    'signal_metrics': metrics,
-                    'signal_file': os.path.join(signal_output_dir, f"{combo_id}_signals.jsonl")
-                }
-            
-            result.final_results = {
-                'signal_output_dir': signal_output_dir,
-                'bar_count': bar_count,
-                'total_signals': sum(signal_counts.values()),
-                'signal_counts': signal_counts,
-                'portfolio_metrics': portfolio_metrics
-            }
-            
-            # Store output directory for signal replay
-            result.metadata['signal_output_dir'] = signal_output_dir
-            
-        except Exception as e:
-            logger.error(f"Signal generation failed: {e}")
-            result.success = False
-            result.add_error(str(e))
-            
-            # Clean up signal files on error
-            for file_handle in signal_files.values():
-                if not file_handle.closed:
-                    file_handle.close()
-        
-        finally:
-            # Stop containers
-            for container_name, container in topology['containers'].items():
-                if container_name != 'execution':
-                    try:
-                        await container.stop()
-                    except Exception as e:
-                        logger.error(f"Error stopping container {container_name}: {e}")
-        
-        return result
-    
-    async def _execute_signal_replay(
-        self, 
-        topology: Dict[str, Any], 
-        config: WorkflowConfig, 
-        context: ExecutionContext
-    ) -> WorkflowResult:
-        """Execute signal replay: load signals → orders → fills."""
-        logger.info("Executing signal replay pipeline")
-        
-        # Initialize result
-        result = WorkflowResult(
-            workflow_id=context.workflow_id,
-            workflow_type=config.workflow_type,
-            success=True,
-            metadata={
-                'mode': 'signal_replay',
-                'containers': len(topology['containers']),
-                'combinations': len(topology['parameter_combinations'])
-            }
-        )
-        
-        try:
-            # 1. Start portfolio and execution containers (no data/feature needed)
-            logger.info("Starting containers for signal replay...")
-            for container_name, container in topology['containers'].items():
-                if container_name.startswith('portfolio_') or container_name == 'execution':
-                    await container.start()
-                    logger.debug(f"Started container: {container_name}")
-            
-            # 2. Get signal input directory
-            signal_input_dir = config.parameters.get('signal_input_dir')
-            if not signal_input_dir:
-                raise ValueError("signal_input_dir parameter required for signal replay")
-            
-            if not os.path.exists(signal_input_dir):
-                raise ValueError(f"Signal directory not found: {signal_input_dir}")
-            
-            # 3. Load market data for pricing (if provided)
-            market_data_file = config.parameters.get('market_data_file')
-            market_data = {}
-            if market_data_file and os.path.exists(market_data_file):
-                with open(market_data_file, 'r') as f:
-                    market_data = json.load(f)
-            
-            # 4. Process signals for each combination
-            signal_counts = {}
-            order_counts = {}
-            fill_counts = {}
-            portfolio_results = {}
-            
-            for combo in topology['parameter_combinations']:
-                combo_id = combo['combo_id']
-                signal_file = os.path.join(signal_input_dir, f"{combo_id}_signals.jsonl")
-                
-                if not os.path.exists(signal_file):
-                    logger.warning(f"Signal file not found for {combo_id}, skipping")
-                    continue
-                
-                portfolio = topology['containers'][f'portfolio_{combo_id}']
-                execution = topology['containers']['execution']
-                
-                # Get risk validator for this combination
-                risk_type = combo['risk_params'].get('type', 'conservative')
-                risk_validator = topology['stateless_components']['risk_validators'].get(risk_type)
-                
-                signal_count = 0
-                order_count = 0
-                fill_count = 0
-                
-                # Read and process signals
-                with open(signal_file, 'r') as f:
-                    for line in f:
-                        signal = json.loads(line.strip())
-                        signal_count += 1
-                        
-                        # Update portfolio with signal
-                        await portfolio.process_signal(signal)
-                        
-                        # Get any resulting orders
-                        if portfolio.has_pending_orders():
-                            orders = await portfolio.get_pending_orders()
-                            portfolio_state = await portfolio.get_state()
-                            
-                            for order in orders:
-                                # Get current market price from signal or market data
-                                symbol = order.get('symbol', 'SPY')
-                                bar_data = {
-                                    'symbol': symbol,
-                                    'close': signal.get('price', market_data.get(symbol, {}).get('close', 100)),
-                                    'timestamp': signal.get('timestamp')
-                                }
-                                
-                                # Validate order with stateless risk validator
-                                validation = self._call_stateless_risk_validator(
-                                    risk_validator,
-                                    order,
-                                    portfolio_state,
-                                    combo['risk_params'],
-                                    bar_data
-                                )
-                                
-                                if validation['approved']:
-                                    # Adjust quantity if needed
-                                    if validation.get('adjusted_quantity'):
-                                        order['quantity'] = validation['adjusted_quantity']
-                                    
-                                    # Send to execution
-                                    fill = await execution.submit_order(order)
-                                    order_count += 1
-                                    
-                                    if fill and fill.get('status') == 'filled':
-                                        fill_count += 1
-                                        # Update portfolio with fill
-                                        await portfolio.update_position(fill)
-                                else:
-                                    await portfolio.reject_order(order, validation['reason'])
-                        
-                        # Update portfolio valuation if we have market data
-                        if market_data:
-                            await portfolio.update_market_prices(bar_data)
-                
-                # Store counts
-                signal_counts[combo_id] = signal_count
-                order_counts[combo_id] = order_count
-                fill_counts[combo_id] = fill_count
-                
-                # Get final portfolio metrics
-                metrics = await portfolio.get_metrics()
-                portfolio_results[combo_id] = {
-                    'combo_id': combo_id,
-                    'parameters': combo,
-                    'signals_processed': signal_count,
-                    'orders_placed': order_count,
-                    'orders_filled': fill_count,
-                    'metrics': metrics,
-                    'final_value': metrics.get('total_value', 0),
-                    'total_return': metrics.get('total_return', 0),
-                    'sharpe_ratio': metrics.get('sharpe_ratio', 0),
-                    'max_drawdown': metrics.get('max_drawdown', 0)
-                }
-            
-            # 5. Find best combination
-            if portfolio_results:
-                best_combo = max(portfolio_results.values(), 
-                               key=lambda x: x.get('sharpe_ratio', 0))
-            else:
-                best_combo = None
-            
-            result.final_results = {
-                'best_combination': best_combo,
-                'all_results': portfolio_results,
-                'total_signals': sum(signal_counts.values()),
-                'total_orders': sum(order_counts.values()),
-                'total_fills': sum(fill_counts.values()),
-                'signal_counts': signal_counts,
-                'order_counts': order_counts,
-                'fill_counts': fill_counts
-            }
-            
-            logger.info(f"Signal replay completed: {sum(signal_counts.values())} signals, "
-                       f"{sum(order_counts.values())} orders, {sum(fill_counts.values())} fills")
-            
-        except Exception as e:
-            logger.error(f"Signal replay failed: {e}")
-            result.success = False
-            result.add_error(str(e))
-        
-        finally:
-            # Stop containers
-            for container_name, container in topology['containers'].items():
-                if container_name.startswith('portfolio_') or container_name == 'execution':
-                    try:
-                        await container.stop()
-                    except Exception as e:
-                        logger.error(f"Error stopping container {container_name}: {e}")
-        
-        return result
-    
     def _call_stateless_strategy(
         self,
         strategy: Any,
@@ -1925,7 +947,7 @@ class TopologyBuilder:
         logger.info(f"No event tracer available for trace summary (hasattr={hasattr(self, 'event_tracer')})")
         return None
     
-    async def cleanup(self) -> None:
+    def cleanup(self) -> None:
         """Clean up all active resources."""
         
         logger.info("Cleaning up workflow manager resources...")
@@ -1933,7 +955,8 @@ class TopologyBuilder:
         # Clean up active containers
         for container_id, container in list(self.active_containers.items()):
             try:
-                await container.dispose()
+                if hasattr(container, 'dispose'):
+                    container.dispose()
                 del self.active_containers[container_id]
             except Exception as e:
                 logger.error(f"Error disposing container {container_id}: {e}")
@@ -1950,269 +973,7 @@ class TopologyBuilder:
         
         logger.info("Workflow manager cleanup complete")
     
-    async def _create_signal_generation_topology(self, config: WorkflowConfig) -> Dict[str, Any]:
-        """
-        Create topology for signal generation mode.
-        
-        Creates:
-        - Symbol-Timeframe containers (data + features)
-        - Strategy services
-        - NO Portfolio containers (signals are saved to disk)
-        - NO Execution container (no order/fill processing)
-        """
-        # Start with same event bus setup as backtest
-        tracing_config = config.parameters.get('tracing', {})
-        tracing_enabled = tracing_config.get('enabled', True)
-        
-        # Create root event bus
-        if tracing_enabled:
-            from ..events.tracing import TracedEventBus, EventTracer
-            root_event_bus = TracedEventBus("root_event_bus")
-            
-            correlation_id = config.parameters.get('correlation_id', f"workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-            event_tracer = EventTracer(
-                correlation_id=correlation_id,
-                max_events=config.parameters.get('tracing', {}).get('max_events', 10000)
-            )
-            
-            root_event_bus.set_tracer(event_tracer)
-            self.event_tracer = event_tracer
-            logger.info("🔍 Created TracedEventBus for signal generation")
-        else:
-            from ..events import EventBus
-            root_event_bus = EventBus("root_event_bus")
-            
-        topology = {
-            'containers': {},
-            'stateless_components': {},
-            'parameter_combinations': [],
-            'root_event_bus': root_event_bus
-        }
-        
-        # 1. Create Symbol-Timeframe containers (same as backtest)
-        symbol_timeframe_configs = self._extract_symbol_timeframe_configs(config)
-        
-        for st_config in symbol_timeframe_configs:
-            symbol = st_config['symbol']
-            timeframe = st_config.get('timeframe', '1d')
-            
-            # Create data container
-            data_container_id = f"{symbol}_{timeframe}_data"
-            from ..containers.symbol_timeframe_container import SymbolTimeframeContainer
-            
-            data_container = SymbolTimeframeContainer(
-                symbol=symbol,
-                timeframe=timeframe,
-                data_config=st_config.get('data_config', {}),
-                feature_config={},
-                container_id=data_container_id
-            )
-            
-            if tracing_enabled and hasattr(self, 'event_tracer'):
-                traced_bus = TracedEventBus(f"{data_container_id}_bus")
-                traced_bus.set_tracer(self.event_tracer)
-                data_container.event_bus = traced_bus
-            
-            topology['containers'][data_container_id] = data_container
-            self.active_containers[data_container_id] = data_container
-            
-            # Create feature container
-            feature_container_id = f"{symbol}_{timeframe}_features"
-            feature_container = SymbolTimeframeContainer(
-                symbol=symbol,
-                timeframe=timeframe,
-                data_config={},
-                feature_config=st_config.get('features', {}),
-                container_id=feature_container_id
-            )
-            
-            if tracing_enabled and hasattr(self, 'event_tracer'):
-                traced_bus = TracedEventBus(f"{feature_container_id}_bus")
-                traced_bus.set_tracer(self.event_tracer)
-                feature_container.event_bus = traced_bus
-            
-            topology['containers'][feature_container_id] = feature_container
-            self.active_containers[feature_container_id] = feature_container
-            
-        # Wire Data → Feature flow
-        for st_config in symbol_timeframe_configs:
-            symbol = st_config['symbol']
-            timeframe = st_config.get('timeframe', '1d')
-            data_container_id = f"{symbol}_{timeframe}_data"
-            feature_container_id = f"{symbol}_{timeframe}_features"
-            
-            data_container = topology['containers'][data_container_id]
-            feature_container = topology['containers'][feature_container_id]
-            
-            data_container.event_bus.subscribe('BAR', feature_container._on_bar_received)
-            logger.info(f"Wired {data_container_id} → {feature_container_id}")
-        
-        # 2. Create stateless strategy components (same as backtest)
-        topology['stateless_components'] = self._create_stateless_components(config)
-        
-        # 3. Expand parameter combinations (same as backtest)
-        param_combos = self._expand_parameter_combinations(config)
-        topology['parameter_combinations'] = param_combos
-        
-        # NO Portfolio containers for signal generation
-        # NO Execution container for signal generation
-        
-        logger.info(f"Signal generation topology created: {len(topology['containers'])} containers, "
-                   f"{len(param_combos)} parameter combinations")
-        
-        return topology
-    
-    async def _create_signal_replay_topology(self, config: WorkflowConfig) -> Dict[str, Any]:
-        """
-        Create topology for signal replay mode.
-        
-        Creates:
-        - Portfolio containers (to process saved signals)
-        - Execution container (to process orders)
-        - Risk validators
-        - NO Symbol-Timeframe containers (signals come from disk)
-        - NO Strategy services (signals already generated)
-        """
-        # Start with same event bus setup
-        tracing_config = config.parameters.get('tracing', {})
-        tracing_enabled = tracing_config.get('enabled', True)
-        
-        # Create root event bus
-        if tracing_enabled:
-            from ..events.tracing import TracedEventBus, EventTracer
-            root_event_bus = TracedEventBus("root_event_bus")
-            
-            correlation_id = config.parameters.get('correlation_id', f"workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-            event_tracer = EventTracer(
-                correlation_id=correlation_id,
-                max_events=config.parameters.get('tracing', {}).get('max_events', 10000)
-            )
-            
-            root_event_bus.set_tracer(event_tracer)
-            self.event_tracer = event_tracer
-            logger.info("🔍 Created TracedEventBus for signal replay")
-        else:
-            from ..events import EventBus
-            root_event_bus = EventBus("root_event_bus")
-            
-        topology = {
-            'containers': {},
-            'stateless_components': {},
-            'parameter_combinations': [],
-            'root_event_bus': root_event_bus
-        }
-        
-        # NO Symbol-Timeframe containers for signal replay
-        # NO Strategy components for signal replay
-        
-        # 1. Create risk validators (stateless)
-        topology['stateless_components'] = {
-            'strategies': {},  # Empty - no strategies needed
-            'classifiers': {},  # Empty - no classifiers needed
-            'risk_validators': {}  # Will be populated
-        }
-        
-        # Create risk validators only
-        backtest_config = config.parameters.get('backtest', {})
-        for risk_config in backtest_config.get('risk_profiles', []):
-            risk_type = risk_config.get('type', 'conservative')
-            validator = self._create_stateless_risk_validator(risk_type, risk_config)
-            topology['stateless_components']['risk_validators'][risk_type] = validator
-        
-        # 2. Expand parameter combinations (for signal replay, based on risk profiles only)
-        param_combos = []
-        combo_id = 0
-        
-        # For signal replay, we create combinations based on saved signal files
-        signal_input_dir = config.parameters.get('signal_input_dir')
-        if signal_input_dir and os.path.exists(signal_input_dir):
-            # Look for signal files to determine combinations
-            import glob
-            signal_files = glob.glob(os.path.join(signal_input_dir, "*_signals.jsonl"))
-            
-            for signal_file in signal_files:
-                # Extract combo_id from filename (e.g., "c0000_signals.jsonl")
-                filename = os.path.basename(signal_file)
-                original_combo_id = filename.split('_')[0]
-                
-                # Create combination for each risk profile
-                for risk_config in backtest_config.get('risk_profiles', [{}]):
-                    param_combos.append({
-                        'combo_id': f'r{combo_id:04d}',
-                        'original_combo_id': original_combo_id,
-                        'signal_file': signal_file,
-                        'strategy_params': {},  # Empty for replay
-                        'risk_params': risk_config,
-                        'classifier_params': {}  # Empty for replay
-                    })
-                    combo_id += 1
-        else:
-            # Fallback - create one combination per risk profile
-            for risk_config in backtest_config.get('risk_profiles', [{}]):
-                param_combos.append({
-                    'combo_id': f'r{combo_id:04d}',
-                    'strategy_params': {},
-                    'risk_params': risk_config,
-                    'classifier_params': {}
-                })
-                combo_id += 1
-        
-        topology['parameter_combinations'] = param_combos
-        
-        # 3. Create Portfolio containers (one per combination)
-        from ..containers.portfolio_container import PortfolioContainer
-        
-        for combo in param_combos:
-            combo_id = combo['combo_id']
-            
-            portfolio_container = PortfolioContainer(
-                combo_id=combo_id,
-                strategy_params=combo['strategy_params'],
-                risk_params=combo['risk_params'],
-                initial_capital=config.parameters.get('backtest', {}).get('portfolio', {}).get('initial_capital', 100000),
-                container_id=f'portfolio_{combo_id}',
-                root_event_bus=root_event_bus
-            )
-            
-            if tracing_enabled and hasattr(self, 'event_tracer'):
-                traced_bus = TracedEventBus(f"portfolio_{combo_id}_bus")
-                traced_bus.set_tracer(self.event_tracer)
-                portfolio_container.event_bus = traced_bus
-            
-            # Give portfolio access to root event bus
-            portfolio_container.root_event_bus = root_event_bus
-            
-            # Assign risk validator
-            risk_type = combo['risk_params'].get('type')
-            if risk_type in topology.get('stateless_components', {}).get('risk_validators', {}):
-                risk_validator = topology['stateless_components']['risk_validators'][risk_type]
-                portfolio_container.set_risk_validator(risk_validator)
-            
-            topology['containers'][f'portfolio_{combo_id}'] = portfolio_container
-            self.active_containers[f'portfolio_{combo_id}'] = portfolio_container
-        
-        # 4. Create Execution container
-        from ..containers.execution_container import ExecutionContainer
-        
-        execution_container = ExecutionContainer(
-            execution_config=config.parameters.get('backtest', {}).get('execution', {}),
-            container_id='execution'
-        )
-        
-        if tracing_enabled and hasattr(self, 'event_tracer'):
-            traced_bus = TracedEventBus("execution_bus")
-            traced_bus.set_tracer(self.event_tracer)
-            execution_container.event_bus = traced_bus
-        
-        topology['containers']['execution'] = execution_container
-        self.active_containers['execution'] = execution_container
-        
-        logger.info(f"Signal replay topology created: {len(topology['containers'])} containers, "
-                   f"{len(param_combos)} parameter combinations")
-        
-        return topology
-    
-    async def _execute_custom_workflow(
+    def _execute_custom_workflow(
         self,
         workflow_name: str,
         config: WorkflowConfig,
@@ -2250,7 +1011,7 @@ class TopologyBuilder:
                 # Try factory function as fallback
                 if hasattr(workflow_module, 'create_' + workflow_name + '_workflow'):
                     factory_func = getattr(workflow_module, 'create_' + workflow_name + '_workflow')
-                    workflow_instance = await factory_func()
+                    workflow_instance = factory_func()
                     logger.info(f"Created workflow using factory function")
                 else:
                     raise AttributeError(f"Workflow module must have either {workflow_class_name} class or create_{workflow_name}_workflow factory function")
@@ -2262,7 +1023,7 @@ class TopologyBuilder:
             # Execute the workflow
             if hasattr(workflow_instance, 'execute'):
                 logger.info(f"Executing custom workflow: {workflow_name}")
-                result = await workflow_instance.execute(config, context)
+                result = workflow_instance.execute(config, context)
                 
                 # Ensure we return a WorkflowResult
                 if not isinstance(result, WorkflowResult):

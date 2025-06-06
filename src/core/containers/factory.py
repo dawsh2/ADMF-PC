@@ -12,7 +12,7 @@ import logging
 from dataclasses import dataclass, field
 
 from .protocols import (
-    ComposableContainer, ContainerComposition, 
+    Container as ContainerProtocol, ContainerComposition, 
     ContainerRole, ContainerMetadata, ContainerLimits,
     ContainerState
 )
@@ -288,7 +288,7 @@ class ContainerFactory:
         role: ContainerRole,
         config: Dict[str, Any],
         container_id: Optional[str] = None
-    ) -> ComposableContainer:
+    ) -> ContainerProtocol:
         """Create a container of specified role."""
         factory = self.registry.get_container_factory(role)
         if not factory:
@@ -362,7 +362,7 @@ class ContainerFactory:
         self,
         pattern_name: str,
         config_overrides: Dict[str, Any] = None
-    ) -> ComposableContainer:
+    ) -> ContainerProtocol:
         """Compose containers according to named pattern."""
         pattern = self.registry.get_pattern(pattern_name)
         if not pattern:
@@ -399,7 +399,7 @@ class ContainerFactory:
         self,
         structure: Dict[str, Any],
         config: Dict[str, Any] = None
-    ) -> ComposableContainer:
+    ) -> ContainerProtocol:
         """Compose containers according to custom structure."""
         if "root" not in structure:
             raise ValueError("Custom pattern must have 'root' element")
@@ -443,8 +443,8 @@ class ContainerFactory:
         self,
         node: Dict[str, Any],
         base_config: Dict[str, Any],
-        parent_container: ComposableContainer = None
-    ) -> ComposableContainer:
+        parent_container: ContainerProtocol = None
+    ) -> ContainerProtocol:
         """Recursively build container tree from structure definition."""
         # Extract role and config for this container
         role = ContainerRole(node["role"])
@@ -597,6 +597,6 @@ def register_container_type(
 def compose_pattern(
     pattern_name: str,
     config_overrides: Dict[str, Any] = None
-) -> ComposableContainer:
+) -> ContainerProtocol:
     """Compose containers using global factory."""
     return _global_factory.compose_pattern(pattern_name, config_overrides)

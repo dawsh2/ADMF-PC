@@ -3,7 +3,7 @@ Canonical Coordinator Implementation
 
 This is the single canonical coordinator for the ADMF-PC system that:
 1. Uses clean imports (no deep dependencies)
-2. Supports both traditional and composable container patterns
+2. Supports container-based execution patterns
 3. Uses lazy loading and dependency injection
 4. Provides flexible workflow execution
 
@@ -25,7 +25,7 @@ from enum import Enum
 
 # Only import basic types and protocols
 from ..types.workflow import WorkflowConfig, ExecutionContext, WorkflowType, WorkflowPhase
-from .protocols import WorkflowManager
+from .topology import TopologyBuilder
 
 # Communication imports (lazy loaded when needed)
 # from ..communication import EventCommunicationFactory, CommunicationLayer
@@ -75,7 +75,7 @@ class Coordinator:
     
     This coordinator:
     - Orchestrates workflows without deep dependencies
-    - Supports traditional and composable execution modes
+    - Supports container-based execution patterns
     - Uses lazy loading to avoid import issues
     - Provides clean plugin architecture
     """
@@ -103,7 +103,6 @@ class Coordinator:
         self.enable_phase_management = enable_phase_management
         
         # Deprecated attributes - kept for backward compatibility
-        self.enable_composable_containers = True  # Always true in unified architecture
         self.enable_nesting = False  # Deprecated
         self.enable_pipeline_communication = False  # Deprecated
         
@@ -181,9 +180,9 @@ class Coordinator:
                 logger.info(f"Delegating multi-phase workflow {workflow_id} to sequencer")
                 workflow_result = await self._execute_via_sequencer(config, context, analytics_connection)
             else:
-                # Delegate to workflow manager for single-phase workflows
-                logger.info(f"Delegating single-phase workflow {workflow_id} to workflow manager")
-                workflow_result = await self._execute_via_workflow_manager(config, context, analytics_connection)
+                # Delegate to topology builder for single-phase workflows
+                logger.info(f"Delegating single-phase workflow {workflow_id} to topology builder")
+                workflow_result = await self._execute_via_topology_builder(config, context, analytics_connection)
             
             # Convert WorkflowResult to CoordinatorResult
             result.success = workflow_result.success
@@ -229,26 +228,26 @@ class Coordinator:
         
         return False
     
-    async def _execute_via_workflow_manager(
+    async def _execute_via_topology_builder(
         self, 
         config: WorkflowConfig, 
         context: ExecutionContext,
         analytics_connection: Optional[Any] = None
     ) -> 'WorkflowResult':
-        """Execute single-phase workflow via WorkflowManager."""
-        # Get or create workflow manager
-        workflow_manager = await self._get_workflow_manager()
+        """Execute single-phase workflow via TopologyBuilder."""
+        # Get or create topology builder
+        topology_builder = await self._get_topology_builder()
         
         # Store workflow info
         self.active_workflows[context.workflow_id] = {
             'config': config,
             'context': context,
-            'manager': workflow_manager,
-            'mode': 'workflow_manager'
+            'manager': topology_builder,
+            'mode': 'topology_builder'
         }
         
-        # Execute workflow using manager
-        result = await workflow_manager.execute(config, context)
+        # Execute workflow using topology builder
+        result = await topology_builder.execute(config, context)
         
         # Generate reports if configured
         if result.success:
@@ -357,37 +356,6 @@ class Coordinator:
             logger.error(f"Failed to store workflow results: {e}")
             # Don't fail the workflow for analytics errors
     
-    def _would_benefit_from_composable(self, config: WorkflowConfig) -> bool:
-        """Determine if config would benefit from composable containers."""
-        
-        if not self.enable_composable_containers:
-            return False
-        
-        # Check for multi-classifier scenarios
-        optimization_config = config.optimization_config or {}
-        classifiers = optimization_config.get('classifiers', [])
-        strategies = optimization_config.get('strategies', [])
-        risk_profiles = optimization_config.get('risk_profiles', [])
-        
-        # Benefit from composable if:
-        # - Multiple classifiers/strategies/risk profiles
-        # - Signal generation/replay workflows
-        # - Complex indicator sharing scenarios
-        
-        has_multiple_components = (
-            len(classifiers) > 1 or 
-            len(strategies) > 1 or 
-            len(risk_profiles) > 1
-        )
-        
-        is_signal_workflow = (
-            config.workflow_type == WorkflowType.ANALYSIS or
-            (config.analysis_config and config.analysis_config.get('mode') == 'signal_generation')
-        )
-        
-        return has_multiple_components or is_signal_workflow
-    
-    
     async def _cleanup_workflow(self, workflow_id: str) -> None:
         """Clean up resources for completed workflow."""
         
@@ -402,8 +370,8 @@ class Coordinator:
             if mode == 'traditional':
                 # Traditional workflows clean up automatically
                 pass
-            elif mode == 'composable':
-                # Composable workflows might need container disposal
+            elif mode == 'container':
+                # Container workflows might need container disposal
                 manager = workflow_info.get('manager')
                 if manager and hasattr(manager, 'cleanup'):
                     await manager.cleanup()
@@ -490,22 +458,22 @@ class Coordinator:
     
     async def _get_workflow_manager_factory(self):
         """Deprecated - workflow manager factory no longer used."""
-        raise DeprecationWarning("Workflow manager factory is deprecated. Use composable containers instead.")
+        raise DeprecationWarning("Workflow manager factory is deprecated. Use container-based patterns instead.")
     
-    async def _get_composable_workflow_manager(self):
-        """Lazy load the canonical composable workflow manager."""
+    async def _get_workflow_manager_class(self):
+        """Lazy load the canonical workflow manager class."""
         try:
             # Use the workflow topology manager at coordinator level
             # which properly leverages core.containers.factory
             from .topology import TopologyBuilder
             return TopologyBuilder
         except ImportError as e:
-            raise ImportError(f"Cannot load composable workflow manager: {e}")
+            raise ImportError(f"Cannot load workflow manager: {e}")
     
     async def _get_workflow_manager(self) -> 'WorkflowManager':
         """Get or create workflow manager instance."""
         # Create workflow manager (TopologyBuilder) with coordinator reference
-        WorkflowManagerClass = await self._get_composable_workflow_manager()
+        WorkflowManagerClass = await self._get_workflow_manager_class()
         
         # Create instance with minimal parameters
         # The deprecated execution_mode, enable_nesting, and enable_pipeline_communication
@@ -602,8 +570,6 @@ class Coordinator:
     
     async def get_available_patterns(self) -> Dict[str, Any]:
         """Get all available container patterns."""
-        if not self.enable_composable_containers:
-            return {}
         
         try:
             registry = await self._get_container_registry()
@@ -631,7 +597,7 @@ class Coordinator:
         """
         status = {
             'coordinator_id': self.coordinator_id,
-            'composable_containers_enabled': self.enable_composable_containers,
+            'containers_enabled': True,
             'communication_enabled': self.enable_communication,
             'active_workflows': len(self.active_workflows),
             'workflows': {}
@@ -674,13 +640,12 @@ class Coordinator:
             status['communication'] = {'status': 'disabled'}
         
         # Add container pattern info if available
-        if self.enable_composable_containers:
-            try:
-                patterns = await self.get_available_patterns()
-                status['available_patterns'] = list(patterns.keys())
-            except Exception as e:
-                logger.error(f"Failed to get pattern info: {e}")
-                status['available_patterns'] = []
+        try:
+            patterns = await self.get_available_patterns()
+            status['available_patterns'] = list(patterns.keys())
+        except Exception as e:
+            logger.error(f"Failed to get pattern info: {e}")
+            status['available_patterns'] = []
         
         return status
     
@@ -713,11 +678,7 @@ class Coordinator:
             )
             
             # Execute using standard workflow execution
-            execution_mode = yaml_config.get('coordinator', {}).get('execution_mode', 'auto')
-            result = await self.execute_workflow(
-                workflow_config, 
-                execution_mode=ExecutionMode(execution_mode.lower())
-            )
+            result = await self.execute_workflow(workflow_config)
             
             result.metadata['yaml_source'] = yaml_path
             result.metadata['execution_type'] = 'yaml_driven'
@@ -735,8 +696,7 @@ class Coordinator:
     
     async def validate_workflow_config(
         self,
-        config: WorkflowConfig,
-        execution_mode: ExecutionMode = ExecutionMode.AUTO
+        config: WorkflowConfig
     ) -> Dict[str, Any]:
         """Validate workflow configuration."""
         
@@ -757,21 +717,20 @@ class Coordinator:
         if config.workflow_type == WorkflowType.OPTIMIZATION and not config.optimization_config:
             validation_result['errors'].append("Missing optimization configuration")
         
-        # Execution mode validation
-        if execution_mode == ExecutionMode.AUTO:
-            suggested_mode = self._determine_execution_mode(config)
-            validation_result['suggested_mode'] = suggested_mode.value
+        # Suggest execution mode
+        suggested_mode = self._determine_execution_mode(config)
+        validation_result['suggested_mode'] = suggested_mode.value
         
         # Container pattern validation
         container_pattern = config.parameters.get('container_pattern')
-        if container_pattern and self.enable_composable_containers:
+        if container_pattern:
             try:
                 registry = await self._get_container_registry()
                 pattern = registry.get_pattern(container_pattern)
                 if not pattern:
                     validation_result['errors'].append(f"Unknown container pattern: {container_pattern}")
             except ImportError:
-                validation_result['warnings'].append("Cannot validate container pattern - composable containers not available")
+                validation_result['warnings'].append("Cannot validate container pattern - container registry not available")
         
         validation_result['valid'] = len(validation_result['errors']) == 0
         
@@ -905,7 +864,7 @@ async def execute_backtest(
     """Execute backtest workflow."""
     
     if coordinator is None:
-        coordinator = Coordinator(enable_composable_containers=True)
+        coordinator = Coordinator()
     
     # Add container pattern if specified
     if container_pattern:
@@ -913,8 +872,7 @@ async def execute_backtest(
     
     try:
         result = await coordinator.execute_workflow(
-            config=config,
-            execution_mode=ExecutionMode.COMPOSABLE if container_pattern else ExecutionMode.AUTO
+            config=config
         )
         return result
     finally:
@@ -923,18 +881,16 @@ async def execute_backtest(
 
 async def execute_optimization(
     config: WorkflowConfig,
-    coordinator: Optional[Coordinator] = None,
-    use_composable: bool = True
+    coordinator: Optional[Coordinator] = None
 ) -> CoordinatorResult:
     """Execute optimization workflow."""
     
     if coordinator is None:
-        coordinator = Coordinator(enable_composable_containers=use_composable)
+        coordinator = Coordinator()
     
     try:
         result = await coordinator.execute_workflow(
-            config=config,
-            execution_mode=ExecutionMode.COMPOSABLE
+            config=config
         )
         return result
     finally:

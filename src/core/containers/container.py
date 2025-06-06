@@ -17,7 +17,7 @@ import uuid
 import logging
 
 from ..events import EventBus
-from .protocols import ComposableContainer, ContainerMetadata, ContainerLimits, ContainerState, ContainerRole
+from .protocols import Container as ContainerProtocol, ContainerMetadata, ContainerLimits, ContainerState, ContainerRole
 
 logger = logging.getLogger(__name__)
 
@@ -409,7 +409,7 @@ class Container:
     """
     Canonical container implementation using composition.
     
-    Implements ComposableContainer protocol for the arch-101.md architecture:
+    Implements Container protocol with composition capabilities for the arch-101.md architecture:
     - Protocol + Composition (no inheritance)
     - Isolated event buses for Data, Strategy, Risk, Execution modules
     - Hierarchical composition with parent/child relationships
@@ -671,7 +671,7 @@ class Container:
         self._state_history.append((state, datetime.now()))
         logger.debug(f"Container {self.name} state changed to {state.value}")
     
-    # Composition Management (ComposableContainer protocol)
+    # Composition Management
     
     def add_child_container(self, child: 'Container') -> None:
         """Add a child container."""
@@ -754,7 +754,7 @@ class Container:
         # Publish to internal event bus for components to handle
         self.event_bus.publish(event)
     
-    # ComposableContainer protocol methods
+    # Event Processing and Status methods
     
     async def process_event(self, event: Any) -> Optional[Any]:
         """Process incoming event and optionally return response."""
