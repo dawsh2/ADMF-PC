@@ -51,7 +51,7 @@ def get_strategy_class(strategy_type: str):
         Strategy class
     """
     strategy_map = {
-        'momentum': MomentumStrategy,
+        'momentum': lambda: None,  # Using pure functions now
         'mean_reversion': _import_mean_reversion,
         'trend_following': lambda: _import_trend_following()[0],
         'arbitrage': lambda: _import_arbitrage()[0],
