@@ -157,6 +157,11 @@ class DataPathResolver:
     
     def _normalize_timeframe(self, timeframe: str) -> str:
         """Normalize timeframe to canonical form."""
+        # Check exact match first (for case-sensitive timeframes like 1M vs 1m)
+        if timeframe in self.TIMEFRAME_REVERSE:
+            return self.TIMEFRAME_REVERSE[timeframe]
+        
+        # Then try lowercase
         tf_lower = timeframe.lower()
         return self.TIMEFRAME_REVERSE.get(tf_lower, timeframe)
     

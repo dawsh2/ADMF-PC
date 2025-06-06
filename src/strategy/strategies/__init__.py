@@ -72,8 +72,6 @@ def get_strategy_class(strategy_type: str):
 
 __all__ = [
     # Classes
-    "MomentumStrategy",
-    "create_momentum_strategy",
     "get_strategy_class",
     
     # Pure function strategies (decorated)

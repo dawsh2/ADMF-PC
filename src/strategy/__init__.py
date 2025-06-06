@@ -30,8 +30,8 @@ from .protocols import (
 
 # Note: No capabilities.py - components ARE capabilities through protocol implementation
 
-# Strategies
-from .strategies.momentum import MomentumStrategy, create_momentum_strategy
+# Strategies - now using pure functions
+# from .strategies.momentum import MomentumStrategy, create_momentum_strategy
 
 # # Optimization - commented out for unified architecture testing
 # from .optimization import (
@@ -59,9 +59,9 @@ __all__ = [
     
     # No capabilities exported - components implement protocols directly
     
-    # Strategies
-    "MomentumStrategy",
-    "create_momentum_strategy",
+    # Strategies - now using pure functions
+    # "MomentumStrategy",
+    # "create_momentum_strategy",
     
     # # Optimization - commented out for unified architecture testing
     # "Optimizer",
