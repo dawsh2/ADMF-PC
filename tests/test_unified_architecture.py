@@ -275,14 +275,14 @@ class TestUnifiedArchitecture:
 def test_import():
     """Test that all unified architecture components can be imported."""
     # Test stateless strategies
-    from src.strategy.strategies.momentum import StatelessMomentumStrategy
-    from src.strategy.strategies.mean_reversion_simple import StatelessMeanReversionStrategy
+    from src.strategy.strategies.momentum import momentum_strategy
+    from src.strategy.strategies.mean_reversion_simple import mean_reversion_strategy
     
     # Test stateless classifiers
-    from src.strategy.classifiers.stateless_classifiers import (
-        StatelessTrendClassifier,
-        StatelessVolatilityClassifier,
-        StatelessCompositeClassifier
+    from src.strategy.classifiers.classifiers import (
+        trend_classifier,
+        volatility_classifier,
+        momentum_regime_classifier
     )
     
     # Test risk validators

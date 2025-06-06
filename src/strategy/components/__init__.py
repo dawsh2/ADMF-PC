@@ -32,20 +32,22 @@ from .features import (
     DEFAULT_VOLATILITY_FEATURES
 )
 
-from .classifiers import (
-    MarketRegime,
-    TrendClassifier,
-    VolatilityClassifier,
-    CompositeClassifier,
-    create_market_regime_classifier
-)
+# Classifiers moved to strategy.classifiers module
+# from .classifiers import (
+#     MarketRegime,
+#     TrendClassifier,
+#     VolatilityClassifier,
+#     CompositeClassifier,
+#     create_market_regime_classifier
+# )
 
-from .signal_replay import (
-    CapturedSignal,
-    SignalCapture,
-    SignalReplayer,
-    WeightedSignalAggregator
-)
+# Signal replay moved elsewhere
+# from .signal_replay import (
+#     CapturedSignal,
+#     SignalCapture,
+#     SignalReplayer,
+#     WeightedSignalAggregator
+# )
 
 from .feature_inference import (
     infer_features_from_strategies,
@@ -82,18 +84,18 @@ __all__ = [
     "DEFAULT_MEAN_REVERSION_FEATURES",
     "DEFAULT_VOLATILITY_FEATURES",
     
-    # Classifiers
-    "MarketRegime",
-    "TrendClassifier",
-    "VolatilityClassifier",
-    "CompositeClassifier",
-    "create_market_regime_classifier",
+    # Classifiers - moved to strategy.classifiers
+    # "MarketRegime",
+    # "TrendClassifier", 
+    # "VolatilityClassifier",
+    # "CompositeClassifier",
+    # "create_market_regime_classifier",
     
-    # Signal Replay
-    "CapturedSignal",
-    "SignalCapture",
-    "SignalReplayer",
-    "WeightedSignalAggregator",
+    # Signal Replay - moved elsewhere
+    # "CapturedSignal",
+    # "SignalCapture",
+    # "SignalReplayer",
+    # "WeightedSignalAggregator",
     
     # Feature Inference
     "infer_features_from_strategies",

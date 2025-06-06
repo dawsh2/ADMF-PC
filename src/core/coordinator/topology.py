@@ -848,18 +848,18 @@ class TopologyBuilder:
         """Create a stateless risk validator instance."""
         # Import risk validator modules
         from ...risk.validators import (
-            position_validator,
-            drawdown_validator,
-            composite_validator
+            validate_max_position,
+            validate_drawdown,
+            validate_composite
         )
         
         if risk_type == 'position':
-            return position_validator
+            return validate_max_position
         elif risk_type == 'drawdown':
-            return drawdown_validator
+            return validate_drawdown
         elif risk_type in ['conservative', 'moderate', 'aggressive', 'composite']:
             # All risk profiles use composite validator with different params
-            return composite_validator
+            return validate_composite
         else:
             # Fallback placeholder for other validators
             logger.warning(f"Risk validator type '{risk_type}' not yet converted to stateless")

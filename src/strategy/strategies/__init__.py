@@ -19,8 +19,8 @@ from .momentum import (
     price_momentum_strategy
 )
 from .mean_reversion_simple import mean_reversion_strategy
-from .trend_following import trend_following_strategy
-from .simple_trend import simple_trend_strategy
+# from .trend_following import trend_following_strategy  # Has import issues
+# from .simple_trend import simple_trend_strategy  # Has import issues
 
 # Lazy imports for strategies with external dependencies
 def _import_mean_reversion():
@@ -79,8 +79,8 @@ __all__ = [
     "dual_momentum_strategy",
     "price_momentum_strategy",
     "mean_reversion_strategy",
-    "trend_following_strategy",
-    "simple_trend_strategy",
+    # "trend_following_strategy",  # Has import issues
+    # "simple_trend_strategy",  # Has import issues
     
     # Lazy imports
     "_import_mean_reversion",

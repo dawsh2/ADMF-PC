@@ -6,52 +6,9 @@ The core idea of the system is using containers to isolate state where necassary
 
 NOTE: The sequencer will be adapted to handle batching for memory intensive operations. It already has all the logic necassary. The coordinator may be expanded to handle computing across multiple computers. Maybe it is indeed best that Coordinator handle data storage locations. 
 
-## Part 1: The Architecture Evolution Story
+## Part 1: Core Architecture Components
 
-### Linear Event Flow
-
-The new architecture introduces a **standard linear event flow** that works for all use cases and configurations:
-
-```
-         Linear Event Flow with Symbol Containers
-┌─────────────────────────────────────────────────────────────┐
-│                 UNIVERSAL EVENT FLOW PATTERN                │
-│                                                             │
-│  Symbol Containers → Stateless Services → Portfolio        │
-│  (Data + Features)   (Strategies, Risk)   Containers       │
-│                                                             │
-│  • No complex adapters needed                               │
-│  • Natural parallelization                                  │
-│  • Clear data flow                                          │
-│  • 60% fewer containers                                     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Part 2: Core Architecture Components
-
-### 1. Symbol Containers (Stateful, Isolated)
-
-**Purpose**: Encapsulate all data and feature computation for a specific symbol+timeframe combination.
-
-```
-Symbol Container: SPY_1m
-┌─────────────────────────────────────────────────────────────┐
-│  Components:                                                │
-│  ├── Data Module (streaming market data)                    │
-│  └── Feature Hub (indicator calculations)                   │
-│                                                             │
-│  Responsibilities:                                          │
-│  • Maintain streaming position in data                      │
-│  • Cache computed indicators                                │
-│  • Broadcast BAR and FEATURES events                        │
-│                                                             │
-│  Isolation Benefit:                                         │
-│  • Multi-symbol backtests have clean separation             │
-│  • No event contamination between symbols                   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### 2. Stateless Service Pools (Pure Functions)
+### 1. Stateless Service Pools (Pure Functions)
 
 **Purpose**: Process data without maintaining state, enabling massive parallelization.
 
@@ -82,6 +39,31 @@ Stateless Service Pools
 │  • Trivial testing (pure functions)                         │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+
+### 2. Symbol Containers (Stateful, Isolated)
+
+**Purpose**: Encapsulate all data and feature computation for a specific symbol+timeframe combination.
+
+```
+Symbol Container: SPY_1m
+┌─────────────────────────────────────────────────────────────┐
+│  Components:                                                │
+│  ├── Data Module (streaming market data)                    │
+│  └── Feature Hub (indicator calculations)                   │
+│                                                             │
+│  Responsibilities:                                          │
+│  • Maintain streaming position in data                      │
+│  • Cache computed indicators                                │
+│  • Broadcast BAR and FEATURES events                        │
+│                                                             │
+│  Isolation Benefit:                                         │
+│  • Multi-symbol backtests have clean separation             │
+│  • No event contamination between symbols                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+
 
 ### 3. Portfolio Containers (Stateful, Isolated)
 
@@ -127,7 +109,7 @@ Execution Container
 │                                                             │
 │  Event Flow:                                                │
 │  • Receives: ORDER events from all portfolios               │
-│  • Broadcasts: FILL events to all portfolios               │
+│  • Broadcasts: FILL events to all portfolios                │
 │  • Portfolios filter fills by portfolio_id                  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -229,28 +211,135 @@ Execution Container
 
 NOTE: We also maintain two alternative topologies: one for signal generation, which is identical to above but terminates at the 'SIGNALS' line, and other for signal replay, containing the remainder. New topologies can be introduced to incorporate new components, see the 'Signal Filter' examples below, where we overview how to extend the system.
 
-## Part 4: Key Architectural Benefits
+## Part 4: Dynamic Architecture - Zero Hard-Wiring
 
-### 1. Dynamic Generation
-# Fix this section - rewrite to emphasize dynamic generation of containers and event wiring 
-**Before**: Complex adapter patterns (Pipeline, Broadcast, Hierarchical, etc.)
-**After**: Single linear flow that handles all use cases
+The most powerful aspect of this architecture is its complete dynamic nature. Unlike traditional trading systems where components are explicitly wired together, ADMF-PC uses a discovery and event-driven approach where **nothing is hardcoded**.
 
-```yaml
-# Old: Complex adapter configuration
-adapters:
-  - type: hierarchical
-    parent: classifier
-    children: [risk_containers]
-    routing: complex_rules
-  - type: pipeline
-    stages: [data, indicators, strategies, risk, execution]
+### 1. Discovery System
 
-# New: No adapter configuration needed!
-# The linear flow is implicit in the architecture
+All components self-register through decorators, making them automatically discoverable:
+
+```python
+# Strategies self-register
+@strategy(features=['sma', 'rsi'])
+def momentum_strategy(features, bar, params):
+    return {'direction': 'long', 'strength': 0.8}
+
+# Classifiers self-register 
+@classifier(features=['volatility'])
+def volatility_classifier(features, params):
+    return {'regime': 'high_vol', 'confidence': 0.9}
+
+# Execution models self-register
+@execution_model(model_type='slippage')
+class VolumeImpactSlippageModel:
+    def calculate_slippage(self, order, market_price, market_data):
+        # Slippage calculation logic
 ```
 
-### 2. Natural Multi-Asset Support
+### 2. Automatic Path Resolution
+
+Data files are discovered automatically based on symbol and timeframe:
+
+```yaml
+# Instead of specifying paths:
+symbol_configs:
+  - symbol: SPY
+    file_path: /data/SPY_1m.csv  # ❌ Not needed!
+
+# The system infers paths:
+symbol_configs:
+  - symbol: SPY
+    timeframes: ['1m', '1d']  # ✅ Finds SPY_1m.csv and SPY_1d.csv automatically
+```
+
+### 3. Dynamic Parameter Grid Expansion
+
+The system automatically generates all parameter combinations:
+
+```
+Strategies × Symbols × Timeframes × Risk Profiles × Execution Models = Total Combinations
+```
+
+Each combination gets its own isolated portfolio container with unique routing:
+
+```yaml
+strategies:
+  - type: momentum
+    params: [fast: 10, slow: 20]
+  - type: mean_reversion
+    params: [period: 14]
+    
+risk_profiles:
+  - type: conservative
+  - type: aggressive
+  
+execution_models:
+  - type: retail      # Regular broker costs
+  - type: zero_cost   # Ideal execution
+```
+
+This creates 2 × 2 × 2 = 8 unique portfolio containers, each testing a different combination.
+
+### 4. Event-Based Routing
+
+Components communicate purely through events with intelligent routing:
+
+**Feature Routing**: The FeatureDispatcher ensures each strategy only receives the features it needs:
+```
+SPY_1m Features {sma_20, rsi_14, volume, ...} 
+    ↓ (filtered by FeatureDispatcher)
+Momentum Strategy receives only {sma_20, rsi_14}
+Mean Reversion receives only {rsi_14, bollinger_bands}
+```
+
+**Signal Routing**: Signals are tagged with `combo_id` for precise delivery:
+```
+Strategy generates signal → Tagged with combo_id:"c0001" → Only Portfolio_c0001 processes it
+```
+
+**Fill Routing**: Fills include `portfolio_id` for accurate position updates:
+```
+Execution generates fill → Tagged with portfolio_id:"portfolio_c0001" → Only that portfolio updates
+```
+
+### 5. Scaling Without Code Changes
+
+To add new capabilities, simply create decorated functions:
+
+```python
+# Add a new strategy - system automatically discovers it
+@strategy(features=['atr', 'adx'])
+def trend_following_strategy(features, bar, params):
+    # Strategy logic
+    
+# Add a new execution model - automatically available
+@execution_model(model_type='slippage', name='adverse_market')
+class AdverseMarketSlippage:
+    # High slippage for stress testing
+```
+
+The YAML configuration automatically makes these available:
+```yaml
+strategies:
+  - type: trend_following  # New strategy automatically available
+  
+execution_models:
+  - type: adverse_market   # New execution model automatically available
+```
+
+### 6. Benefits of Dynamic Architecture
+
+1. **Infinite Scalability**: Add components without touching existing code
+2. **Clean Testing**: Test strategies under different market conditions (execution models) without modifying strategy code
+3. **Perfect Isolation**: Each parameter combination runs in complete isolation
+4. **Automatic Discovery**: New components are immediately available
+5. **Configuration-Driven**: Entire system behavior controlled through YAML
+6. **No Dependency Hell**: Components don't know about each other - only events
+
+This dynamic architecture means the difference between a system that requires constant maintenance and one that scales effortlessly with your research needs.
+
+### 7. Natural Multi-Asset Support
 
 Symbol containers make multi-asset backtesting trivial:
 
