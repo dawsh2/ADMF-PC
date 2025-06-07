@@ -1,0 +1,60 @@
+# Train/Test Split Pattern
+# Simple split of data into training and testing periods
+
+name: train_test
+description: Split data into train and test periods
+
+# Single iteration with sub-phases
+iterations:
+  type: single
+  count: 1
+
+# Data split configuration
+data_split:
+  type: percentage
+  train_ratio:
+    from_config: train_test.train_ratio
+    default: 0.7
+  # Or can use fixed date
+  split_date:
+    from_config: train_test.split_date
+    default: null
+
+# Calculate split date if using ratio
+pre_processing:
+  - type: calculate_split_date
+    when: split_date is null
+    calculation: start_date + (end_date - start_date) * train_ratio
+
+# Sub-phases
+sub_phases:
+  - name: train
+    config_override:
+      start_date: "{config.start_date}"
+      end_date: "{split_date}"
+      phase: train
+      
+  - name: test
+    depends_on: train
+    config_override:
+      start_date: "{split_date}"
+      end_date: "{config.end_date}"
+      phase: test
+      parameters: "{train.optimal_parameters}"
+
+# Aggregation compares train vs test
+aggregation:
+  type: comparison
+  phases: [train, test]
+  metrics_to_compare: [sharpe_ratio, total_return, max_drawdown, win_rate]
+  
+# Output mapping
+output_mapping:
+  train_metrics: sub_phases.train.metrics
+  test_metrics: sub_phases.test.metrics
+  performance_degradation:
+    type: calculate
+    formula: (train.sharpe_ratio - test.sharpe_ratio) / train.sharpe_ratio
+  overfitting_score:
+    type: calculate
+    formula: abs(train.sharpe_ratio - test.sharpe_ratio)

@@ -1,0 +1,60 @@
+# Walk Forward Analysis Pattern
+# Executes with rolling train/test windows
+
+name: walk_forward
+description: Rolling window analysis with train/test splits
+
+# How to iterate
+iterations:
+  type: windowed
+  window_generator:
+    type: rolling
+    train_periods:
+      from_config: walk_forward.train_periods
+      default: 252  # 1 year of trading days
+    test_periods:
+      from_config: walk_forward.test_periods
+      default: 63   # 3 months
+    step_size:
+      from_config: walk_forward.step_size
+      default: 21   # 1 month
+
+# How to modify config for each iteration
+config_modifiers:
+  - type: set_dates
+    train_start: "{window.train_start}"
+    train_end: "{window.train_end}"
+    test_start: "{window.test_start}"
+    test_end: "{window.test_end}"
+
+# Sub-phases to execute
+sub_phases:
+  - name: train
+    config_override:
+      start_date: "{train_start}"
+      end_date: "{train_end}"
+      phase: train
+      
+  - name: test
+    depends_on: train  # Use results from train phase
+    config_override:
+      start_date: "{test_start}"
+      end_date: "{test_end}"
+      phase: test
+      # Use optimal parameters from training
+      parameters: "{train.optimal_parameters}"
+
+# How to aggregate results
+aggregation:
+  type: statistical
+  source: test.metrics  # Aggregate test phase metrics
+  operations: [mean, std, min, max]
+  
+# What to include in output
+output_mapping:
+  window_results: iteration_results
+  aggregated_metrics: aggregated
+  best_window: 
+    type: best_by
+    source: iteration_results
+    metric: test.metrics.sharpe_ratio

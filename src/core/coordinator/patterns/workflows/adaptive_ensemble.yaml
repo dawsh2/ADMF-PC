@@ -1,0 +1,152 @@
+# Adaptive Ensemble Workflow
+# Multi-phase workflow for regime-aware ensemble optimization
+
+name: adaptive_ensemble
+description: Multi-phase adaptive ensemble optimization with regime detection
+
+phases:
+  # Phase 1: Grid Search with Signal Generation
+  - name: grid_search
+    topology: signal_generation
+    sequence: walk_forward
+    config:
+      parameter_grid:
+        from_config: optimization.parameter_space
+        default:
+          strategies:
+            - type: momentum
+              fast_period: [10, 20, 30]
+              slow_period: [30, 50, 100]
+            - type: mean_reversion
+              lookback: [10, 20, 30]
+              num_std: [1.5, 2.0, 2.5]
+      walk_forward:
+        train_periods: 252
+        test_periods: 63
+        step_size: 21
+      signal_save_directory: "./results/signals/{window_id}/"
+      
+    outputs:
+      signals: "./results/signals/{window_id}/"
+      performance_by_regime: "./results/phase1/regime_performance.json"
+      window_metrics: "./results/phase1/window_metrics.json"
+
+  # Phase 2: Regime Analysis
+  - name: regime_analysis
+    topology: analysis  # Special analysis topology
+    sequence: single_pass
+    depends_on: grid_search
+    
+    inputs:
+      performance_data: "{grid_search.outputs.performance_by_regime}"
+      window_metrics: "{grid_search.outputs.window_metrics}"
+      
+    config:
+      analysis_type: regime_optimal_selection
+      grouping: by_regime
+      regime_detection:
+        method: hmm
+        n_states: 3
+        features: [volatility, trend_strength, correlation]
+      selection_criteria:
+        metric: sharpe_ratio
+        min_samples: 20
+        
+    outputs:
+      optimal_params_by_regime: "./results/phase2/regime_configs.json"
+      regime_transitions: "./results/phase2/regime_transitions.json"
+      regime_statistics: "./results/phase2/regime_stats.json"
+
+  # Phase 3: Ensemble Weight Optimization
+  - name: ensemble_optimization
+    topology: signal_replay
+    sequence: walk_forward
+    depends_on: [grid_search, regime_analysis]
+    
+    inputs:
+      signals: "{grid_search.outputs.signals}"
+      regime_configs: "{regime_analysis.outputs.optimal_params_by_regime}"
+      regime_transitions: "{regime_analysis.outputs.regime_transitions}"
+      
+    config:
+      optimization_type: ensemble_weights
+      objective_function:
+        type: risk_adjusted_return
+        risk_measure: conditional_var
+      constraints:
+        sum_to_one: true
+        max_weight: 0.4
+        min_weight: 0.0
+        min_strategies: 3
+        max_correlation: 0.7
+      solver:
+        type: cvxpy
+        max_iterations: 1000
+        
+    outputs:
+      optimal_weights: "./results/phase3/ensemble_weights.json"
+      weight_evolution: "./results/phase3/weight_evolution.json"
+      optimization_diagnostics: "./results/phase3/diagnostics.json"
+
+  # Phase 4: Final Validation
+  - name: final_validation
+    topology: backtest
+    sequence: single_pass
+    depends_on: ensemble_optimization
+    
+    inputs:
+      ensemble_config: "{ensemble_optimization.outputs.optimal_weights}"
+      regime_transitions: "{regime_analysis.outputs.regime_transitions}"
+      
+    config:
+      data_split: out_of_sample
+      start_date:
+        from_config: validation.start_date
+      end_date:
+        from_config: validation.end_date
+      regime_switching: dynamic
+      ensemble_rebalancing:
+        frequency: daily
+        method: regime_based
+      risk_management:
+        portfolio_stop_loss: 0.1
+        regime_change_reduction: 0.5
+        
+    outputs:
+      performance_report: "./results/final/report.html"
+      metrics: "./results/final/metrics.json"
+      trades: "./results/final/trades.csv"
+      equity_curve: "./results/final/equity_curve.csv"
+      regime_performance: "./results/final/regime_breakdown.json"
+      
+    # Only run validation if optimization was successful
+    conditions:
+      - type: metric_threshold
+        phase: ensemble_optimization
+        metric: aggregated.sharpe_ratio.mean
+        operator: ">"
+        threshold: 0.5
+
+# Workflow-level outputs
+outputs:
+  final_strategy:
+    type: aggregate
+    sources:
+      - ensemble_config: "{ensemble_optimization.outputs.optimal_weights}"
+      - regime_map: "{regime_analysis.outputs.optimal_params_by_regime}"
+      - validation_metrics: "{final_validation.outputs.metrics}"
+    path: "./results/final_strategy.json"
+    
+  summary_report:
+    type: custom
+    generator: create_adaptive_ensemble_report
+    inputs:
+      - all_phases: "{phases}"
+    path: "./results/summary_report.pdf"
+
+# Workflow-level configuration
+settings:
+  continue_on_failure: false
+  save_intermediate: true
+  cleanup_on_success: false
+  parallel_phases: []  # All phases are sequential in this workflow

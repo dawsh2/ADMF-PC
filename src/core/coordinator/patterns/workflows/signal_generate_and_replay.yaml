@@ -1,0 +1,92 @@
+# Signal Generation and Replay Workflow
+# Two-phase workflow demonstrating signal capture and replay
+
+name: signal_generate_and_replay
+description: Generate signals first, then test different risk profiles
+
+phases:
+  # Phase 1: Generate signals with multiple strategies
+  - name: signal_generation
+    topology: signal_generation
+    sequence: single_pass
+    config:
+      strategies:
+        - type: momentum
+          name: fast_momentum
+          fast_period: 10
+          slow_period: 30
+        - type: momentum
+          name: slow_momentum
+          fast_period: 20
+          slow_period: 60
+        - type: mean_reversion
+          name: bollinger_rev
+          lookback: 20
+          num_std: 2
+      save_directory: "./signals/multi_strategy/"
+      
+    outputs:
+      signal_files: "./signals/multi_strategy/"
+      signal_stats: "./results/signal_generation/statistics.json"
+
+  # Phase 2: Test different risk profiles with same signals
+  - name: risk_profile_testing
+    topology: signal_replay
+    sequence: parameter_sweep
+    depends_on: signal_generation
+    
+    inputs:
+      signal_directory: "{signal_generation.outputs.signal_files}"
+      
+    config:
+      # Sweep through risk parameters
+      parameter_sweep:
+        max_position_size: [0.05, 0.1, 0.15, 0.2, 0.25]
+        stop_loss: [0.01, 0.015, 0.02, 0.025, 0.03]
+        max_portfolio_heat: [0.06, 0.08, 0.1, 0.12, 0.15]
+      # Fixed strategy allocation
+      strategy_weights:
+        fast_momentum: 0.4
+        slow_momentum: 0.3
+        bollinger_rev: 0.3
+        
+    outputs:
+      risk_sensitivity: "./results/risk_testing/sensitivity.json"
+      optimal_risk_params: "./results/risk_testing/optimal.json"
+      risk_heatmaps: "./results/risk_testing/heatmaps/"
+
+  # Phase 3: Final backtest with optimal parameters
+  - name: final_backtest
+    topology: backtest
+    sequence: single_pass
+    depends_on: risk_profile_testing
+    
+    inputs:
+      risk_params: "{risk_profile_testing.outputs.optimal_risk_params}"
+      
+    config:
+      # Use original strategies with optimal risk
+      strategies:
+        from_config: phases.signal_generation.config.strategies
+      risk_profiles:
+        - "{risk_profile_testing.outputs.optimal_risk_params}"
+      # Run on full dataset
+      start_date: "2020-01-01"
+      end_date: "2023-12-31"
+      
+    outputs:
+      final_metrics: "./results/final/metrics.json"
+      final_report: "./results/final/report.html"
+
+# Workflow outputs
+outputs:
+  optimization_summary:
+    type: aggregate
+    sources:
+      - signal_count: "{signal_generation.outputs.signal_stats.total_signals}"
+      - risk_configurations_tested: "{risk_profile_testing.outputs.risk_sensitivity.total_combinations}"
+      - optimal_sharpe: "{final_backtest.outputs.final_metrics.sharpe_ratio}"
+      - improvement: 
+          type: calculate
+          formula: "(final_sharpe - baseline_sharpe) / baseline_sharpe"
+    path: "./results/optimization_summary.json"

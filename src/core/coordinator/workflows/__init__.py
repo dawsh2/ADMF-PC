@@ -1,44 +1,34 @@
 """
-Unified workflow management system.
+Workflow definitions for the coordinator.
 
-This module provides simplified workflow management for the unified architecture:
-- Three execution modes (backtest, signal_generation, signal_replay)
-- Universal topology for all workflows
-- No pattern detection needed!
-
-The main WorkflowManager is in topology.py
+Workflows define multi-phase processes that combine sequences and topologies.
+Each workflow specifies:
+- What phases to execute
+- Which topology to use for each phase
+- How phases depend on each other
+- Configuration overrides per phase
 """
 
-# Import the result type
-from ...types.workflow import WorkflowResult
+from .adaptive_ensemble import adaptive_ensemble_workflow
+from .walk_forward_optimization import walk_forward_optimization_workflow
+from .regime_adaptive_trading import regime_adaptive_trading_workflow
+from .simple_backtest import simple_backtest_workflow
+from .signal_generation import signal_generation_workflow
 
-# Configuration helpers still useful
-from .config import ParameterAnalyzer, ConfigBuilder
+# Registry of all available workflows
+WORKFLOW_REGISTRY = {
+    'adaptive_ensemble': adaptive_ensemble_workflow,
+    'walk_forward_optimization': walk_forward_optimization_workflow,
+    'regime_adaptive_trading': regime_adaptive_trading_workflow,
+    'simple_backtest': simple_backtest_workflow,
+    'signal_generation': signal_generation_workflow
+}
 
 __all__ = [
-    # Types
-    'WorkflowResult',
-    
-    # Configuration helpers (still useful)
-    'ParameterAnalyzer', 
-    'ConfigBuilder',
+    'WORKFLOW_REGISTRY',
+    'adaptive_ensemble_workflow',
+    'walk_forward_optimization_workflow',
+    'regime_adaptive_trading_workflow',
+    'simple_backtest_workflow',
+    'signal_generation_workflow'
 ]
-
-# Usage in unified architecture:
-#
-# ```python
-# from src.core.coordinator.topology import WorkflowManager
-# 
-# manager = WorkflowManager()
-# result = await manager.execute(config, context)
-# ```
-#
-# Configuration is now simple:
-# ```yaml
-# parameters:
-#   mode: backtest  # or signal_generation, or signal_replay
-#   symbols: ['SPY']
-#   strategies:
-#     - type: momentum
-#       threshold: [0.01, 0.02, 0.03]  # Arrays create parameter grid
-# ```

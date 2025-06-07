@@ -8,7 +8,7 @@ from typing import List, Tuple, Protocol
 from decimal import Decimal
 
 from ..protocols import Order
-from ...core.containers.discovery import execution_model
+from ...core.components.discovery import execution_model
 
 
 class CommissionModel(Protocol):

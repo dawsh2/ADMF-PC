@@ -13,7 +13,20 @@ import time
 from src.core.coordinator.coordinator import Coordinator
 from src.core.cli import parse_arguments
 from src.core.cli.config_builder import build_workflow_from_cli
-from src.core.utils.logging import setup_logging, configure_event_logging
+# TODO: Fix logging import - utils.logging module not found
+# from src.core.utils.logging import setup_logging, configure_event_logging
+import logging
+
+def setup_logging(level='INFO', console=True, file_path=None, json_format=False):
+    """Basic logging setup."""
+    logging.basicConfig(
+        level=getattr(logging, level.upper()),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
+def configure_event_logging(events):
+    """Placeholder for event logging configuration."""
+    pass
 
 
 def handle_execution_result(result) -> int:

@@ -1,0 +1,104 @@
+# Example configuration showing container-based tracing
+# Tracing is configured in execution settings, not by orchestration
+
+# Execution settings control container behavior
+execution:
+  # Enable event tracing for all containers
+  enable_event_tracing: true
+  
+  # Tracing configuration passed to containers
+  trace_settings:
+    max_events: 10000          # Max events to keep in memory per container
+    persist_to_disk: true      # Save traces when containers cleanup
+    trace_dir: ./traces        # Where to save trace files
+    capture_all_events: true   # Capture all event types
+    
+    # Event filtering (optional)
+    event_filters:
+      - type: MARKET_DATA      # Always capture market data
+        enabled: true
+      - type: SIGNAL           # Always capture signals
+        enabled: true
+      - type: ORDER            # Capture orders
+        enabled: true
+      - type: FILL             # Capture fills
+        enabled: true
+      - type: PORTFOLIO_UPDATE # Capture portfolio updates
+        enabled: true
+
+# Data configuration
+data_source: file
+data_path: ./data
+symbols:
+  - SPY
+  - QQQ
+  
+# Date range
+start_date: "2022-01-01"
+end_date: "2023-12-31"
+
+# Features to calculate
+features:
+  sma:
+    periods: [20, 50]
+  rsi:
+    period: 14
+  volume:
+    normalize: true
+
+# Strategies to test
+strategies:
+  - type: momentum
+    threshold: 0.02
+    lookback: 20
+  
+  - type: mean_reversion
+    entry_zscore: 2.0
+    exit_zscore: 0.5
+
+# Risk profiles
+risk_profiles:
+  - type: conservative
+    max_position_size: 0.05
+    max_portfolio_heat: 0.10
+    
+  - type: moderate
+    max_position_size: 0.10
+    max_portfolio_heat: 0.20
+
+# Initial capital
+initial_capital: 100000
+
+# For optimization runs
+optimization:
+  objective: sharpe_ratio
+  constraints:
+    max_drawdown: 0.15
+    min_trades: 50
+    
+---
+# Alternative: Minimal configuration with tracing disabled
+
+execution:
+  enable_event_tracing: false  # No tracing overhead
+
+symbols: [SPY]
+strategies:
+  - type: momentum
+risk_profiles:
+  - type: conservative
+  
+---
+# Alternative: Selective tracing for debugging
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    max_events: 1000           # Smaller buffer
+    persist_to_disk: false     # Don't save to disk
+    # Only trace specific containers
+    container_filters:
+      - pattern: "portfolio_*"  # Only portfolio containers
+        enabled: true
+      - pattern: "execution"    # And execution container
+        enabled: true

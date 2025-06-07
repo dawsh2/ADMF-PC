@@ -1,0 +1,38 @@
+# Nested Monte Carlo Pattern
+# Monte Carlo where each iteration runs a walk-forward sequence
+
+name: nested_monte_carlo
+description: Monte Carlo simulations of walk-forward analysis for robust validation
+
+# Outer loop: Monte Carlo iterations
+iterations:
+  type: repeated
+  count: {from_config: monte_carlo.iterations, default: 100}
+
+# Each MC iteration runs a full walk-forward
+sub_sequences:
+  - name: walk_forward_run
+    sequence: walk_forward  # Reuse entire walk-forward sequence!
+    config_override:
+      # Add randomization
+      random_seed: "{iteration_index}"
+      parameter_noise:
+        enabled: true
+        level: 0.1
+      data_sampling:
+        bootstrap: true
+        sample_ratio: 0.8
+
+# Aggregate across all MC runs
+aggregation:
+  type: distribution
+  # Get distribution of walk-forward results
+  source: walk_forward_run.aggregated
+  metrics: [sharpe_ratio, max_drawdown, stability_score]
+  percentiles: [5, 10, 25, 50, 75, 90, 95]
+  
+  # Additional robustness metrics
+  calculate:
+    - confidence_intervals
+    - probability_of_failure
+    - worst_case_scenario

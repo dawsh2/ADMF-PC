@@ -2,7 +2,7 @@
 Type flow integration utilities for ADMF-PC.
 
 This module provides convenience functions for integrating type flow analysis
-with adapters and containers throughout the system.
+with routes and containers throughout the system.
 """
 
 from typing import Dict, List, Any, Optional, Set, Type
@@ -29,40 +29,40 @@ class TypeFlowValidator:
         self.inferencer = ContainerTypeInferencer(self.registry)
         self.logger = logging.getLogger(__name__)
         
-    def validate_adapter_config(self, config: Dict[str, Any], 
+    def validate_route_config(self, config: Dict[str, Any], 
                                containers: Dict[str, Container]) -> ValidationResult:
-        """Validate an adapter configuration for type flow compatibility.
+        """Validate an route configuration for type flow compatibility.
         
         Args:
-            config: Adapter configuration
+            config: Route configuration
             containers: Available containers
             
         Returns:
             ValidationResult with validation details
         """
-        adapter_type = config.get('type', 'unknown')
+        route_type = config.get('type', 'unknown')
         
         try:
-            if adapter_type == 'pipeline':
+            if route_type == 'pipeline':
                 return self._validate_pipeline_config(config, containers)
-            elif adapter_type == 'broadcast':
+            elif route_type == 'broadcast':
                 return self._validate_broadcast_config(config, containers)
-            elif adapter_type == 'hierarchical':
+            elif route_type == 'hierarchical':
                 return self._validate_hierarchical_config(config, containers)
-            elif adapter_type == 'selective':
+            elif route_type == 'selective':
                 return self._validate_selective_config(config, containers)
             else:
-                self.logger.warning(f"Unknown adapter type for validation: {adapter_type}")
-                return ValidationResult(valid=True, warnings=[f"Skipped validation for unknown adapter type: {adapter_type}"])
+                self.logger.warning(f"Unknown route type for validation: {route_type}")
+                return ValidationResult(valid=True, warnings=[f"Skipped validation for unknown route type: {route_type}"])
                 
         except Exception as e:
-            error_msg = f"Error validating {adapter_type} adapter: {e}"
+            error_msg = f"Error validating {route_type} route: {e}"
             self.logger.error(error_msg)
             return ValidationResult(valid=False, errors=[error_msg])
     
     def _validate_pipeline_config(self, config: Dict[str, Any], 
                                  containers: Dict[str, Container]) -> ValidationResult:
-        """Validate pipeline adapter configuration."""
+        """Validate pipeline route configuration."""
         container_names = config.get('containers', [])
         if len(container_names) < 2:
             return ValidationResult(valid=False, errors=["Pipeline needs at least 2 containers"])
@@ -101,14 +101,14 @@ class TypeFlowValidator:
     
     def _validate_broadcast_config(self, config: Dict[str, Any], 
                                   containers: Dict[str, Container]) -> ValidationResult:
-        """Validate broadcast adapter configuration."""
+        """Validate broadcast route configuration."""
         source_name = config.get('source')
         target_names = config.get('targets', [])
         
         if not source_name:
-            return ValidationResult(valid=False, errors=["Broadcast adapter needs a source"])
+            return ValidationResult(valid=False, errors=["Broadcast route needs a source"])
         if not target_names:
-            return ValidationResult(valid=False, errors=["Broadcast adapter needs targets"])
+            return ValidationResult(valid=False, errors=["Broadcast route needs targets"])
         
         errors = []
         warnings = []
@@ -140,14 +140,14 @@ class TypeFlowValidator:
     
     def _validate_hierarchical_config(self, config: Dict[str, Any], 
                                      containers: Dict[str, Container]) -> ValidationResult:
-        """Validate hierarchical adapter configuration."""
+        """Validate hierarchical route configuration."""
         parent_name = config.get('parent')
         children = config.get('children', [])
         
         if not parent_name:
-            return ValidationResult(valid=False, errors=["Hierarchical adapter needs a parent"])
+            return ValidationResult(valid=False, errors=["Hierarchical route needs a parent"])
         if not children:
-            return ValidationResult(valid=False, errors=["Hierarchical adapter needs children"])
+            return ValidationResult(valid=False, errors=["Hierarchical route needs children"])
         
         errors = []
         warnings = []
@@ -164,14 +164,14 @@ class TypeFlowValidator:
     
     def _validate_selective_config(self, config: Dict[str, Any], 
                                   containers: Dict[str, Container]) -> ValidationResult:
-        """Validate selective adapter configuration."""
+        """Validate selective route configuration."""
         source_name = config.get('source')
         rules = config.get('rules', [])
         
         if not source_name:
-            return ValidationResult(valid=False, errors=["Selective adapter needs a source"])
+            return ValidationResult(valid=False, errors=["Selective route needs a source"])
         if not rules:
-            return ValidationResult(valid=False, errors=["Selective adapter needs routing rules"])
+            return ValidationResult(valid=False, errors=["Selective route needs routing rules"])
         
         errors = []
         warnings = []
@@ -251,13 +251,13 @@ def create_default_validator(strict_mode: bool = False) -> TypeFlowValidator:
     return TypeFlowValidator(strict_mode=strict_mode)
 
 
-def validate_adapter_network(adapters_config: List[Dict[str, Any]], 
+def validate_route_network(routes_config: List[Dict[str, Any]], 
                             containers: Dict[str, Container],
                             strict_mode: bool = False) -> ValidationResult:
-    """Validate an entire adapter network configuration.
+    """Validate an entire route network configuration.
     
     Args:
-        adapters_config: List of adapter configurations
+        routes_config: List of route configurations
         containers: Available containers
         strict_mode: If True, treat warnings as errors
         
@@ -269,15 +269,15 @@ def validate_adapter_network(adapters_config: List[Dict[str, Any]],
     all_errors = []
     all_warnings = []
     
-    for i, adapter_config in enumerate(adapters_config):
-        adapter_name = adapter_config.get('name', f'adapter_{i}')
-        result = validator.validate_adapter_config(adapter_config, containers)
+    for i, route_config in enumerate(routes_config):
+        route_name = route_config.get('name', f'route_{i}')
+        result = validator.validate_route_config(route_config, containers)
         
-        # Prefix errors/warnings with adapter name
+        # Prefix errors/warnings with route name
         for error in result.errors:
-            all_errors.append(f"{adapter_name}: {error}")
+            all_errors.append(f"{route_name}: {error}")
         for warning in result.warnings:
-            all_warnings.append(f"{adapter_name}: {warning}")
+            all_warnings.append(f"{route_name}: {warning}")
     
     # In strict mode, treat warnings as errors
     if strict_mode:
@@ -313,12 +313,12 @@ def get_semantic_event_suggestions(container_type: str) -> List[Type[SemanticEve
 
 
 def create_type_flow_report(containers: Dict[str, Container], 
-                           adapters_config: List[Dict[str, Any]]) -> str:
+                           routes_config: List[Dict[str, Any]]) -> str:
     """Create a comprehensive type flow analysis report.
     
     Args:
         containers: Available containers
-        adapters_config: Adapter configurations
+        routes_config: Route configurations
         
     Returns:
         Formatted report string
@@ -343,16 +343,16 @@ def create_type_flow_report(containers: Dict[str, Container],
                 lines.append(f"    • {suggestion}")
         lines.append("")
     
-    # Adapter validation
-    lines.append("Adapter Validation:")
+    # Route validation
+    lines.append("Route Validation:")
     lines.append("-" * 20)
     
-    network_result = validate_adapter_network(adapters_config, containers)
+    network_result = validate_route_network(routes_config, containers)
     
     if network_result.valid:
-        lines.append("✓ All adapters passed validation")
+        lines.append("✓ All routes passed validation")
     else:
-        lines.append("✗ Adapter validation failed")
+        lines.append("✗ Route validation failed")
         for error in network_result.errors:
             lines.append(f"  ERROR: {error}")
     

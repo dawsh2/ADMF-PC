@@ -8,7 +8,7 @@ No state, no inheritance - just functions that take features and return signals.
 from typing import Dict, Any, Optional
 import logging
 
-from ...core.containers.discovery import strategy
+from ...core.components.discovery import strategy
 
 logger = logging.getLogger(__name__)
 

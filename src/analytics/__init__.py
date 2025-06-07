@@ -14,6 +14,19 @@ from src.analytics.mining import (
     TradeChainBuilder,
     OptimizationAnalyzer,
 )
+from src.analytics.trace_analysis import (
+    TraceAnalyzer,
+    TraceArchiver,
+    analyze_trace,
+    EventExtractor,
+    PortfolioMetricsExtractor,
+    SignalExtractor,
+    TradeExtractor,
+)
+from src.analytics.metrics_collection import (
+    MetricsCollector,
+    get_phase_metrics,
+)
 
 __all__ = [
     "BacktestReportGenerator",
@@ -21,4 +34,13 @@ __all__ = [
     "EventTransformer",
     "TradeChainBuilder",
     "OptimizationAnalyzer",
+    "TraceAnalyzer",
+    "TraceArchiver",
+    "analyze_trace",
+    "EventExtractor",
+    "PortfolioMetricsExtractor",
+    "SignalExtractor",
+    "TradeExtractor",
+    "MetricsCollector",
+    "get_phase_metrics",
 ]

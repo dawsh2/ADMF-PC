@@ -1,0 +1,843 @@
+# ADMF-PC Topology System Guide
+
+## Overview
+
+The ADMF-PC system has three layers of abstraction for executing trading pipelines:
+
+1. **Workflows** - High-level multi-phase processes (what users specify)
+2. **Topologies** - Individual pipeline structures (building blocks for workflows)
+3. **Containers** - Execution units with components (building blocks for topologies) -- WRONG! Order is: Coordinator --> Workflows --> Sequences --> Topologies (Claude please fix this!)
+
+
+
+
+Users specify a workflow (e.g., `adaptive_ensemble`), which orchestrates multiple topologies in sequence to achieve complex objectives.
+
+## Architecture Hierarchy
+
+### Complete Flow
+
+```
+User Config (workflow: adaptive_ensemble)
+    ↓
+Workflow Definition
+    ↓
+Sequencer (orchestrates phases)
+    ↓
+TopologyBuilder (creates topologies per phase)
+    ↓
+Topology Modules (define pipeline structure)
+    ↓
+Containers + Adapters (execute the pipeline)
+```
+
+### Layer Breakdown
+
+#### 1. Workflows (User-Facing)
+- **What users specify**: `workflow: adaptive_ensemble`
+- **Defines**: Multi-phase processes with different topologies per phase
+- **Examples**: 
+  - `adaptive_ensemble` - Grid search → Regime analysis → Ensemble optimization → Validation
+  - `walk_forward_optimization` - Rolling window parameter optimization
+  - `regime_aware_trading` - Regime detection → Strategy selection → Execution
+
+#### 2. Topologies (Building Blocks)
+- **What workflows use**: Different pipeline structures
+- **Types**:
+  - `backtest` - Full pipeline: data → features → strategies → portfolios → risk → execution
+  - `signal_generation` - Generate and save: data → features → strategies → disk
+  - `signal_replay` - Load and execute: disk → portfolios → risk → execution
+  - `analysis` - Custom analysis pipelines
+
+#### 3. Containers (Execution Units)
+- **What topologies create**: Processing units with components
+- **Examples**:
+  - Data containers with DataStreamer components
+  - Feature containers with FeatureCalculator components
+  - Portfolio containers with PortfolioState, SignalProcessor components
+
+### Key Components
+
+#### 1. TopologyBuilder (`src/core/coordinator/topology.py`)
+
+A thin orchestrator that:
+- Determines which topology to use based on mode
+- Delegates creation to topology modules
+- Manages lifecycle and cleanup
+
+```python
+class TopologyBuilder:
+    def execute(self, config, context):
+        # 1. Determine mode from config
+        mode = self._determine_mode(config)
+        
+        # 2. Create topology (delegates to module)
+        topology = self._create_topology(mode, config)
+        
+        # 3. Execute the topology
+        result = self._execute_topology(topology, config, context)
+        return result
+```
+
+#### 2. Topology Modules (`src/core/coordinator/topologies/*.py`)
+
+Each topology module defines:
+- What containers to create (based on config)
+- What components to add to each container
+- How to wire them together with adapters
+
+Example structure:
+```
+topologies/
+├── __init__.py              # Exports topology functions
+├── backtest.py              # Full pipeline: data → features → strategies → portfolios → risk → execution
+├── signal_generation.py     # Signal generation: data → features → strategies (save signals)
+├── signal_replay.py         # Signal replay: saved signals → portfolios → risk → execution
+└── helpers/
+    ├── component_builder.py # Creates components from config
+    └── adapter_wiring.py    # Wires containers together
+```
+
+#### 3. Container + Components Pattern
+
+Generic containers with pluggable components provide flexibility:
+
+```python
+# Generic container with role
+container = Container(ContainerConfig(
+    role=ContainerRole.DATA,
+    name=container_id,
+    container_id=container_id
+))
+
+# Add components based on role
+container.add_component('data_streamer', DataStreamer(...))
+container.add_component('bar_aggregator', BarAggregator(...))
+```
+
+## How It Works
+
+### 1. Configuration Drives Everything
+
+The system reads configuration to determine:
+- Which symbols to process
+- What strategies to run
+- Risk parameters
+- Feature calculations needed
+- Parameter combinations to test
+
+```yaml
+mode: backtest
+symbols: [SPY, QQQ]
+strategies:
+  - type: momentum
+    fast_period: 10
+    slow_period: 20
+  - type: mean_reversion
+    rsi_period: 14
+risk_profiles:
+  - type: conservative
+    max_position_size: 0.1
+```
+
+### 2. Dynamic Container Creation
+
+Topology modules create containers dynamically based on config:
+
+```python
+def create_backtest_topology(config, tracing_enabled):
+    topology = {
+        'containers': {},
+        'adapters': [],
+        'parameter_combinations': []
+    }
+    
+    # Extract symbol configurations from config
+    symbol_configs = _extract_symbol_timeframe_configs(config)
+    
+    # Create containers for each symbol/timeframe
+    for st_config in symbol_configs:
+        symbol = st_config['symbol']
+        timeframe = st_config.get('timeframe', '1d')
+        
+        # Create data container
+        data_container = Container(ContainerConfig(
+            role=ContainerRole.DATA,
+            name=f"{symbol}_{timeframe}_data"
+        ))
+        data_container.add_component('data_streamer', 
+            DataStreamer(
+                symbol=symbol,
+                timeframe=timeframe,
+                data_source=st_config.get('data_config', {})
+            ))
+        
+        topology['containers'][data_container.name] = data_container
+```
+
+### 3. Event-Driven Communication
+
+Containers communicate through events:
+
+```
+Data Container → BAR event → Feature Container
+Feature Container → FEATURES event → Feature Dispatcher
+Feature Dispatcher → Filtered FEATURES → Strategy Services
+Strategy Services → SIGNAL events → Portfolio Containers
+Portfolio Containers → ORDER events → Risk Service
+Risk Service → Validated ORDER → Execution Container
+Execution Container → FILL events → Portfolio Containers
+```
+
+### 4. Adapter-Based Wiring
+
+Adapters handle cross-container communication:
+
+```python
+def wire_backtest_topology(containers, config):
+    adapters = []
+    
+    # Create Feature Dispatcher for routing
+    feature_dispatcher = FeatureDispatcher(root_event_bus)
+    
+    # Wire containers based on topology needs
+    for feature_container in feature_containers:
+        feature_container.event_bus.subscribe(
+            EventType.FEATURES, 
+            feature_dispatcher.handle_features
+        )
+    
+    # Create broadcast adapters for fills
+    fill_broadcast = adapter_factory.create_adapter(
+        name='fill_broadcast',
+        config={
+            'type': 'broadcast',
+            'source': 'execution',
+            'targets': portfolio_container_names,
+            'allowed_types': [EventType.FILL]
+        }
+    )
+    adapters.append(fill_broadcast)
+    
+    return adapters
+```
+
+## Creating New Topologies
+
+### Step 1: Define the Pipeline
+
+Determine what your topology needs:
+- What data sources?
+- What processing steps?
+- What outputs?
+
+Example: ML Training Topology
+- Pipeline: data → features → training → model storage
+- No portfolios or execution needed
+
+### Step 2: Create the Topology Module
+
+Create a new file in `src/core/coordinator/topologies/`:
+
+```python
+# ml_training.py
+from typing import Dict, Any, List
+import logging
+
+from ...containers.container import Container, ContainerConfig, ContainerRole
+from ...containers.components import DataStreamer, FeatureCalculator
+from ...events import EventBus
+
+logger = logging.getLogger(__name__)
+
+def create_ml_training_topology(config: Dict[str, Any], tracing_enabled: bool = True) -> Dict[str, Any]:
+    """
+    Create topology for ML model training.
+    
+    Pipeline: data → features → training → model storage
+    """
+    topology = {
+        'containers': {},
+        'adapters': [],
+        'models': {},
+        'root_event_bus': EventBus("root_event_bus")
+    }
+    
+    # Read configuration to determine what to create
+    ml_config = config.get('ml_training', {})
+    symbols = ml_config.get('symbols', ['SPY'])
+    
+    # Create containers dynamically based on config
+    for symbol in symbols:
+        # Data container
+        data_container = Container(ContainerConfig(
+            role=ContainerRole.DATA,
+            name=f"{symbol}_training_data"
+        ))
+        
+        # Configure based on config, not hardcoded
+        data_config = ml_config.get('data', {})
+        data_container.add_component('data_streamer', DataStreamer(
+            symbol=symbol,
+            start_date=data_config.get('start_date'),
+            end_date=data_config.get('end_date'),
+            data_source=data_config.get('source', 'csv')
+        ))
+        
+        topology['containers'][data_container.name] = data_container
+    
+    # Create feature engineering container
+    feature_config = ml_config.get('features', {})
+    if feature_config.get('enabled', True):
+        feature_container = Container(ContainerConfig(
+            role=ContainerRole.FEATURE,
+            name="ml_feature_engineering"
+        ))
+        
+        # Add components based on config
+        indicators = feature_config.get('indicators', [])
+        feature_container.add_component('feature_engineer',
+            MLFeatureEngineer(
+                indicators=indicators,
+                lookback=feature_config.get('lookback', 100),
+                feature_transformations=feature_config.get('transformations', [])
+            ))
+        
+        topology['containers']['ml_features'] = feature_container
+    
+    # Create training container based on config
+    training_config = ml_config.get('training', {})
+    model_type = training_config.get('model_type', 'random_forest')
+    
+    training_container = Container(ContainerConfig(
+        role=ContainerRole.ANALYSIS,  # New role for ML
+        name="ml_training"
+    ))
+    
+    # Dynamically create model based on config
+    if model_type == 'random_forest':
+        from ...ml.models import RandomForestModel
+        model = RandomForestModel(**training_config.get('model_params', {}))
+    elif model_type == 'neural_network':
+        from ...ml.models import NeuralNetworkModel
+        model = NeuralNetworkModel(**training_config.get('model_params', {}))
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
+    
+    training_container.add_component('model_trainer', ModelTrainer(
+        model=model,
+        validation_split=training_config.get('validation_split', 0.2),
+        metrics=training_config.get('metrics', ['accuracy', 'sharpe'])
+    ))
+    
+    topology['containers']['ml_training'] = training_container
+    
+    # Wire containers
+    from .helpers.adapter_wiring import wire_ml_training_topology
+    topology['adapters'] = wire_ml_training_topology(
+        topology['containers'], 
+        {'root_event_bus': topology['root_event_bus']}
+    )
+    
+    return topology
+```
+
+### Step 3: Best Practices
+
+#### 1. **Always Read from Config**
+
+```python
+# ❌ BAD - Hardcoded values
+data_container.add_component('data_streamer', DataStreamer(
+    symbol="SPY",  # Hardcoded!
+    timeframe="1d",  # Hardcoded!
+    lookback=100  # Hardcoded!
+))
+
+# ✅ GOOD - Config-driven
+symbol = config.get('symbol', 'SPY')  # Default only as fallback
+timeframe = config.get('timeframe', '1d')
+lookback = config.get('lookback', 100)
+
+data_container.add_component('data_streamer', DataStreamer(
+    symbol=symbol,
+    timeframe=timeframe,
+    lookback=lookback
+))
+```
+
+#### 2. **Create Containers Dynamically**
+
+```python
+# ❌ BAD - Fixed number of containers
+container1 = Container(...)
+container2 = Container(...)
+
+# ✅ GOOD - Dynamic based on config
+for symbol in config.get('symbols', []):
+    container = Container(ContainerConfig(
+        name=f"{symbol}_data"
+    ))
+    topology['containers'][container.name] = container
+```
+
+#### 3. **Use Helper Functions**
+
+```python
+# Extract common patterns into helpers
+def _extract_symbol_configs(config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Extract and normalize symbol configurations."""
+    # Handle different config formats
+    if 'symbols' in config:
+        # Simple list format
+        return [{'symbol': s} for s in config['symbols']]
+    elif 'symbol_configs' in config:
+        # Detailed format
+        return config['symbol_configs']
+    else:
+        # Fallback
+        return [{'symbol': 'SPY'}]
+```
+
+#### 4. **Make Components Optional**
+
+```python
+# Only create components if enabled in config
+if config.get('risk_management', {}).get('enabled', True):
+    risk_container = Container(...)
+    topology['containers']['risk'] = risk_container
+
+if config.get('ml_scoring', {}).get('enabled', False):
+    ml_container = Container(...)
+    topology['containers']['ml_scoring'] = ml_container
+```
+
+#### 5. **Support Multiple Modes**
+
+```python
+def create_ml_topology(config: Dict[str, Any], tracing_enabled: bool = True) -> Dict[str, Any]:
+    ml_mode = config.get('ml_mode', 'training')
+    
+    if ml_mode == 'training':
+        return _create_training_topology(config, tracing_enabled)
+    elif ml_mode == 'inference':
+        return _create_inference_topology(config, tracing_enabled)
+    elif ml_mode == 'backtesting':
+        return _create_ml_backtest_topology(config, tracing_enabled)
+    else:
+        raise ValueError(f"Unknown ML mode: {ml_mode}")
+```
+
+### Step 4: Register the Topology
+
+Add to `topologies/__init__.py`:
+
+```python
+from .ml_training import create_ml_training_topology
+
+__all__ = [
+    'create_backtest_topology',
+    'create_signal_generation_topology', 
+    'create_signal_replay_topology',
+    'create_ml_training_topology'  # New topology
+]
+```
+
+Update TopologyBuilder to recognize new mode:
+
+```python
+# In topology.py
+class WorkflowMode(str, Enum):
+    BACKTEST = "backtest"
+    SIGNAL_GENERATION = "signal_generation"
+    SIGNAL_REPLAY = "signal_replay"
+    ML_TRAINING = "ml_training"  # New mode
+
+# In _create_topology method
+topology_functions = {
+    WorkflowMode.BACKTEST: create_backtest_topology,
+    WorkflowMode.SIGNAL_GENERATION: create_signal_generation_topology,
+    WorkflowMode.SIGNAL_REPLAY: create_signal_replay_topology,
+    WorkflowMode.ML_TRAINING: create_ml_training_topology  # New mapping
+}
+```
+
+### Step 5: Create Adapter Wiring
+
+Add wiring logic to `helpers/adapter_wiring.py`:
+
+```python
+def wire_ml_training_topology(containers: Dict[str, Any], config: Dict[str, Any]) -> List[Any]:
+    """Wire containers for ML training topology."""
+    adapters = []
+    root_event_bus = config.get('root_event_bus')
+    
+    # Wire data → features
+    data_containers = {k: v for k, v in containers.items() if '_data' in k}
+    feature_container = containers.get('ml_features')
+    
+    if feature_container:
+        for data_container in data_containers.values():
+            # Subscribe feature container to data events
+            data_container.event_bus.subscribe(
+                EventType.BAR,
+                feature_container.get_component('feature_engineer').on_bar
+            )
+    
+    # Wire features → training
+    training_container = containers.get('ml_training')
+    if feature_container and training_container:
+        feature_container.event_bus.subscribe(
+            EventType.FEATURES,
+            training_container.get_component('model_trainer').on_features
+        )
+    
+    return adapters
+```
+
+## Testing Your Topology
+
+### 1. Unit Test the Topology Creation
+
+```python
+def test_ml_training_topology_creation():
+    config = {
+        'ml_training': {
+            'symbols': ['SPY', 'QQQ'],
+            'model_type': 'random_forest',
+            'features': {
+                'indicators': ['rsi', 'macd'],
+                'lookback': 50
+            }
+        }
+    }
+    
+    topology = create_ml_training_topology(config)
+    
+    # Verify containers created
+    assert 'SPY_training_data' in topology['containers']
+    assert 'QQQ_training_data' in topology['containers']
+    assert 'ml_features' in topology['containers']
+    assert 'ml_training' in topology['containers']
+```
+
+### 2. Integration Test the Flow
+
+```python
+def test_ml_training_flow():
+    config = load_test_config('ml_training_test.yaml')
+    
+    builder = TopologyBuilder()
+    result = builder.execute(
+        WorkflowConfig(workflow_type=WorkflowType.ML_TRAINING, parameters=config),
+        ExecutionContext(workflow_id='test_ml_001')
+    )
+    
+    assert result.success
+    assert 'model_path' in result.final_results
+```
+
+## Common Patterns
+
+### 1. Multi-Symbol Processing
+
+```python
+# Process multiple symbols in parallel
+for symbol in config.get('symbols', []):
+    create_symbol_container(symbol, config)
+```
+
+### 2. Optional Components
+
+```python
+# Only add components if configured
+if config.get('use_technical_indicators', True):
+    container.add_component('ta_calculator', TechnicalAnalysis(...))
+
+if config.get('use_ml_features', False):
+    container.add_component('ml_features', MLFeatureExtractor(...))
+```
+
+### 3. Dynamic Pipelines
+
+```python
+# Build pipeline based on config
+pipeline_steps = config.get('pipeline', ['data', 'features', 'signals'])
+
+for step in pipeline_steps:
+    if step == 'data':
+        create_data_containers(config)
+    elif step == 'features':
+        create_feature_containers(config)
+    elif step == 'ml':
+        create_ml_containers(config)
+```
+
+### 4. Parameter Expansion
+
+```python
+# Expand parameter combinations
+def _expand_parameters(config):
+    params = []
+    for model in config.get('models', []):
+        for feature_set in config.get('feature_sets', []):
+            params.append({
+                'model': model,
+                'features': feature_set
+            })
+    return params
+```
+
+## Debugging Tips
+
+1. **Enable Tracing**: Set `tracing.enabled: true` in config
+2. **Check Event Flow**: Look at trace files in `./results/traces/`
+3. **Verify Wiring**: Log subscription counts
+4. **Test Incrementally**: Start with minimal config and add complexity
+
+## Workflow Integration
+
+### How Workflows Use Topologies
+
+Workflows orchestrate multiple topologies to achieve complex objectives. The WorkflowManager defines the sequence and configuration for each phase.
+
+#### Example: Adaptive Ensemble Workflow
+
+```python
+# In WorkflowManager
+class WorkflowManager:
+    def __init__(self):
+        self._workflow_patterns = {
+            'adaptive_ensemble': {
+                'phases': [
+                    {
+                        'name': 'grid_search',
+                        'topology': 'signal_generation',
+                        'config_override': {
+                            'mode': 'walk_forward',
+                            'save_signals': True
+                        }
+                    },
+                    {
+                        'name': 'regime_analysis',
+                        'topology': 'analysis',
+                        'config_override': {
+                            'analysis_type': 'regime_performance',
+                            'input': 'phase_1_results'
+                        }
+                    },
+                    {
+                        'name': 'ensemble_optimization',
+                        'topology': 'signal_replay',
+                        'config_override': {
+                            'mode': 'walk_forward',
+                            'optimize_weights': True
+                        }
+                    },
+                    {
+                        'name': 'final_validation',
+                        'topology': 'backtest',
+                        'config_override': {
+                            'use_ensemble': True,
+                            'regime_adaptive': True
+                        }
+                    }
+                ]
+            }
+        }
+```
+
+### Sequencer Orchestration
+
+The Sequencer handles the execution of each phase:
+
+```python
+class Sequencer:
+    def execute_workflow(self, workflow_def: Dict, base_config: Dict):
+        results = {}
+        
+        for phase in workflow_def['phases']:
+            # Merge base config with phase overrides
+            phase_config = self._merge_configs(base_config, phase['config_override'])
+            
+            # Add context from previous phases
+            if phase.get('input'):
+                phase_config['input_data'] = results[phase['input']]
+            
+            # Execute the topology for this phase
+            topology_result = self.topology_builder.execute(
+                mode=phase['topology'],
+                config=phase_config,
+                context=ExecutionContext(phase_name=phase['name'])
+            )
+            
+            results[f"phase_{phase['name']}"] = topology_result
+            
+        return results
+```
+
+### Complete Adaptive Ensemble Flow
+
+```yaml
+# User specifies workflow
+workflow: adaptive_ensemble
+
+# Base configuration used by all phases
+data:
+  symbols: [SPY, QQQ]
+  start_date: '2020-01-01'
+  end_date: '2023-12-31'
+  
+strategies:
+  - type: momentum
+    parameters:
+      fast_period: [5, 10, 20]
+      slow_period: [20, 40, 60]
+  - type: mean_reversion
+    parameters:
+      rsi_period: [7, 14, 21]
+      
+classifiers:
+  - type: hmm_regime
+    parameters:
+      n_states: [2, 3, 4]
+  - type: volatility_regime
+    parameters:
+      lookback: [20, 40]
+```
+
+#### Phase 1: Grid Search (Signal Generation)
+```
+┌─────────────────────────────────────────────────────────┐
+│ Uses: signal_generation topology                        │
+│                                                         │
+│ • Runs all parameter combinations                       │
+│ • Walk-forward validation with multiple windows        │
+│ • Saves signals to disk for later analysis             │
+│ • Groups results by regime within each window          │
+│                                                         │
+│ Output: signals/grid_search/*.parquet                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Phase 2: Regime Analysis
+```
+┌─────────────────────────────────────────────────────────┐
+│ Uses: analysis topology (custom)                        │
+│                                                         │
+│ • Loads Phase 1 results                                │
+│ • Analyzes performance by regime                        │
+│ • Identifies best parameters per regime                 │
+│ • Stores regime-optimal configurations                  │
+│                                                         │
+│ Output: regime_configs.json                            │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Phase 3: Ensemble Weight Optimization
+```
+┌─────────────────────────────────────────────────────────┐
+│ Uses: signal_replay topology                            │
+│                                                         │
+│ • Loads signals from regime-optimal strategies         │
+│ • Walk-forward optimization of ensemble weights        │
+│ • Finds optimal weights per regime                     │
+│ • 3x+ faster than regenerating signals                 │
+│                                                         │
+│ Output: ensemble_weights.json                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Phase 4: Final Validation
+```
+┌─────────────────────────────────────────────────────────┐
+│ Uses: backtest topology                                 │
+│                                                         │
+│ • Full backtest on out-of-sample data                  │
+│ • Uses regime-adaptive ensemble                         │
+│ • Dynamically switches parameters based on regime      │
+│ • Complete performance metrics                          │
+│                                                         │
+│ Output: final_results.json, performance_report.html     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Creating Custom Workflows
+
+#### Step 1: Define Workflow Pattern
+
+```python
+# In WorkflowManager
+self._workflow_patterns['my_custom_workflow'] = {
+    'phases': [
+        {
+            'name': 'data_preparation',
+            'topology': 'data_prep',  # Custom topology
+            'config_override': {
+                'clean_data': True,
+                'fill_missing': 'forward'
+            }
+        },
+        {
+            'name': 'feature_engineering',
+            'topology': 'feature_eng',  # Custom topology
+            'config_override': {
+                'create_synthetic': True
+            }
+        },
+        {
+            'name': 'backtesting',
+            'topology': 'backtest',  # Existing topology
+            'config_override': {
+                'use_prepared_data': True
+            }
+        }
+    ]
+}
+```
+
+#### Step 2: Implement Required Topologies
+
+Create any custom topologies needed by your workflow following the patterns described earlier.
+
+#### Step 3: Handle Phase Dependencies
+
+```python
+def execute_workflow(self, workflow_name: str, config: Dict):
+    workflow_def = self._workflow_patterns[workflow_name]
+    context = {'phase_results': {}}
+    
+    for phase in workflow_def['phases']:
+        # Check dependencies
+        if phase.get('depends_on'):
+            for dep in phase['depends_on']:
+                if dep not in context['phase_results']:
+                    raise ValueError(f"Phase {phase['name']} depends on {dep}")
+        
+        # Execute phase with context
+        result = self._execute_phase(phase, config, context)
+        context['phase_results'][phase['name']] = result
+    
+    return context['phase_results']
+```
+
+## Summary
+
+The ADMF-PC topology system provides a three-layer architecture:
+
+1. **Workflows** - User-facing multi-phase processes
+2. **Topologies** - Reusable pipeline building blocks  
+3. **Containers** - Isolated execution units with components
+
+Key benefits:
+- **Flexibility**: Define any pipeline structure through configuration
+- **Modularity**: Each topology is independent and reusable
+- **Composability**: Workflows compose topologies into complex processes
+- **Configuration-Driven**: No hardcoded values, everything from YAML
+- **Extensibility**: Easy to add new topologies and workflows
+- **Testability**: Each layer can be tested independently
+
+Remember: 
+- **Users specify workflows, not topologies**
+- **Workflows orchestrate sequences of topologies**
+- **Let configuration drive everything, never hardcode!**

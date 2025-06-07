@@ -1,0 +1,138 @@
+# Research Pipeline Workflow
+# Complete research workflow from exploration to production
+
+name: research_pipeline
+description: End-to-end research pipeline for strategy development
+
+phases:
+  # Phase 1: Initial Exploration
+  - name: exploration
+    topology: backtest
+    sequence: parameter_sweep
+    config:
+      parameter_sweep:
+        momentum_threshold: [0.01, 0.02, 0.03, 0.04, 0.05]
+        position_size: [0.05, 0.1, 0.15, 0.2]
+        stop_loss: [0.01, 0.02, 0.03]
+      quick_test: true  # Use subset of data for speed
+      start_date: "2022-01-01"
+      end_date: "2022-12-31"
+      
+    outputs:
+      parameter_sensitivity: "./results/exploration/sensitivity.json"
+      best_params: "./results/exploration/best_params.json"
+      heatmaps: "./results/exploration/heatmaps/"
+
+  # Phase 2: Robustness Testing
+  - name: robustness
+    topology: backtest
+    sequence: monte_carlo
+    depends_on: exploration
+    
+    inputs:
+      base_params: "{exploration.outputs.best_params}"
+      
+    config:
+      monte_carlo:
+        iterations: 100
+        add_parameter_noise: true
+        noise_level: 0.1
+      # Use longer history
+      start_date: "2020-01-01"
+      end_date: "2022-12-31"
+      
+    outputs:
+      distribution: "./results/robustness/distribution.json"
+      confidence_intervals: "./results/robustness/confidence.json"
+
+  # Phase 3: Walk-Forward Validation
+  - name: walk_forward
+    topology: backtest
+    sequence: walk_forward
+    depends_on: robustness
+    
+    # Only proceed if strategy is robust
+    conditions:
+      - type: expression
+        expression: "results['robustness']['aggregated']['percentiles.25']['sharpe_ratio'] > 0.5"
+        
+    inputs:
+      params: "{exploration.outputs.best_params}"
+      
+    config:
+      walk_forward:
+        train_periods: 252
+        test_periods: 63
+        step_size: 21
+      start_date: "2018-01-01"
+      end_date: "2022-12-31"
+      
+    outputs:
+      window_results: "./results/walk_forward/windows.json"
+      stability_metrics: "./results/walk_forward/stability.json"
+
+  # Phase 4: Regime Analysis
+  - name: regime_analysis
+    topology: backtest
+    sequence: single_pass
+    depends_on: walk_forward
+    
+    config:
+      # Test in different market regimes
+      regime_periods:
+        bull_market:
+          start_date: "2020-07-01"
+          end_date: "2021-12-31"
+        bear_market:
+          start_date: "2022-01-01"
+          end_date: "2022-06-30"
+        volatile_market:
+          start_date: "2020-03-01"
+          end_date: "2020-06-30"
+          
+    outputs:
+      regime_performance: "./results/regimes/performance.json"
+
+  # Phase 5: Production Config
+  - name: production_config
+    topology: signal_generation
+    sequence: single_pass
+    depends_on: [walk_forward, regime_analysis]
+    
+    # Generate production configuration
+    config:
+      generate_config_only: true
+      include_safeguards: true
+      risk_limits:
+        max_leverage: 1.0
+        max_concentration: 0.3
+        max_drawdown_stop: 0.15
+        
+    outputs:
+      production_config: "./results/production/config.yaml"
+      deployment_checklist: "./results/production/checklist.md"
+      monitoring_dashboard: "./results/production/dashboard_config.json"
+
+# Workflow outputs
+outputs:
+  research_report:
+    type: custom
+    generator: create_research_report
+    inputs:
+      all_phases: "{phases}"
+    path: "./results/research_report.pdf"
+    
+  strategy_card:
+    type: aggregate
+    sources:
+      - parameters: "{exploration.outputs.best_params}"
+      - robustness: "{robustness.outputs.confidence_intervals}"
+      - walk_forward: "{walk_forward.outputs.stability_metrics}"
+      - regimes: "{regime_analysis.outputs.regime_performance}"
+    path: "./results/strategy_card.json"
+
+settings:
+  save_checkpoints: true  # Allow resuming
+  notification:
+    on_complete: email
+    on_failure: slack

@@ -8,7 +8,7 @@ using the discovery system.
 from typing import Dict, Any, List
 import logging
 
-from ....containers.discovery import get_component_registry
+from ....components.discovery import get_component_registry
 
 logger = logging.getLogger(__name__)
 

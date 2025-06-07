@@ -81,12 +81,25 @@ from .factory import (
     create_minimal_component
 )
 
-# Import Feature Dispatcher
-try:
-    from .feature_dispatcher import FeatureDispatcher
-except ImportError:
-    # Feature dispatcher may not be available in all environments
-    FeatureDispatcher = None
+from .discovery import (
+    ComponentInfo,
+    get_component_registry,
+    container,
+    strategy,
+    classifier,
+    risk_validator,
+    feature,
+    execution_model,
+    workflow,
+    WorkflowComposer,
+    discover_components_in_module,
+    discover_components_in_package,
+    auto_discover_all_components,
+    load_components_from_config
+)
+
+# Feature Dispatcher moved to routing module
+FeatureDispatcher = None  # Removed - use from core.routing.feature_router import FeatureDispatcher
 
 # Add ComponentSpec for backward compatibility
 from dataclasses import dataclass
@@ -145,10 +158,24 @@ __all__ = [
     "create_component",
     "create_minimal_component",
     
+    # Discovery
+    "ComponentInfo",
+    "get_component_registry",
+    "container",
+    "strategy",
+    "classifier",
+    "risk_validator",
+    "feature",
+    "execution_model",
+    "workflow",
+    "WorkflowComposer",
+    "discover_components_in_module",
+    "discover_components_in_package",
+    "auto_discover_all_components",
+    "load_components_from_config",
+    
     # Specs
     "ComponentSpec",
 ]
 
-# Add FeatureDispatcher if available
-if FeatureDispatcher is not None:
-    __all__.append("FeatureDispatcher")
+# FeatureDispatcher removed from this module

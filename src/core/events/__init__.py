@@ -53,8 +53,7 @@ from ..types.events import (
 )
 
 from .event_bus import (
-    EventBus,
-    ContainerEventBus
+    EventBus
 )
 
 from .subscription_manager import (
@@ -102,7 +101,7 @@ from .type_flow_analysis import (
 from .type_flow_integration import (
     TypeFlowValidator,
     create_default_validator,
-    validate_adapter_network,
+    validate_route_network,
     get_semantic_event_suggestions,
     create_type_flow_report
 )
@@ -112,6 +111,28 @@ from .type_flow_visualization import (
     create_flow_visualization,
     validate_and_visualize,
     export_mermaid_diagram
+)
+
+# Result extraction framework
+from .result_extraction import (
+    ResultExtractor,
+    PortfolioMetricsExtractor,
+    SignalExtractor,
+    FillExtractor,
+    OrderExtractor,
+    RiskDecisionExtractor,
+    RegimeChangeExtractor,
+    PerformanceSnapshotExtractor
+)
+
+from .extractor_registry import (
+    ExtractorRegistry,
+    ExtractorConfig
+)
+
+from .enhanced_tracer import (
+    EnhancedEventTracer,
+    StreamingResultProcessor
 )
 
 
@@ -133,9 +154,8 @@ __all__ = [
     "create_system_event",
     "create_error_event",
     
-    # Event bus implementations
+    # Event bus implementation
     "EventBus",
-    "ContainerEventBus",
     
     # Subscription management
     "Subscription",
@@ -176,7 +196,7 @@ __all__ = [
     # Type flow integration
     "TypeFlowValidator",
     "create_default_validator",
-    "validate_adapter_network",
+    "validate_route_network",
     "get_semantic_event_suggestions",
     "create_type_flow_report",
     
@@ -184,5 +204,23 @@ __all__ = [
     "TypeFlowVisualizer",
     "create_flow_visualization",
     "validate_and_visualize",
-    "export_mermaid_diagram"
+    "export_mermaid_diagram",
+    
+    # Result extraction framework
+    "ResultExtractor",
+    "PortfolioMetricsExtractor",
+    "SignalExtractor",
+    "FillExtractor",
+    "OrderExtractor",
+    "RiskDecisionExtractor",
+    "RegimeChangeExtractor",
+    "PerformanceSnapshotExtractor",
+    
+    # Extractor registry
+    "ExtractorRegistry",
+    "ExtractorConfig",
+    
+    # Enhanced event tracing
+    "EnhancedEventTracer",
+    "StreamingResultProcessor"
 ]

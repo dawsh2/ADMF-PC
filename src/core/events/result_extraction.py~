@@ -1,0 +1,389 @@
+"""
+Result Extraction Framework for ADMF-PC
+
+Extracts business results from event streams without duplicate infrastructure.
+Events are the single source of truth - this framework makes them queryable.
+
+Key principles:
+- Events are the primary data source
+- No duplicate capture mechanisms
+- Flexible extraction for different result types
+- Support both streaming and post-processing
+"""
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any, Optional, List, Type
+from datetime import datetime
+from decimal import Decimal
+import logging
+
+from .types import Event, EventType
+
+logger = logging.getLogger(__name__)
+
+
+class ResultExtractor(ABC):
+    """
+    Base class for extracting specific results from event stream.
+    
+    Each extractor focuses on a specific type of result (e.g., portfolio metrics,
+    signals, fills) and knows how to extract relevant data from events.
+    """
+    
+    @abstractmethod
+    def can_extract(self, event: Event) -> bool:
+        """
+        Check if this extractor can process this event.
+        
+        Args:
+            event: The event to check
+            
+        Returns:
+            True if this extractor can extract results from this event
+        """
+        pass
+    
+    @abstractmethod
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """
+        Extract result data from event.
+        
+        Args:
+            event: The event to extract from
+            
+        Returns:
+            Extracted result data or None if extraction fails
+        """
+        pass
+    
+    @property
+    @abstractmethod
+    def result_category(self) -> str:
+        """
+        Category name for results from this extractor.
+        
+        Used for organizing results by type.
+        """
+        pass
+    
+    @property
+    def table_name(self) -> str:
+        """SQL table name for storing these results."""
+        return f"{self.result_category}_results"
+
+
+class PortfolioMetricsExtractor(ResultExtractor):
+    """Extract portfolio performance metrics from PORTFOLIO_UPDATE events."""
+    
+    @property
+    def result_category(self) -> str:
+        return "portfolio_metrics"
+    
+    def can_extract(self, event: Event) -> bool:
+        return event.type == EventType.PORTFOLIO_UPDATE
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract portfolio metrics from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            metrics = data.get('metrics', {})
+            
+            return {
+                'timestamp': event.timestamp,
+                'portfolio_id': data.get('portfolio_id'),
+                'container_id': event.source,
+                'total_value': self._to_float(data.get('total_value')),
+                'cash': self._to_float(data.get('cash')),
+                'positions_value': self._to_float(data.get('positions_value')),
+                'pnl': self._to_float(data.get('pnl')),
+                'pnl_percentage': self._to_float(data.get('pnl_percentage')),
+                'sharpe_ratio': self._to_float(metrics.get('sharpe_ratio')),
+                'max_drawdown': self._to_float(metrics.get('max_drawdown')),
+                'win_rate': self._to_float(metrics.get('win_rate')),
+                'profit_factor': self._to_float(metrics.get('profit_factor')),
+                'position_count': data.get('position_count', 0),
+                'correlation_id': event.correlation_id
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract portfolio metrics: {e}")
+            return None
+    
+    def _to_float(self, value: Any) -> Optional[float]:
+        """Convert value to float, handling Decimal and None."""
+        if value is None:
+            return None
+        if isinstance(value, Decimal):
+            return float(value)
+        return float(value)
+
+
+class SignalExtractor(ResultExtractor):
+    """Extract trading signals from SIGNAL events."""
+    
+    @property
+    def result_category(self) -> str:
+        return "signals"
+    
+    def can_extract(self, event: Event) -> bool:
+        return event.type == EventType.SIGNAL
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract signal data from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            
+            return {
+                'timestamp': event.timestamp,
+                'strategy_id': data.get('strategy_id'),
+                'symbol': data.get('symbol'),
+                'direction': data.get('direction'),
+                'strength': float(data.get('strength', 0)),
+                'reason': data.get('reason'),
+                'features': data.get('features', {}),  # Strategy features at signal time
+                'metadata': data.get('metadata', {}),
+                'combo_id': data.get('combo_id'),  # For parameter combinations
+                'correlation_id': event.correlation_id
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract signal: {e}")
+            return None
+
+
+class FillExtractor(ResultExtractor):
+    """Extract fill/execution data from FILL events."""
+    
+    @property
+    def result_category(self) -> str:
+        return "fills"
+    
+    def can_extract(self, event: Event) -> bool:
+        return event.type == EventType.FILL
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract fill data from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            
+            return {
+                'timestamp': event.timestamp,
+                'order_id': data.get('order_id'),
+                'portfolio_id': data.get('portfolio_id'),
+                'symbol': data.get('symbol'),
+                'side': data.get('side'),
+                'quantity': float(data.get('quantity', 0)),
+                'fill_price': float(data.get('fill_price', 0)),
+                'commission': float(data.get('commission', 0)),
+                'slippage': float(data.get('slippage', 0)),
+                'market_impact': float(data.get('market_impact', 0)),
+                'execution_venue': data.get('execution_venue'),
+                'correlation_id': event.correlation_id
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract fill: {e}")
+            return None
+
+
+class OrderExtractor(ResultExtractor):
+    """Extract order data from ORDER and ORDER_REQUEST events."""
+    
+    @property
+    def result_category(self) -> str:
+        return "orders"
+    
+    def can_extract(self, event: Event) -> bool:
+        return event.type in [EventType.ORDER, EventType.ORDER_REQUEST]
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract order data from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            
+            return {
+                'timestamp': event.timestamp,
+                'order_id': data.get('order_id'),
+                'portfolio_id': data.get('portfolio_id'),
+                'symbol': data.get('symbol'),
+                'side': data.get('side'),
+                'order_type': data.get('order_type'),
+                'quantity': float(data.get('quantity', 0)),
+                'limit_price': float(data.get('limit_price', 0)) if data.get('limit_price') else None,
+                'stop_price': float(data.get('stop_price', 0)) if data.get('stop_price') else None,
+                'time_in_force': data.get('time_in_force'),
+                'status': data.get('status'),
+                'reason': data.get('reason'),
+                'event_type': event.type.value,
+                'correlation_id': event.correlation_id
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract order: {e}")
+            return None
+
+
+class RiskDecisionExtractor(ResultExtractor):
+    """Extract risk management decisions from events."""
+    
+    @property
+    def result_category(self) -> str:
+        return "risk_decisions"
+    
+    def can_extract(self, event: Event) -> bool:
+        # Look for risk-related metadata in events
+        return (event.type == EventType.ORDER_REQUEST and 
+                'risk_check' in event.data) or \
+               (event.type == EventType.ORDER and 
+                event.data.get('status') == 'REJECTED')
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract risk decision data from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            
+            result = {
+                'timestamp': event.timestamp,
+                'portfolio_id': data.get('portfolio_id'),
+                'order_id': data.get('order_id'),
+                'decision': 'REJECTED' if data.get('status') == 'REJECTED' else 'APPROVED',
+                'reason': data.get('rejection_reason', data.get('reason')),
+                'risk_metrics': {},
+                'correlation_id': event.correlation_id
+            }
+            
+            # Extract risk metrics if available
+            if 'risk_check' in data:
+                risk_check = data['risk_check']
+                result['risk_metrics'] = {
+                    'position_size_check': risk_check.get('position_size_valid'),
+                    'drawdown_check': risk_check.get('drawdown_valid'),
+                    'correlation_check': risk_check.get('correlation_valid'),
+                    'liquidity_check': risk_check.get('liquidity_valid'),
+                    'var_limit': risk_check.get('var_limit'),
+                    'current_var': risk_check.get('current_var')
+                }
+            
+            return result
+        except Exception as e:
+            logger.error(f"Failed to extract risk decision: {e}")
+            return None
+
+
+class RegimeChangeExtractor(ResultExtractor):
+    """Extract regime changes from CLASSIFIER_UPDATE events."""
+    
+    @property
+    def result_category(self) -> str:
+        return "regime_changes"
+    
+    def can_extract(self, event: Event) -> bool:
+        return event.type == EventType.CLASSIFIER_UPDATE
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract regime change data from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            
+            return {
+                'timestamp': event.timestamp,
+                'classifier_id': data.get('classifier_id'),
+                'previous_regime': data.get('previous_regime'),
+                'new_regime': data.get('new_regime'),
+                'confidence': float(data.get('confidence', 0)),
+                'transition_probability': float(data.get('transition_probability', 0)) 
+                    if 'transition_probability' in data else None,
+                'features': data.get('features', {}),  # Features at transition
+                'metadata': data.get('metadata', {}),
+                'correlation_id': event.correlation_id
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract regime change: {e}")
+            return None
+
+
+class PerformanceSnapshotExtractor(ResultExtractor):
+    """
+    Extract periodic performance snapshots.
+    
+    This extractor can work with custom PERFORMANCE_SNAPSHOT events
+    or extract from PORTFOLIO_UPDATE events at specific intervals.
+    """
+    
+    def __init__(self, interval_seconds: int = 3600):
+        """
+        Initialize with snapshot interval.
+        
+        Args:
+            interval_seconds: Minimum seconds between snapshots (default: 1 hour)
+        """
+        self.interval_seconds = interval_seconds
+        self.last_snapshot_time = {}
+    
+    @property
+    def result_category(self) -> str:
+        return "performance_snapshots"
+    
+    def can_extract(self, event: Event) -> bool:
+        if event.type != EventType.PORTFOLIO_UPDATE:
+            return False
+        
+        # Check if enough time has passed since last snapshot
+        portfolio_id = event.data.get('portfolio_id')
+        if not portfolio_id:
+            return False
+        
+        current_time = event.timestamp
+        last_time = self.last_snapshot_time.get(portfolio_id)
+        
+        if last_time is None:
+            return True
+        
+        time_diff = (current_time - last_time).total_seconds()
+        return time_diff >= self.interval_seconds
+    
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract performance snapshot from event."""
+        if not self.can_extract(event):
+            return None
+        
+        try:
+            data = event.data
+            portfolio_id = data.get('portfolio_id')
+            
+            # Update last snapshot time
+            self.last_snapshot_time[portfolio_id] = event.timestamp
+            
+            metrics = data.get('metrics', {})
+            
+            return {
+                'timestamp': event.timestamp,
+                'portfolio_id': portfolio_id,
+                'interval_seconds': self.interval_seconds,
+                'total_value': float(data.get('total_value', 0)),
+                'pnl': float(data.get('pnl', 0)),
+                'pnl_percentage': float(data.get('pnl_percentage', 0)),
+                'sharpe_ratio': float(metrics.get('sharpe_ratio', 0)) if metrics.get('sharpe_ratio') else None,
+                'max_drawdown': float(metrics.get('max_drawdown', 0)) if metrics.get('max_drawdown') else None,
+                'volatility': float(metrics.get('volatility', 0)) if metrics.get('volatility') else None,
+                'trade_count': metrics.get('trade_count', 0),
+                'win_rate': float(metrics.get('win_rate', 0)) if metrics.get('win_rate') else None,
+                'correlation_id': event.correlation_id
+            }
+        except Exception as e:
+            logger.error(f"Failed to extract performance snapshot: {e}")
+            return None

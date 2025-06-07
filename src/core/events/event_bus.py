@@ -7,13 +7,14 @@ complete isolation between different backtests or optimization trials.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Union, Optional, Callable
+from typing import Dict, List, Set, Union, Optional, Callable, Any
 from collections import defaultdict
 import threading
 import logging
 import asyncio
 from weakref import WeakSet, ref
 import traceback
+from datetime import datetime
 
 from ..types.events import Event, EventType, EventHandler, EventBusProtocol
 
@@ -48,7 +49,43 @@ class EventBus(EventBusProtocol):
         self._handler_cache: Dict[Union[EventType, str], tuple] = {}
         self._cache_dirty = False
         
+        # Optional tracing support
+        self._tracer: Optional['EventTracer'] = None
+        self._current_processing_event: Optional[str] = None
+        self._processing_stack: List[str] = []  # Stack for nested event handling
+        self._current_correlation_id: Optional[str] = None
+        
         logger.debug(f"EventBus created for container: {container_id}")
+    
+    def enable_tracing(self, trace_config: Dict[str, Any]) -> None:
+        """
+        Enable event tracing for this event bus.
+        
+        Args:
+            trace_config: Configuration for tracing including:
+                - correlation_id: Optional correlation ID for this trace session
+                - max_events: Maximum events to keep in memory
+        """
+        from .tracing.event_tracer import EventTracer
+        
+        self._tracer = EventTracer(
+            correlation_id=trace_config.get('correlation_id'),
+            max_events=trace_config.get('max_events', 10000)
+        )
+        self._current_correlation_id = self._tracer.correlation_id
+        logger.info(f"Tracing enabled for EventBus '{self.container_id}' with correlation_id: {self._current_correlation_id}")
+    
+    def disable_tracing(self) -> None:
+        """Disable event tracing."""
+        self._tracer = None
+        self._current_correlation_id = None
+        logger.info(f"Tracing disabled for EventBus '{self.container_id}'")
+    
+    def set_correlation_id(self, correlation_id: str) -> None:
+        """Set the current correlation ID for new events."""
+        self._current_correlation_id = correlation_id
+        if self._tracer:
+            self._tracer.correlation_id = correlation_id
     
     def publish(self, event: Event) -> None:
         """
@@ -60,8 +97,31 @@ class EventBus(EventBusProtocol):
         Args:
             event: The event to publish
         """
+        # Set container_id if not set
         if event.container_id is None and self.container_id:
             event.container_id = self.container_id
+        
+        # Set correlation_id if not set
+        if event.correlation_id is None and self._current_correlation_id:
+            event.correlation_id = self._current_correlation_id
+        
+        # Set causation_id if we're currently processing another event
+        if event.causation_id is None and self._current_processing_event:
+            event.causation_id = self._current_processing_event
+        
+        # Generate event_id if not present
+        if 'event_id' not in event.metadata:
+            import uuid
+            event.metadata['event_id'] = f"{event.event_type.value if hasattr(event.event_type, 'value') else event.event_type}_{uuid.uuid4().hex[:8]}"
+        
+        # Trace the event if tracer is enabled
+        if self._tracer is not None:
+            traced = self._tracer.trace_event(event, event.source_id or self.container_id)
+            # Update timing in metadata
+            event.metadata['trace_timing'] = {
+                'emitted_at': datetime.now().isoformat()
+            }
+            logger.debug(f"Event traced: {event.event_type} [{event.metadata['event_id']}]")
         
         handlers = self._get_handlers(event.event_type)
         
@@ -72,30 +132,63 @@ class EventBus(EventBusProtocol):
         
         # Execute handlers without holding the lock
         for handler in handlers:
-            try:
-                # Check if handler is async and handle appropriately
-                if asyncio.iscoroutinefunction(handler):
-                    # For async handlers, create a task if we're in an event loop
-                    try:
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(handler(event))
-                    except RuntimeError:
-                        # No event loop running, call synchronously (not ideal but works)
-                        import warnings
-                        warnings.warn("Async handler called without event loop", RuntimeWarning)
-                        asyncio.run(handler(event))
-                else:
-                    # Synchronous handler
-                    handler(event)
-            except Exception as e:
-                self._error_count += 1
-                logger.error(
-                    f"Error in event handler {handler} for event {event.event_type}: {e}",
-                    exc_info=True
-                )
-                # Optionally publish error event (avoid infinite recursion)
-                if event.event_type != EventType.ERROR:
-                    self._publish_error_event(e, handler, event)
+            self._dispatch_event(event, handler)
+    
+    def _dispatch_event(self, event: Event, handler: EventHandler) -> None:
+        """
+        Dispatch event to handler with error handling and optional tracing.
+        """
+        # Save current processing context
+        old_event = self._current_processing_event
+        current_event_id = event.metadata.get('event_id')
+        
+        # Push to processing stack for nested handling
+        if current_event_id:
+            self._processing_stack.append(current_event_id)
+            
+        self._current_processing_event = current_event_id
+        
+        try:
+            # Mark received time if tracing
+            if self._tracer and current_event_id:
+                event.metadata.setdefault('trace_timing', {})['received_at'] = datetime.now().isoformat()
+            
+            # Check if handler is async and handle appropriately
+            if asyncio.iscoroutinefunction(handler):
+                # For async handlers, create a task if we're in an event loop
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(handler(event))
+                except RuntimeError:
+                    # No event loop running, call synchronously (not ideal but works)
+                    import warnings
+                    warnings.warn("Async handler called without event loop", RuntimeWarning)
+                    asyncio.run(handler(event))
+            else:
+                # Synchronous handler
+                handler(event)
+            
+            # Mark processed time if tracing
+            if self._tracer and current_event_id:
+                event.metadata.setdefault('trace_timing', {})['processed_at'] = datetime.now().isoformat()
+                
+        except Exception as e:
+            self._error_count += 1
+            logger.error(
+                f"Error in event handler {handler} for event {event.event_type}: {e}",
+                exc_info=True
+            )
+            # Optionally publish error event (avoid infinite recursion)
+            if event.event_type != EventType.ERROR:
+                self._publish_error_event(e, handler, event)
+                
+        finally:
+            # Restore previous processing context
+            self._current_processing_event = old_event
+            
+            # Pop from processing stack
+            if current_event_id and self._processing_stack:
+                self._processing_stack.pop()
     
     def subscribe(self, event_type: Union[EventType, str], handler: EventHandler) -> None:
         """
@@ -193,7 +286,7 @@ class EventBus(EventBusProtocol):
     def get_stats(self) -> Dict[str, Any]:
         """Get statistics about the event bus."""
         with self._lock:
-            return {
+            stats = {
                 "container_id": self.container_id,
                 "event_count": self._event_count,
                 "error_count": self._error_count,
@@ -201,6 +294,45 @@ class EventBus(EventBusProtocol):
                 "event_types": list(self._subscribers.keys()),
                 "handler_count": len(self._handler_refs)
             }
+            
+            # Add tracer stats if available
+            if self._tracer:
+                stats["tracer_summary"] = self._tracer.get_summary()
+                
+            return stats
+    
+    def get_processing_stack(self) -> List[str]:
+        """
+        Get current event processing stack.
+        
+        Useful for debugging nested event handling.
+        """
+        return self._processing_stack.copy()
+    
+    def get_tracer_summary(self) -> Optional[Dict[str, Any]]:
+        """
+        Get summary statistics from the tracer.
+        
+        Returns:
+            Dictionary with event statistics or None if no tracer attached
+        """
+        if self._tracer:
+            return self._tracer.get_summary()
+        return None
+    
+    def trace_causation_chain(self, event_id: str) -> List[Any]:
+        """
+        Trace the complete causation chain for an event.
+        
+        Args:
+            event_id: ID of the event to trace
+            
+        Returns:
+            List of events in the causation chain, empty if tracing not enabled
+        """
+        if self._tracer:
+            return self._tracer.trace_causation_chain(event_id)
+        return []
     
     # Private methods
     
@@ -239,6 +371,8 @@ class EventBus(EventBusProtocol):
                 },
                 source_id="event_bus",
                 container_id=self.container_id,
+                correlation_id=original_event.correlation_id,  # Maintain correlation
+                causation_id=original_event.metadata.get("event_id"),  # Error caused by original event
                 metadata={
                     "category": "handler_error",
                     "original_event_id": original_event.metadata.get("event_id")
@@ -254,75 +388,3 @@ class EventBus(EventBusProtocol):
                     logger.exception("Error handler failed")
         except:
             logger.exception("Failed to publish error event")
-
-
-class ContainerEventBus(EventBus):
-    """
-    Enhanced EventBus with container-specific features.
-    
-    This extends the basic EventBus with additional features useful
-    for containerized execution:
-    - Automatic cleanup on container disposal
-    - Event filtering by source
-    - Performance metrics
-    """
-    
-    def __init__(self, container_id: str):
-        super().__init__(container_id)
-        self._source_filters: Dict[Union[EventType, str], Set[str]] = defaultdict(set)
-        self._metrics = {
-            "events_by_type": defaultdict(int),
-            "handler_execution_times": defaultdict(list)
-        }
-    
-    def subscribe_filtered(
-        self,
-        event_type: Union[EventType, str],
-        handler: EventHandler,
-        source_filter: Optional[Union[str, List[str]]] = None
-    ) -> None:
-        """
-        Subscribe to events with optional source filtering.
-        
-        Args:
-            event_type: The type of events to subscribe to
-            handler: The handler function
-            source_filter: Optional source ID(s) to filter by
-        """
-        # Wrap handler with filter
-        if source_filter:
-            sources = [source_filter] if isinstance(source_filter, str) else source_filter
-            filtered_handler = self._create_filtered_handler(handler, set(sources))
-            self.subscribe(event_type, filtered_handler)
-            # Store original handler reference for unsubscribe
-            self._source_filters[event_type].add(handler)
-        else:
-            self.subscribe(event_type, handler)
-    
-    def _create_filtered_handler(
-        self,
-        handler: EventHandler,
-        sources: Set[str]
-    ) -> EventHandler:
-        """Create a filtered wrapper for a handler."""
-        def filtered_handler(event: Event) -> None:
-            if event.source_id in sources:
-                handler(event)
-        
-        # Preserve original handler reference
-        filtered_handler.__wrapped__ = handler
-        return filtered_handler
-    
-    def publish(self, event: Event) -> None:
-        """Override to collect metrics."""
-        self._metrics["events_by_type"][event.event_type] += 1
-        super().publish(event)
-    
-    def get_metrics(self) -> Dict[str, Any]:
-        """Get detailed metrics about event processing."""
-        stats = self.get_stats()
-        stats["metrics"] = {
-            "events_by_type": dict(self._metrics["events_by_type"]),
-            "total_events": sum(self._metrics["events_by_type"].values())
-        }
-        return stats

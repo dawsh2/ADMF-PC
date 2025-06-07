@@ -1,0 +1,89 @@
+# Example Custom Topology Pattern
+# This shows how users can create their own topology patterns
+
+name: multi_timeframe_momentum
+description: Momentum strategy using multiple timeframes for confirmation
+
+# Components needed
+components:
+  - type: strategies
+    items:
+      - type: multi_timeframe_momentum
+        config:
+          fast_timeframe: 5T
+          medium_timeframe: 15T
+          slow_timeframe: 1H
+          
+  - type: risk_validators
+    from_config: risk_profiles
+
+# Containers
+containers:
+  # Create data containers for each timeframe we need
+  - name_template: "{symbol}_{timeframe}_data"
+    type: data
+    foreach:
+      symbol: {from_config: symbols}
+      timeframe: [5T, 15T, 1H]  # Hardcoded for this strategy
+    config:
+      symbol: "{symbol}"
+      timeframe: "{timeframe}"
+      
+  # Feature containers for each
+  - name_template: "{symbol}_{timeframe}_features"
+    type: features
+    foreach:
+      symbol: {from_config: symbols}
+      timeframe: [5T, 15T, 1H]
+    config:
+      data_container: "{symbol}_{timeframe}_data"
+      features:
+        momentum:
+          fast_period: 10
+          slow_period: 30
+        volume:
+          ma_period: 20
+          
+  # Single portfolio using all timeframes
+  - name: portfolio_multi_tf
+    type: portfolio
+    config:
+      strategy_type: multi_timeframe_momentum
+      initial_capital: {from_config: initial_capital}
+      
+  # Execution
+  - name: execution
+    type: execution
+    config:
+      mode: backtest
+
+# Routes
+routes:
+  # Custom route to aggregate features from multiple timeframes
+  - name: timeframe_aggregator
+    type: custom
+    handler: aggregate_timeframes
+    sources: "*_features"
+    target: portfolio_multi_tf
+    config:
+      primary_timeframe: 5T
+      confirmation_timeframes: [15T, 1H]
+      
+  # Standard risk and execution routes
+  - name: risk_validation
+    type: risk_service
+    source: portfolio_multi_tf
+    
+  - name: fill_broadcast
+    type: broadcast
+    source: execution
+    targets: [portfolio_multi_tf]
+
+# Special behaviors
+behaviors:
+  # Synchronize data streams across timeframes
+  - type: timeframe_sync
+    containers: "*_data"
+    config:
+      align_to: 5T  # Align all to fastest timeframe
+      forward_fill: true

@@ -1,0 +1,187 @@
+# Composable Research Workflow
+# Shows workflow composition features including iteration, branching, and sub-workflows
+
+name: composable_research
+description: Advanced research workflow with composition features
+
+# Workflow-level iteration
+iteration:
+  # Keep iterating until good strategy found or max attempts
+  max_iterations: 5
+  continue_condition:
+    type: expression
+    expression: "iteration_results[-1]['best_sharpe'] < 1.5 and iteration < max_iterations"
+  
+  # Modify config for each iteration
+  config_modifier:
+    type: expand_search
+    expansion_factor: 1.5  # Expand parameter space each iteration
+
+# Main workflow phases
+phases:
+  # Phase 1: Strategy Discovery (can iterate)
+  - name: strategy_discovery
+    topology: backtest
+    sequence: parameter_sweep
+    config:
+      quick_mode: true  # Fast execution for exploration
+      parameter_space: "{iteration_config.parameter_space}"
+      
+    outputs:
+      best_strategies: "./results/iteration_{iteration}/best_strategies.json"
+      
+  # Phase 2: Conditional Branching based on results
+  - name: strategy_selection
+    type: conditional_branch
+    depends_on: strategy_discovery
+    
+    branches:
+      # Branch A: Single dominant strategy
+      - condition:
+          type: expression
+          expression: "len(results['strategy_discovery']['top_strategies']) == 1"
+        workflow: single_strategy_validation  # Sub-workflow
+        
+      # Branch B: Multiple good strategies  
+      - condition:
+          type: expression
+          expression: "len(results['strategy_discovery']['top_strategies']) > 1"
+        workflow: ensemble_optimization  # Different sub-workflow
+        
+      # Branch C: No good strategies
+      - condition:
+          type: expression
+          expression: "results['strategy_discovery']['best_sharpe'] < 0.5"
+        workflow: expand_search_space  # Try different approach
+
+# Sub-workflow definitions
+sub_workflows:
+  # Sub-workflow 1: Single Strategy Validation
+  single_strategy_validation:
+    phases:
+      - name: robustness_test
+        topology: backtest
+        sequence: monte_carlo
+        config:
+          strategy: "{parent.strategy_discovery.outputs.best_strategies[0]}"
+          
+      - name: regime_test
+        topology: backtest
+        sequence: regime_conditional
+        depends_on: robustness_test
+        
+      - name: walk_forward_validation
+        topology: backtest
+        sequence: walk_forward
+        depends_on: regime_test
+        
+  # Sub-workflow 2: Ensemble Optimization
+  ensemble_optimization:
+    phases:
+      - name: correlation_analysis
+        topology: analysis
+        sequence: single_pass
+        config:
+          strategies: "{parent.strategy_discovery.outputs.best_strategies}"
+          
+      - name: weight_optimization
+        topology: signal_replay
+        sequence: walk_forward
+        depends_on: correlation_analysis
+        config:
+          constraints:
+            max_correlation: 0.7
+            min_strategies: 2
+            
+      - name: ensemble_validation
+        topology: backtest
+        sequence: monte_carlo
+        depends_on: weight_optimization
+        
+  # Sub-workflow 3: Expand Search Space
+  expand_search_space:
+    phases:
+      - name: market_regime_analysis
+        topology: analysis
+        sequence: single_pass
+        
+      - name: feature_engineering
+        topology: feature_generation
+        sequence: single_pass
+        depends_on: market_regime_analysis
+        
+      - name: retry_discovery
+        # Trigger parent workflow iteration with new config
+        type: modify_parent_config
+        config:
+          add_features: "{feature_engineering.outputs.new_features}"
+          expand_parameters: true
+
+# Workflow composition features
+composition:
+  # Parallel execution where possible
+  parallel_groups:
+    - [robustness_test, regime_test]  # Can run in parallel
+    
+  # Workflow templates (reusable patterns)
+  templates:
+    validation_suite:
+      sequence: [monte_carlo, walk_forward, regime_conditional]
+      config:
+        standard_validation: true
+        
+  # Dynamic phase injection
+  inject_phases:
+    # Add debugging phase if any phase fails
+    on_failure:
+      - name: debug_analysis
+        topology: analysis
+        sequence: single_pass
+        config:
+          analyze_failure: true
+          
+  # Result aggregation across iterations
+  iteration_aggregation:
+    type: best_by_metric
+    metric: final_sharpe_ratio
+    keep_all: true  # Keep all iteration results
+
+# Advanced features
+features:
+  # Checkpoint and resume
+  checkpointing:
+    enabled: true
+    frequency: after_each_phase
+    
+  # Resource optimization
+  resource_hints:
+    strategy_discovery:
+      parallelism: high
+      memory: medium
+    walk_forward_validation:
+      parallelism: medium
+      memory: high
+      
+  # Conditional resource allocation
+  adaptive_resources:
+    - condition: "iteration > 3"
+      apply:
+        all_phases:
+          timeout_minutes: 120  # Give more time in later iterations
+          
+# Output aggregation
+outputs:
+  # Aggregate best results across all iterations and branches
+  best_strategy:
+    type: best_across
+    source: 
+      - all_iterations.branch_results.final_strategy
+    metric: sharpe_ratio
+    
+  research_report:
+    type: custom
+    generator: create_composable_research_report
+    inputs:
+      iterations: "{all_iterations}"
+      branches_taken: "{composition.branch_history}"
+      convergence: "{composition.convergence_metrics}"

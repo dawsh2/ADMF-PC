@@ -1,0 +1,24 @@
+# Single Pass Pattern
+# The simplest sequence - execute once
+
+name: single_pass
+description: Execute phase once with given configuration
+
+# Single iteration
+iterations:
+  type: single
+  count: 1
+
+# No config modifiers needed
+config_modifiers: []
+
+# No aggregation needed for single pass
+aggregation:
+  type: none
+
+# Direct output mapping
+output_mapping:
+  metrics: metrics
+  trades: trades
+  equity_curve: equity_curve
+  container_results: container_results

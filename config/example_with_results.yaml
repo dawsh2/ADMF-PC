@@ -1,0 +1,149 @@
+# Example configuration demonstrating phase-specific results handling
+# This shows how to optimize memory usage across different workflow phases
+
+workflow: adaptive_ensemble
+
+# Global results configuration (conservative defaults)
+results:
+  # Event retention policy for metrics calculation
+  retention_policy: trade_complete  # Only keep events for active trades
+  max_events: 1000                 # Maximum events to retain (for sliding_window)
+  
+  collection:
+    streaming_metrics: true      # Always use memory-efficient metrics
+    store_trades: false         # Off by default
+    store_equity_curve: false   # Off by default - memory intensive
+    snapshot_interval: 1000     # Sparse snapshots
+    
+  storage:
+    format: parquet            # Efficient storage format
+    location: ./results/{workflow_id}/{phase_name}/
+    compress: true             # Save disk space
+    partition_by: [phase, symbol]  # Organize by phase and symbol
+    
+  memory:
+    global_limit_mb: 2000      # 2GB total for results
+    storage_mode: auto         # Let system decide memory vs disk
+    memory_threshold_mb: 50    # Use disk for results > 50MB
+
+# Base configuration for all phases
+data:
+  symbols: [SPY, QQQ, IWM]
+  start_date: '2020-01-01'
+  end_date: '2023-12-31'
+  frequency: 1d
+  source: csv
+
+portfolio:
+  initial_capital: 100000
+
+strategies:
+  - type: momentum
+    parameters:
+      fast_period: [5, 10, 20]
+      slow_period: [20, 40, 60]
+  - type: mean_reversion
+    parameters:
+      rsi_period: [7, 14, 21]
+      bollinger_period: [10, 20, 30]
+
+classifiers:
+  - type: hmm_regime
+    parameters:
+      n_states: [2, 3, 4]
+  - type: volatility_regime
+    parameters:
+      lookback: [20, 40]
+
+risk:
+  position_sizers:
+    - name: conservative
+      type: percentage
+      percentage: 0.02
+    - name: moderate
+      type: percentage
+      percentage: 0.05
+    - name: aggressive
+      type: percentage  
+      percentage: 0.10
+
+# Phase-specific configurations with results overrides
+phases:
+  - name: grid_search
+    topology: signal_generation
+    description: "Generate signals for all parameter combinations"
+    # Minimal results collection for parameter sweep
+    results_override:
+      retention_policy: minimal    # Aggressive memory cleanup
+      max_events: 100             # Very small event buffer
+      collection:
+        streaming_metrics: true
+        store_trades: false      # Don't need trade details
+        store_equity_curve: false  # Definitely not for 1000s of combos
+      memory:
+        global_limit_mb: 5000    # More memory for parallel execution
+        storage_mode: auto       # Let many small results stay in memory
+        
+  - name: regime_analysis  
+    topology: analysis
+    description: "Analyze performance by regime"
+    depends_on: [grid_search]
+    # Analysis phase - moderate collection
+    results_override:
+      collection:
+        streaming_metrics: true
+        store_trades: true       # Want to see trade patterns
+        trade_summary_only: true # But just summary, not tick data
+        
+  - name: ensemble_optimization
+    topology: signal_replay
+    description: "Optimize ensemble weights using walk-forward"
+    depends_on: [regime_analysis]
+    # Optimization phase - balanced collection
+    results_override:
+      retention_policy: trade_complete  # Keep default policy
+      max_events: 2000                  # Moderate buffer size
+      collection:
+        streaming_metrics: true
+        store_trades: true
+        store_equity_curve: false  # Still conservative on curves
+        snapshot_interval: 100     # More frequent snapshots
+      memory:
+        memory_threshold_mb: 100   # Be more aggressive with disk usage
+        
+  - name: final_validation
+    topology: backtest
+    description: "Full backtest with optimal ensemble"
+    depends_on: [ensemble_optimization]
+    # Final validation - full collection
+    results_override:
+      retention_policy: sliding_window  # Keep more events for analysis
+      max_events: 5000                  # Larger buffer for detailed metrics
+      collection:
+        streaming_metrics: true
+        store_trades: true
+        store_equity_curve: true   # YES - want full curve for final
+        snapshot_interval: 1       # Every bar for detailed analysis
+        store_order_book: false    # Still skip order book
+        max_equity_points: 50000   # Allow more points before downsampling
+      storage:
+        format: parquet           # Best format for time series
+        compress: false           # Faster access for analysis
+      memory:
+        storage_mode: disk        # Force disk to ensure we capture everything
+        
+  - name: performance_analysis
+    topology: analysis
+    description: "Generate final performance report"
+    depends_on: [final_validation]
+    # Analysis only - no new data collection
+    results_override:
+      collection:
+        streaming_metrics: false   # Just analyze existing data
+
+# Event tracing configuration (separate from results)
+execution:
+  enable_event_tracing: false  # Different from results collection
+  trace_settings:
+    trace_dir: ./traces
+    trace_specific: []  # Trace specific containers if needed

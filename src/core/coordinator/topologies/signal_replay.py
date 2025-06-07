@@ -1,170 +1,140 @@
 """
-Signal replay topology: Replay saved signals through execution.
+Signal replay topology creation.
 
-Pipeline: saved signals → portfolios → risk → execution
+Creates pipeline starting from saved signals: disk → portfolios → risk → execution
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional
 import logging
-from datetime import datetime
 
-from ...containers.container import Container, ContainerConfig, ContainerRole
-from ...containers.components import (
-    SignalReplayComponent,
-    PortfolioState,
-    SignalProcessor,
-    OrderGenerator,
-    ExecutionEngine
-)
-from ...events.tracing import TracedEventBus, EventTracer
-from ...events import EventBus
+from ...container_factory import ContainerFactory
+from .helpers.component_builder import create_stateless_components
+from .helpers.routing import route_signal_replay_topology
 
 logger = logging.getLogger(__name__)
 
 
-def create_signal_replay_topology(config: Dict[str, Any], tracing_enabled: bool = True) -> Dict[str, Any]:
+def create_signal_replay_topology(config: Dict[str, Any], event_tracer: Optional[Any] = None) -> Dict[str, Any]:
     """
-    Create topology for signal replay.
+    Create signal replay topology.
     
-    Creates:
-    - Signal replay container to load and emit saved signals
-    - Portfolio containers for each parameter combination
-    - Risk validation (stateless)
-    - Execution container for order processing
-    - NO Data containers
-    - NO Feature containers
-    - NO Strategy components
+    This topology loads previously generated signals and executes them.
     
-    Returns:
-        Dictionary with containers, components, and metadata
-    """
-    # Create root event bus
-    if tracing_enabled:
-        root_event_bus = TracedEventBus("root_event_bus")
-        correlation_id = config.get('correlation_id', f"replay_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-        event_tracer = EventTracer(
-            correlation_id=correlation_id,
-            max_events=config.get('tracing', {}).get('max_events', 10000)
-        )
-        root_event_bus.set_tracer(event_tracer)
-        logger.info("🔍 Created TracedEventBus for signal replay")
-    else:
-        root_event_bus = EventBus("root_event_bus")
-        event_tracer = None
+    Args:
+        config: Configuration containing signal paths, risk profiles, execution settings
+        event_tracer: Optional event tracer for debugging
         
+    Returns:
+        Dictionary with containers, routes, and configuration
+    """
+    logger.info("Creating signal replay topology")
+    
+    # Initialize topology structure
     topology = {
         'containers': {},
-        'stateless_components': {},
+        'routes': [],
         'parameter_combinations': [],
-        'root_event_bus': root_event_bus,
-        'event_tracer': event_tracer
+        'stateless_components': {}
     }
     
-    # Create Signal Replay container
-    signal_replay_config = config.get('signal_replay', {})
-    replay_container_id = "signal_replay"
-    replay_container = Container(ContainerConfig(
-        role=ContainerRole.DATA,  # Using DATA role since it sources signals
-        name=replay_container_id,
-        container_id=replay_container_id
-    ))
+    # Create stateless components (risk validators, execution models)
+    logger.info("Creating stateless components")
+    topology['stateless_components'] = create_stateless_components(config)
+    config['stateless_components'] = topology['stateless_components']
     
-    # Add signal replay component
-    replay_container.add_component('signal_replay', SignalReplayComponent(
-        signal_file=signal_replay_config.get('signal_file', 'signals.pkl'),
-        signal_directory=signal_replay_config.get('signal_directory', './results/signals/'),
-        replay_speed=signal_replay_config.get('replay_speed', 1.0),
-        filter_config=signal_replay_config.get('filter', {})
-    ))
+    # Create containers
+    container_factory = ContainerFactory()
     
-    if tracing_enabled and event_tracer:
-        _replace_event_bus_with_traced(replay_container, replay_container_id, event_tracer)
-        
-    topology['containers'][replay_container_id] = replay_container
+    # Extract execution config to pass to all containers
+    execution_config = config.get('execution', {})
     
-    # Expand parameter combinations (same as backtest)
-    from .backtest import _expand_parameter_combinations
-    param_combos = _expand_parameter_combinations(config)
-    topology['parameter_combinations'] = param_combos
+    # 1. Create signal replay container
+    signal_replay_config = {
+        'type': 'signal_replay',
+        'signal_directory': config.get('signal_directory', './results/signals/'),
+        'signal_files': config.get('signal_files', []),  # Optional specific files
+        'replay_speed': config.get('replay_speed', 'max'),  # 'max' or time multiplier
+        'start_date': config.get('start_date'),
+        'end_date': config.get('end_date'),
+        'execution': execution_config  # Pass execution config for tracing
+    }
     
-    # Create Portfolio containers (same structure as backtest)
-    for combo in param_combos:
-        combo_id = combo['combo_id']
-        
-        portfolio_container = Container(ContainerConfig(
-            role=ContainerRole.PORTFOLIO,
-            name=f'portfolio_{combo_id}',
-            container_id=f'portfolio_{combo_id}'
-        ))
-        
-        # Add portfolio components
-        portfolio_config = config.get('portfolio', {})
-        portfolio_container.add_component('portfolio_state', PortfolioState(
-            initial_capital=portfolio_config.get('initial_capital', 100000),
-            max_positions=portfolio_config.get('max_positions', 10),
-            position_sizing_method=portfolio_config.get('position_sizing_method', 'equal_weight')
-        ))
-        
-        portfolio_container.add_component('signal_processor', SignalProcessor())
-        portfolio_container.add_component('order_generator', OrderGenerator())
-        
-        if tracing_enabled and event_tracer:
-            _replace_event_bus_with_traced(portfolio_container, f"portfolio_{combo_id}", event_tracer)
-            
-        # Give portfolio access to root event bus
-        portfolio_container.root_event_bus = root_event_bus
-        
-        topology['containers'][f'portfolio_{combo_id}'] = portfolio_container
+    replay_container = container_factory.create_container('signal_replay', signal_replay_config)
+    topology['containers']['signal_replay'] = replay_container
     
-    # Create Execution container (same as backtest)
-    execution_container = Container(ContainerConfig(
-        role=ContainerRole.EXECUTION,
-        name='execution',
-        container_id='execution'
-    ))
+    # 2. Create portfolio containers based on risk profiles
+    # Since strategies are already in the signals, we only need risk profiles
+    risk_profiles = config.get('risk_profiles', [{'type': 'conservative'}])
     
-    # Add execution engine component
-    exec_config = config.get('execution', {})
-    execution_container.add_component('execution_engine', ExecutionEngine(
-        slippage_model=exec_config.get('slippage_model'),
-        commission_model=exec_config.get('commission_model'),
-        fill_latency=exec_config.get('fill_latency', 0),
-        partial_fills=exec_config.get('partial_fills', False)
-    ))
-    
-    if tracing_enabled and event_tracer:
-        _replace_event_bus_with_traced(execution_container, "execution", event_tracer)
+    combo_id = 0
+    for risk_config in risk_profiles:
+        combo = {
+            'combo_id': f"c{combo_id:04d}",
+            'strategy_params': None,  # Strategy already determined in signals
+            'risk_params': risk_config
+        }
+        topology['parameter_combinations'].append(combo)
         
+        # Create portfolio container for this risk profile
+        portfolio_name = f"portfolio_c{combo_id:04d}"
+        portfolio_config = {
+            'type': 'portfolio',
+            'combo_id': f"c{combo_id:04d}",
+            'risk_type': risk_config.get('type'),
+            'risk_params': risk_config,
+            'initial_capital': config.get('initial_capital', 100000),
+            'stateless_components': topology['stateless_components'],
+            'signal_replay_mode': True,  # Flag to indicate replay mode
+            'execution': execution_config,  # Pass execution config for tracing
+            'objective_function': config.get('objective_function', {'name': 'sharpe_ratio'}),  # Pass objective function
+            'results': config.get('results', {}),  # Pass results config for metrics
+            'metrics': config.get('metrics', {})  # Pass metrics config
+        }
+        portfolio_container = container_factory.create_container(portfolio_name, portfolio_config)
+        topology['containers'][portfolio_name] = portfolio_container
+        
+        combo_id += 1
+    
+    logger.info(f"Created {len(topology['parameter_combinations'])} portfolio configurations")
+    
+    # 3. Create execution container
+    exec_container_config = {
+        'type': 'execution',
+        'mode': 'replay',  # Special mode for replay
+        'execution_models': config.get('execution_models', []),
+        'stateless_components': topology['stateless_components'],
+        'execution': execution_config  # Pass execution config for tracing
+    }
+    # Merge any additional execution settings from config
+    exec_container_config.update(config.get('execution_container', {}))
+    
+    execution_container = container_factory.create_container('execution', exec_container_config)
     topology['containers']['execution'] = execution_container
     
-    # Create stateless components (only risk validators needed for replay)
-    from .helpers.component_builder import create_stateless_components
+    # 4. Route containers together
+    logger.info("Routing containers together")
     
-    # Filter config to only include risk components
-    filtered_config = {
-        'risk_profiles': config.get('risk_profiles', [])
-    }
-    stateless_components = create_stateless_components(filtered_config)
-    topology['stateless_components'] = stateless_components
+    # Add root event bus to config for routing
+    if hasattr(container_factory, 'root_event_bus'):
+        config['root_event_bus'] = container_factory.root_event_bus
+    else:
+        # Create a root event bus if needed
+        from ...events import EventBus
+        config['root_event_bus'] = EventBus()
     
-    logger.info(f"Signal replay topology created: {len(topology['containers'])} containers, "
-               f"{len(param_combos)} parameter combinations")
+    # Pass parameter combinations for routing
+    config['parameter_combinations'] = topology['parameter_combinations']
     
-    # Wire containers together
-    from .helpers.adapter_wiring import wire_signal_replay_topology
+    topology['routes'] = route_signal_replay_topology(topology['containers'], config)
     
-    # Add config info needed for wiring
-    wiring_config = {
-        'root_event_bus': root_event_bus,
-        'stateless_components': topology['stateless_components'],
-        'parameter_combinations': topology['parameter_combinations']
-    }
+    # 5. Add event tracer if provided
+    if event_tracer:
+        topology['event_tracer'] = event_tracer
+        # Register tracer with all containers
+        for container in topology['containers'].values():
+            if hasattr(container, 'event_bus'):
+                event_tracer.register_bus(container.event_bus, container.name)
     
-    adapters = wire_signal_replay_topology(topology['containers'], wiring_config)
-    topology['adapters'] = adapters
+    logger.info(f"Created signal replay topology with {len(topology['containers'])} containers")
     
     return topology
-
-
-# Import helper function from backtest topology
-from .backtest import _replace_event_bus_with_traced

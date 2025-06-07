@@ -12,7 +12,6 @@ import logging
 import asyncio
 
 from .models import Bar
-from ..core.tracing import trace, TracePoint
 
 logger = logging.getLogger(__name__)
 
@@ -74,12 +73,10 @@ class CSVDataHandler:
         while self._streaming and self.current_index < bars_to_process:
             bar = self._get_next_bar()
             if bar and self.event_handler:
-                # Trace data load
-                trace(TracePoint.DATA_LOAD, "csv_handler.py", {
-                    'symbol': self.symbol,
-                    'bar_index': self.current_index,
-                    'price': bar.close
-                })
+                # Log data load if debug enabled
+                logger.debug(
+                    f"Data load: {self.symbol} bar {self.current_index}, price={bar.close}"
+                )
                 self.event_handler(bar)
             self.current_index += 1
             

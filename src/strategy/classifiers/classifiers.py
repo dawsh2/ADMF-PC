@@ -9,7 +9,7 @@ event-driven architecture.
 from typing import Dict, Any
 from enum import Enum
 
-from ...core.containers.discovery import classifier
+from ...core.components.discovery import classifier
 
 
 class MarketRegime(Enum):

@@ -1,8 +1,8 @@
 """
-Type Flow Analysis for ADMF-PC communication adapters.
+Type Flow Analysis for ADMF-PC communication routes.
 
 This module provides sophisticated type flow validation that ensures events
-flow correctly through adapter configurations, preventing runtime errors
+flow correctly through route configurations, preventing runtime errors
 and ensuring complete audit trails for compliance.
 """
 
@@ -121,7 +121,7 @@ class EventTypeRegistry:
 
 
 class TypeFlowAnalyzer:
-    """Analyzes and validates event type flow through adapters."""
+    """Analyzes and validates event type flow through routes."""
     
     def __init__(self, registry: Optional[EventTypeRegistry] = None):
         self.registry = registry or EventTypeRegistry()
@@ -154,8 +154,8 @@ class TypeFlowAnalyzer:
         }
         
     def analyze_flow(self, containers: Dict[str, Container], 
-                    adapters: List[Any]) -> Dict[str, FlowNode]:
-        """Build complete type flow map from adapters and containers."""
+                    routes: List[Any]) -> Dict[str, FlowNode]:
+        """Build complete type flow map from routes and containers."""
         flow_map = {}
         
         # Initialize flow nodes from containers
@@ -176,8 +176,8 @@ class TypeFlowAnalyzer:
             
             flow_map[name] = node
         
-        # Propagate types through adapters
-        self._propagate_types(flow_map, adapters)
+        # Propagate types through routes
+        self._propagate_types(flow_map, routes)
         
         return flow_map
         
@@ -196,11 +196,11 @@ class TypeFlowAnalyzer:
         return self.registry.infer_container_role(container.name)
         
     def _propagate_types(self, flow_map: Dict[str, FlowNode], 
-                        adapters: List[Any]) -> None:
-        """Propagate event types through adapter connections."""
+                        routes: List[Any]) -> None:
+        """Propagate event types through route connections."""
         
-        # Build adjacency list from adapters
-        connections = self._build_connections(adapters)
+        # Build adjacency list from routes
+        connections = self._build_connections(routes)
         
         # Iteratively propagate types until no changes
         changed = True
@@ -251,41 +251,41 @@ class TypeFlowAnalyzer:
             
         return produced
         
-    def _build_connections(self, adapters: List[Any]) -> Dict[str, List[str]]:
-        """Build adjacency list from adapter configurations."""
+    def _build_connections(self, routes: List[Any]) -> Dict[str, List[str]]:
+        """Build adjacency list from route configurations."""
         connections = defaultdict(list)
         
-        for adapter in adapters:
-            adapter_type = getattr(adapter, 'config', {}).get('type', '')
+        for route in routes:
+            route_type = getattr(route, 'config', {}).get('type', '')
             
-            if hasattr(adapter, 'source') and hasattr(adapter, 'targets'):
+            if hasattr(route, 'source') and hasattr(route, 'targets'):
                 # Broadcast pattern
-                source = adapter.source
-                targets = adapter.targets if isinstance(adapter.targets, list) else [adapter.targets]
+                source = route.source
+                targets = route.targets if isinstance(route.targets, list) else [route.targets]
                 connections[source].extend(targets)
                 
-            elif hasattr(adapter, 'containers') and isinstance(adapter.containers, list):
+            elif hasattr(route, 'containers') and isinstance(route.containers, list):
                 # Pipeline pattern
-                containers = adapter.containers
+                containers = route.containers
                 for i in range(len(containers) - 1):
                     connections[containers[i]].append(containers[i + 1])
                     
-            elif hasattr(adapter, 'config'):
+            elif hasattr(route, 'config'):
                 # Extract from config
-                config = adapter.config
+                config = route.config
                 
-                if adapter_type == 'broadcast':
+                if route_type == 'broadcast':
                     source = config.get('source')
                     targets = config.get('targets', [])
                     if source and targets:
                         connections[source].extend(targets)
                         
-                elif adapter_type == 'pipeline':
+                elif route_type == 'pipeline':
                     containers = config.get('containers', [])
                     for i in range(len(containers) - 1):
                         connections[containers[i]].append(containers[i + 1])
                         
-                elif adapter_type == 'hierarchical':
+                elif route_type == 'hierarchical':
                     parent = config.get('parent')
                     children = config.get('children', [])
                     if parent and children:

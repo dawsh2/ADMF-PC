@@ -7,6 +7,23 @@ The core idea of the system is using containers to isolate state where necassary
 
 NOTE: The sequencer will be adapted to handle batching for memory intensive operations as it already has all the logic necassary. The Coordinator may be expanded to handle computing across multiple computers. Maybe it is indeed best that Coordinator handle data storage locations. 
 
+
+## UPDATES & TODO 
+- optimization is done by specifying parameter search space in config, which is passed to the to TopologyBuilder, which then passes it to the optimization module for parameter expansion, and uses this to determine number of feature/strategy/classifier/risk/execution configurations to run by using the optimization module for expansion and objective function determination, which portfolio containers then subscribe to accordingly (pretty elegant!) -- confirm objective function is passed correctly
+- containers now enable event tracing (with portfolio containers defaulting to it for performance metrics), with varying degrees of info storage -- this keeps us tied to the event tracing system, which will come in handy later, but also keeps it light to store things in mememory -- CRITICAL insight and upgrade, now we're no longer running two parallel data/metric systems and ensure our tracing is plugged in from day one 
+- !!: still need to formalize how this data is referenced when not stored in memory between runs, and how we determine when to run in memory, and when to write to disk -- my gut tells me the 'move fast and break things' approach is best here, let's just store in memory until it's a problem, but also setup the event tracing to write to disk so I can analyze when running with more detail. We may want to also look into building memory and performance monitoring, so when I do ineivitably push it to it's limit and it crashes, I at least know what caused it. this is an important design decision and i need to help myself clear things up later. I think when if I do start pushing the memory limit, we'll just set a memory limit per container and write to disk if it gets full. simple and dynamic, doesn't require advanced user configurations. and because our root level container encompasses all containers, we can easily set this to a reasonable maximum. 
+- !!: should also be easy to impleement a 'signal_storage' event tracing mode so the container traces it's signal history
+- !!: in the future, we'll run in signal generation mode with no portfolios, only strategies/signal generators generating signals, this will have to be traced on the root event bus since that's where strategies live -- should be easy to implement as a workflow default for the signal-generation topology. 
+- !!: need to complete final code review of all modules under src/core, file by file. some immediate smells are src/core/analysis, src/core/logging, rename src/core/communication to src/core/adapters/, src/core/tracing.py. double check events module and make sure it's good. 
+- !!: then we can proceed with checklist_*.md.
+
+
+
+Once the container tracing and metrics streaming is complete, we'll have crystalized the design.
+
+
+
+
 ## Part 1: Core Architecture Components
 
 ### 1. Stateless Service Pools (Pure Functions)
@@ -115,7 +132,7 @@ Execution Container
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Part 3: Complete Event Flow Diagram
+## Part 3: Complete Event Flow Diagram 
 
 
 
@@ -212,6 +229,65 @@ Execution Container
 
 NOTE: We also maintain two alternative topologies: one for signal generation, which is identical to above but terminates at the 'SIGNALS' line, and other for signal replay, containing the remainder. New topologies can be introduced to incorporate new components, see the 'Signal Filter' examples below, where we overview how to extend the system.
 
+
+## Topologies 
+The preceeding diagram is an example of what we call a 'topology'. It's a set of containers and stateless functions configured with a linear event flow, but with any number of subcomponents at each step. For example, in the topology above we may have any number of strategy components running. These are configured dynamically by the TopologyBuilder which accepts a specification file as input and creates the resultant data flow and object graph. The allows us to extend the system to include new components (e.g a signal filtering module) or run in alternate modes (e.g, signal generation or signal replay) arbitrarily, while ensuring consistent and reusable execution paths and object lifecycles. When running an optimization, we simply pass the TopologyBuilder the expanded parameter set, and it constructs it (for _any_ component, not just strategies). This makes it extremely easy and reliable to interface. The TopologyBuilder just creates whatever it's passed, with the same event flow and object lifecycle, regardless of parameter count or variations.
+
+## Sequences and Phases
+The sequencer is the next object in the abstraction hierarchy. A sequence is responsible for executing a process, or set of processes, over a given topology, or set of topologies. For example, a train/test split using the standard topology above is, in this system, considered two seperate executions managed as one sequence. A simple backtest (one iteration over a data set) is a single execution and single sequence. This is important so object lifecycle is managed properly, ensuring no leakage of state. At the end of each execution, containers are destroyed (this ensures state is cleaned). A Phase is a complete process that uses sequences. Phases are the high-level, objective-achieving processes. For example, an end-to-end optimization using walk-forward validation and applying parameters to an OOS test set. The system works by breaking these down into reusable sequences and topology patterns to simplify execution and development while ensuring no leakage of state and increase reproducablity. 
+
+Lastly, phases are composed into workflows, for multi-step processes like below:
+
+### Adaptive Ensemble Workflow
+
+The architecture naturally supports complex multi-phase workflows:
+
+```
+Phase 1: Grid Search (Signal Generation Mode - Walk-Forward) <-- signal generation topology
+├── Run all parameter combinations using walk-forward validation <-- set of sequences 
+├── Capture signals to event store across all walk-forward windows
+└── Group results by regime within each validation period
+
+Phase 2: Regime Analysis (using Phase 1 performance data)
+├── Find best parameters per detected regime
+└── Store regime-optimal configurations
+
+Phase 3: Adaptive Ensemble Weight Optimization (Signal Replay Mode - Walk-Forward) <-- signal replay topology
+├── Load only signals from each regime across walk-forward windows <-- set of sequences
+├── Find optimal ensemble weights per regime using walk-forward validation
+└── 3x+ faster than replaying all signals
+
+Phase 4: Final Validation (Full Backtest Mode on OOS)
+├── Deploy final regime-adaptive ensemble strategy over OOS/test data
+└── Dynamically switch parameters based on regime
+  ```
+
+
+
+
+### In summary:
+  - Topology = Event flow diagram (Signals, Orders, etc)
+  - Execution Window = Container lifecycle (creation → destruction)
+  - Sequence = Pattern of execution windows (e.g., train_test = 2 windows)
+  - Phase = High-level workflow step that uses a sequence
+  - Workflow = 
+
+
+Sequences are composed into phases, for example a walk-forward validation is just many train/test splits. Phases are the highest level process substep in a _Workflow_.
+
+  I need to add sections about:
+  1. Understanding phases vs sequences vs execution windows
+  2. How container lifecycle writing works
+  
+  
+## Containers, Routers & Events
+These are the building blocks of the system. Events are custom types
+
+  
+## Understanding 
+
+
+## Also need a section on tracing, results and memory management
 
 ### 1. Discovery System
 
@@ -327,16 +403,16 @@ Multi-Asset Configuration:
 
 ### 3. Resource Efficiency
 
-Comparison for 24 strategy combinations (6 strategies × 4 classifiers):
+For 24 strategy combinations (6 strategies × 4 classifiers):
 
 ```
-Old Architecture:                      New Architecture:
-├── 24 Strategy Containers            ├── 0 Strategy Containers (stateless!)
-├── 24 Risk Containers                ├── 0 Risk Containers (stateless!)
-├── 24 Portfolio Containers           ├── 24 Portfolio Containers
-├── 4 Classifier Containers           ├── 0 Classifier Containers (stateless!)
-├── Shared Infrastructure             ├── 2-3 Symbol Containers
-└── Total: 75+ Containers             └── Total: ~27 Containers (60% reduction!)
+Architecture Overview:
+├── 0 Strategy Containers (stateless!)
+├── 0 Risk Containers (stateless!)
+├── 24 Portfolio Containers
+├── 0 Classifier Containers (stateless!)
+├── 2-3 Symbol Containers
+└── Total: ~27 Containers
 ```
 
 ## Part 5: Common Use Cases
@@ -427,6 +503,8 @@ Phase 4: Final Validation (Full Backtest Mode)
 ├── Deploy final regime-adaptive ensemble strategy over OOS/test data
 └── Dynamically switch parameters based on regime
   ```
+
+Notably, workflows can be composed and extended with branching decision logc. The workflow above could become part of a larger workflow which runs this iteratively until returns diminish. 
 
 ## Part 6: Configuration Examples
 

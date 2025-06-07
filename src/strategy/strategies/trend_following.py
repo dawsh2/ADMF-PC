@@ -20,7 +20,7 @@ from ..components.features import (
 from ..features import TechnicalFeatureExtractor, PricePatternExtractor
 from ..rules import CrossoverRule, ThresholdRule, CompositeRule
 from ..rules import TrailingStopRule, VolatilityBasedRule
-from ...core.containers.discovery import strategy
+from ...core.components.discovery import strategy
 
 
 logger = logging.getLogger(__name__)

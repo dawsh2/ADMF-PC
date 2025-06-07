@@ -1,0 +1,44 @@
+# Composed Walk Forward Pattern
+# Shows how walk-forward is composed from train/test sequences
+
+name: composed_walk_forward
+description: Walk-forward composed from reusable train/test sequences
+
+# Walk-forward generates windows
+iterations:
+  type: windowed
+  window_generator:
+    type: rolling
+    train_periods: {from_config: walk_forward.train_periods, default: 252}
+    test_periods: {from_config: walk_forward.test_periods, default: 63}
+    step_size: {from_config: walk_forward.step_size, default: 21}
+
+# Each iteration runs composed sequences
+sub_sequences:
+  # Training sequence
+  - name: train
+    sequence: single_pass  # Reuse single_pass sequence
+    config_override:
+      start_date: "{window.train_start}"
+      end_date: "{window.train_end}"
+      phase: train
+      optimize: true
+      objective_function: {from_config: objective_function}
+    
+  # Testing sequence  
+  - name: test
+    sequence: single_pass  # Reuse single_pass sequence
+    depends_on: train
+    config_override:
+      start_date: "{window.test_start}"
+      end_date: "{window.test_end}"
+      phase: test
+      optimize: false
+      # Use parameters from training
+      parameters: "{train.results.optimal_parameters}"
+
+# Aggregate across windows
+aggregation:
+  type: statistical
+  source: test.metrics
+  operations: [mean, std, min, max]

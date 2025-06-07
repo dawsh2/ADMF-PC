@@ -1,238 +1,102 @@
-# Coordinator Module
+# Refactored Coordinator Architecture
 
-The Coordinator is the central orchestration component for the ADMF-PC system. It serves as the single entry point for all high-level operations, ensuring reproducibility and consistency across all workflows.
+This directory contains the refactored coordinator system that follows Protocol + Composition principles.
 
-## Overview
+## Architecture Overview
 
-The Coordinator:
-- Reads and validates workflow configurations (YAML or programmatic)
-- Sets up shared infrastructure (indicators, data feeds)
-- Creates isolated containers for each workflow/trial
-- Delegates execution to specialized workflow managers
-- Aggregates results in a standardized format
-- Ensures proper cleanup of resources
+### Clean Separation of Concerns
 
-## Key Features
+1. **Coordinator** (`coordinator.py`)
+   - The workflow manager
+   - Manages workflow patterns (discovered via decorators)
+   - Handles result streaming
+   - Manages distributed execution
+   - ALWAYS delegates to Sequencer
 
-### 1. Single Entry Point
-All workflows (optimization, backtest, live trading, etc.) go through the Coordinator:
+2. **Sequencer** (`sequencer.py`)
+   - Executes ALL workflows (even single phase)
+   - Owns TopologyBuilder
+   - Manages phase transitions
+   - Handles checkpointing
 
-```python
-coordinator = Coordinator(shared_services={...})
-result = await coordinator.execute_workflow(config)
-```
+3. **TopologyBuilder** (`topology_builder.py`)
+   - ONLY builds topologies
+   - Single public method: `build_topology()`
+   - No workflow logic, no execution
 
-### 2. Configuration-Driven
-Complex workflows are defined in YAML, not code:
+### Key Features
 
-```yaml
-workflow:
-  type: "optimization"
-  optimization_config:
-    algorithm: "genetic"
-    objective: "maximize_sharpe"
-```
+- **Protocol-Based Design**: No inheritance, uses protocols for clean interfaces
+- **Composition**: Components own their dependencies
+- **Decorator Discovery**: Workflows discovered automatically via `@workflow` decorator
+- **Unified Execution**: Everything goes through Sequencer (no special cases)
+- **Result Streaming**: Coordinator manages streaming with multiple format support
+- **Distributed Ready**: Support for multi-sequencer execution
 
-### 3. Container Isolation
-Each workflow runs in its own container with:
-- Isolated event bus (no cross-contamination)
-- Independent component instances
-- Separate state management
-- Clean resource boundaries
+### Workflow Discovery
 
-### 4. Workflow Types
-
-- **Optimization**: Multi-stage parameter optimization with regime awareness
-- **Backtest**: Historical simulation with realistic execution
-- **Live Trading**: Real-time trading with risk controls
-- **Analysis**: Market analysis and performance evaluation
-- **Validation**: Strategy validation and robustness testing
-
-### 5. Reproducibility
-
-The single execution path ensures:
-- Consistent initialization sequence
-- Same default values applied
-- Controlled random seeds
-- Complete configuration capture
-- Automatic audit trail
-
-## Architecture
-
-```
-Coordinator
-    ├── Infrastructure Setup
-    │   ├── Shared Indicators
-    │   ├── Data Feeds
-    │   └── Computation Resources
-    │
-    ├── Container Management
-    │   ├── Workflow Containers
-    │   ├── Component Isolation
-    │   └── Resource Cleanup
-    │
-    └── Workflow Managers
-        ├── OptimizationManager
-        ├── BacktestManager
-        ├── LiveTradingManager
-        ├── AnalysisManager
-        └── ValidationManager
-```
-
-## Usage Examples
-
-### Simple Backtest
+Workflows are discovered automatically using decorators:
 
 ```python
-from admf.core.coordinator import Coordinator, WorkflowConfig, WorkflowType
+from coordinator_refactor import workflow
+
+@workflow(
+    name='my_workflow',
+    description='My custom workflow',
+    tags=['custom', 'example']
+)
+def my_workflow():
+    return {
+        'phases': [
+            {'name': 'phase1', 'topology': 'backtest'},
+            {'name': 'phase2', 'topology': 'analysis'}
+        ]
+    }
+```
+
+### Usage Example
+
+```python
+from coordinator_refactor import Coordinator
 
 # Create coordinator
-coordinator = Coordinator(
-    shared_services={
-        'market_data': market_data_provider
+coordinator = Coordinator()
+
+# Execute workflow
+result = await coordinator.execute_workflow({
+    'workflow': 'adaptive_ensemble',
+    'symbols': ['SPY', 'QQQ'],
+    'distributed_execution': {
+        'enabled': True,
+        'num_workers': 4
     }
-)
-
-# Configure backtest
-config = WorkflowConfig(
-    workflow_type=WorkflowType.BACKTEST,
-    data_config={...},
-    backtest_config={
-        'start_date': '2023-01-01',
-        'end_date': '2023-12-31',
-        'strategy': {...}
-    }
-)
-
-# Execute
-result = await coordinator.execute_workflow(config)
+})
 ```
 
-### Complex Optimization
+### Composing Workflows
 
-```yaml
-# optimization_workflow.yaml
-workflow:
-  type: "optimization"
-  
-  optimization_config:
-    # Multi-stage optimization
-    stages:
-      - name: "regime_detector_optimization"
-        component: "RegimeDetector"
-        algorithm: "grid"
-        
-      - name: "strategy_optimization_by_regime"
-        component: "TrendStrategy"
-        algorithm: "bayesian"
-        regime_specific: true
-```
+Use the WorkflowComposer to build complex workflows:
 
 ```python
-# Load and execute
-coordinator = Coordinator(config_path="optimization_workflow.yaml")
-result = await coordinator.execute_workflow()
+from coordinator_refactor import WorkflowComposer
+
+composer = WorkflowComposer()
+
+# Walk-forward = repeated backtest
+walk_forward = composer.repeat('backtest', times=12, config={
+    'window_size': 180,
+    'step_size': 30
+})
 ```
 
-## Workflow Lifecycle
+## Migration from Old Architecture
 
-1. **Configuration Validation**: Ensures all required fields are present
-2. **Container Creation**: Isolated environment for the workflow
-3. **Infrastructure Setup**: Shared resources initialization
-4. **Phase Execution**: Sequential execution of workflow phases
-5. **Result Aggregation**: Collecting and formatting results
-6. **Resource Cleanup**: Proper teardown of containers and resources
+See the migration guide in the parent directory for step-by-step instructions on migrating from the old mixed-responsibility architecture to this clean Protocol + Composition design.
 
-## Integration Points
+## Benefits
 
-### With Container System
-- Each workflow gets its own `UniversalScopedContainer`
-- Components are created with proper isolation
-- Dependencies are resolved within containers
-
-### With Event System
-- Container-isolated event buses
-- Workflow lifecycle events
-- Phase transition notifications
-
-### With Component System
-- Protocol-based component creation
-- Capability composition
-- Automatic optimization support
-
-## Best Practices
-
-1. **Always use configuration files** for complex workflows
-2. **Specify random seeds** for reproducibility
-3. **Set appropriate timeouts** for long-running workflows
-4. **Monitor active workflows** using status methods
-5. **Handle errors gracefully** with proper cleanup
-
-## Advanced Features
-
-### Parallel Execution
-```python
-# Run multiple workflows concurrently
-tasks = [
-    coordinator.execute_workflow(config1),
-    coordinator.execute_workflow(config2),
-    coordinator.execute_workflow(config3)
-]
-results = await asyncio.gather(*tasks)
-```
-
-### Workflow Monitoring
-```python
-# Check active workflows
-active = await coordinator.list_active_workflows()
-
-# Get detailed status
-status = await coordinator.get_workflow_status(workflow_id)
-
-# Cancel if needed
-await coordinator.cancel_workflow(workflow_id)
-```
-
-### Custom Workflow Managers
-Extend `BaseWorkflowManager` to add new workflow types:
-
-```python
-class CustomWorkflowManager(BaseWorkflowManager):
-    def get_execution_phases(self) -> List[WorkflowPhase]:
-        return [...]
-    
-    async def execute_phase(self, phase, config, context):
-        # Custom phase logic
-        pass
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Configuration Validation Errors**
-   - Check required fields in workflow config
-   - Ensure data sources are properly configured
-
-2. **Container Creation Failures**
-   - Verify shared services are available
-   - Check component class registrations
-
-3. **Resource Cleanup Issues**
-   - Always call `coordinator.shutdown()`
-   - Use context managers for automatic cleanup
-
-### Debugging Tips
-
-- Enable detailed logging: `log_level: "DEBUG"`
-- Monitor container statistics
-- Track event flow through containers
-- Use validation workflows to test configurations
-
-## Future Enhancements
-
-- GPU resource management
-- Distributed execution support
-- Real-time progress visualization
-- Advanced caching mechanisms
-- Workflow templates and presets
+1. **Single Responsibility**: Each component does ONE thing
+2. **No Circular Dependencies**: Clean dependency graph
+3. **Easy Testing**: Test each component in isolation
+4. **Extensibility**: Easy to add new workflows and topologies
+5. **Clear Execution Flow**: Predictable, debuggable flow

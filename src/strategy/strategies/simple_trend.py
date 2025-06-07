@@ -14,12 +14,15 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 import uuid
 
+import logging
+
 from ...data.models import Bar
-from ...core.logging.structured import ContainerLogger
 from ..components.features import FeatureHub, sma_feature
 from ...risk.protocols import Signal, SignalType, OrderSide
 from decimal import Decimal
-from ...core.containers.discovery import strategy
+from ...core.components.discovery import strategy
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleTrendStrategy:
@@ -68,14 +71,8 @@ class SimpleTrendStrategy:
         # Event bus (injected by container)
         self.event_bus = None
         
-        # Logging
-        self.logger = ContainerLogger("SimpleTrendStrategy", container_id, "simple_trend_strategy")
-        
-        self.logger.info(
-            "SimpleTrendStrategy initialized",
-            fast_period=fast_period,
-            slow_period=slow_period,
-            container_id=container_id
+        logger.info(
+            f"SimpleTrendStrategy initialized: fast={fast_period}, slow={slow_period}, container={container_id}"
         )
     
     @property
@@ -98,11 +95,8 @@ class SimpleTrendStrategy:
             - Triggers: Signal generation and event publishing
             - Enables: Event flow validation for Step 1
         """
-        self.logger.trace(
-            "Processing bar",
-            symbol=bar.symbol,
-            timestamp=bar.timestamp.isoformat(),
-            close_price=bar.close
+        logger.debug(
+            f"Processing bar: {bar.symbol} @ {bar.timestamp.isoformat()}, close={bar.close}"
         )
         
         # Update indicators
@@ -113,11 +107,8 @@ class SimpleTrendStrategy:
         if self._should_generate_signal(bar.timestamp):
             signal = self._create_signal(bar)
             if signal and self.event_bus:
-                self.logger.log_event_flow(
-                    "SIGNAL",
-                    "strategy",
-                    "risk_manager",
-                    f"{signal.side.value} {bar.symbol}"
+                logger.info(
+                    f"SIGNAL: strategy -> risk_manager: {signal.side.value} {bar.symbol}"
                 )
                 self.event_bus.publish("SIGNAL", signal)
                 self.last_signal_time = bar.timestamp
@@ -134,10 +125,8 @@ class SimpleTrendStrategy:
         """
         # Need both SMAs ready
         if not (self.fast_sma.is_ready and self.slow_sma.is_ready):
-            self.logger.trace(
-                "SMAs not ready",
-                fast_ready=self.fast_sma.is_ready,
-                slow_ready=self.slow_sma.is_ready
+            logger.debug(
+                f"SMAs not ready: fast={self.fast_sma.is_ready}, slow={self.slow_sma.is_ready}"
             )
             return False
         
@@ -145,10 +134,8 @@ class SimpleTrendStrategy:
         if self.last_signal_time:
             time_since_last = (timestamp - self.last_signal_time).total_seconds()
             if time_since_last < self.signal_cooldown:
-                self.logger.trace(
-                    "Signal in cooldown",
-                    time_since_last=time_since_last,
-                    cooldown=self.signal_cooldown
+                logger.debug(
+                    f"Signal in cooldown: {time_since_last}s < {self.signal_cooldown}s"
                 )
                 return False
         
@@ -214,13 +201,9 @@ class SimpleTrendStrategy:
         
         if signal:
             self.position = new_position
-            self.logger.info(
-                "Signal generated",
-                signal_type=signal.side.value,
-                symbol=bar.symbol,
-                fast_sma=fast_value,
-                slow_sma=slow_value,
-                new_position=new_position
+            logger.info(
+                f"Signal generated: {signal.side.value} {bar.symbol}, "
+                f"fast_sma={fast_value}, slow_sma={slow_value}, position={new_position}"
             )
         
         return signal
@@ -237,7 +220,7 @@ class SimpleTrendStrategy:
         self.position = 0
         self.last_signal_time = None
         
-        self.logger.info("SimpleTrendStrategy reset")
+        logger.info("SimpleTrendStrategy reset")
     
     def get_state(self) -> Dict[str, Any]:
         """

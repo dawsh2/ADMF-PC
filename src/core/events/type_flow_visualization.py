@@ -2,7 +2,7 @@
 Type flow visualization tools for ADMF-PC.
 
 This module provides visualization utilities for type flow analysis,
-helping debug adapter configurations and understand event flows.
+helping debug route configurations and understand event flows.
 """
 
 from typing import Dict, List, Set, Any, Optional, Type
@@ -16,7 +16,7 @@ from ..containers.protocols import Container
 
 
 class TypeFlowVisualizer:
-    """Visualize type flow through adapter configurations."""
+    """Visualize type flow through route configurations."""
     
     def __init__(self, analyzer: Optional[TypeFlowAnalyzer] = None):
         """Initialize visualizer.
@@ -69,12 +69,12 @@ class TypeFlowVisualizer:
     
     def generate_mermaid_diagram(self, 
                                 flow_map: Dict[str, FlowNode],
-                                adapters: List[Any]) -> str:
+                                routes: List[Any]) -> str:
         """Generate Mermaid diagram for visualization.
         
         Args:
             flow_map: Flow analysis results
-            adapters: List of adapters
+            routes: List of routes
             
         Returns:
             Mermaid diagram as string
@@ -91,7 +91,7 @@ class TypeFlowVisualizer:
             lines.append(f"    {self._sanitize_name(name)}[\"{label}\"]")
         
         # Add edges with event types
-        connections = self.analyzer._build_connections(adapters)
+        connections = self.analyzer._build_connections(routes)
         for source, targets in connections.items():
             source_node = flow_map.get(source)
             if not source_node:
@@ -152,44 +152,44 @@ class TypeFlowVisualizer:
         
         return "\n".join(lines)
     
-    def generate_adapter_analysis(self, adapters: List[Dict[str, Any]], 
+    def generate_route_analysis(self, routes: List[Dict[str, Any]], 
                                  containers: Dict[str, Container]) -> str:
-        """Generate analysis of adapter configurations.
+        """Generate analysis of route configurations.
         
         Args:
-            adapters: List of adapter configurations
+            routes: List of route configurations
             containers: Available containers
             
         Returns:
-            Formatted adapter analysis
+            Formatted route analysis
         """
-        lines = ["Adapter Configuration Analysis", "=" * 50, ""]
+        lines = ["Route Configuration Analysis", "=" * 50, ""]
         
-        for i, adapter_config in enumerate(adapters):
-            adapter_type = adapter_config.get('type', 'unknown')
-            adapter_name = adapter_config.get('name', f'adapter_{i}')
+        for i, route_config in enumerate(routes):
+            route_type = route_config.get('type', 'unknown')
+            route_name = route_config.get('name', f'route_{i}')
             
-            lines.append(f"Adapter: {adapter_name} ({adapter_type})")
+            lines.append(f"Route: {route_name} ({route_type})")
             lines.append("-" * 30)
             
-            if adapter_type == 'pipeline':
-                lines.extend(self._analyze_pipeline_adapter(adapter_config, containers))
-            elif adapter_type == 'broadcast':
-                lines.extend(self._analyze_broadcast_adapter(adapter_config, containers))
-            elif adapter_type == 'hierarchical':
-                lines.extend(self._analyze_hierarchical_adapter(adapter_config, containers))
-            elif adapter_type == 'selective':
-                lines.extend(self._analyze_selective_adapter(adapter_config, containers))
+            if route_type == 'pipeline':
+                lines.extend(self._analyze_pipeline_route(route_config, containers))
+            elif route_type == 'broadcast':
+                lines.extend(self._analyze_broadcast_route(route_config, containers))
+            elif route_type == 'hierarchical':
+                lines.extend(self._analyze_hierarchical_route(route_config, containers))
+            elif route_type == 'selective':
+                lines.extend(self._analyze_selective_route(route_config, containers))
             else:
-                lines.append(f"  Unknown adapter type: {adapter_type}")
+                lines.append(f"  Unknown route type: {route_type}")
             
             lines.append("")
         
         return "\n".join(lines)
     
-    def _analyze_pipeline_adapter(self, config: Dict[str, Any], 
+    def _analyze_pipeline_route(self, config: Dict[str, Any], 
                                  containers: Dict[str, Container]) -> List[str]:
-        """Analyze pipeline adapter configuration."""
+        """Analyze pipeline route configuration."""
         lines = []
         container_names = config.get('containers', [])
         
@@ -219,9 +219,9 @@ class TypeFlowVisualizer:
         
         return lines
     
-    def _analyze_broadcast_adapter(self, config: Dict[str, Any], 
+    def _analyze_broadcast_route(self, config: Dict[str, Any], 
                                   containers: Dict[str, Container]) -> List[str]:
-        """Analyze broadcast adapter configuration."""
+        """Analyze broadcast route configuration."""
         lines = []
         source_name = config.get('source', 'unknown')
         target_names = config.get('targets', [])
@@ -242,9 +242,9 @@ class TypeFlowVisualizer:
         
         return lines
     
-    def _analyze_hierarchical_adapter(self, config: Dict[str, Any], 
+    def _analyze_hierarchical_route(self, config: Dict[str, Any], 
                                      containers: Dict[str, Container]) -> List[str]:
-        """Analyze hierarchical adapter configuration."""
+        """Analyze hierarchical route configuration."""
         lines = []
         parent_name = config.get('parent', 'unknown')
         children = config.get('children', [])
@@ -254,9 +254,9 @@ class TypeFlowVisualizer:
         
         return lines
     
-    def _analyze_selective_adapter(self, config: Dict[str, Any], 
+    def _analyze_selective_route(self, config: Dict[str, Any], 
                                   containers: Dict[str, Container]) -> List[str]:
-        """Analyze selective adapter configuration."""
+        """Analyze selective route configuration."""
         lines = []
         source_name = config.get('source', 'unknown')
         rules = config.get('rules', [])
@@ -297,18 +297,18 @@ class TypeFlowVisualizer:
             lines.append(f"    {self._sanitize_name(name)}[\"{label}\"]")
         
         # Add semantic event flow connections
-        # This would need actual adapter information to show flows
-        lines.append("    %% Event flows would be added here with adapter data")
+        # This would need actual route information to show flows
+        lines.append("    %% Event flows would be added here with route data")
         
         return "\n".join(lines)
     
     def create_comprehensive_report(self, 
-                                  adapters: List[Dict[str, Any]],
+                                  routes: List[Dict[str, Any]],
                                   containers: Dict[str, Container]) -> str:
         """Create comprehensive type flow report.
         
         Args:
-            adapters: Adapter configurations
+            routes: Route configurations
             containers: Available containers
             
         Returns:
@@ -321,7 +321,7 @@ class TypeFlowVisualizer:
             "System Overview:",
             "-" * 20,
             f"Containers: {len(containers)}",
-            f"Adapters: {len(adapters)}",
+            f"Routes: {len(routes)}",
             ""
         ])
         
@@ -339,7 +339,7 @@ class TypeFlowVisualizer:
         
         # Flow analysis
         try:
-            flow_map = self.analyzer.analyze_flow(containers, adapters)
+            flow_map = self.analyzer.analyze_flow(containers, routes)
             lines.extend([
                 "Type Flow Analysis:",
                 "-" * 20,
@@ -354,11 +354,11 @@ class TypeFlowVisualizer:
                 ""
             ])
         
-        # Adapter analysis
+        # Route analysis
         lines.extend([
-            "Adapter Configuration Analysis:",
+            "Route Configuration Analysis:",
             "-" * 35,
-            self.generate_adapter_analysis(adapters, containers)
+            self.generate_route_analysis(routes, containers)
         ])
         
         return "\n".join(lines)
@@ -400,13 +400,13 @@ class TypeFlowVisualizer:
 
 
 def create_flow_visualization(containers: Dict[str, Container],
-                            adapters: List[Dict[str, Any]],
+                            routes: List[Dict[str, Any]],
                             output_format: str = "text") -> str:
     """Create type flow visualization.
     
     Args:
         containers: Available containers
-        adapters: Adapter configurations  
+        routes: Route configurations  
         output_format: "text", "mermaid", or "report"
         
     Returns:
@@ -415,14 +415,14 @@ def create_flow_visualization(containers: Dict[str, Container],
     visualizer = TypeFlowVisualizer()
     
     try:
-        flow_map = visualizer.analyzer.analyze_flow(containers, adapters)
+        flow_map = visualizer.analyzer.analyze_flow(containers, routes)
         
         if output_format == "text":
             return visualizer.generate_text_visualization(flow_map)
         elif output_format == "mermaid":
-            return visualizer.generate_mermaid_diagram(flow_map, adapters)
+            return visualizer.generate_mermaid_diagram(flow_map, routes)
         elif output_format == "report":
-            return visualizer.create_comprehensive_report(adapters, containers)
+            return visualizer.create_comprehensive_report(routes, containers)
         else:
             return f"Unknown output format: {output_format}"
             
@@ -430,13 +430,13 @@ def create_flow_visualization(containers: Dict[str, Container],
         return f"Error generating visualization: {e}"
 
 
-def validate_and_visualize(adapters: List[Dict[str, Any]],
+def validate_and_visualize(routes: List[Dict[str, Any]],
                           containers: Dict[str, Container],
                           execution_mode: str = "full_backtest") -> str:
     """Validate configuration and create visualization.
     
     Args:
-        adapters: Adapter configurations
+        routes: Route configurations
         containers: Available containers
         execution_mode: Execution mode to validate against
         
@@ -450,7 +450,7 @@ def validate_and_visualize(adapters: List[Dict[str, Any]],
     
     try:
         # Analyze flow
-        flow_map = analyzer.analyze_flow(containers, adapters)
+        flow_map = analyzer.analyze_flow(containers, routes)
         
         # Validate
         validation = analyzer.validate_mode(flow_map, execution_mode)
@@ -474,20 +474,20 @@ def validate_and_visualize(adapters: List[Dict[str, Any]],
 
 
 def export_mermaid_diagram(containers: Dict[str, Container],
-                          adapters: List[Dict[str, Any]],
+                          routes: List[Dict[str, Any]],
                           filename: str) -> bool:
     """Export Mermaid diagram to file.
     
     Args:
         containers: Available containers
-        adapters: Adapter configurations
+        routes: Route configurations
         filename: Output filename
         
     Returns:
         True if successful
     """
     try:
-        diagram = create_flow_visualization(containers, adapters, "mermaid")
+        diagram = create_flow_visualization(containers, routes, "mermaid")
         
         with open(filename, 'w') as f:
             f.write(diagram)

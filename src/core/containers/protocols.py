@@ -120,24 +120,6 @@ class Container(Protocol):
         ...
         
     @abstractmethod
-    def create_subcontainer(
-        self,
-        container_id: str,
-        container_type: str = "generic"
-    ) -> "Container":
-        """
-        Create a subcontainer within this container.
-        
-        Args:
-            container_id: Unique ID for subcontainer
-            container_type: Type of subcontainer
-            
-        Returns:
-            New subcontainer instance
-        """
-        ...
-        
-    @abstractmethod
     def register_singleton(
         self,
         name: str,
@@ -188,16 +170,6 @@ class Container(Protocol):
     @abstractmethod
     async def dispose(self) -> None:
         """Clean up container resources."""
-        ...
-        
-    @abstractmethod
-    def get_subcontainers(self) -> List["Container"]:
-        """Get all subcontainers."""
-        ...
-        
-    @abstractmethod
-    def get_subcontainers_by_type(self, container_type: str) -> List["Container"]:
-        """Get subcontainers of a specific type."""
         ...
     
     # Composition Management

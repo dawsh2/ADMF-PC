@@ -26,7 +26,7 @@ def infer_features_from_strategies(strategies: List[Dict[str, Any]]) -> Set[str]
     Returns:
         Set of required feature identifiers
     """
-    from ...core.containers.discovery import get_component_registry
+    from ...core.components.discovery import get_component_registry
     
     required_features = set()
     registry = get_component_registry()

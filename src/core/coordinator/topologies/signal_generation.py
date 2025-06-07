@@ -1,147 +1,137 @@
 """
-Signal generation topology: Generate and save signals.
+Signal generation topology creation.
 
-Pipeline: data → features → strategies (save signals to disk)
+Creates pipeline that stops at signals: data → features → strategies → disk
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional
 import logging
-from datetime import datetime
 
-from ...containers.container import Container, ContainerConfig, ContainerRole
-from ...containers.components import DataStreamer, FeatureCalculator
-from ...events.tracing import TracedEventBus, EventTracer
-from ...events import EventBus
+from ...container_factory import ContainerFactory
+from .helpers.component_builder import create_stateless_components
+from .helpers.routing import route_signal_generation_topology
 
 logger = logging.getLogger(__name__)
 
 
-def create_signal_generation_topology(config: Dict[str, Any], tracing_enabled: bool = True) -> Dict[str, Any]:
+def create_signal_generation_topology(config: Dict[str, Any], event_tracer: Optional[Any] = None) -> Dict[str, Any]:
     """
-    Create topology for signal generation only.
+    Create signal generation topology.
     
-    Creates:
-    - Symbol-Timeframe containers for data and features
-    - Stateless strategy components
-    - NO Portfolio containers (signals saved to disk)
-    - NO Execution container
+    This topology generates and saves signals without portfolio management or execution.
     
-    Returns:
-        Dictionary with containers, components, and metadata
-    """
-    # Create root event bus
-    if tracing_enabled:
-        root_event_bus = TracedEventBus("root_event_bus")
-        correlation_id = config.get('correlation_id', f"workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-        event_tracer = EventTracer(
-            correlation_id=correlation_id,
-            max_events=config.get('tracing', {}).get('max_events', 10000)
-        )
-        root_event_bus.set_tracer(event_tracer)
-        logger.info("🔍 Created TracedEventBus for signal generation")
-    else:
-        root_event_bus = EventBus("root_event_bus")
-        event_tracer = None
+    Args:
+        config: Configuration containing symbols, strategies, output settings
+        event_tracer: Optional event tracer for debugging
         
+    Returns:
+        Dictionary with containers, routes, and configuration
+    """
+    logger.info("Creating signal generation topology")
+    
+    # Initialize topology structure
     topology = {
         'containers': {},
-        'stateless_components': {},
+        'routes': [],
         'parameter_combinations': [],
-        'root_event_bus': root_event_bus,
-        'event_tracer': event_tracer
+        'stateless_components': {}
     }
     
-    # Extract symbol-timeframe configurations
-    symbol_timeframe_configs = _extract_symbol_timeframe_configs(config)
-    
-    # Create Symbol-Timeframe containers (same as backtest)
-    for st_config in symbol_timeframe_configs:
-        symbol = st_config['symbol']
-        timeframe = st_config.get('timeframe', '1d')
-        
-        # Data container
-        data_container_id = f"{symbol}_{timeframe}_data"
-        data_container = Container(ContainerConfig(
-            role=ContainerRole.DATA,
-            name=data_container_id,
-            container_id=data_container_id
-        ))
-        
-        data_container.add_component('data_streamer', DataStreamer(
-            symbol=symbol,
-            timeframe=timeframe,
-            data_source=st_config.get('data_config', {})
-        ))
-        
-        if tracing_enabled and event_tracer:
-            _replace_event_bus_with_traced(data_container, data_container_id, event_tracer)
-            
-        topology['containers'][data_container_id] = data_container
-        
-        # Feature container
-        feature_container_id = f"{symbol}_{timeframe}_features"
-        feature_container = Container(ContainerConfig(
-            role=ContainerRole.FEATURE,
-            name=feature_container_id,
-            container_id=feature_container_id
-        ))
-        
-        feature_config = st_config.get('features', {})
-        feature_container.add_component('feature_calculator', FeatureCalculator(
-            indicators=feature_config.get('indicators', []),
-            lookback_window=feature_config.get('lookback_window', 100)
-        ))
-        
-        if tracing_enabled and event_tracer:
-            _replace_event_bus_with_traced(feature_container, feature_container_id, event_tracer)
-            
-        topology['containers'][feature_container_id] = feature_container
-    
-    # Wire Data → Feature flow
-    for st_config in symbol_timeframe_configs:
-        symbol = st_config['symbol']
-        timeframe = st_config.get('timeframe', '1d')
-        data_container_id = f"{symbol}_{timeframe}_data"
-        feature_container_id = f"{symbol}_{timeframe}_features"
-        
-        data_container = topology['containers'][data_container_id]
-        feature_container = topology['containers'][feature_container_id]
-        
-        feature_calc = feature_container.get_component('feature_calculator')
-        if feature_calc and hasattr(feature_calc, 'on_bar'):
-            data_container.event_bus.subscribe('BAR', feature_calc.on_bar)
-            logger.info(f"Wired {data_container_id} → {feature_container_id}")
-    
-    # Create stateless components
-    from .helpers.component_builder import create_stateless_components
+    # Create stateless components (strategies)
+    logger.info("Creating stateless components")
     topology['stateless_components'] = create_stateless_components(config)
+    config['stateless_components'] = topology['stateless_components']
     
-    # Expand parameter combinations (for signal generation variations)
-    from .backtest import _expand_parameter_combinations
-    param_combos = _expand_parameter_combinations(config)
-    topology['parameter_combinations'] = param_combos
+    # Create containers
+    container_factory = ContainerFactory()
     
-    # NO Portfolio or Execution containers for signal generation
+    # Extract execution config to pass to all containers
+    execution_config = config.get('execution', {})
     
-    logger.info(f"Signal generation topology created: {len(topology['containers'])} containers")
+    # 1. Create data containers (one per symbol/timeframe)
+    symbols = config.get('symbols', ['SPY'])
+    if isinstance(symbols, str):
+        symbols = [symbols]
     
-    # Wire containers
-    from .helpers.adapter_wiring import wire_signal_generation_topology
+    timeframes = config.get('timeframes', ['1T'])
+    if isinstance(timeframes, str):
+        timeframes = [timeframes]
     
-    wiring_config = {
-        'root_event_bus': root_event_bus,
-        'stateless_components': topology['stateless_components'],
-        'parameter_combinations': topology['parameter_combinations']
-    }
+    for symbol in symbols:
+        for timeframe in timeframes:
+            # Data container
+            data_container_name = f"{symbol}_{timeframe}_data"
+            data_config = {
+                'type': 'data',
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'data_source': config.get('data_source', 'file'),
+                'data_path': config.get('data_path'),
+                'start_date': config.get('start_date'),
+                'end_date': config.get('end_date'),
+                'execution': execution_config  # Pass execution config for tracing
+            }
+            data_container = container_factory.create_container(data_container_name, data_config)
+            topology['containers'][data_container_name] = data_container
+            
+            # Feature container (routed to data container)
+            feature_container_name = f"{symbol}_{timeframe}_features"
+            feature_config = {
+                'type': 'features',
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'features': config.get('features', {}),
+                'data_container': data_container,  # Direct reference for routing
+                'execution': execution_config  # Pass execution config for tracing
+            }
+            feature_container = container_factory.create_container(feature_container_name, feature_config)
+            topology['containers'][feature_container_name] = feature_container
+            
+            logger.info(f"Created data and feature containers for {symbol}/{timeframe}")
     
-    adapters = wire_signal_generation_topology(topology['containers'], wiring_config)
-    topology['adapters'] = adapters
+    # 2. Create parameter combinations (for strategies only)
+    strategies = config.get('strategies', [{'type': 'momentum'}])
+    
+    combo_id = 0
+    for strategy_config in strategies:
+        combo = {
+            'combo_id': f"c{combo_id:04d}",
+            'strategy_params': strategy_config,
+            'risk_params': None  # No risk profiles for signal generation
+        }
+        topology['parameter_combinations'].append(combo)
+        combo_id += 1
+    
+    logger.info(f"Created {len(topology['parameter_combinations'])} strategy configurations")
+    
+    # 3. Configure signal saving
+    config['signal_save_directory'] = config.get('signal_output_dir', './results/signals/')
+    config['save_signals'] = True
+    
+    # 4. Route containers together
+    logger.info("Routing containers together")
+    
+    # Add root event bus to config for routing
+    if hasattr(container_factory, 'root_event_bus'):
+        config['root_event_bus'] = container_factory.root_event_bus
+    else:
+        # Create a root event bus if needed
+        from ...events import EventBus
+        config['root_event_bus'] = EventBus()
+    
+    # Pass parameter combinations for routing
+    config['parameter_combinations'] = topology['parameter_combinations']
+    
+    topology['routes'] = route_signal_generation_topology(topology['containers'], config)
+    
+    # 5. Add event tracer if provided
+    if event_tracer:
+        topology['event_tracer'] = event_tracer
+        # Register tracer with all containers
+        for container in topology['containers'].values():
+            if hasattr(container, 'event_bus'):
+                event_tracer.register_bus(container.event_bus, container.name)
+    
+    logger.info(f"Created signal generation topology with {len(topology['containers'])} containers")
     
     return topology
-
-
-# Import helper functions from backtest topology
-from .backtest import (
-    _extract_symbol_timeframe_configs,
-    _replace_event_bus_with_traced
-)

@@ -10,9 +10,11 @@ from datetime import datetime
 import uuid
 from decimal import Decimal
 
-from ..core.logging.structured import StructuredLogger, LogContext
+import logging
 
 from ..core.components.protocols import Component, Lifecycle, EventCapable
+
+logger = logging.getLogger(__name__)
 from ..core.types.events import Event, EventType
 from .protocols import (
     ExecutionEngine, Order, Fill, OrderStatus, FillType, FillStatus,
@@ -83,8 +85,7 @@ class DefaultExecutionEngine(Component, Lifecycle, EventCapable):
         }
         
         logger.info(
-            f"ExecutionEngine initialized in {mode} mode",
-            component_id=self._component_id
+            f"ExecutionEngine initialized in {mode} mode, component_id={self._component_id}"
         )
     
     @property
@@ -248,7 +249,7 @@ class DefaultExecutionEngine(Component, Lifecycle, EventCapable):
             return None
             
         except Exception as e:
-            logger.error(f"Error handling order event: {e}", component_id=self._component_id)
+            logger.error(f"Error handling order event: {e}, component_id={self._component_id}")
             return self._create_error_event(event, str(e))
     
     async def _handle_market_data_event(self, event: Event) -> None:
@@ -289,7 +290,7 @@ class DefaultExecutionEngine(Component, Lifecycle, EventCapable):
                         await self._broker.process_market_data(market_data)
                     
         except Exception as e:
-            logger.error(f"Error handling market data event: {e}", component_id=self._component_id)
+            logger.error(f"Error handling market data event: {e}, component_id={self._component_id}")
     
     async def execute_order(self, order: Order) -> Optional[Fill]:
         """Execute order with comprehensive validation and error handling."""

@@ -1,5 +1,30 @@
 # Data Mining Architecture for ADMF-PC Optimization Analysis
 
+## Quick Implementation Guide
+
+The current event tracing infrastructure is already 90% ready for data mining. Here's what's needed:
+
+### 1. Add Persistence Hook (When Ready)
+```python
+# In EventBus
+def save_trace_to_parquet(self, path: str):
+    if self._tracer:
+        df = pd.DataFrame([e.__dict__ for e in self._tracer.traced_events])
+        df.to_parquet(f"{path}/{self._tracer.correlation_id}.parquet")
+```
+
+### 2. Export Method in MetricsEventTracer (Already has get_results())
+```python
+def export_for_mining(self):
+    return {
+        'correlation_id': self.correlation_id,  # Links to event traces
+        'metrics': self.get_metrics(),           # High-level metrics
+        'trades': self.completed_trades          # Trade details
+    }
+```
+
+That's it! The correlation_id bridges metrics (SQL) with events (Parquet) for deep analysis.
+
 ## Overview
 
 Post-optimization analysis requires both high-level metrics for discovery and detailed event streams for understanding. This document outlines a two-layer architecture that combines SQL databases for searchable metrics with event tracing for deep behavioral analysis, enabling institutional-grade trading intelligence.

@@ -1,0 +1,61 @@
+# Monte Carlo Simulation Pattern
+# Multiple runs with randomization for robustness testing
+
+name: monte_carlo
+description: Multiple simulation runs with different random seeds
+
+# How to iterate
+iterations:
+  type: repeated
+  count:
+    from_config: monte_carlo.iterations
+    default: 100
+
+# How to modify config for each iteration
+config_modifiers:
+  - type: add_seed
+    random_seed: "{iteration_index}"
+    
+  # Optional: Add noise to parameters
+  - type: parameter_noise
+    enabled:
+      from_config: monte_carlo.add_parameter_noise
+      default: false
+    noise_level:
+      from_config: monte_carlo.noise_level
+      default: 0.1
+    parameters_to_vary:
+      from_config: monte_carlo.vary_parameters
+      default: all
+
+# Result aggregation
+aggregation:
+  type: distribution
+  metrics: 
+    - sharpe_ratio
+    - max_drawdown
+    - total_return
+    - win_rate
+  percentiles: [5, 10, 25, 50, 75, 90, 95]
+  
+  # Additional statistics
+  calculate:
+    - confidence_intervals
+    - probability_of_loss
+    - value_at_risk
+    
+# Output configuration
+output_mapping:
+  distribution: aggregated
+  summary_stats:
+    type: extract
+    source: aggregated
+    fields: [mean, std, percentiles.50]
+  worst_case:
+    type: extract
+    source: aggregated
+    fields: [percentiles.5]
+  best_case:
+    type: extract
+    source: aggregated
+    fields: [percentiles.95]

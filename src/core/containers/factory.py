@@ -16,7 +16,7 @@ from .protocols import (
     ContainerRole, ContainerMetadata, ContainerLimits,
     ContainerState
 )
-from .discovery import get_component_registry, auto_discover_all_components, load_components_from_config
+from ..components.discovery import get_component_registry, auto_discover_all_components, load_components_from_config
 
 
 logger = logging.getLogger(__name__)

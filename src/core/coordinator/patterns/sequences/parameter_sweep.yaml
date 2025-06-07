@@ -1,0 +1,62 @@
+# Parameter Sweep Pattern
+# Test multiple parameter combinations systematically
+
+name: parameter_sweep
+description: Systematic exploration of parameter space
+
+# How to iterate
+iterations:
+  type: parameter_grid
+  parameters:
+    momentum_threshold:
+      from_config: sweep.momentum_threshold
+      default: [0.01, 0.02, 0.03, 0.04, 0.05]
+    position_size:
+      from_config: sweep.position_size
+      default: [0.05, 0.1, 0.15, 0.2]
+    stop_loss:
+      from_config: sweep.stop_loss
+      default: [0.01, 0.02, 0.03]
+
+# Config modifiers
+config_modifiers:
+  - type: set_parameters
+    strategy_params:
+      momentum_threshold: "{params.momentum_threshold}"
+    risk_params:
+      max_position_size: "{params.position_size}"
+      stop_loss: "{params.stop_loss}"
+
+# Result aggregation
+aggregation:
+  type: optimization
+  objective:
+    from_config: optimization.objective
+    default: sharpe_ratio
+  constraints:
+    max_drawdown:
+      operator: "<="
+      value: 
+        from_config: optimization.max_drawdown_limit
+        default: 0.2
+  
+  # Create heatmaps for visualization
+  visualizations:
+    - type: heatmap
+      x_axis: momentum_threshold
+      y_axis: position_size
+      z_axis: sharpe_ratio
+      
+# Output
+output_mapping:
+  best_parameters:
+    type: best_by
+    source: iteration_results
+    metric: metrics.sharpe_ratio
+  parameter_sensitivity:
+    type: sensitivity_analysis
+    source: iteration_results
+  all_results:
+    type: table
+    source: iteration_results
+    columns: [parameters, metrics.sharpe_ratio, metrics.max_drawdown]

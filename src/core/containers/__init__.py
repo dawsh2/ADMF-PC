@@ -28,7 +28,7 @@ Example Usage:
     # Wire dependencies manually
     container.wire_dependencies("strategy", {"data_source": "data"})
     
-    # Use container with adapters for cross-container communication
+    # Use container with routes for cross-container communication
     await container.initialize()
     await container.start()
     

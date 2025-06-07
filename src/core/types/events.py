@@ -31,6 +31,9 @@ class EventType(Enum):
     PORTFOLIO = auto()
     POSITION = auto()
     BALANCE = auto()
+    POSITION_OPENED = auto()  # New position opened
+    POSITION_CLOSED = auto()  # Position fully closed
+    PORTFOLIO_UPDATE = auto()  # Value update (price change)
     
     # System events
     SYSTEM = auto()
@@ -77,12 +80,18 @@ class Event:
     
     Events are the primary communication mechanism between components
     within a container. Each container has its own isolated event space.
+    
+    Includes built-in correlation support for tracking related events
+    and optional causation tracking for debugging event chains.
     """
     event_type: Union[EventType, str]
     payload: Dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.now)
     source_id: Optional[str] = None
     container_id: Optional[str] = None
+    correlation_id: Optional[str] = None  # Track related events (e.g., signal->order->fill)
+    causation_id: Optional[str] = None   # ID of event that caused this one
+    sequence_number: Optional[int] = None # Order within correlation group
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
@@ -95,6 +104,11 @@ class Event:
             
         if self.metadata is None:
             self.metadata = {}
+            
+        # Generate correlation_id if not provided (using container_id and timestamp)
+        if self.correlation_id is None and self.container_id:
+            import uuid
+            self.correlation_id = f"{self.container_id}_{self.timestamp.strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
 
 
 @runtime_checkable
@@ -175,7 +189,8 @@ def create_market_event(
     timestamp: datetime,
     data: Dict[str, Any],
     source_id: Optional[str] = None,
-    container_id: Optional[str] = None
+    container_id: Optional[str] = None,
+    correlation_id: Optional[str] = None
 ) -> Event:
     """Create a market data event."""
     return Event(
@@ -187,6 +202,7 @@ def create_market_event(
         timestamp=timestamp,
         source_id=source_id,
         container_id=container_id,
+        correlation_id=correlation_id,
         metadata={"category": "market_data"}
     )
 
@@ -195,7 +211,9 @@ def create_signal_event(
     signal_payload: Dict[str, Any],
     timestamp: datetime,
     source_id: Optional[str] = None,
-    container_id: Optional[str] = None
+    container_id: Optional[str] = None,
+    correlation_id: Optional[str] = None,
+    causation_id: Optional[str] = None
 ) -> Event:
     """Create a trading signal event."""
     payload = signal_payload
@@ -206,6 +224,8 @@ def create_signal_event(
         timestamp=timestamp,
         source_id=source_id,
         container_id=container_id,
+        correlation_id=correlation_id,
+        causation_id=causation_id,
         metadata={"category": "trading"}
     )
 

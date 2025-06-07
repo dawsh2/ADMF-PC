@@ -1,0 +1,71 @@
+# Container Tracing Configuration and Event Filtering
+
+# Only Portfolio Containers Trace
+trace_settings:
+  container_settings:
+    "portfolio_*":
+      enabled: true
+      events_to_trace: "ALL"
+    "*":  # Everything else
+      enabled: false
+
+# All Containers Trace, But Only Portfolio Events
+trace_settings:
+  # All containers trace, but filter events
+  events_to_trace: ["POSITION_OPEN", "POSITION_CLOSE", "FILL", "PORTFOLIO_UPDATE"]
+  retention_policy: "trade_complete"
+
+# Mixed Approach - Different Containers Trace Different Events
+trace_settings:
+  container_settings:
+    "portfolio_*":
+      enabled: true
+      events_to_trace: ["POSITION_OPEN", "POSITION_CLOSE", "FILL"]
+      retention_policy: "trade_complete"
+      max_events: 1000
+    "strategy_*":
+      enabled: true  
+      events_to_trace: ["SIGNAL"]  # Only trace signals
+      retention_policy: "sliding_window"
+      max_events: 100
+    "data_*":
+      enabled: false  # No tracing for data containers
+
+# Memory-Optimized Portfolio Tracing
+portfolio_settings:
+  event_tracing: ["POSITION_OPEN", "POSITION_CLOSE"]
+  retention_policy: "trade_complete"  # Auto-prunes when trades close
+  sliding_window_size: 0  # Don't keep history
+
+# Wildcard Pattern Examples
+trace_settings:
+  trace_specific: ["portfolio_*", "risk_*"]  # Only these container patterns
+  container_settings:
+    "portfolio_phase1_*":  # Phase 1 portfolios
+      enabled: true
+      events_to_trace: ["FILL", "POSITION_CLOSE"]
+    "portfolio_phase2_*":  # Phase 2 portfolios  
+      enabled: true
+      events_to_trace: "ALL"
+      max_events: 10000
+    "backtest_*_hmm_*":  # Backtest containers with HMM classifier
+      enabled: true
+      events_to_trace: ["REGIME_CHANGE", "SIGNAL"]
+
+# Production vs Development Settings
+development:
+  trace_settings:
+    events_to_trace: "ALL"  # Trace everything in dev
+    retention_policy: "all"
+    max_events: 100000
+
+production:
+  trace_settings:
+    container_settings:
+      "portfolio_*":
+        enabled: true
+        events_to_trace: ["FILL", "RISK_BREACH", "ERROR"]  # Only critical events
+        retention_policy: "sliding_window"
+        max_events: 1000
+      "*":
+        enabled: false  # No tracing for other containers in prod

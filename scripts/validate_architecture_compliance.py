@@ -80,7 +80,7 @@ class ArchitectureValidator:
         self.canonical_files = {
             "container_factory": "src/core/containers/factory.py",
             "communication_factory": "src/core/communication/factory.py", 
-            "workflow_manager": "src/core/coordinator/workflows/workflow_manager.py",
+            "topology_builder": "src/core/coordinator/topology.py",
             "container": "src/core/containers/container.py",
             "event_bus": "src/core/events/event_bus.py"
         }
@@ -328,22 +328,22 @@ class ArchitectureValidator:
         """Rule 6: Workflow patterns must follow standard architecture"""
         violations = []
         
-        workflow_manager = self.root_path / "src/core/coordinator/workflows/workflow_manager.py"
-        if workflow_manager.exists():
-            content = workflow_manager.read_text()
+        topology_builder = self.root_path / "src/core/coordinator/topology.py"
+        if topology_builder.exists():
+            content = topology_builder.read_text()
             
-            # Check that WorkflowManager is the authority for patterns
-            if "_workflow_patterns" not in content:
-                violations.append(f"{workflow_manager.relative_to(self.root_path)} - WorkflowManager should define _workflow_patterns")
+            # Check that TopologyBuilder is the authority for patterns
+            if "class TopologyBuilder" not in content:
+                violations.append(f"{topology_builder.relative_to(self.root_path)} - Should define TopologyBuilder class")
                 
             # Check pattern structure follows standard
-            if "container_pattern" not in content:
-                violations.append(f"{workflow_manager.relative_to(self.root_path)} - Patterns should specify 'container_pattern' for delegation")
+            if "_create_topology" not in content:
+                violations.append(f"{topology_builder.relative_to(self.root_path)} - Should have _create_topology method for delegation")
                 
-            if "communication_config" not in content:
-                violations.append(f"{workflow_manager.relative_to(self.root_path)} - Patterns should specify 'communication_config' for adapters")
+            if "WorkflowMode" not in content:
+                violations.append(f"{topology_builder.relative_to(self.root_path)} - Should define WorkflowMode enum for execution modes")
         else:
-            violations.append("Missing canonical WorkflowManager at src/core/coordinator/workflows/workflow_manager.py")
+            violations.append("Missing canonical TopologyBuilder at src/core/coordinator/topology.py")
         
         result = ValidationResult(
             rule_id="R006",

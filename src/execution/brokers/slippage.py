@@ -9,7 +9,7 @@ from decimal import Decimal
 from dataclasses import dataclass
 
 from ..protocols import Order, OrderSide
-from ...core.containers.discovery import execution_model
+from ...core.components.discovery import execution_model
 
 
 class SlippageModel(Protocol):

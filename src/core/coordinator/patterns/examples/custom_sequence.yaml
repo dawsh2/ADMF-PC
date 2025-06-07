@@ -1,0 +1,89 @@
+# Example Custom Sequence Pattern
+# Adaptive training that adjusts window size based on market volatility
+
+name: adaptive_walk_forward
+description: Walk-forward with adaptive window sizing based on market conditions
+
+# Pre-processing to calculate market regimes
+pre_processing:
+  - type: calculate_volatility_regimes
+    lookback: 60
+    thresholds: [0.1, 0.2, 0.3]  # Low, medium, high, extreme volatility
+
+# Dynamic iterations based on volatility
+iterations:
+  type: adaptive_windowed
+  base_config:
+    train_periods: 252
+    test_periods: 63
+    step_size: 21
+  adjustments:
+    # Shorter windows in high volatility
+    high_volatility:
+      train_periods: 126
+      test_periods: 21
+      step_size: 7
+    # Longer windows in low volatility
+    low_volatility:
+      train_periods: 504
+      test_periods: 126
+      step_size: 42
+
+# Config modifiers include regime info
+config_modifiers:
+  - type: set_dates
+    train_start: "{window.train_start}"
+    train_end: "{window.train_end}"
+    test_start: "{window.test_start}"
+    test_end: "{window.test_end}"
+    
+  - type: add_context
+    market_regime: "{window.volatility_regime}"
+    window_type: "{window.adjustment_type}"
+
+# Sub-phases with regime-aware configuration
+sub_phases:
+  - name: train
+    config_override:
+      start_date: "{train_start}"
+      end_date: "{train_end}"
+      # Adjust strategy parameters based on regime
+      strategy_params:
+        base: "{config.strategies[0]}"
+        adjustments:
+          high_volatility:
+            signal_threshold: 0.03  # More conservative
+          low_volatility:
+            signal_threshold: 0.01  # More aggressive
+            
+  - name: test
+    depends_on: train
+    config_override:
+      start_date: "{test_start}"
+      end_date: "{test_end}"
+      parameters: "{train.optimal_parameters}"
+      market_regime: "{window.volatility_regime}"
+
+# Regime-aware aggregation
+aggregation:
+  type: grouped_statistical
+  group_by: window.volatility_regime
+  metrics: [sharpe_ratio, max_drawdown, win_rate]
+  operations: [mean, std, count]
+  
+  # Also calculate regime transition matrix
+  additional_analysis:
+    - type: regime_transitions
+      calculate: transition_probabilities
+    - type: regime_performance
+      compare: performance_by_regime
+
+# Output includes regime analysis
+output_mapping:
+  overall_metrics: aggregated.all
+  regime_metrics: aggregated.by_regime
+  regime_transitions: aggregated.regime_transitions
+  adaptive_benefit:
+    type: compare
+    baseline: fixed_window_performance
+    adaptive: aggregated.all.sharpe_ratio

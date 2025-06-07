@@ -1,7 +1,7 @@
 """
 Integration of event tracing with the Coordinator and workflow management.
 Ensures tracing works across complex multi-phase workflows while respecting
-container isolation and adapter communication patterns.
+container isolation and route communication patterns.
 """
 import logging
 from typing import Dict, Any, Optional, List, Set, Callable
@@ -11,8 +11,8 @@ from contextlib import contextmanager
 
 from src.core.events.tracing.event_store import EventStore
 from src.core.events.tracing.storage_backends import StorageBackend
-from src.core.events.tracing.adapter_integration import (
-    TracingConfig, ContainerIsolationTracer, create_tracing_adapter
+from src.core.events.tracing.route_integration import (
+    TracingConfig, ContainerIsolationTracer, create_tracing_route
 )
 from src.core.coordinator.protocols import Coordinator, WorkflowPhase
 from src.core.containers.protocols import Container

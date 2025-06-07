@@ -9,7 +9,7 @@ no internal state is maintained.
 from typing import Dict, Any, Optional
 from decimal import Decimal
 
-from ..core.containers.discovery import risk_validator
+from ..core.components.discovery import risk_validator
 
 
 @risk_validator(

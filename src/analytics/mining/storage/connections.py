@@ -60,18 +60,18 @@ class SQLiteConnection(DatabaseConnection):
         # Enable foreign keys
         self.connection.execute("PRAGMA foreign_keys = ON")
         
-        # Register adapters for custom types
-        self._register_adapters()
+        # Register routes for custom types
+        self._register_routes()
         
-    def _register_adapters(self):
-        """Register SQLite adapters for custom types."""
-        # Decimal adapter
-        sqlite3.register_adapter(Decimal, lambda d: str(d))
+    def _register_routes(self):
+        """Register SQLite routes for custom types."""
+        # Decimal route
+        sqlite3.register_route(Decimal, lambda d: str(d))
         sqlite3.register_converter("DECIMAL", lambda s: Decimal(s.decode()))
         
-        # JSON adapter
-        sqlite3.register_adapter(dict, json.dumps)
-        sqlite3.register_adapter(list, json.dumps)
+        # JSON route
+        sqlite3.register_route(dict, json.dumps)
+        sqlite3.register_route(list, json.dumps)
         
     def execute(self, query: str, params: Optional[tuple] = None) -> None:
         """Execute a query without returning results."""

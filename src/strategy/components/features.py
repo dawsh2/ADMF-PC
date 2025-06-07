@@ -21,7 +21,7 @@ from datetime import datetime
 from collections import deque, defaultdict
 import logging
 
-from ...core.containers.discovery import feature
+from ...core.components.discovery import feature
 
 logger = logging.getLogger(__name__)
 

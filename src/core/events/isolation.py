@@ -14,7 +14,7 @@ import logging
 from weakref import WeakValueDictionary
 
 from ..types.events import Event, EventBusProtocol
-from .event_bus import ContainerEventBus
+from .event_bus import EventBus
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class EventIsolationManager:
     def __init__(self):
         """Initialize the isolation manager."""
         # Weak references to allow garbage collection
-        self._container_buses: WeakValueDictionary[str, ContainerEventBus] = WeakValueDictionary()
+        self._container_buses: WeakValueDictionary[str, EventBus] = WeakValueDictionary()
         self._active_containers: Set[str] = set()
         
         # Thread-local storage for current container context
@@ -57,7 +57,7 @@ class EventIsolationManager:
         
         logger.debug("EventIsolationManager initialized")
     
-    def create_container_bus(self, container_id: str) -> ContainerEventBus:
+    def create_container_bus(self, container_id: str) -> EventBus:
         """
         Create an isolated event bus for a container.
         
@@ -65,7 +65,7 @@ class EventIsolationManager:
             container_id: Unique identifier for the container
             
         Returns:
-            ContainerEventBus instance
+            EventBus instance
             
         Raises:
             ValueError: If container_id already exists
@@ -73,14 +73,14 @@ class EventIsolationManager:
         if container_id in self._active_containers:
             raise ValueError(f"Container {container_id} already exists")
         
-        event_bus = ContainerEventBus(container_id)
+        event_bus = EventBus(container_id)
         self._container_buses[container_id] = event_bus
         self._active_containers.add(container_id)
         
         logger.info(f"Created isolated event bus for container: {container_id}")
         return event_bus
     
-    def get_container_bus(self, container_id: str) -> Optional[ContainerEventBus]:
+    def get_container_bus(self, container_id: str) -> Optional[EventBus]:
         """
         Get the event bus for a specific container.
         

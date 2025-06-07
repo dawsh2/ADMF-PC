@@ -1,0 +1,60 @@
+# K-Fold Cross Validation Pattern
+# Split data into K folds for robust validation
+
+name: k_fold
+description: K-fold cross validation for robust performance estimation
+
+# Iterations based on number of folds
+iterations:
+  type: k_fold
+  folds:
+    from_config: k_fold.num_folds
+    default: 5
+  shuffle:
+    from_config: k_fold.shuffle
+    default: false
+
+# Config modifiers for each fold
+config_modifiers:
+  - type: set_fold_dates
+    train_folds: "{fold.train_indices}"
+    test_fold: "{fold.test_index}"
+    # Dates are calculated based on fold indices
+
+# Sub-phases for each fold
+sub_phases:
+  - name: train
+    config_override:
+      date_ranges: "{train_date_ranges}"  # Multiple ranges excluding test fold
+      phase: train
+      
+  - name: test
+    depends_on: train
+    config_override:
+      start_date: "{test_start_date}"
+      end_date: "{test_end_date}"
+      phase: test
+      parameters: "{train.optimal_parameters}"
+
+# Aggregation across folds
+aggregation:
+  type: cross_validation
+  metrics: [sharpe_ratio, total_return, max_drawdown]
+  calculate:
+    - mean
+    - std
+    - confidence_interval_95
+  # Also track per-fold performance
+  track_fold_performance: true
+
+# Output
+output_mapping:
+  cv_metrics: aggregated
+  fold_results: iteration_results
+  model_stability:
+    type: calculate
+    formula: 1 - (std.sharpe_ratio / mean.sharpe_ratio)  # Coefficient of variation
+  generalization_estimate:
+    type: extract
+    source: aggregated
+    field: mean.sharpe_ratio

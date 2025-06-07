@@ -1,0 +1,92 @@
+# Modular Workflow Example
+# Shows how to build workflows from reusable components
+
+name: modular_workflow
+description: Workflow built from reusable workflow modules
+
+# Import reusable workflow modules
+imports:
+  - validation_module: ./modules/validation.yaml
+  - optimization_module: ./modules/optimization.yaml
+  - risk_module: ./modules/risk_analysis.yaml
+
+# Main workflow composes imported modules
+phases:
+  # Phase 1: Run optimization module
+  - name: optimization
+    type: workflow_module
+    module: optimization_module
+    config:
+      # Override module defaults
+      parameter_space: {from_config: custom_parameters}
+      optimization_metric: sharpe_ratio
+      
+  # Phase 2: Run validation module with results
+  - name: validation
+    type: workflow_module
+    module: validation_module
+    depends_on: optimization
+    config:
+      strategy_params: "{optimization.outputs.best_parameters}"
+      validation_type: comprehensive
+      
+  # Phase 3: Conditional risk analysis
+  - name: risk_analysis
+    type: workflow_module
+    module: risk_module
+    depends_on: validation
+    conditions:
+      - metric_threshold:
+          phase: validation
+          metric: sharpe_ratio
+          operator: ">"
+          threshold: 1.0
+    config:
+      include_stress_tests: true
+      
+  # Phase 4: Compose custom phase
+  - name: production_prep
+    topology: backtest
+    sequence: composed_sequence
+    depends_on: [validation, risk_analysis]
+    
+    # Inline sequence composition
+    sequence_definition:
+      # Run multiple sequences in order
+      sequences:
+        - name: final_backtest
+          sequence: single_pass
+          config:
+            production_mode: true
+            
+        - name: paper_trading_test
+          sequence: walk_forward
+          config:
+            windows: 4
+            paper_trade: true
+            
+      # Aggregate across composed sequences
+      aggregation:
+        type: all_must_pass
+        min_sharpe: 1.2
+
+# Workflow-level composition
+composition:
+  # Define reusable phase groups
+  phase_groups:
+    standard_validation:
+      - validation
+      - risk_analysis
+      
+  # Conditional workflow inclusion
+  include_workflows:
+    - condition: "{config.include_ml}"
+      workflow: ml_enhancement_workflow
+      insert_after: optimization
+      
+  # Override module behavior
+  module_overrides:
+    validation_module:
+      # Replace monte_carlo with bootstrap
+      sequence_overrides:
+        monte_carlo: bootstrap_validation

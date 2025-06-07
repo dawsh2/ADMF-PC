@@ -1,0 +1,76 @@
+# Walk Forward Analysis Pattern - Properly Composed Version
+# Shows TRUE composability by reusing train_test sequence
+
+name: walk_forward_composed
+description: Walk-forward built from composing train_test sequences
+
+# Generate rolling windows
+iterations:
+  type: windowed
+  window_generator:
+    type: rolling
+    train_periods:
+      from_config: walk_forward.train_periods
+      default: 252
+    test_periods:
+      from_config: walk_forward.test_periods
+      default: 63
+    step_size:
+      from_config: walk_forward.step_size
+      default: 21
+
+# Each window runs a train_test sequence!
+sub_sequences:
+  - name: window_train_test
+    sequence: train_test  # Reuse entire train_test sequence
+    config_override:
+      # Override train_test configuration for this window
+      start_date: "{window.train_start}"
+      end_date: "{window.test_end}"
+      train_test:
+        # Tell train_test where to split
+        split_date: "{window.train_end}"
+        train_ratio: null  # Don't use ratio, use explicit date
+      # Pass through optimization config
+      optimization:
+        from_config: optimization
+        default:
+          enabled: true
+          objective: sharpe_ratio
+
+# Aggregate across all windows
+aggregation:
+  type: statistical
+  # Extract test metrics from the composed train_test sequence
+  source: window_train_test.sub_phases.test.metrics
+  operations: [mean, std, min, max, percentiles]
+  percentiles: [10, 25, 50, 75, 90]
+  
+  # Additional walk-forward specific metrics
+  calculate:
+    - stability_score: "1 - (std / mean)"
+    - consistency_ratio: "count(positive_returns) / total_windows"
+    - degradation: "mean(train_sharpe - test_sharpe)"
+
+# Output mapping
+output_mapping:
+  # Standard walk-forward outputs
+  window_results: iteration_results
+  aggregated_metrics: aggregated
+  
+  # Best and worst windows
+  best_window:
+    type: best_by
+    source: iteration_results
+    metric: window_train_test.sub_phases.test.metrics.sharpe_ratio
+    
+  worst_window:
+    type: worst_by
+    source: iteration_results
+    metric: window_train_test.sub_phases.test.metrics.sharpe_ratio
+    
+  # Stability analysis
+  performance_stability:
+    type: extract
+    source: aggregated
+    fields: [stability_score, consistency_ratio]

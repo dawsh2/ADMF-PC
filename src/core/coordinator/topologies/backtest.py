@@ -1,327 +1,200 @@
 """
-Backtest topology: Full pipeline execution.
+Backtest topology creation.
 
-Pipeline: data → features → strategies → portfolios → risk → execution
+Creates the full pipeline: data → features → strategies → portfolios → risk → execution
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import logging
-from datetime import datetime
 
-from ...containers.container import Container, ContainerConfig, ContainerRole
-from ...containers.components import (
-    DataStreamer,
-    FeatureCalculator,
-    PortfolioState,
-    SignalProcessor,
-    OrderGenerator,
-    ExecutionEngine
-)
-from ...events.tracing import TracedEventBus, EventTracer
-from ...events import EventBus, EventType
+from ...container_factory import ContainerFactory
+from .helpers.component_builder import create_stateless_components
+from .helpers.routing import route_backtest_topology
 
 logger = logging.getLogger(__name__)
 
 
-def create_backtest_topology(config: Dict[str, Any], tracing_enabled: bool = True) -> Dict[str, Any]:
+def create_backtest_topology(config: Dict[str, Any], event_tracer: Optional[Any] = None) -> Dict[str, Any]:
     """
-    Create topology for full backtest execution.
+    Create a complete backtest topology.
     
-    Creates:
-    - Symbol-Timeframe containers for data and features
-    - Portfolio containers for each parameter combination
-    - Execution container for order processing
-    - Stateless strategy/classifier/risk components
-    
-    Returns:
-        Dictionary with containers, components, and metadata
-    """
-    # Create root event bus for inter-component communication
-    if tracing_enabled:
-        root_event_bus = TracedEventBus("root_event_bus")
-        correlation_id = config.get('correlation_id', f"workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-        event_tracer = EventTracer(
-            correlation_id=correlation_id,
-            max_events=config.get('tracing', {}).get('max_events', 10000)
-        )
-        root_event_bus.set_tracer(event_tracer)
-        logger.info("🔍 Created TracedEventBus with event tracing enabled")
-    else:
-        root_event_bus = EventBus("root_event_bus")
-        event_tracer = None
+    Args:
+        config: Configuration containing symbols, strategies, risk profiles, etc.
+        event_tracer: Optional event tracer for debugging
         
+    Returns:
+        Dictionary with:
+            - containers: All created containers
+            - routes: Communication routes
+            - parameter_combinations: Strategy/risk combinations
+            - stateless_components: Strategy/risk/execution components
+    """
+    logger.info("Creating backtest topology")
+    
+    # Initialize topology structure
     topology = {
         'containers': {},
-        'stateless_components': {},
+        'routes': [],
         'parameter_combinations': [],
-        'root_event_bus': root_event_bus,
-        'event_tracer': event_tracer
+        'stateless_components': {}
     }
     
-    # Extract symbol-timeframe configurations
-    symbol_timeframe_configs = _extract_symbol_timeframe_configs(config)
+    # Create stateless components first
+    logger.info("Creating stateless components")
+    topology['stateless_components'] = create_stateless_components(config)
     
-    # Infer required features from strategies
-    from ....strategy.components.feature_inference import infer_features_from_strategies
-    strategies = config.get('strategies', [])
-    inferred_features = infer_features_from_strategies(strategies)
-    logger.info(f"Inferred features from strategies: {sorted(inferred_features)}")
+    # Pass stateless components in config for container creation
+    config['stateless_components'] = topology['stateless_components']
     
-    # Add inferred features to each symbol config
-    for st_config in symbol_timeframe_configs:
-        if 'features' not in st_config:
-            st_config['features'] = {}
-        if 'indicators' not in st_config['features']:
-            st_config['features']['indicators'] = []
+    # Create containers
+    container_factory = ContainerFactory()
+    
+    # Extract execution config to pass to all containers
+    execution_config = config.get('execution', {})
+    
+    # 1. Create data containers (one per symbol/timeframe)
+    symbols = config.get('symbols', ['SPY'])
+    if isinstance(symbols, str):
+        symbols = [symbols]
+    
+    timeframes = config.get('timeframes', ['1T'])
+    if isinstance(timeframes, str):
+        timeframes = [timeframes]
+    
+    for symbol in symbols:
+        for timeframe in timeframes:
+            # Data container
+            data_container_name = f"{symbol}_{timeframe}_data"
+            data_config = {
+                'type': 'data',
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'data_source': config.get('data_source', 'file'),
+                'data_path': config.get('data_path'),
+                'start_date': config.get('start_date'),
+                'end_date': config.get('end_date'),
+                'execution': execution_config  # Pass execution config for tracing
+            }
+            data_container = container_factory.create_container(data_container_name, data_config)
+            topology['containers'][data_container_name] = data_container
             
-        # Convert inferred features to indicator configs
-        for feature_spec in inferred_features:
-            if '_' in feature_spec:
-                parts = feature_spec.split('_')
-                feature_type = parts[0]
-                if len(parts) > 1 and parts[1].isdigit():
-                    period = int(parts[1])
-                    st_config['features']['indicators'].append({
-                        'name': feature_spec,
-                        'type': feature_type,
-                        'period': period
-                    })
-                else:
-                    st_config['features']['indicators'].append({
-                        'name': feature_spec,
-                        'type': feature_type
-                    })
-    
-    # Create Symbol-Timeframe containers
-    for st_config in symbol_timeframe_configs:
-        symbol = st_config['symbol']
-        timeframe = st_config.get('timeframe', '1d')
-        
-        # Data container - just streams data
-        data_container_id = f"{symbol}_{timeframe}_data"
-        data_container = Container(ContainerConfig(
-            role=ContainerRole.DATA,
-            name=data_container_id,
-            container_id=data_container_id
-        ))
-        
-        # Add data streaming component
-        data_container.add_component('data_streamer', DataStreamer(
-            symbol=symbol,
-            timeframe=timeframe,
-            data_source=st_config.get('data_config', {})
-        ))
-        
-        if tracing_enabled and event_tracer:
-            _replace_event_bus_with_traced(data_container, data_container_id, event_tracer)
+            # Feature container (wired to data container)
+            feature_container_name = f"{symbol}_{timeframe}_features"
+            feature_config = {
+                'type': 'features',
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'features': config.get('features', {}),
+                'data_container': data_container,  # Direct reference for wiring
+                'execution': execution_config  # Pass execution config for tracing
+            }
+            feature_container = container_factory.create_container(feature_container_name, feature_config)
+            topology['containers'][feature_container_name] = feature_container
             
-        topology['containers'][data_container_id] = data_container
-        
-        # Feature container - just calculates features
-        feature_container_id = f"{symbol}_{timeframe}_features"
-        feature_container = Container(ContainerConfig(
-            role=ContainerRole.FEATURE,
-            name=feature_container_id,
-            container_id=feature_container_id
-        ))
-        
-        # Add feature calculation component
-        feature_config = st_config.get('features', {})
-        feature_container.add_component('feature_calculator', FeatureCalculator(
-            indicators=feature_config.get('indicators', []),
-            lookback_window=feature_config.get('lookback_window', 100)
-        ))
-        
-        if tracing_enabled and event_tracer:
-            _replace_event_bus_with_traced(feature_container, feature_container_id, event_tracer)
+            logger.info(f"Created data and feature containers for {symbol}/{timeframe}")
+    
+    # 2. Create parameter combinations
+    strategies = config.get('strategies', [{'type': 'momentum'}])
+    risk_profiles = config.get('risk_profiles', [{'type': 'conservative'}])
+    
+    combo_id = 0
+    for strategy_config in strategies:
+        for risk_config in risk_profiles:
+            combo = {
+                'combo_id': f"c{combo_id:04d}",
+                'strategy_params': strategy_config,
+                'risk_params': risk_config
+            }
+            topology['parameter_combinations'].append(combo)
             
-        topology['containers'][feature_container_id] = feature_container
-    
-    # Wire Data → Feature flow
-    for st_config in symbol_timeframe_configs:
-        symbol = st_config['symbol']
-        timeframe = st_config.get('timeframe', '1d')
-        data_container_id = f"{symbol}_{timeframe}_data"
-        feature_container_id = f"{symbol}_{timeframe}_features"
-        
-        data_container = topology['containers'][data_container_id]
-        feature_container = topology['containers'][feature_container_id]
-        
-        # Wire data streamer to feature calculator
-        feature_calc = feature_container.get_component('feature_calculator')
-        if feature_calc and hasattr(feature_calc, 'on_bar'):
-            data_container.event_bus.subscribe('BAR', feature_calc.on_bar)
-        logger.info(f"Wired {data_container_id} → {feature_container_id}")
-    
-    # Create stateless components
-    topology['stateless_components'] = _create_stateless_components(config)
-    
-    # Expand parameter combinations
-    param_combos = _expand_parameter_combinations(config)
-    topology['parameter_combinations'] = param_combos
-    
-    # Create Portfolio containers
-    for combo in param_combos:
-        combo_id = combo['combo_id']
-        
-        portfolio_container = Container(ContainerConfig(
-            role=ContainerRole.PORTFOLIO,
-            name=f'portfolio_{combo_id}',
-            container_id=f'portfolio_{combo_id}'
-        ))
-        
-        # Add portfolio components
-        portfolio_container.add_component('portfolio_state', PortfolioState(
-            initial_capital=config.get('portfolio', {}).get('initial_capital', 100000)
-        ))
-        
-        portfolio_container.add_component('signal_processor', SignalProcessor())
-        portfolio_container.add_component('order_generator', OrderGenerator())
-        
-        if tracing_enabled and event_tracer:
-            _replace_event_bus_with_traced(portfolio_container, f"portfolio_{combo_id}", event_tracer)
+            # Create portfolio container for this combination
+            portfolio_name = f"portfolio_c{combo_id:04d}"
+            portfolio_config = {
+                'type': 'portfolio',
+                'combo_id': f"c{combo_id:04d}",
+                'strategy_type': strategy_config.get('type'),
+                'strategy_params': strategy_config,
+                'risk_type': risk_config.get('type'),
+                'risk_params': risk_config,
+                'initial_capital': config.get('initial_capital', 100000),
+                'stateless_components': topology['stateless_components'],  # Pass components
+                'execution': execution_config,  # Pass execution config for tracing
+                'objective_function': config.get('objective_function', {'name': 'sharpe_ratio'}),  # Pass objective function
+                'results': config.get('results', {}),  # Pass results config for metrics
+                'metrics': config.get('metrics', {})  # Pass metrics config
+            }
+            portfolio_container = container_factory.create_container(portfolio_name, portfolio_config)
+            topology['containers'][portfolio_name] = portfolio_container
             
-        # Give portfolio access to root event bus
-        portfolio_container.root_event_bus = root_event_bus
-        
-        topology['containers'][f'portfolio_{combo_id}'] = portfolio_container
+            combo_id += 1
     
-    # Create Execution container
-    execution_container = Container(ContainerConfig(
-        role=ContainerRole.EXECUTION,
-        name='execution',
-        container_id='execution'
-    ))
+    logger.info(f"Created {len(topology['parameter_combinations'])} parameter combinations")
     
-    # Add execution engine component
-    exec_config = config.get('execution', {})
-    execution_container.add_component('execution_engine', ExecutionEngine(
-        slippage_model=exec_config.get('slippage_model'),
-        commission_model=exec_config.get('commission_model')
-    ))
+    # 3. Create execution container
+    exec_container_config = {
+        'type': 'execution',
+        'mode': 'backtest',
+        'execution_models': config.get('execution_models', []),
+        'stateless_components': topology['stateless_components'],
+        'execution': execution_config  # Pass execution config for tracing
+    }
+    # Merge any additional execution settings from config
+    exec_container_config.update(config.get('execution_container', {}))
     
-    if tracing_enabled and event_tracer:
-        _replace_event_bus_with_traced(execution_container, "execution", event_tracer)
-        
+    execution_container = container_factory.create_container('execution', exec_container_config)
     topology['containers']['execution'] = execution_container
     
-    logger.info(f"Backtest topology created: {len(topology['containers'])} containers, "
-               f"{len(param_combos)} parameter combinations")
+    # 4. Route containers together
+    logger.info("Routing containers together")
     
-    # Wire containers together
-    from .helpers.adapter_wiring import wire_backtest_topology
+    # Add root event bus to config for routing
+    if hasattr(container_factory, 'root_event_bus'):
+        config['root_event_bus'] = container_factory.root_event_bus
+    else:
+        # Create a root event bus if needed
+        from ...events import EventBus
+        config['root_event_bus'] = EventBus()
     
-    # Add config info needed for wiring
-    wiring_config = {
-        'root_event_bus': root_event_bus,
-        'stateless_components': topology['stateless_components'],
-        'parameter_combinations': topology['parameter_combinations']
-    }
+    # Pass parameter combinations for routing
+    config['parameter_combinations'] = topology['parameter_combinations']
     
-    adapters = wire_backtest_topology(topology['containers'], wiring_config)
-    topology['adapters'] = adapters
+    topology['routes'] = route_backtest_topology(topology['containers'], config)
+    
+    # 5. Add event tracer if provided
+    if event_tracer:
+        topology['event_tracer'] = event_tracer
+        # Register tracer with all containers
+        for container in topology['containers'].values():
+            if hasattr(container, 'event_bus'):
+                event_tracer.register_bus(container.event_bus, container.name)
+    
+    logger.info(f"Created backtest topology with {len(topology['containers'])} containers and {len(topology['routes'])} routes")
     
     return topology
 
 
-def _extract_symbol_timeframe_configs(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Extract symbol-timeframe configurations from config."""
-    symbol_configs = []
+def create_parameter_combinations(strategies: List[Dict], risk_profiles: List[Dict]) -> List[Dict]:
+    """
+    Create all combinations of strategies and risk profiles.
     
-    # Simple symbols list
-    if 'symbols' in config:
-        symbols = config['symbols']
-        if isinstance(symbols, list) and all(isinstance(s, str) for s in symbols):
-            for symbol in symbols:
-                symbol_configs.append({
-                    'symbol': symbol,
-                    'timeframe': '1d',
-                    'data_config': config.get('data', {}),
-                    'features': config.get('features', {})
-                })
-            return symbol_configs
-    
-    # Detailed symbol_configs
-    if 'symbol_configs' in config:
-        for sc in config['symbol_configs']:
-            symbol = sc['symbol']
-            timeframes = sc.get('timeframes', ['1d'])
-            if not isinstance(timeframes, list):
-                timeframes = [timeframes]
-            
-            for timeframe in timeframes:
-                symbol_configs.append({
-                    'symbol': symbol,
-                    'timeframe': timeframe,
-                    'data_config': sc.get('data_config', config.get('data', {})),
-                    'features': sc.get('features', config.get('features', {}))
-                })
-    
-    # Default case
-    if not symbol_configs:
-        logger.warning("No symbol configurations found, using default SPY_1d")
-        symbol_configs.append({
-            'symbol': 'SPY',
-            'timeframe': '1d',
-            'data_config': config.get('data', {}),
-            'features': config.get('features', {})
-        })
-    
-    return symbol_configs
-
-
-def _expand_parameter_combinations(config: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Expand parameter grid into individual combinations."""
+    Args:
+        strategies: List of strategy configurations
+        risk_profiles: List of risk profile configurations
+        
+    Returns:
+        List of parameter combinations with unique IDs
+    """
     combinations = []
-    
-    strategy_params = config.get('strategies', [{}])
-    risk_params = config.get('risk_profiles', [{}])
-    classifier_params = config.get('classifiers', [{}])
-    execution_params = config.get('execution_models', [{}])
-    
-    # Ensure they're lists
-    if not isinstance(strategy_params, list):
-        strategy_params = [strategy_params]
-    if not isinstance(risk_params, list):
-        risk_params = [risk_params]
-    if not isinstance(classifier_params, list):
-        classifier_params = [classifier_params]
-    if not isinstance(execution_params, list):
-        execution_params = [execution_params]
-    
-    # Generate all combinations
     combo_id = 0
-    for strat in strategy_params:
-        for risk in risk_params:
-            for classifier in classifier_params:
-                for execution in execution_params:
-                    combinations.append({
-                        'combo_id': f'c{combo_id:04d}',
-                        'strategy_params': strat,
-                        'risk_params': risk,
-                        'classifier_params': classifier,
-                        'execution_params': execution
-                    })
-                    combo_id += 1
+    
+    for strategy in strategies:
+        for risk in risk_profiles:
+            combo = {
+                'combo_id': f"c{combo_id:04d}",
+                'strategy_params': strategy.copy(),
+                'risk_params': risk.copy()
+            }
+            combinations.append(combo)
+            combo_id += 1
     
     return combinations
-
-
-def _create_stateless_components(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Create stateless strategy, classifier, risk, and execution components."""
-    # This will be imported from helpers
-    from .helpers.component_builder import create_stateless_components
-    return create_stateless_components(config)
-
-
-def _replace_event_bus_with_traced(container, container_id: str, event_tracer):
-    """Replace container's event bus with traced version."""
-    traced_bus = TracedEventBus(f"{container_id}_bus")
-    traced_bus.set_tracer(event_tracer)
-    
-    # Copy existing subscriptions
-    if hasattr(container.event_bus, '_subscribers'):
-        traced_bus._subscribers = container.event_bus._subscribers
-        traced_bus._handler_refs = container.event_bus._handler_refs
-        
-    container.event_bus = traced_bus

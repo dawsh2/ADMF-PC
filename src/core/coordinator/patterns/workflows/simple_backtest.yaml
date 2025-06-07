@@ -1,0 +1,58 @@
+# Simple Backtest Workflow
+# Single-phase backtest with optional validation
+
+name: simple_backtest
+description: Basic backtest workflow with train/test validation
+
+phases:
+  # Main backtest phase
+  - name: backtest
+    topology: backtest
+    sequence: single_pass
+    config:
+      # Use all user-provided config
+      from_config: "."  # Take entire config
+      
+    outputs:
+      metrics: "./results/backtest/metrics.json"
+      trades: "./results/backtest/trades.csv"
+      equity_curve: "./results/backtest/equity_curve.csv"
+      
+  # Optional validation phase
+  - name: validation
+    topology: backtest
+    sequence: single_pass
+    depends_on: backtest
+    required: false  # Optional phase
+    
+    # Only run if backtest performance is good
+    conditions:
+      - type: metric_threshold
+        phase: backtest
+        metric: aggregated.sharpe_ratio
+        operator: ">"
+        threshold: 1.0
+        
+    config:
+      # Use out-of-sample data
+      start_date:
+        from_config: validation.start_date
+        default: "2023-01-01"
+      end_date:
+        from_config: validation.end_date
+        default: "2023-12-31"
+      # Use same parameters as backtest
+      strategies: "{backtest.outputs.best_parameters.strategies}"
+      risk_profiles: "{backtest.outputs.best_parameters.risk_profiles}"
+      
+    outputs:
+      validation_metrics: "./results/validation/metrics.json"
+      validation_trades: "./results/validation/trades.csv"
+
+# Workflow outputs
+outputs:
+  summary:
+    type: extract
+    source: phases
+    fields: ["backtest.aggregated", "validation.aggregated"]
+    path: "./results/summary.json"
