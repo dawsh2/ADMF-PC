@@ -8,8 +8,7 @@ from typing import Dict, Any, List, Optional
 import logging
 
 from ...container_factory import ContainerFactory
-from .helpers.component_builder import create_stateless_components
-from .helpers.routing import route_backtest_topology
+from ..topology import create_stateless_components
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,6 @@ def create_backtest_topology(config: Dict[str, Any], event_tracer: Optional[Any]
     Returns:
         Dictionary with:
             - containers: All created containers
-            - routes: Communication routes
             - parameter_combinations: Strategy/risk combinations
             - stateless_components: Strategy/risk/execution components
     """
@@ -34,7 +32,6 @@ def create_backtest_topology(config: Dict[str, Any], event_tracer: Optional[Any]
     # Initialize topology structure
     topology = {
         'containers': {},
-        'routes': [],
         'parameter_combinations': [],
         'stateless_components': {}
     }
@@ -144,21 +141,19 @@ def create_backtest_topology(config: Dict[str, Any], event_tracer: Optional[Any]
     execution_container = container_factory.create_container('execution', exec_container_config)
     topology['containers']['execution'] = execution_container
     
-    # 4. Route containers together
-    logger.info("Routing containers together")
+    # 4. Wire up event subscriptions
+    logger.info("Setting up event subscriptions")
     
-    # Add root event bus to config for routing
+    # Get or create root event bus
     if hasattr(container_factory, 'root_event_bus'):
-        config['root_event_bus'] = container_factory.root_event_bus
+        root_bus = container_factory.root_event_bus
     else:
         # Create a root event bus if needed
         from ...events import EventBus
-        config['root_event_bus'] = EventBus()
+        root_bus = EventBus()
     
-    # Pass parameter combinations for routing
-    config['parameter_combinations'] = topology['parameter_combinations']
-    
-    topology['routes'] = route_backtest_topology(topology['containers'], config)
+    # Setup subscriptions for the backtest flow
+    setup_backtest_subscriptions(topology['containers'], root_bus, topology['parameter_combinations'])
     
     # 5. Add event tracer if provided
     if event_tracer:
@@ -168,9 +163,64 @@ def create_backtest_topology(config: Dict[str, Any], event_tracer: Optional[Any]
             if hasattr(container, 'event_bus'):
                 event_tracer.register_bus(container.event_bus, container.name)
     
-    logger.info(f"Created backtest topology with {len(topology['containers'])} containers and {len(topology['routes'])} routes")
+    logger.info(f"Created backtest topology with {len(topology['containers'])} containers")
     
     return topology
+
+
+def setup_backtest_subscriptions(containers: Dict[str, Any], root_bus: Any, parameter_combinations: List[Dict]) -> None:
+    """
+    Setup event subscriptions for backtest topology.
+    
+    Since we no longer have FEATURES events and strategies are functional,
+    the flow is simpler:
+    1. Feature containers process BAR events and call strategies directly
+    2. Strategies return signals which are published to root bus
+    3. Portfolios subscribe to SIGNAL events with filters
+    4. Risk validation happens in portfolio containers
+    5. Execution subscribes to ORDER events
+    6. Portfolios subscribe to FILL events
+    """
+    from ...events import EventType
+    
+    # Get container groups
+    portfolio_containers = {k: v for k, v in containers.items() if 'portfolio_' in k}
+    execution_container = containers.get('execution')
+    
+    # 1. Portfolios subscribe to SIGNAL events with strategy filters
+    for portfolio_name, portfolio in portfolio_containers.items():
+        # Get the strategy assignments for this portfolio
+        combo_id = portfolio.config.config.get('combo_id')
+        strategy_type = portfolio.config.config.get('strategy_type')
+        
+        # Find matching parameter combination
+        matching_combo = next((c for c in parameter_combinations if c['combo_id'] == combo_id), None)
+        if matching_combo:
+            # Create strategy ID for filtering
+            strategy_id = f"{combo_id}_{strategy_type}"
+            
+            # Get signal processor component
+            signal_processor = portfolio.get_component('signal_processor')
+            if signal_processor and hasattr(signal_processor, 'on_signal'):
+                # Subscribe with filter for this portfolio's strategy
+                # Note: This would use the enhanced EventBus with filtering
+                # For now, using standard subscription
+                root_bus.subscribe(EventType.SIGNAL, signal_processor.on_signal)
+                logger.info(f"Portfolio {portfolio_name} subscribed to signals from strategy {strategy_id}")
+    
+    # 2. Execution subscribes to ORDER events
+    if execution_container:
+        execution_engine = execution_container.get_component('execution_engine')
+        if execution_engine and hasattr(execution_engine, 'on_order'):
+            root_bus.subscribe(EventType.ORDER, execution_engine.on_order)
+            logger.info("Execution engine subscribed to ORDER events")
+    
+    # 3. Portfolios subscribe to FILL events
+    for portfolio_name, portfolio in portfolio_containers.items():
+        portfolio_state = portfolio.get_component('portfolio_state')
+        if portfolio_state and hasattr(portfolio_state, 'on_fill'):
+            root_bus.subscribe(EventType.FILL, portfolio_state.on_fill)
+            logger.info(f"Portfolio {portfolio_name} subscribed to FILL events")
 
 
 def create_parameter_combinations(strategies: List[Dict], risk_profiles: List[Dict]) -> List[Dict]:

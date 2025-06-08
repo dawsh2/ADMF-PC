@@ -1,0 +1,538 @@
+# ADMF-PC System Overview
+
+## Introduction
+
+ADMF-PC is a sophisticated quantitative trading platform built on event-driven architecture principles. At its core, the system transforms market data into trading decisions through a series of isolated, composable components that communicate via events. This document provides a comprehensive overview of the system's architecture, from low-level event handling to high-level workflow orchestration.
+
+## Core Architectural Principles
+
+### Event-Driven Design
+
+Everything in ADMF-PC is an event. Market data arriving, signals being generated, orders being placed, trades completing - all are events flowing through the system. This provides:
+
+- **Complete observability** - Every action leaves a trace
+- **Loose coupling** - Components communicate through events, not direct calls
+- **Temporal decoupling** - Components don't need to be active simultaneously
+- **Natural audit trail** - Event history provides compliance and debugging
+
+### Container Isolation
+
+The system uses containers (not Docker, but architectural containers) to isolate state and computation:
+
+- Each container maintains its own event bus
+- No shared mutable state between containers
+- Sequential event processing within containers prevents race conditions
+- Failures are isolated to individual containers
+
+### Protocol + Composition
+
+Rather than inheritance hierarchies, ADMF-PC uses:
+
+- **Protocols** define contracts (interfaces)
+- **Composition** adds capabilities
+- **Configuration** drives behavior
+- **No inheritance** keeps the system flat and understandable
+
+## System Architecture Layers
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      User Configuration                      │
+│                         (YAML/Dict)                         │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                        Coordinator                          │
+│  • Discovers workflows    • Manages execution              │
+│  • Aggregates results     • Handles distributed ops        │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                        Workflows                            │
+│  • Define multi-phase processes                            │
+│  • Specify dependencies   • Control data flow              │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                        Sequences                            │
+│  • Execute phase patterns (single, train/test, walk-forward)│
+│  • Manage topology lifecycle                               │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                       Topologies                            │
+│  • Compose containers     • Wire communication             │
+│  • Define data flow       • Configure tracing              │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────┐
+│                       Containers                            │
+│  • Isolated event buses   • Stateful components            │
+│  • Domain logic          • Event generation                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Event System and Isolation
+
+### Event Bus Architecture
+
+Each container maintains its own event bus, creating isolated execution environments:
+
+```
+Container A                    Container B
+┌─────────────────┐           ┌─────────────────┐
+│  ┌───────────┐  │           │  ┌───────────┐  │
+│  │ Event Bus │  │           │  │ Event Bus │  │
+│  └─────┬─────┘  │           │  └─────┬─────┘  │
+│        │        │           │        │        │
+│  ┌─────▼─────┐  │           │  ┌─────▼─────┐  │
+│  │Components │  │           │  │Components │  │
+│  └───────────┘  │           │  └───────────┘  │
+└─────────────────┘           └─────────────────┘
+        │                             │
+        └─────────┬───────────────────┘
+                  │
+            ┌─────▼─────┐
+            │  Router   │
+            │(Pipeline, │
+            │Broadcast, │
+            │ Filter)   │
+            └───────────┘
+```
+
+### Event Types and Flow
+
+Events flow through the system in a structured manner:
+
+1. **Market Events**: Price updates, volume changes
+2. **Signal Events**: Trading signals from strategies
+3. **Order Events**: Order placement, modification, cancellation
+4. **Execution Events**: Fills, partial fills, rejections
+5. **Risk Events**: Position limits, drawdown alerts
+6. **System Events**: Component lifecycle, errors
+
+### Race Condition Prevention
+
+The architecture prevents race conditions through:
+
+- **Sequential Processing**: Events within a container are processed one at a time
+- **Pending Order Tracking**: Orders are tracked from creation to fill
+- **State Isolation**: Each container manages its own state
+- **Event Ordering**: Guaranteed order within each event bus
+
+## Container Types and Responsibilities
+
+### Data Container
+Streams market data into the system:
+- Reads from CSV, databases, or live feeds
+- Generates market events with bar indexing
+- Manages data windowing and history
+
+### Strategy Container
+Generates trading signals:
+- Subscribes to market events
+- Applies trading logic
+- Emits signal events
+- Stateless computation with runtime parameters
+
+### Portfolio Container
+Manages positions and executes trades:
+- Tracks portfolio state
+- Converts signals to orders
+- Monitors P&L and metrics
+- Implements risk controls
+
+### Risk Container
+Enforces risk limits:
+- Position sizing
+- Exposure limits
+- Drawdown controls
+- Stop-loss management
+
+### Analytics Container
+Tracks performance metrics:
+- Calculates statistics
+- Generates reports
+- Stores results
+- Manages metric retention
+
+## Routing and Communication
+
+### Router Types
+
+Containers communicate through routers that define communication patterns:
+
+#### Pipeline Router
+Sequential processing through components:
+```
+Data → Strategy → Risk → Portfolio → Analytics
+```
+
+#### Broadcast Router
+One-to-many communication:
+```
+        ┌→ Strategy A
+Data ───┼→ Strategy B
+        └→ Strategy C
+```
+
+#### Filter Router
+Content-based routing:
+```
+Events → Filter → Matching Containers
+         (e.g., symbol-specific routing)
+```
+
+### Communication Patterns
+
+The system supports various communication patterns:
+
+1. **Request-Response**: Synchronous queries
+2. **Publish-Subscribe**: Event broadcasting
+3. **Pipeline**: Sequential processing
+4. **Scatter-Gather**: Parallel processing with aggregation
+
+## Topology Patterns
+
+Topologies define how containers are composed for specific use cases:
+
+### Signal Generation Topology
+Generates and stores trading signals without execution:
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│   Data   │───▶│ Strategy │───▶│  Signal  │
+│Container │    │Container │    │ Storage  │
+└──────────┘    └──────────┘    └──────────┘
+```
+
+Used for:
+- Strategy development
+- Signal analysis
+- Feature engineering
+- Backtesting preparation
+
+### Signal Replay Topology
+Replays stored signals for analysis or execution:
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Signal  │───▶│   Risk   │───▶│Portfolio │
+│ Storage  │    │Container │    │Container │
+└──────────┘    └──────────┘    └──────────┘
+```
+
+Used for:
+- Parameter optimization
+- Risk analysis
+- Execution simulation
+- Signal validation
+
+### Full Backtest Topology
+Complete trading simulation:
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│   Data   │───▶│ Strategy │───▶│   Risk   │
+│Container │    │Container │    │Container │
+└──────────┘    └──────────┘    └─────┬────┘
+                                      │
+                 ┌──────────┐    ┌────▼─────┐
+                 │Analytics │◀───│Portfolio │
+                 │Container │    │Container │
+                 └──────────┘    └──────────┘
+```
+
+Used for:
+- Strategy validation
+- Performance analysis
+- Risk assessment
+- Trade analysis
+
+## Event Tracing and Metrics
+
+### Event Tracing as THE Metrics System
+
+Rather than having a separate metrics system, ADMF-PC uses event tracing as the source of truth for all metrics:
+
+1. **Events contain all information**: Every event has the data needed for metrics
+2. **Configurable retention**: Keep only what's needed for memory efficiency
+3. **Streaming calculation**: Metrics updated incrementally using Welford's algorithm
+4. **No double bookkeeping**: One source of truth prevents inconsistencies
+
+### Retention Policies
+
+Different use cases require different levels of detail:
+
+#### Minimal (Production Trading)
+- Only tracks open positions
+- Removes completed trades immediately
+- Minimal memory footprint
+- Real-time performance
+
+#### Trade Complete (Backtesting)
+- Keeps full trade lifecycle
+- Removes after trade completion
+- Moderate memory usage
+- Good for analysis
+
+#### Sliding Window (Debugging)
+- Keeps last N events
+- Rolling buffer approach
+- Configurable window size
+- Useful for troubleshooting
+
+#### Full (Deep Analysis)
+- Keeps all events
+- Maximum detail
+- High memory usage
+- Complete system replay
+
+### Container-Level Tracing
+
+Each container can have its own tracer configuration:
+
+```yaml
+container_settings:
+  portfolio:
+    trace_level: trade_complete
+    max_events: 10000
+  strategy:
+    trace_level: minimal
+    max_events: 1000
+  analytics:
+    trace_level: full
+    save_to_disk: true
+```
+
+## Data Handling and Bar Indexing
+
+### Efficient Data Access
+
+The system uses bar indexing for efficient data access:
+
+1. **Base Dataset**: Continuous price/volume data
+2. **Bar Index**: Each bar has a unique sequential index
+3. **Sparse Storage**: Signals/events reference bar indices
+4. **Efficient Replay**: Jump directly to relevant bars
+
+### Indexed Event Storage
+
+Events are stored with their bar index for efficient replay:
+
+```
+Bar Index | Event Type | Event Data
+----------|------------|------------
+1000      | Signal     | {symbol: "SPY", action: "BUY"}
+1005      | Signal     | {symbol: "SPY", action: "SELL"}
+1010      | Regime     | {classifier: "trend", regime: 2}
+```
+
+This enables:
+- Quick event lookup
+- Efficient range queries
+- Sparse data storage
+- Fast replay/backtest
+
+## Workflow Orchestration
+
+### Simple Workflows
+
+Basic workflows execute a single phase:
+
+```
+User Config → Workflow → Single Phase → Results
+```
+
+Example: Simple backtest
+- One phase
+- One topology
+- Direct execution
+
+### Multi-Phase Workflows
+
+Complex workflows chain multiple phases:
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Phase 1:  │───▶│   Phase 2:  │───▶│   Phase 3:  │
+│  Training   │    │   Testing   │    │ Validation  │
+└─────────────┘    └─────────────┘    └─────────────┘
+     ↓                   ↓                   ↓
+ Optimization      Use Optimal         Final Results
+   Results          Parameters
+```
+
+Example: Walk-forward optimization
+- Multiple phases
+- Data dependencies
+- Parameter flow
+
+### Composable Workflows
+
+Advanced workflows support iteration and branching:
+
+```
+┌─────────────┐
+│Initial Phase│
+└──────┬──────┘
+       │
+    ┌──▼──┐     Continue?
+    │Check│─────No────▶ Results
+    └──┬──┘
+       │Yes
+       ▼
+   Modify Config
+       │
+    Branch?
+    ├─Yes─▶ Parallel Branches
+    │
+    └─No──▶ Next Iteration
+```
+
+Example: Adaptive ensemble
+- Dynamic phases
+- Conditional execution
+- Parallel exploration
+
+## Memory Management Strategies
+
+### Streaming Metrics
+
+The system uses streaming algorithms for memory efficiency:
+
+1. **Welford's Algorithm**: Numerically stable variance calculation
+2. **Exponential Moving Averages**: Recent data weighting
+3. **Reservoir Sampling**: Fixed-size random samples
+4. **Count-Min Sketch**: Approximate frequency counting
+
+### Result Storage Options
+
+Flexible storage based on use case:
+
+#### Memory Storage
+- Fast access
+- Limited by RAM
+- Good for small experiments
+- No persistence
+
+#### Disk Storage
+- Unlimited size
+- Slower access
+- Persistent results
+- Post-processing friendly
+
+#### Hybrid Storage
+- Summaries in memory
+- Details on disk
+- Best of both worlds
+- Configurable thresholds
+
+## Production Considerations
+
+### Fault Tolerance
+
+The system handles failures gracefully:
+
+1. **Container Isolation**: Failures don't cascade
+2. **Event Replay**: Recover from any point
+3. **Checkpoint Support**: Save/restore state
+4. **Graceful Degradation**: Partial functionality
+
+### Performance Optimization
+
+Key performance features:
+
+1. **Lazy Evaluation**: Compute only what's needed
+2. **Parallel Execution**: Independent containers run concurrently
+3. **Efficient Routing**: Direct paths for critical events
+4. **Memory Pooling**: Reuse objects to reduce GC
+
+### Monitoring and Debugging
+
+Comprehensive observability:
+
+1. **Event Tracing**: Complete system history
+2. **Performance Metrics**: Latency, throughput tracking
+3. **Resource Monitoring**: Memory, CPU usage
+4. **Debug Mode**: Verbose logging, event inspection
+
+## Configuration Philosophy
+
+### Declarative Configuration
+
+Users declare intent, not implementation:
+
+```yaml
+# User specifies what they want
+strategy:
+  type: momentum
+  symbols: ["SPY", "QQQ"]
+  
+# System figures out how to do it
+# - Creates containers
+# - Wires communication  
+# - Configures tracing
+# - Manages execution
+```
+
+### Configuration Hierarchy
+
+Multiple levels of configuration:
+
+1. **System Defaults**: Sensible out-of-box behavior
+2. **Workflow Defaults**: Workflow-specific settings
+3. **Phase Overrides**: Phase-specific changes
+4. **Container Config**: Container-specific tuning
+
+### Dynamic Configuration
+
+Configuration can be modified during execution:
+
+- Parameter optimization updates
+- Adaptive strategies
+- Risk limit adjustments
+- Resource management
+
+## Future Enhancements
+
+### Distributed Execution
+
+Plans for distributed processing:
+
+1. **Container Distribution**: Run containers on multiple machines
+2. **Event Bus Federation**: Connect distributed event buses
+3. **Result Aggregation**: Collect distributed results
+4. **Fault Tolerance**: Handle node failures
+
+### Real-Time Trading
+
+Production trading features:
+
+1. **Live Data Feeds**: Market data integration
+2. **Order Management**: Broker connectivity
+3. **Risk Controls**: Real-time limit enforcement
+4. **Latency Optimization**: Microsecond precision
+
+### Machine Learning Integration
+
+Advanced analytics:
+
+1. **Feature Pipelines**: Automated feature engineering
+2. **Model Training**: Integrated ML workflows
+3. **Online Learning**: Adaptive models
+4. **GPU Acceleration**: High-performance compute
+
+## Conclusion
+
+ADMF-PC represents a sophisticated approach to quantitative trading systems. By combining event-driven architecture, container isolation, and protocol-based composition, it achieves:
+
+- **Flexibility**: Easy to extend and modify
+- **Reliability**: Fault isolation and recovery
+- **Performance**: Efficient memory and compute usage
+- **Observability**: Complete system visibility
+- **Scalability**: From laptop to cluster
+
+The system's layered architecture ensures that complexity is manageable, with each layer having clear responsibilities. The use of event tracing as the metrics system provides a single source of truth, while configurable retention policies ensure memory efficiency. The bar indexing system enables efficient data access and replay, while the workflow orchestration layer allows sophisticated multi-phase strategies.
+
+Whether used for research, backtesting, or production trading, ADMF-PC provides a solid foundation for quantitative trading systems that can grow with user needs while maintaining architectural integrity.

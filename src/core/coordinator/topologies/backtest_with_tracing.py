@@ -9,8 +9,7 @@ from typing import Dict, Any, List
 import logging
 
 from ...container_factory import ContainerFactory
-from .helpers.component_builder import create_stateless_components
-from .helpers.routing import route_backtest_topology
+from ..topology import create_stateless_components
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,6 @@ def create_backtest_topology(config: Dict[str, Any]) -> Dict[str, Any]:
     # Initialize topology structure
     topology = {
         'containers': {},
-        'routes': [],
         'parameter_combinations': [],
         'stateless_components': {}
     }
@@ -195,8 +193,20 @@ def create_backtest_topology(config: Dict[str, Any]) -> Dict[str, Any]:
     execution_container = container_factory.create_container('execution', execution_config)
     topology['containers']['execution'] = execution_container
     
-    # 4. Route containers together
-    topology['routes'] = route_backtest_topology(topology['containers'], config)
+    # 4. Wire up event subscriptions
+    logger.info("Setting up event subscriptions")
+    
+    # Get or create root event bus
+    if hasattr(container_factory, 'root_event_bus'):
+        root_bus = container_factory.root_event_bus
+    else:
+        # Create a root event bus if needed
+        from ...events import EventBus
+        root_bus = EventBus()
+    
+    # Import and use the same subscription setup from backtest.py
+    from .backtest import setup_backtest_subscriptions
+    setup_backtest_subscriptions(topology['containers'], root_bus, topology['parameter_combinations'])
     
     logger.info(
         f"Created backtest topology with {len(topology['containers'])} containers "

@@ -9,6 +9,7 @@ from typing import Protocol, Dict, Any, Optional, List, Callable
 from abc import abstractmethod
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 
 from ..types.events import Event, EventType
 from ..types.trading import Bar, Signal, Order, Fill, Position
@@ -58,15 +59,27 @@ class DataStreamer:
         logger.info(f"Stopping data streamer for {self.symbol}_{self.timeframe}")
         
     def stream_next_bar(self) -> Optional[Bar]:
-        """Stream next bar and publish BAR event."""
+        """Stream next bar and publish BAR event with enhanced metadata."""
         if self.data_source and self.current_index < len(self.data_source):
             bar = self.data_source[self.current_index]
             self.current_index += 1
             
-            # Publish BAR event
+            # Publish enhanced BAR event with timing metadata
             event = Event(
                 event_type=EventType.BAR,
-                payload={'bar': bar, 'symbol': self.symbol, 'timeframe': self.timeframe}
+                payload={
+                    'bar': bar,
+                    'symbol': self.symbol,
+                    'timeframe': self.timeframe,
+                    'bar_close_time': bar.timestamp,  # When bar period ended
+                    'is_complete': True,  # Historical bars are complete
+                    # Include OHLCV data directly for convenience
+                    'open': bar.open,
+                    'high': bar.high,
+                    'low': bar.low,
+                    'close': bar.close,
+                    'volume': bar.volume
+                }
             )
             self.container.event_bus.publish(event)
             return bar
@@ -122,7 +135,8 @@ class FeatureCalculator:
                 'bar': bar
             }
         )
-        self.container.event_bus.publish(features_event)
+        # Publish to parent (symbol_timeframe container will handle routing to root)
+        self.container.publish_event(features_event, target_scope="parent")
         
     def calculate_features(self) -> Dict[str, float]:
         """Calculate all configured indicators."""
@@ -204,6 +218,8 @@ class SignalProcessor:
     def initialize(self, container: 'Container') -> None:
         self.container = container
         self.signal_count = 0
+        # Get strategy assignments from container config
+        self.strategy_assignments = self.container.config.config.get('strategy_assignments', [])
         
     def start(self) -> None:
         # Subscribe to SIGNAL events
@@ -221,9 +237,9 @@ class SignalProcessor:
             
         self.signal_count += 1
         
-        # Check if this signal is for our portfolio
-        combo_id = event.payload.get('combo_id')
-        if combo_id != self.container.metadata.container_id:
+        # Check if this signal is from a strategy we're subscribed to
+        strategy_id = event.payload.get('strategy_id')
+        if strategy_id not in self.strategy_assignments:
             return
             
         # Process signal and potentially generate order
@@ -250,17 +266,49 @@ class OrderGenerator:
     def stop(self) -> None:
         logger.info("Stopping order generator")
         
-    def generate_order(self, signal: Signal, portfolio_state: PortfolioState) -> Optional[Order]:
-        """Generate order from signal considering portfolio state."""
+    def generate_order(self, signal: Dict[str, Any], portfolio_state: PortfolioState) -> Optional[Order]:
+        """Generate order from signal considering portfolio state.
+        
+        Multi-asset signal convention examples:
+        1. Single asset signal:
+           signal = {
+               'symbol': 'AAPL',
+               'direction': 'BUY',
+               'strategy_id': 'momentum_v1',
+               'bar_data': {'AAPL_1m': {...}},
+               'features': {...}
+           }
+        
+        2. Pairs trading signal (multiple orders):
+           signal = {
+               'strategy_id': 'pairs_trade',
+               'orders': [
+                   {'symbol': 'AAPL', 'direction': 'BUY', 'ratio': 1},
+                   {'symbol': 'MSFT', 'direction': 'SELL', 'ratio': 1.2}
+               ],
+               'bar_data': {'AAPL_5m': {...}, 'MSFT_5m': {...}},
+               'features': {...}
+           }
+        """
         # Order generation logic
         self.orders_generated += 1
         
-        # Publish ORDER_REQUEST event
+        # TODO: Implement actual order creation logic
+        order = None  # Replace with actual order creation
+        
+        # Publish ORDER_REQUEST event with enriched context
         order_event = Event(
             event_type=EventType.ORDER_REQUEST,
-            payload={'order': order, 'portfolio_id': self.container.metadata.container_id}
+            payload={
+                'order': order,
+                'portfolio_id': self.container.metadata.container_id,
+                'strategy_id': signal.get('strategy_id'),
+                'classification': signal.get('classification'),  # For risk validation
+                'bar_data': signal.get('bar_data', {})  # Context for risk assessment
+            }
         )
-        self.container.root_event_bus.publish(order_event)
+        # Always publish to parent - routing will handle the rest
+        self.container.publish_event(order_event, target_scope="parent")
         
         return order
     
@@ -306,13 +354,39 @@ class RiskValidator:
                 event_type=EventType.ORDER,
                 payload=event.payload
             )
-            self.container.root_event_bus.publish(approved_event)
+            # Publish locally - routes will handle distribution
+            self.container.event_bus.publish(approved_event)
         else:
             self.rejections += 1
             logger.warning(f"Order rejected by risk validator: {order}")
+            # Could also publish RISK_REJECTED event
+            rejected_event = Event(
+                event_type=EventType.RISK_REJECTED,
+                payload=event.payload
+            )
+            self.container.event_bus.publish(rejected_event)
     
     def validate_order(self, order: Order) -> bool:
-        """Validate order against risk limits."""
+        """Validate order against risk limits.
+        
+        TODO: Enhanced risk validation examples using enriched signal data:
+        
+        1. Use bar_data from signal (passed in ORDER_REQUEST payload):
+           bar_data = self.current_event.payload.get('bar_data', {})
+           current_price = bar_data.get(f"{order.symbol}_1m", {}).get('close')
+           
+        2. Classification-aware risk:
+           classification = self.current_event.payload.get('classification')
+           if classification == 'high_volatility':
+               max_position_size = self.max_position_size * 0.5  # Reduce in volatile markets
+               
+        3. Multi-asset correlation checks:
+           # Check if multiple positions are correlated
+           bar_data = self.current_event.payload.get('bar_data', {})
+           if 'SPY_1m' in bar_data and 'QQQ_1m' in bar_data:
+               # Both tech-heavy ETFs, check combined exposure
+               pass
+        """
         # Placeholder validation logic
         return True
     
@@ -381,3 +455,13 @@ class ExecutionEngine:
             'fills_generated': self.fills_generated,
             'fill_rate': self.fills_generated / max(1, self.orders_processed)
         }
+
+
+# Import our signal generation/replay components
+# These would normally be in separate files but adding here for completeness
+try:
+    from .components.signal_generator import SignalGeneratorComponent
+    from .components.signal_streamer import SignalStreamerComponent, BoundaryAwareReplay
+except ImportError:
+    # If not in separate files, they should be added here
+    pass

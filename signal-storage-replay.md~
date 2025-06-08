@@ -1,0 +1,498 @@
+# Signal Storage and Replay Architecture
+
+## Overview
+
+Signal generation and replay is a critical optimization technique in systematic trading systems. The core idea is simple: computing trading signals from market data and features is computationally expensive, especially when running parameter sweeps across hundreds or thousands of combinations. By storing the generated signals and replaying them later, we can test different portfolio configurations, risk parameters, and execution models without recomputing the underlying signals.
+
+However, implementing this efficiently presents several challenges. The naive approach of storing complete dataset copies for each parameter combination quickly becomes untenable - both in terms of storage space and memory usage during parallel execution. This document presents an elegant solution using indexed sparse storage that maintains the mathematical purity of data transformation while achieving practical efficiency.
+
+## The Problem
+
+When running a parameter optimization across 500 different strategy configurations, we face a fundamental trade-off. We need to store enough information to perfectly reconstruct the trading decisions, but we want to avoid massive data duplication. The challenge becomes even more complex when we introduce regime-aware strategies, where we need to filter signals based on market regimes, handle trades that span regime boundaries, and maintain proper event ordering.
+
+The traditional approach of storing full datasets for each parameter combination fails because it creates storage requirements that grow linearly with the number of parameters. For a modest 100MB dataset with 500 parameter combinations, we would need 50GB of storage just for a single optimization run. This approach also makes parallelization difficult due to memory constraints.
+
+## The Key Insight: Indexed Sparse Storage
+
+The breakthrough comes from recognizing that all derived data (signals, regimes, filters) can be represented as sparse indices into an immutable base dataset. Instead of storing complete datasets, we store only the points where something interesting happens - a signal is generated, a regime changes, a threshold is crossed. Everything else can be efficiently reconstructed by combining these sparse indices with the original data.
+
+This approach achieves several critical properties. First, it maintains a perfect isomorphism between the stored representation and the full dataset - we can always reconstruct the complete trading sequence without loss of information. Second, it scales with the number of events rather than the size of the dataset, making it extremely efficient for typical trading strategies that generate signals infrequently. Third, it naturally supports filtering and composition, allowing us to efficiently query for specific conditions like "all buy signals during bull regimes."
+
+## Topology Considerations
+
+An important architectural decision is the ordering of components in the event flow. The system is designed with a linear topology where classifiers precede strategies, and portfolios receive market data through strategies rather than directly from data sources. This design choice eliminates race conditions, simplifies event tracing, and ensures consistent state across components.
+
+The recommended topology is:
+```
+Bars → Features → Classifiers → Strategies → Portfolio → Risk → Execution
+```
+
+This linear flow ensures that:
+- Classifiers have features before strategies need regime information
+- Strategies have both features and regime context before generating signals  
+- Portfolios receive bar data and signals atomically from strategies
+- No component can receive data out of order
+
+**Important Event Flow Adjustment for Signal Storage:**
+When implementing signal generation and replay topologies, the event flow must be adjusted:
+
+1. **Signal Generation Mode**: Events flow up to strategies, then signals are captured via event tracing
+   - Stop at strategies - no portfolio/risk/execution containers needed
+   - Attach signal storage observers to capture all generated signals
+   
+2. **Signal Replay Mode**: Events start from stored signals, bypassing data/features/strategies
+   - Load signals from storage and emit them directly to portfolios
+   - Skip the entire data → features → strategies pipeline
+
+This requires the topology builder to construct different container graphs based on the mode.
+
+## Architecture
+
+### Integration with ADMF-PC Containers
+
+The signal replay functionality integrates naturally with ADMF-PC's container architecture. Rather than creating specialized container classes, the system uses the existing symbol-timeframe container pattern with appropriate data sources:
+
+```python
+# Configuration-driven container creation
+replay_config = {
+    'container_type': 'symbol_timeframe',
+    'data_source': {
+        'type': 'signal_replay',
+        'base_data': 'data/SPY_2023.parquet',
+        'signal_indices': {
+            'momentum': 'indices/signals/momentum_5_20.idx',
+            'rsi': 'indices/signals/rsi_14_30_70.idx'
+        },
+        'regime_indices': 'indices/regimes/trend_classifier.idx'
+    }
+}
+
+# The topology builder creates appropriate containers
+# No hardcoded SignalReplayContainer class needed
+```
+
+### Optimization Module Deprecation
+
+The system is moving away from a separate optimization module in favor of a more integrated approach:
+
+**Old Approach:**
+- Dedicated optimization module handled parameter expansion and result collection
+- Complex coordination between optimization module and topology builder
+- Separate result extraction logic
+
+**New Approach:**
+1. **TopologyBuilder handles parameter expansion** - The topology builder directly expands parameter combinations when building topologies
+2. **Objective function observers** - Each portfolio container gets an observer that calculates the objective function from event traces
+3. **Sequencer orchestrates results** - The sequencer collects results from containers and feeds them back to the topology builder for the next phase
+
+```python
+# Example: New optimization flow
+class TopologyBuilder:
+    def build_topology(self, config, parameter_expansion=None):
+        # Expand parameters inline during topology creation
+        if parameter_expansion:
+            portfolios = self._expand_portfolio_parameters(config, parameter_expansion)
+        
+        # Add objective function observer to each portfolio
+        for portfolio in portfolios:
+            objective_observer = ObjectiveFunctionObserver(
+                function=config.get('objective_function', 'sharpe_ratio')
+            )
+            portfolio.event_bus.attach_observer(objective_observer)
+
+class Sequencer:
+    def execute_optimization_sequence(self, phases):
+        for phase in phases:
+            # Build topology with parameter expansion
+            topology = self.topology_builder.build_topology(
+                phase.config, 
+                phase.parameter_expansion
+            )
+            
+            # Execute phase
+            results = self.execute_topology(topology)
+            
+            # Extract objective values from observers
+            objective_values = self._extract_objective_values(topology)
+            
+            # Feed results to next phase
+            next_phase.parameter_selection = self._select_best_parameters(
+                objective_values
+            )
+```
+
+This integrated approach:
+- Eliminates the need for a separate optimization module
+- Leverages the event tracing system for objective function calculation
+- Simplifies the data flow between phases
+- Makes optimization a natural part of the topology/sequencer pattern
+
+### Core Data Structure
+
+The system uses a simple but powerful data model where everything is an indexed reference to the base dataset:
+
+```python
+from dataclasses import dataclass
+from typing import Dict, Any, Protocol, runtime_checkable
+
+@dataclass
+class IndexedSignal:
+    """A trading signal at a specific point in time."""
+    bar_idx: int      # Index into base dataset
+    value: float      # Signal value (-1, 0, 1 or continuous)
+    metadata: Dict    # Optional metadata (confidence, features used, etc.)
+
+@dataclass
+class IndexedRegime:
+    """A regime classification at a specific point in time."""
+    bar_idx: int      # Index into base dataset  
+    regime: str       # Regime identifier
+    confidence: float # Classification confidence
+
+@dataclass
+class IndexedEvent:
+    """Generic indexed event for extensibility."""
+    bar_idx: int      # Index into base dataset
+    event_type: str   # Event type identifier
+    payload: Any      # Event-specific data
+
+@dataclass
+class IndexedClassifierChange:
+    """Tracks when a classifier changes its regime classification."""
+    bar_idx: int      # Index in the base dataset
+    new_regime: int   # 1, 2, 3 for three-tier system
+    
+@runtime_checkable
+class IndexedEventProtocol(Protocol):
+    """Event that references a specific data index."""
+    @property
+    def bar_idx(self) -> int:
+        """Index in the base dataset."""
+        ...
+```
+
+### Storage Layout
+
+The storage system maintains a clear separation between immutable base data and mutable indices:
+
+```
+data/
+├── base/
+│   └── SPY_2023.parquet         # Immutable base dataset
+└── indices/
+    ├── signals/
+    │   ├── momentum_5_20.idx    # Sparse signal indices
+    │   ├── rsi_14_30_70.idx    
+    │   └── ensemble_v1.idx     
+    ├── regimes/
+    │   ├── trend_classifier.idx # Sparse regime changes
+    │   └── volatility_classifier.idx
+    └── filters/
+        └── volume_filter.idx    # Sparse filter crossings
+```
+
+### Event Flow for Signal Generation
+
+During signal generation, the system captures only the essential information:
+
+1. **Bar events stream through the system** - The base dataset flows normally
+2. **Strategies emit signals sparsely** - Only non-zero signals are captured with their bar index
+3. **Classifiers emit only changes** - Regime changes are stored as (index, new_regime) pairs
+4. **Storage is incremental** - Each component's output is stored independently
+
+### Event Flow for Signal Replay
+
+During replay, the system reconstructs full events on demand:
+
+1. **Load sparse indices** - Relevant signal/regime indices are loaded into memory
+2. **Stream base data** - Original bars stream through the system
+3. **Merge on-the-fly** - Signals and regimes are merged with bars based on indices
+4. **Filter efficiently** - Regime filtering uses index ranges without loading unnecessary data
+
+## Implementation Details
+
+### Sparse Storage Format
+
+Each index file contains minimal information needed for reconstruction:
+
+```python
+class SparseIndex:
+    """Efficient storage for indexed events."""
+    
+    def __init__(self):
+        self.version = 1
+        self.metadata = {}  # Strategy params, creation time, etc.
+        self.indices = []   # List of (bar_idx, value) tuples
+        
+    def save(self, filepath: str):
+        """Save to disk using Parquet for compression."""
+        df = pd.DataFrame(self.indices, columns=['bar_idx', 'value'])
+        df.to_parquet(filepath, compression='snappy')
+        
+    def load(self, filepath: str):
+        """Load from disk."""
+        df = pd.read_parquet(filepath)
+        self.indices = list(df.itertuples(index=False, name=None))
+```
+
+### Regime-Aware Filtering
+
+The indexed approach makes regime filtering elegant and efficient:
+
+```python
+def get_regime_filtered_signals(
+    signals: List[IndexedSignal],
+    regimes: List[IndexedRegime], 
+    target_regime: str
+) -> List[IndexedSignal]:
+    """Get signals that occur during specific regime."""
+    
+    # Build regime ranges
+    regime_ranges = []
+    for i, regime in enumerate(regimes):
+        if regime.regime == target_regime:
+            start = regime.bar_idx
+            end = regimes[i+1].bar_idx if i+1 < len(regimes) else float('inf')
+            regime_ranges.append((start, end))
+    
+    # Filter signals by regime ranges
+    return [
+        s for s in signals
+        if any(start <= s.bar_idx < end for start, end in regime_ranges)
+    ]
+```
+
+### Boundary Trade Handling
+
+Trades that span regime changes require careful handling to ensure positions opened in the target regime are properly closed even if the regime changes:
+
+```python
+# NOTE: This is reference code and should be reviewed for production use
+class BoundaryAwareReplay:
+    """Handles trades that cross regime boundaries."""
+    
+    def __init__(self, target_regime: str):
+        self.target_regime = target_regime
+        self.in_position = False
+        self.position_open_regime = None
+        self.position_open_idx = None
+    
+    def should_emit_signal(self, signal_idx: int, signal_value: float, 
+                          current_regime: str) -> bool:
+        """Determine if signal should be emitted based on regime rules."""
+        
+        # Case 1: Opening position
+        if signal_value != 0 and not self.in_position:
+            if current_regime == self.target_regime:
+                # Open position in target regime
+                self.in_position = True
+                self.position_open_regime = current_regime
+                self.position_open_idx = signal_idx
+                return True
+            else:
+                # Skip signal - not in target regime
+                return False
+        
+        # Case 2: Closing position
+        elif signal_value != 0 and self.in_position:
+            # ALWAYS emit close signal if we have open position
+            # This handles boundary trades correctly
+            self.in_position = False
+            
+            # Log if this was a boundary trade
+            if current_regime != self.position_open_regime:
+                print(f"Boundary trade: opened in {self.position_open_regime}, "
+                      f"closed in {current_regime}")
+            
+            return True
+        
+        # Case 3: No signal
+        return False
+```
+
+The key insight: We always honor close signals if we have an open position, regardless of current regime. This ensures we don't have hanging positions when replaying regime-filtered signals.
+
+## Benefits
+
+### Storage Efficiency
+- **Sparse representation** - Only store when events occur, not every bar
+- **Single base dataset** - No duplication across parameter combinations  
+- **Compressed format** - Parquet provides excellent compression for sparse data
+
+### Computational Efficiency
+- **Fast replay** - Simple index lookups and merges
+- **Parallel friendly** - Each parameter set has independent indices
+- **Memory efficient** - Can stream base data without loading everything
+
+### Architectural Elegance
+- **Clean separation** - Base data is immutable, indices are derived
+- **Composable** - Can layer multiple indices (signals + regimes + filters)
+- **Extensible** - New event types just add new index sets
+
+### Mathematical Properties
+- **Isomorphic** - Perfect mapping between stored and full representation
+- **Filterable** - Can efficiently query any subset
+- **Traceable** - Clear lineage from base data to final signals
+
+## Future Extensions
+
+The indexed approach naturally supports advanced features:
+
+1. **Multi-timeframe analysis** - Indices can reference different timeframes
+2. **Cross-asset signals** - Indices can reference multiple base datasets
+3. **Feature importance** - Can store which features influenced each signal
+4. **Online learning** - Can append to indices in real-time
+
+## Event System Integration and Race Conditions
+
+### Current State of Event System Refactor
+
+The event system refactor (as described in `refactor.md`) provides a clean architecture with observer patterns and proper separation of concerns. However, it's important to note that the refactor focuses on code organization and does not inherently solve potential race conditions in multi-container systems.
+
+### Potential Race Conditions
+
+In the current architecture, race conditions could theoretically occur in scenarios such as:
+
+1. **Multiple Portfolio Containers** - Different portfolios processing the same bar at different speeds
+2. **Signal vs Risk Timing** - Risk decisions based on stale state while portfolios are updating  
+3. **Event Bus Isolation** - Each container has its own EventBus with no global ordering
+
+### Why Linear Topology Helps
+
+The linear topology (Bars → Features → Classifiers → Strategies → Portfolio) significantly reduces race condition risks by:
+
+1. **Sequential Processing** - Each stage completes before the next begins
+2. **Atomic Updates** - Portfolios receive bar data and signals together from strategies
+3. **No Broadcast Splitting** - Avoiding parallel paths that could diverge in timing
+
+### Coordinator's Role
+
+The Coordinator already enforces sequential processing of bars in the current implementation. Each bar is fully processed through all containers before the next bar begins. This provides natural phase barriers that prevent most race conditions.
+
+For signal replay, the same coordination ensures that:
+- All sparse indices are loaded before replay begins
+- Each bar's signals are fully merged before emission
+- Portfolio state remains consistent throughout replay
+
+## Conclusion
+
+The indexed sparse storage approach provides an elegant solution to the signal storage and replay challenge. By recognizing that trading events are inherently sparse and that all derived data can be represented as indices into base data, we achieve both mathematical purity and practical efficiency. This architecture scales naturally with the complexity of trading strategies while maintaining the simplicity needed for robust production systems.
+
+The integration with ADMF-PC's event-driven architecture is natural - sparse indices are essentially stored events that can be replayed through the same container topology. The linear event flow and coordinator-enforced sequencing provide sufficient protection against race conditions for backtesting scenarios.
+
+## Results Storage Architecture Options
+
+### Storage Pattern Options
+
+**Option 1: Parquet + Metadata JSON**
+```
+./results/
+└── workflow_id/
+    ├── metadata.json          # Workflow metadata, parameters
+    ├── phases/
+    │   ├── phase1/
+    │   │   ├── metrics.parquet    # Columnar storage for metrics
+    │   │   ├── trades.parquet     # Trade records
+    │   │   └── events/            # Event traces (if enabled)
+    │   │       └── *.jsonl.gz
+    │   └── phase2/
+    └── summary.json           # Final aggregate results
+```
+
+**Option 2: Time-Series Optimized**
+```python
+# Use DuckDB or TimescaleDB for time-series data
+class TimeSeriesResultStore:
+    def __init__(self, db_path: str):
+        self.conn = duckdb.connect(db_path)
+        self._init_schema()
+    
+    def _init_schema(self):
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS metrics (
+                workflow_id VARCHAR,
+                phase VARCHAR,
+                container_id VARCHAR,
+                timestamp TIMESTAMP,
+                metric_name VARCHAR,
+                metric_value DOUBLE,
+                PRIMARY KEY (workflow_id, container_id, timestamp, metric_name)
+            )
+        """)
+```
+
+**Option 3: Hybrid Approach (Recommended)**
+- Use Parquet for analytical queries (metrics, trades)
+- Keep JSONL for event traces (better for streaming writes)
+- SQLite for metadata and indexing
+- Configure retention per data type:
+
+```python
+class HierarchicalResultStore:
+    def __init__(self, base_path: Path):
+        self.base_path = base_path
+        self.retention_policies = {
+            'metrics': timedelta(days=365),    # Keep metrics for 1 year
+            'trades': timedelta(days=90),      # Keep trades for 90 days
+            'events': timedelta(days=7),       # Keep detailed events for 7 days
+            'summary': None                    # Keep summaries forever
+        }
+```
+
+### Benefits of Each Approach
+
+**Option 1 (Parquet + JSON)**
+- Simple file-based structure
+- Easy to browse and debug
+- Good compression with Parquet
+- No database dependencies
+
+**Option 2 (Time-Series DB)**
+- Optimized for time-series queries
+- Built-in aggregation functions
+- Efficient storage for high-frequency data
+- Better for real-time analytics
+
+**Option 3 (Hybrid)**
+- Best of both worlds
+- Flexible retention policies
+- Optimized for different access patterns
+- Scalable to production needs
+
+### Retention Policy Considerations
+
+1. **Event Traces**: Short retention (7-30 days) due to size
+2. **Metrics**: Medium retention (90-365 days) for analysis
+3. **Trade Records**: Long retention (1-5 years) for compliance
+4. **Summaries**: Permanent retention for historical reference
+
+### Data Migration Strategy
+
+```python
+class ResultMigrator:
+    """Handle migrations between storage formats."""
+    
+    def migrate_v1_to_v2(self, old_path: Path, new_path: Path):
+        """Migrate from JSON to Parquet format."""
+        # Load old format
+        with open(old_path / 'results.json') as f:
+            old_data = json.load(f)
+        
+        # Convert to new format
+        metrics_df = pd.DataFrame(old_data['metrics'])
+        trades_df = pd.DataFrame(old_data['trades'])
+        
+        # Save in new format
+        metrics_df.to_parquet(new_path / 'metrics.parquet')
+        trades_df.to_parquet(new_path / 'trades.parquet')
+        
+        # Preserve metadata
+        metadata = {
+            'version': 2,
+            'migrated_from': str(old_path),
+            'migration_date': datetime.now().isoformat(),
+            'original_metadata': old_data.get('metadata', {})
+        }
+        with open(new_path / 'metadata.json', 'w') as f:
+            json.dump(metadata, f, indent=2)
+```

@@ -1,13 +1,16 @@
 """
-Container-aware EventBus implementation for ADMF-PC.
+Enhanced EventBus implementation with required filtering for SIGNAL events.
 
 This module provides the core event bus that handles event routing within
 a container. Each container gets its own EventBus instance, ensuring
 complete isolation between different backtests or optimization trials.
+
+The enhanced version enforces filtering for SIGNAL events to prevent the
+N×M delivery problem in multi-portfolio/multi-strategy systems.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Set, Union, Optional, Callable, Any
+from typing import Dict, List, Set, Union, Optional, Callable, Any, Tuple
 from collections import defaultdict
 import threading
 import logging
@@ -24,11 +27,14 @@ logger = logging.getLogger(__name__)
 
 class EventBus(EventBusProtocol):
     """
-    Container-isolated event bus implementation.
+    Enhanced EventBus with required filtering for SIGNAL events.
     
     Each container gets its own EventBus instance, preventing any
     cross-contamination between parallel executions. Thread-safe
     for use within a single container.
+    
+    Key enhancement: SIGNAL events REQUIRE a filter function to ensure
+    portfolios only receive signals from their assigned strategies.
     """
     
     def __init__(self, container_id: Optional[str] = None):
@@ -39,7 +45,8 @@ class EventBus(EventBusProtocol):
             container_id: Optional identifier for the container this bus belongs to
         """
         self.container_id = container_id
-        self._subscribers: Dict[Union[EventType, str], List[EventHandler]] = defaultdict(list)
+        # Store (handler, filter_func) tuples instead of just handlers
+        self._subscribers: Dict[Union[EventType, str], List[Tuple[EventHandler, Optional[Callable]]]] = defaultdict(list)
         self._handler_refs: Dict[EventHandler, Set[Union[EventType, str]]] = defaultdict(set)
         self._lock = threading.RLock()
         self._event_count = 0
@@ -190,22 +197,41 @@ class EventBus(EventBusProtocol):
             if current_event_id and self._processing_stack:
                 self._processing_stack.pop()
     
-    def subscribe(self, event_type: Union[EventType, str], handler: EventHandler) -> None:
+    def subscribe(self, event_type: Union[EventType, str], handler: EventHandler, 
+                  filter_func: Optional[Callable[[Event], bool]] = None) -> None:
         """
-        Subscribe a handler to events of a specific type.
+        Subscribe a handler to events of a specific type with optional filtering.
+        
+        SIGNAL events REQUIRE a filter function to prevent N×M delivery problems.
         
         Args:
             event_type: The type of events to subscribe to
             handler: The handler function to call when events are published
+            filter_func: Optional filter function that returns True if event should be delivered
+        
+        Raises:
+            ValueError: If subscribing to SIGNAL events without a filter function
         """
+        # Required filtering for SIGNAL events
+        if event_type == EventType.SIGNAL.value and filter_func is None:
+            raise ValueError(
+                "SIGNAL events require a filter function to ensure portfolios "
+                "only receive signals from their assigned strategies."
+            )
+            
         with self._lock:
-            if handler not in self._subscribers[event_type]:
-                self._subscribers[event_type].append(handler)
+            # Check if this handler is already subscribed with the same filter
+            existing_handlers = self._subscribers[event_type]
+            handler_exists = any(h == handler and f == filter_func for h, f in existing_handlers)
+            
+            if not handler_exists:
+                self._subscribers[event_type].append((handler, filter_func))
                 self._handler_refs[handler].add(event_type)
                 self._cache_dirty = True
                 
                 logger.debug(
                     f"Handler {handler} subscribed to {event_type} "
+                    f"{'with filter' if filter_func else 'without filter'} "
                     f"in container {self.container_id} (bus id: {id(self)})"
                 )
     
@@ -218,8 +244,13 @@ class EventBus(EventBusProtocol):
             handler: The handler to remove
         """
         with self._lock:
-            if handler in self._subscribers[event_type]:
-                self._subscribers[event_type].remove(handler)
+            # Find and remove all entries for this handler
+            handlers_to_remove = [(h, f) for h, f in self._subscribers[event_type] if h == handler]
+            
+            for handler_tuple in handlers_to_remove:
+                self._subscribers[event_type].remove(handler_tuple)
+                
+            if handlers_to_remove:
                 self._handler_refs[handler].discard(event_type)
                 
                 # Clean up empty entries
@@ -249,8 +280,13 @@ class EventBus(EventBusProtocol):
             # Use a special wildcard key
             wildcard_key = '*'  # Special key for all events
             
-            if handler not in self._subscribers[wildcard_key]:
-                self._subscribers[wildcard_key].append(handler)
+            # Check if handler already subscribed
+            existing_handlers = self._subscribers[wildcard_key]
+            handler_exists = any(h == handler for h, f in existing_handlers)
+            
+            if not handler_exists:
+                # No filter for wildcard subscriptions
+                self._subscribers[wildcard_key].append((handler, None))
                 self._handler_refs[handler].add(wildcard_key)
                 self._cache_dirty = True
                 
@@ -336,8 +372,8 @@ class EventBus(EventBusProtocol):
     
     # Private methods
     
-    def _get_handlers(self, event_type: Union[EventType, str]) -> tuple:
-        """Get handlers for an event type, using cache if possible."""
+    def _get_handlers(self, event_type: Union[EventType, str], event: Event) -> tuple:
+        """Get handlers for an event type, applying filters as needed."""
         with self._lock:
             if self._cache_dirty or event_type not in self._handler_cache:
                 # Get specific handlers for this event type
@@ -347,10 +383,16 @@ class EventBus(EventBusProtocol):
                 wildcard_handlers = list(self._subscribers.get('*', []))
                 
                 # Combine them, with specific handlers first
-                all_handlers = specific_handlers + wildcard_handlers
+                all_handler_tuples = specific_handlers + wildcard_handlers
+                
+                # Apply filters and extract handlers
+                filtered_handlers = []
+                for handler, filter_func in all_handler_tuples:
+                    if filter_func is None or filter_func(event):
+                        filtered_handlers.append(handler)
                 
                 # Create immutable tuple for thread-safe access
-                handlers = tuple(all_handlers)
+                handlers = tuple(filtered_handlers)
                 self._handler_cache[event_type] = handlers
                 if event_type in self._handler_cache:
                     self._cache_dirty = False

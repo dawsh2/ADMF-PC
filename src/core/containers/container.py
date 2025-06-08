@@ -18,6 +18,15 @@ import logging
 
 from ..events import EventBus
 from .protocols import Container as ContainerProtocol, ContainerMetadata, ContainerLimits, ContainerState, ContainerRole
+from .exceptions import (
+    ComponentAlreadyExistsError,
+    ComponentNotFoundError,
+    ComponentDependencyError,
+    InvalidContainerStateError,
+    InvalidContainerConfigError,
+    ParentContainerNotSetError
+)
+from .types import ContainerComponent, ContainerConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -442,7 +451,7 @@ class Container:
         self._child_containers: Dict[str, 'Container'] = {}
         
         # Component registry
-        self._components: Dict[str, Any] = {}
+        self._components: Dict[str, ContainerComponent] = {}
         self._component_order: List[str] = []
         
         # Metadata for composition
@@ -516,7 +525,7 @@ class Container:
         """Child containers nested within this container."""
         return list(self._child_containers.values())
     
-    def add_component(self, name: str, component: Any) -> None:
+    def add_component(self, name: str, component: ContainerComponent) -> None:
         """
         Add a component to the container.
         
@@ -525,7 +534,7 @@ class Container:
             component: Component instance
         """
         if name in self._components:
-            raise ValueError(f"Component '{name}' already exists")
+            raise ComponentAlreadyExistsError(name)
         
         self._components[name] = component
         self._component_order.append(name)
@@ -536,7 +545,7 @@ class Container:
         
         logger.debug(f"Added component '{name}' to {self.name}")
     
-    def get_component(self, name: str) -> Optional[Any]:
+    def get_component(self, name: str) -> Optional[ContainerComponent]:
         """
         Get a component by name.
         
@@ -565,12 +574,12 @@ class Container:
         """
         component = self.get_component(component_name)
         if not component:
-            raise ValueError(f"Component '{component_name}' not found")
+            raise ComponentNotFoundError(component_name)
             
         for attr_name, dep_name in dependencies.items():
             dep_component = self.get_component(dep_name)
             if not dep_component:
-                raise ValueError(f"Dependency '{dep_name}' not found")
+                raise ComponentDependencyError(component_name, dep_name)
             setattr(component, attr_name, dep_component)
             logger.debug(f"Wired {dep_name} to {component_name}.{attr_name}")
     
@@ -614,7 +623,11 @@ class Container:
     def start(self) -> None:
         """Start the container and begin processing."""
         if self._state not in (ContainerState.INITIALIZED, ContainerState.STOPPED):
-            raise RuntimeError(f"Container {self.name} not in proper state for starting (current: {self._state})")
+            raise InvalidContainerStateError(
+                self.name,
+                self._state,
+                [ContainerState.INITIALIZED, ContainerState.STOPPED]
+            )
         
         try:
             # Start all components
@@ -693,7 +706,10 @@ class Container:
     def add_child_container(self, child: 'Container') -> None:
         """Add a child container."""
         if child.container_id in self._child_containers:
-            raise ValueError(f"Child container {child.container_id} already exists")
+            raise InvalidContainerConfigError(
+                f"Child container {child.container_id} already exists",
+                "child_containers"
+            )
         
         self._child_containers[child.container_id] = child
         child._parent_container = self
@@ -767,7 +783,14 @@ class Container:
         return None
     
     def publish_event(self, event: Any, target_scope: str = "local") -> None:
-        """Publish event to specified scope (local, parent, children, broadcast)."""
+        """Publish event to specified scope.
+        
+        Scopes:
+        - local: Only this container's event bus (default)
+        - parent: Direct parent container (for upward propagation)
+        
+        All other communication patterns should use routes.
+        """
         self._metrics['events_published'] += 1
         self._metrics['last_activity'] = datetime.now()
         
@@ -775,18 +798,8 @@ class Container:
             self.event_bus.publish(event)
         elif target_scope == "parent" and self._parent_container:
             self._parent_container.receive_event(event)
-        elif target_scope == "children":
-            for child in self._child_containers.values():
-                child.receive_event(event)
-        elif target_scope == "broadcast":
-            # Broadcast to all: self, parent, children
-            self.event_bus.publish(event)
-            if self._parent_container:
-                self._parent_container.receive_event(event)
-            for child in self._child_containers.values():
-                child.receive_event(event)
         else:
-            # Default to local
+            # Default to local if invalid scope or no parent
             self.event_bus.publish(event)
     
     def update_config(self, config: Dict[str, Any]) -> None:

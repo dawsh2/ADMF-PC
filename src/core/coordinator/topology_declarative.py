@@ -32,7 +32,6 @@ class TopologyBuilder:
         self.logger = logging.getLogger(__name__)
         self.patterns = self._load_patterns()
         self.container_factory = None
-        self.routing_factory = None
         
     def _load_patterns(self) -> Dict[str, Dict[str, Any]]:
         """Load topology patterns from YAML files."""
@@ -126,8 +125,12 @@ class TopologyBuilder:
             for container_spec in pattern['containers']:
                 containers = self._create_containers(container_spec, context)
                 topology['containers'].update(containers)
+                # Update context with created containers for parent-child relationships
+                context['containers'] = topology['containers']
         
-        # 3. Create routes
+        # Hierarchical relationships are now established inline during container creation
+        
+        # 3. Create routes (only for cross-hierarchy communication)
         if 'routes' in pattern:
             self.logger.info("Creating routes")
             for route_spec in pattern['routes']:
@@ -159,14 +162,10 @@ class TopologyBuilder:
         return topology
     
     def _initialize_factories(self):
-        """Initialize container and routing factories."""
+        """Initialize container factory."""
         if not self.container_factory:
             from ..containers.factory import ContainerFactory
             self.container_factory = ContainerFactory()
-            
-        if not self.routing_factory:
-            from ..routing.factory import RoutingFactory
-            self.routing_factory = RoutingFactory()
     
     def _get_pattern(self, mode: str) -> Optional[Dict[str, Any]]:
         """Get pattern for the given mode."""
@@ -188,7 +187,8 @@ class TopologyBuilder:
             'pattern': pattern,
             'tracing': tracing_config,
             'generated': {},
-            'root_event_bus': None
+            'root_event_bus': None,  # Still needed for stateless services
+            'use_hierarchical_events': True  # Encourage parent-child for containers
         }
         
         # Process tracing configuration with CORRECT structure
@@ -204,12 +204,14 @@ class TopologyBuilder:
                 'container_settings': tracing_config.get('container_settings', {})
             }
         
-        # Create/get root event bus
+        # Create root event bus for stateless services and cross-hierarchy routing
+        # This is REQUIRED for strategy services, risk validators, etc.
         if hasattr(self.container_factory, 'root_event_bus'):
             context['root_event_bus'] = self.container_factory.root_event_bus
         else:
             from ..events import EventBus
             context['root_event_bus'] = EventBus()
+            self.logger.debug("Created root event bus for stateless services")
         
         # Generate parameter combinations if needed
         if 'strategies' in config and 'risk_profiles' in config:
@@ -263,9 +265,11 @@ class TopologyBuilder:
     
     def _create_single_component(self, comp_type: str, config: Dict[str, Any]):
         """Create a single stateless component."""
-        # Import component builders
-        from .topologies.helpers.component_builder import (
-            create_strategy, create_classifier, create_risk_validator
+        # Import component builders from topology module
+        from .topology import (
+            _create_strategy as create_strategy, 
+            _create_classifier as create_classifier, 
+            _create_risk_validator as create_risk_validator
         )
         
         try:
@@ -371,6 +375,9 @@ class TopologyBuilder:
         if 'components' in context:
             config['stateless_components'] = context['components']
         
+        # Containers are isolated - no automatic root_event_bus access
+        # All cross-container communication goes through parent or routes
+        
         # Add combo-specific values
         if 'combo' in context:
             combo = context['combo']
@@ -383,18 +390,59 @@ class TopologyBuilder:
                 config['risk_params'] = combo['risk_params']
         
         try:
-            return self.container_factory.create_container(name, config)
+            container = self.container_factory.create_container(name, config)
+            
+            # Create child containers if specified inline
+            if 'containers' in spec:
+                self._create_child_containers(container, spec['containers'], context)
+            
+            return container
         except Exception as e:
             self.logger.error(f"Failed to create container {name}: {e}")
             return None
+    
+    def _create_child_containers(self, parent_container: Any, children_specs: List[Dict[str, Any]], 
+                                context: Dict[str, Any]) -> None:
+        """Create child containers inline and establish parent-child relationships."""
+        for child_spec in children_specs:
+            child_name = self._resolve_value(child_spec.get('name'), context)
+            if not child_name:
+                child_name = f"{parent_container.name}_{child_spec.get('type', 'child')}"
+            
+            # Create child with same context
+            child_container = self._create_single_container(child_name, child_spec, context)
+            
+            if child_container:
+                # Establish parent-child relationship
+                parent_container.add_child_container(child_container)
+                self.logger.info(f"Created child: {parent_container.name} -> {child_name}")
     
     def _create_route(self, route_spec: Dict[str, Any], context: Dict[str, Any],
                      containers: Dict[str, Any]) -> Optional[Any]:
         """Create a route from specification."""
         config = {
-            'type': route_spec.get('type'),
-            'root_event_bus': context['root_event_bus']
+            'type': route_spec.get('type')
         }
+        
+        # Routes need root_event_bus for stateless services (strategies, risk validators, etc.)
+        # but container-to-container communication should prefer parent-child
+        route_type = route_spec.get('type', '')
+        
+        # These route types typically handle stateless services
+        stateless_route_types = ['risk_service', 'strategy_dispatcher', 'filter', 'broadcast']
+        
+        if route_type in stateless_route_types or route_spec.get('stateless_services', False):
+            # Stateless services need root_event_bus
+            config['root_event_bus'] = context['root_event_bus']
+            self.logger.debug(f"Route {route_spec.get('name', route_type)} using root_event_bus for stateless services")
+        elif route_spec.get('cross_hierarchy', False):
+            # Cross-hierarchy routing needs root_event_bus
+            config['root_event_bus'] = context['root_event_bus']
+            self.logger.info(f"Route {route_spec.get('name', 'unnamed')} using root_event_bus for cross-hierarchy communication")
+        else:
+            # Container-to-container should use parent-child when possible
+            self.logger.debug(f"Route {route_spec.get('name', 'unnamed')} not using root_event_bus - "
+                            "encouraging parent-child communication")
         
         # Resolve route configuration
         for key in ['source', 'target', 'source_pattern', 'target_pattern', 
@@ -430,10 +478,10 @@ class TopologyBuilder:
             if config['type'] == 'risk_service' and 'risk_validators' in context['components']:
                 config['risk_validators'] = context['components']['risk_validators']
             
-            route = self.routing_factory.create_route(name, config)
-            route.setup(containers)
-            route.start()
-            return route
+            # Routes are being replaced with direct EventBus subscriptions
+            # For now, log what would have been created
+            self.logger.info(f"Would have created route '{name}' of type '{config['type']}' (now using EventBus)")
+            return None
         except Exception as e:
             self.logger.error(f"Failed to create route {name}: {e}")
             return None
@@ -453,22 +501,14 @@ class TopologyBuilder:
     def _apply_feature_dispatcher(self, spec: Dict[str, Any], context: Dict[str, Any],
                                  topology: Dict[str, Any]) -> None:
         """Apply feature filter behavior."""
-        from ..routing.factory import RoutingFactory
         from ..events import EventType, Event
         
-        # Create feature filter route
-        routing_factory = RoutingFactory()
-        feature_filter = routing_factory.create_route(
-            name='feature_filter',
-            config={
-                'type': 'filter',
-                'filter_field': 'payload.features',
-                'event_types': [EventType.FEATURES]
-            }
-        )
+        # Feature filtering is now handled via EventBus subscriptions
+        # No need for separate feature filter route
         
         # Register strategies
         if 'parameter_combinations' in context['generated']:
+            # Strategies are stateless services that need root_event_bus
             root_event_bus = context['root_event_bus']
             
             for combo in context['generated']['parameter_combinations']:
@@ -478,7 +518,7 @@ class TopologyBuilder:
                 
                 if strategy_type:
                     # Get feature requirements
-                    from .topologies.helpers.component_builder import get_strategy_feature_requirements
+                    from .topology import _get_strategy_feature_requirements as get_strategy_feature_requirements
                     required_features = get_strategy_feature_requirements(strategy_type, strategy_config)
                     
                     # Create strategy transform function
@@ -486,6 +526,7 @@ class TopologyBuilder:
                         def transform(event):
                             # Create strategy instance
                             from ..components.factory import create_component
+                            # Strategies are stateless services that publish to root_event_bus
                             strategy = create_component(
                                 stype,
                                 context={
@@ -538,7 +579,15 @@ class TopologyBuilder:
     
     def _apply_root_bus_subscription(self, spec: Dict[str, Any], context: Dict[str, Any],
                                     topology: Dict[str, Any]) -> None:
-        """Apply root event bus subscription."""
+        """Apply root event bus subscription.
+        
+        This is appropriate for:
+        - Containers listening to stateless services (strategies, risk validators)
+        - Cross-hierarchy communication that can't use parent-child
+        - System-wide events (SYSTEM_START, SYSTEM_STOP)
+        
+        For container-to-container within a hierarchy, use parent-child communication.
+        """
         from ..events import EventType
         
         container_pattern = spec.get('containers')
@@ -546,6 +595,16 @@ class TopologyBuilder:
         handler_path = spec.get('handler')
         
         root_bus = context['root_event_bus']
+        
+        # Log appropriately based on use case
+        if event_type.name in ['SIGNAL', 'ORDER', 'RISK_APPROVED', 'RISK_REJECTED']:
+            # These are typically from stateless services
+            log_level = self.logger.debug
+            message_suffix = "for stateless service events"
+        else:
+            # Other uses should consider parent-child
+            log_level = self.logger.info
+            message_suffix = "- consider parent-child communication for container events"
         
         for name, container in topology['containers'].items():
             if self._matches_pattern(name, container_pattern):
@@ -561,7 +620,8 @@ class TopologyBuilder:
                 
                 if handler and callable(handler):
                     root_bus.subscribe(event_type, handler)
-                    self.logger.info(f"Subscribed {name}.{handler_path} to {event_type.name} events")
+                    log_level(f"Subscribed {name}.{handler_path} to {event_type.name} events "
+                            f"via root_event_bus {message_suffix}")
     
     def _resolve_value(self, value_spec: Any, context: Dict[str, Any]) -> Any:
         """Resolve a value specification."""
@@ -611,6 +671,72 @@ class TopologyBuilder:
     def _matches_pattern(self, name: str, pattern: str) -> bool:
         """Check if name matches pattern."""
         return fnmatch.fnmatch(name, pattern)
+    
+    def _establish_hierarchy(self, hierarchy_spec: Dict[str, Any], 
+                           containers: Dict[str, Any]) -> None:
+        """Establish parent-child relationships between containers.
+        
+        This method encourages the use of hierarchical event communication
+        by setting up proper parent-child relationships.
+        
+        Args:
+            hierarchy_spec: Hierarchy specification with parent-child mappings
+            containers: Dictionary of created containers
+        """
+        self.logger.info("Establishing container hierarchy for parent-child communication")
+        
+        for parent_pattern, children_spec in hierarchy_spec.items():
+            # Find matching parent containers
+            parent_containers = [
+                (name, container) for name, container in containers.items()
+                if self._matches_pattern(name, parent_pattern)
+            ]
+            
+            if not parent_containers:
+                self.logger.warning(f"No containers match parent pattern: {parent_pattern}")
+                continue
+            
+            # Process children specification
+            if isinstance(children_spec, str):
+                # Simple pattern matching
+                for parent_name, parent_container in parent_containers:
+                    child_containers = [
+                        (name, container) for name, container in containers.items()
+                        if self._matches_pattern(name, children_spec) and name != parent_name
+                    ]
+                    
+                    for child_name, child_container in child_containers:
+                        parent_container.add_child_container(child_container)
+                        self.logger.info(f"Established hierarchy: {parent_name} -> {child_name}")
+                        
+            elif isinstance(children_spec, list):
+                # List of specific children
+                for parent_name, parent_container in parent_containers:
+                    for child_pattern in children_spec:
+                        child_containers = [
+                            (name, container) for name, container in containers.items()
+                            if self._matches_pattern(name, child_pattern) and name != parent_name
+                        ]
+                        
+                        for child_name, child_container in child_containers:
+                            parent_container.add_child_container(child_container)
+                            self.logger.info(f"Established hierarchy: {parent_name} -> {child_name}")
+                            
+            elif isinstance(children_spec, dict):
+                # Advanced specification with roles
+                for parent_name, parent_container in parent_containers:
+                    for role, child_pattern in children_spec.items():
+                        child_containers = [
+                            (name, container) for name, container in containers.items()
+                            if self._matches_pattern(name, child_pattern) and name != parent_name
+                        ]
+                        
+                        for child_name, child_container in child_containers:
+                            parent_container.add_child_container(child_container)
+                            # Optionally set a role attribute on the child
+                            if hasattr(child_container, 'hierarchy_role'):
+                                child_container.hierarchy_role = role
+                            self.logger.info(f"Established hierarchy: {parent_name} -> {child_name} (role: {role})")
     
     def _generate_parameter_combinations(self, strategies: List[Dict], 
                                        risk_profiles: List[Dict]) -> List[Dict]:

@@ -12,7 +12,6 @@ from src.core.events.tracing.event_store import EventStore
 from src.core.events.tracing.traced_event import TracedEvent
 from src.core.events.event_bus import Event
 from src.core.containers.protocols import Container
-from src.core.routing.protocols import CommunicationRoute
 
 
 @dataclass

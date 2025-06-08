@@ -62,6 +62,38 @@ from .protocols import (
     ContainerLimits
 )
 
+# Import factory for convenience
+from .factory import (
+    ContainerFactory,
+    ContainerRegistry,
+    get_global_factory,
+    get_global_registry,
+    compose_pattern
+)
+
+# Exceptions
+from .exceptions import (
+    ContainerError,
+    ComponentAlreadyExistsError,
+    ComponentNotFoundError,
+    ComponentDependencyError,
+    InvalidContainerStateError,
+    UnknownContainerRoleError,
+    InvalidContainerConfigError,
+    CircularContainerDependencyError,
+    ParentContainerNotSetError
+)
+
+# Types
+from .types import (
+    ContainerConfigDict,
+    ComponentConfigDict,
+    ExecutionConfigDict,
+    MetricsConfigDict,
+    ContainerComponent,
+    EventHandler
+)
+
 __all__ = [
     # Canonical container
     'Container',
@@ -82,5 +114,31 @@ __all__ = [
     # Protocols
     'ContainerProtocol',
     'ContainerMetadata',
-    'ContainerLimits'
+    'ContainerLimits',
+    
+    # Factory
+    'ContainerFactory',
+    'ContainerRegistry',
+    'get_global_factory',
+    'get_global_registry',
+    'compose_pattern',
+    
+    # Exceptions
+    'ContainerError',
+    'ComponentAlreadyExistsError',
+    'ComponentNotFoundError',
+    'ComponentDependencyError',
+    'InvalidContainerStateError',
+    'UnknownContainerRoleError',
+    'InvalidContainerConfigError',
+    'CircularContainerDependencyError',
+    'ParentContainerNotSetError',
+    
+    # Types
+    'ContainerConfigDict',
+    'ComponentConfigDict',
+    'ExecutionConfigDict',
+    'MetricsConfigDict',
+    'ContainerComponent',
+    'EventHandler'
 ]

@@ -2,7 +2,7 @@
 Type flow integration utilities for ADMF-PC.
 
 This module provides convenience functions for integrating type flow analysis
-with routes and containers throughout the system.
+with EventBus subscriptions and containers throughout the system.
 """
 
 from typing import Dict, List, Any, Optional, Set, Type

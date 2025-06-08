@@ -300,8 +300,55 @@ class ContainerFactory:
             container_id=container_id
         )
         
+        # Add components if specified in config
+        self._add_components_to_container(container, config)
+        
         logger.debug(f"Created container: {role.value} with ID: {container.metadata.container_id}")
         return container
+    
+    def _add_components_to_container(self, container: ContainerProtocol, config: Dict[str, Any]) -> None:
+        """Add components to container based on configuration."""
+        components_config = config.get('components', {})
+        
+        # Import component registry
+        try:
+            from .component_registry import create_component
+        except ImportError:
+            logger.warning("Component registry not available")
+            return
+        
+        for component_name, component_config in components_config.items():
+            try:
+                # Handle both dict config and string shorthand
+                if isinstance(component_config, str):
+                    # Simple string component type
+                    component_type = component_config
+                    component_params = {}
+                else:
+                    # Full configuration
+                    component_type = component_config.get('type')
+                    component_params = {k: v for k, v in component_config.items() if k != 'type'}
+                
+                if not component_type:
+                    logger.warning(f"No type specified for component {component_name}")
+                    continue
+                
+                # Create component instance
+                component = create_component(component_type, component_params)
+                
+                # Initialize component with container reference
+                if hasattr(component, 'initialize'):
+                    component.initialize(container)
+                
+                # Add to container
+                if hasattr(container, 'add_component'):
+                    container.add_component(component_name, component)
+                    logger.debug(f"Added component {component_name} ({component_type}) to container")
+                else:
+                    logger.warning(f"Container does not support add_component method")
+                    
+            except Exception as e:
+                logger.error(f"Failed to create component {component_name}: {e}", exc_info=True)
     
     def _infer_required_features(self, config: Dict[str, Any]) -> Set[str]:
         """Infer required features from strategy configurations."""
@@ -366,7 +413,10 @@ class ContainerFactory:
         """Compose containers according to named pattern."""
         pattern = self.registry.get_pattern(pattern_name)
         if not pattern:
-            raise ValueError(f"Unknown pattern: {pattern_name}")
+            raise InvalidContainerConfigError(
+                f"Unknown pattern: {pattern_name}",
+                "pattern"
+            )
         
         # Merge default config with overrides
         base_config = pattern.default_config.copy()
@@ -384,7 +434,10 @@ class ContainerFactory:
         
         # Validate required capabilities
         if not self._validate_pattern_capabilities(pattern):
-            raise ValueError(f"Pattern '{pattern_name}' requirements not met")
+            raise InvalidContainerConfigError(
+                f"Pattern '{pattern_name}' requirements not met: missing capabilities",
+                "required_capabilities"
+            )
         
         # Build container hierarchy
         root_container = self._build_container_tree(
@@ -402,7 +455,10 @@ class ContainerFactory:
     ) -> ContainerProtocol:
         """Compose containers according to custom structure."""
         if "root" not in structure:
-            raise ValueError("Custom pattern must have 'root' element")
+            raise InvalidContainerConfigError(
+                "Custom pattern must have 'root' element",
+                "structure"
+            )
         
         config = config or {}
         

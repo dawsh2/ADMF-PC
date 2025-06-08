@@ -1,0 +1,375 @@
+"""
+Enhanced EventBus with subscription filtering.
+
+Motivation:
+-----------
+Our event-driven backtest architecture has simple, linear communication patterns:
+1. Child containers publish events to their parent (usually root)
+2. Root container broadcasts events to all children
+3. Portfolio containers need to filter signals to only the strategies they manage
+
+Rather than introducing complex routing infrastructure, we extend the existing
+EventBus with optional filtering. This keeps the architecture simple while
+solving the real need: preventing portfolio containers from processing irrelevant signals.
+
+Example flow:
+- 10 portfolio containers each managing 2 strategies
+- 20 total strategies generating signals
+- Without filtering: 200 event deliveries (10 × 20)
+- With filtering: 20 event deliveries (only relevant signals)
+"""
+
+from typing import Dict, List, Set, Optional, Callable, Any, Tuple
+from collections import defaultdict
+import logging
+import uuid
+
+from .protocols import EventObserverProtocol
+from .types import Event, EventType
+
+logger = logging.getLogger(__name__)
+
+
+class EventBus:
+    """
+    Enhanced event bus with subscription filtering.
+    
+    This implementation maintains the simple pub/sub pattern while adding
+    optional filtering to reduce unnecessary event processing.
+    
+    Key features:
+    - Backward compatible (existing code works unchanged)
+    - Filters checked BEFORE handler invocation (efficient)
+    - Clean separation of filtering logic from business logic
+    - No external routing dependencies needed
+    """
+    
+    def __init__(self, bus_id: Optional[str] = None):
+        """
+        Initialize event bus.
+        
+        Args:
+            bus_id: Optional identifier for this bus
+        """
+        self.bus_id = bus_id or f"bus_{uuid.uuid4().hex[:8]}"
+        
+        # Store handlers with their optional filters
+        # Structure: {event_type: [(handler, filter_func), ...]}
+        self._subscribers: Dict[str, List[Tuple[Callable, Optional[Callable]]]] = defaultdict(list)
+        
+        # Keep track of original subscribers for cleanup
+        self._handler_to_filter: Dict[Callable, Optional[Callable]] = {}
+        
+        # Observers for cross-cutting concerns (tracing, metrics)
+        self._observers: List[EventObserverProtocol] = []
+        
+        # Optional correlation ID for event chains
+        self._correlation_id: Optional[str] = None
+        
+        # Basic metrics
+        self._event_count = 0
+        self._filtered_count = 0
+        self._error_count = 0
+        
+        logger.debug(f"EventBus created: {self.bus_id}")
+    
+    def subscribe(self, event_type: str, handler: Callable, 
+                  filter_func: Optional[Callable[[Event], bool]] = None) -> None:
+        """
+        Subscribe to events with optional filtering.
+        
+        Args:
+            event_type: Type of events to subscribe to (or '*' for all)
+            handler: Function to call when event passes filter
+            filter_func: Optional function that returns True if event should be processed
+        
+        Example:
+            # Subscribe to all SIGNAL events
+            bus.subscribe(EventType.SIGNAL.value, portfolio.receive_event)
+            
+            # Subscribe only to specific strategy signals
+            bus.subscribe(
+                EventType.SIGNAL.value,
+                portfolio.receive_event,
+                filter_func=lambda e: e.payload.get('strategy_id') in ['momentum_1', 'pairs_1']
+            )
+        """
+        self._subscribers[event_type].append((handler, filter_func))
+        self._handler_to_filter[handler] = filter_func
+        
+        filter_desc = "with filter" if filter_func else "without filter"
+        logger.debug(f"Subscribed {handler} to {event_type} {filter_desc} on bus {self.bus_id}")
+    
+    def subscribe_filtered(self, event_type: str, handler: Callable,
+                          filter_func: Callable[[Event], bool]) -> None:
+        """
+        Convenience method for filtered subscriptions.
+        
+        Same as subscribe() but makes filter required for better API clarity.
+        """
+        self.subscribe(event_type, handler, filter_func)
+    
+    def unsubscribe(self, event_type: str, handler: Callable) -> None:
+        """
+        Unsubscribe handler from events.
+        
+        Args:
+            event_type: Type of events to unsubscribe from
+            handler: Handler to remove
+        """
+        # Find and remove the handler (with its filter)
+        self._subscribers[event_type] = [
+            (h, f) for h, f in self._subscribers[event_type] if h != handler
+        ]
+        
+        # Clean up handler tracking
+        if handler in self._handler_to_filter:
+            del self._handler_to_filter[handler]
+        
+        logger.debug(f"Unsubscribed {handler} from {event_type} on bus {self.bus_id}")
+    
+    def publish(self, event: Event) -> None:
+        """
+        Publish an event to all matching subscribers.
+        
+        Filters are evaluated BEFORE calling handlers for efficiency.
+        
+        Args:
+            event: Event to publish
+        """
+        # Set correlation ID if not set
+        if not event.correlation_id and self._correlation_id:
+            event.correlation_id = self._correlation_id
+        
+        # Set container ID if not set
+        if not event.container_id and self.bus_id:
+            event.container_id = self.bus_id
+        
+        # Generate event ID if not present
+        if 'event_id' not in event.metadata:
+            event.metadata['event_id'] = f"{event.event_type}_{uuid.uuid4().hex[:8]}"
+        
+        # Notify observers of publish
+        for observer in self._observers:
+            try:
+                observer.on_publish(event)
+            except Exception as e:
+                logger.error(f"Observer {observer} failed on_publish: {e}")
+        
+        self._event_count += 1
+        
+        # Get handlers for specific event type and wildcard handlers
+        specific_handlers = self._subscribers.get(event.event_type, [])
+        wildcard_handlers = self._subscribers.get('*', [])
+        all_handlers = specific_handlers + wildcard_handlers
+        
+        # Deliver to handlers that pass their filters
+        delivered_count = 0
+        for handler, filter_func in all_handlers:
+            try:
+                # Check filter first (efficient - avoids unnecessary handler calls)
+                if filter_func is not None and not filter_func(event):
+                    self._filtered_count += 1
+                    continue
+                
+                # Filter passed (or no filter), call handler
+                handler(event)
+                delivered_count += 1
+                
+                # Notify observers of successful delivery
+                for observer in self._observers:
+                    try:
+                        observer.on_delivered(event, handler)
+                    except Exception as e:
+                        logger.error(f"Observer {observer} failed on_delivered: {e}")
+                        
+            except Exception as e:
+                self._error_count += 1
+                
+                # Notify observers of error
+                for observer in self._observers:
+                    try:
+                        observer.on_error(event, handler, e)
+                    except Exception as e2:
+                        logger.error(f"Observer {observer} failed on_error: {e2}")
+                
+                logger.error(f"Handler {handler} failed for event {event.event_type}: {e}")
+        
+        # Log if event was heavily filtered
+        if all_handlers and delivered_count == 0:
+            logger.debug(f"Event {event.event_type} filtered out by all {len(all_handlers)} handlers")
+    
+    def subscribe_all(self, handler: Callable, filter_func: Optional[Callable[[Event], bool]] = None) -> None:
+        """
+        Subscribe to all events with optional filter.
+        
+        Args:
+            handler: Function to call for all events that pass filter
+            filter_func: Optional filter function
+        """
+        self.subscribe('*', handler, filter_func)
+    
+    def unsubscribe_all(self, handler: Callable) -> None:
+        """
+        Unsubscribe handler from all event types.
+        
+        Args:
+            handler: Handler to remove
+        """
+        for event_type in list(self._subscribers.keys()):
+            self.unsubscribe(event_type, handler)
+    
+    def clear(self) -> None:
+        """Clear all subscriptions."""
+        self._subscribers.clear()
+        self._handler_to_filter.clear()
+        logger.debug(f"Cleared all subscriptions on bus {self.bus_id}")
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get bus statistics including filter effectiveness."""
+        total_handlers = sum(len(handlers) for handlers in self._subscribers.values())
+        filtered_handlers = sum(
+            1 for handlers in self._subscribers.values() 
+            for _, filter_func in handlers if filter_func is not None
+        )
+        
+        return {
+            'bus_id': self.bus_id,
+            'event_count': self._event_count,
+            'filtered_count': self._filtered_count,
+            'error_count': self._error_count,
+            'total_handlers': total_handlers,
+            'filtered_handlers': filtered_handlers,
+            'filter_effectiveness': self._filtered_count / max(1, self._event_count),
+            'subscriber_count': len(set(h for handlers in self._subscribers.values() for h, _ in handlers)),
+            'observer_count': len(self._observers),
+            'event_types': list(self._subscribers.keys())
+        }
+    
+    # Observer management (unchanged from original)
+    
+    def attach_observer(self, observer: EventObserverProtocol) -> None:
+        """Attach an observer for events."""
+        self._observers.append(observer)
+        logger.debug(f"Attached observer {type(observer).__name__} to bus {self.bus_id}")
+    
+    def detach_observer(self, observer: EventObserverProtocol) -> None:
+        """Detach an observer."""
+        if observer in self._observers:
+            self._observers.remove(observer)
+            logger.debug(f"Detached observer {type(observer).__name__} from bus {self.bus_id}")
+    
+    def set_correlation_id(self, correlation_id: str) -> None:
+        """Set correlation ID for events published through this bus."""
+        self._correlation_id = correlation_id
+    
+    def get_correlation_id(self) -> Optional[str]:
+        """Get current correlation ID."""
+        return self._correlation_id
+
+
+# ============ Usage Examples ============
+
+def setup_portfolio_container_with_filtering(root_bus: EventBus, portfolio_container, config: Dict[str, Any]):
+    """
+    Example of setting up a portfolio container with filtered signal subscription.
+    
+    This shows the motivation: each portfolio only processes signals from its assigned strategies,
+    reducing unnecessary processing and improving performance.
+    """
+    # Get the strategies this portfolio manages
+    assigned_strategies = config.get('strategy_assignments', [])
+    
+    # Subscribe with filter - portfolio only receives its signals
+    root_bus.subscribe(
+        EventType.SIGNAL.value,
+        portfolio_container.receive_event,
+        filter_func=lambda event: event.payload.get('strategy_id') in assigned_strategies
+    )
+    
+    # Subscribe to other events without filtering (FILL events, etc.)
+    root_bus.subscribe(EventType.FILL.value, portfolio_container.receive_event)
+    root_bus.subscribe(EventType.ORDER_REJECTED.value, portfolio_container.receive_event)
+    
+    logger.info(f"Portfolio {portfolio_container.container_id} subscribed to strategies: {assigned_strategies}")
+
+
+def setup_risk_filtered_portfolio(root_bus: EventBus, portfolio_container, config: Dict[str, Any]):
+    """
+    Example of more complex filtering based on multiple criteria.
+    
+    This portfolio only processes signals that meet risk criteria.
+    """
+    assigned_strategies = config.get('strategy_assignments', [])
+    min_signal_strength = config.get('min_signal_strength', 0.7)
+    allowed_classifications = config.get('allowed_classifications', ['trending', 'breakout'])
+    
+    def complex_filter(event: Event) -> bool:
+        """Filter based on strategy, signal strength, and market classification."""
+        payload = event.payload
+        
+        # Check strategy assignment
+        if payload.get('strategy_id') not in assigned_strategies:
+            return False
+        
+        # Check signal strength
+        if payload.get('strength', 0) < min_signal_strength:
+            return False
+        
+        # Check market classification
+        if payload.get('classification') not in allowed_classifications:
+            return False
+        
+        return True
+    
+    root_bus.subscribe(
+        EventType.SIGNAL.value,
+        portfolio_container.receive_event,
+        filter_func=complex_filter
+    )
+
+
+def demonstrate_filter_effectiveness(root_bus: EventBus):
+    """
+    Demonstrate how filtering reduces event processing load.
+    """
+    # Setup: 10 portfolios, each managing 2 out of 20 strategies
+    portfolios = []
+    all_strategies = [f"strat_{i}" for i in range(20)]
+    
+    for i in range(10):
+        # Each portfolio manages 2 strategies
+        assigned = [all_strategies[i*2], all_strategies[i*2 + 1]]
+        
+        # Mock portfolio container
+        portfolio = type('obj', (object,), {
+            'container_id': f'portfolio_{i}',
+            'receive_event': lambda e: None
+        })
+        
+        # Subscribe with filter
+        root_bus.subscribe(
+            EventType.SIGNAL.value,
+            portfolio.receive_event,
+            filter_func=lambda e, assigned=assigned: e.payload.get('strategy_id') in assigned
+        )
+        
+        portfolios.append(portfolio)
+    
+    # Publish signals from all strategies
+    for strategy_id in all_strategies:
+        signal_event = Event(
+            event_type=EventType.SIGNAL.value,
+            payload={'strategy_id': strategy_id, 'symbol': 'AAPL', 'direction': 'BUY'}
+        )
+        root_bus.publish(signal_event)
+    
+    # Check statistics
+    stats = root_bus.get_stats()
+    print(f"Events published: {stats['event_count']}")
+    print(f"Events filtered out: {stats['filtered_count']}")
+    print(f"Filter effectiveness: {stats['filter_effectiveness']:.1%}")
+    
+    # Without filtering: 20 signals × 10 portfolios = 200 handler calls
+    # With filtering: 20 signals × 1 portfolio each = 20 handler calls
+    # 90% reduction in handler calls!

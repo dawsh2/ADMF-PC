@@ -11,6 +11,7 @@ from .protocols import (
     Position,
     RiskMetrics,
 )
+from ..core.types.trading import Order
 
 
 class PortfolioState(PortfolioStateProtocol):
@@ -34,6 +35,9 @@ class PortfolioState(PortfolioStateProtocol):
         # Position tracking
         self._positions: Dict[str, Position] = {}
         
+        # Pending order tracking - CRITICAL for race condition prevention
+        self._pending_orders: Dict[str, Order] = {}
+        
         # P&L tracking
         self._realized_pnl = Decimal(0)
         self._commission_paid = Decimal(0)
@@ -48,10 +52,68 @@ class PortfolioState(PortfolioStateProtocol):
         
         # Last update timestamp
         self._last_update = datetime.now()
+        
+        # Track order fill commission
+        self._last_commission = Decimal(0)
     
     def get_position(self, symbol: str) -> Optional[Position]:
         """Get current position for symbol."""
         return self._positions.get(symbol)
+    
+    def can_create_order(self, symbol: str) -> bool:
+        """Check if we should create a new order for this symbol.
+        
+        This prevents race conditions by ensuring we don't create multiple
+        orders for the same symbol while one is pending.
+        
+        Args:
+            symbol: The symbol to check
+            
+        Returns:
+            True if no pending orders exist for this symbol
+        """
+        # Check if any pending orders exist for this symbol
+        pending_for_symbol = [
+            order for order in self._pending_orders.values()
+            if order.symbol == symbol
+        ]
+        return len(pending_for_symbol) == 0
+    
+    def add_pending_order(self, order: Order) -> None:
+        """Add order to pending tracking.
+        
+        Args:
+            order: Order to track as pending
+        """
+        self._pending_orders[order.order_id] = order
+    
+    def remove_pending_order(self, order_id: str) -> Optional[Order]:
+        """Remove order from pending tracking (on fill or rejection).
+        
+        Args:
+            order_id: ID of order to remove
+            
+        Returns:
+            The removed order if found, None otherwise
+        """
+        return self._pending_orders.pop(order_id, None)
+    
+    def get_pending_orders(self, symbol: Optional[str] = None) -> List[Order]:
+        """Get pending orders, optionally filtered by symbol.
+        
+        Args:
+            symbol: Optional symbol to filter by
+            
+        Returns:
+            List of pending orders
+        """
+        if symbol is None:
+            return list(self._pending_orders.values())
+        else:
+            return [
+                order for order in self._pending_orders.values()
+                if order.symbol == symbol
+            ]
     
     def get_all_positions(self) -> Dict[str, Position]:
         """Get all current positions."""
@@ -227,6 +289,12 @@ class PortfolioState(PortfolioStateProtocol):
         cash_delta = -quantity_delta * price  # Both should already be Decimal
         self._cash_balance += cash_delta
         
+        # Apply commission if set (would be set by fill event handler)
+        if self._last_commission > 0:
+            self._cash_balance -= self._last_commission
+            self._commission_paid += self._last_commission
+            self._last_commission = Decimal(0)
+        
         # Update value history
         self._update_value_history()
         
@@ -288,5 +356,6 @@ class PortfolioState(PortfolioStateProtocol):
             "current_drawdown": f"{metrics.current_drawdown:.2%}",
             "sharpe_ratio": str(metrics.sharpe_ratio) if metrics.sharpe_ratio else "N/A",
             "positions_count": len(self._positions),
+            "pending_orders_count": len(self._pending_orders),
             "last_update": self._last_update.isoformat()
         }

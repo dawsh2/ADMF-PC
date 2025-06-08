@@ -66,6 +66,19 @@ from .storage import (
     create_storage_backend
 )
 
+from .filters import (
+    combine_filters,
+    any_of_filters,
+    strategy_filter,
+    symbol_filter,
+    classification_filter,
+    strength_filter,
+    metadata_filter,
+    payload_filter,
+    custom_filter,
+    create_portfolio_filter
+)
+
 __all__ = [
     # Protocols
     'EventObserverProtocol',
@@ -92,7 +105,19 @@ __all__ = [
     # Storage
     'MemoryEventStorage',
     'DiskEventStorage',
-    'create_storage_backend'
+    'create_storage_backend',
+    
+    # Filters
+    'combine_filters',
+    'any_of_filters',
+    'strategy_filter',
+    'symbol_filter',
+    'classification_filter',
+    'strength_filter',
+    'metadata_filter',
+    'payload_filter',
+    'custom_filter',
+    'create_portfolio_filter'
 ]
 
 
@@ -385,9 +410,29 @@ def create_error_event(
 # ============================================
 # File: src/core/events/bus.py
 # ============================================
-"""Pure event bus implementation."""
+"""
+EventBus Enhancement: Required Filtering for SIGNAL Events
 
-from typing import Dict, List, Set, Optional, Callable, Any
+Motivation:
+-----------
+In our event-driven backtest architecture, we have a specific routing challenge:
+- Multiple strategies publish SIGNAL events to the root bus
+- Multiple portfolio containers subscribe to the root bus
+- Each portfolio only manages a subset of strategies
+
+Without filtering, every portfolio receives every signal, leading to:
+- Unnecessary processing (portfolios discard irrelevant signals)
+- Potential errors (portfolios might process wrong signals)
+- Poor performance at scale (N portfolios × M strategies = N×M deliveries)
+
+Solution:
+---------
+We enhance the EventBus to REQUIRE filters for SIGNAL events, while keeping
+other event types unchanged. This enforces correct wiring at subscription time
+rather than hoping portfolios filter correctly.
+"""
+
+from typing import Dict, List, Set, Optional, Callable, Any, Tuple
 from collections import defaultdict
 import logging
 import uuid
@@ -404,6 +449,8 @@ class EventBus:
     
     Tracing and other concerns are added via observers using composition.
     Thread-safe for use within a single container.
+    
+    ENHANCEMENT: Requires filtering for SIGNAL events to ensure correct routing.
     """
     
     def __init__(self, bus_id: Optional[str] = None):
@@ -414,13 +461,20 @@ class EventBus:
             bus_id: Optional identifier for this bus
         """
         self.bus_id = bus_id or f"bus_{uuid.uuid4().hex[:8]}"
-        self._subscribers: Dict[str, List[Callable]] = defaultdict(list)
+        
+        # CHANGE: Store handlers with optional filters as tuples
+        # OLD: self._subscribers: Dict[str, List[Callable]] = defaultdict(list)
+        # NEW: Store (handler, filter_func) tuples
+        self._subscribers: Dict[str, List[Tuple[Callable, Optional[Callable]]]] = defaultdict(list)
+        
         self._observers: List[EventObserverProtocol] = []
         self._correlation_id: Optional[str] = None
         
         # Basic metrics
         self._event_count = 0
         self._error_count = 0
+        # ADDITION: Track filtered events
+        self._filtered_count = 0
         
         logger.debug(f"EventBus created: {self.bus_id}")
     
@@ -457,6 +511,8 @@ class EventBus:
         """
         Publish an event to all subscribers.
         
+        CHANGE: Now checks filters before invoking handlers.
+        
         Args:
             event: Event to publish
         """
@@ -486,9 +542,14 @@ class EventBus:
         wildcard_handlers = self._subscribers.get('*', [])
         all_handlers = handlers + wildcard_handlers
         
-        # Deliver to handlers
-        for handler in all_handlers:
+        # CHANGE: Deliver to handlers that pass their filters
+        for handler, filter_func in all_handlers:  # Now unpacking tuples
             try:
+                # NEW: Check filter before calling handler
+                if filter_func is not None and not filter_func(event):
+                    self._filtered_count += 1
+                    continue  # Skip this handler
+                
                 handler(event)
                 
                 # Notify observers of successful delivery
@@ -510,32 +571,88 @@ class EventBus:
                 
                 logger.error(f"Handler {handler} failed for event {event.event_type}: {e}")
     
-    def subscribe(self, event_type: str, handler: Callable) -> None:
+    # CHANGE: Updated subscribe method with filter_func parameter
+    def subscribe(self, event_type: str, handler: Callable, 
+                  filter_func: Optional[Callable[[Event], bool]] = None) -> None:
         """
         Subscribe to events of a specific type.
+        
+        CHANGE: Now accepts optional filter function.
+        SIGNAL events REQUIRE a filter to prevent routing errors.
         
         Args:
             event_type: Type of events to subscribe to
             handler: Function to call when event is published
+            filter_func: Optional filter function (REQUIRED for SIGNAL events)
+            
+        Raises:
+            ValueError: If SIGNAL event subscription lacks a filter
+            
+        Example:
+            # SIGNAL events require filter
+            bus.subscribe(
+                EventType.SIGNAL.value,
+                portfolio.receive_event,
+                filter_func=lambda e: e.payload.get('strategy_id') in ['strat_1', 'strat_2']
+            )
+            
+            # Other events don't require filter
+            bus.subscribe(EventType.FILL.value, portfolio.receive_event)
         """
-        self._subscribers[event_type].append(handler)
-        logger.debug(f"Subscribed {handler} to {event_type} on bus {self.bus_id}")
+        # NEW: Enforce filtering for SIGNAL events
+        if event_type == EventType.SIGNAL.value and filter_func is None:
+            raise ValueError(
+                "SIGNAL events require a filter function to ensure portfolios "
+                "only receive signals from their assigned strategies. "
+                "Example: filter_func=lambda e: e.payload.get('strategy_id') in assigned_strategies"
+            )
+        
+        # CHANGE: Store handler with its filter
+        self._subscribers[event_type].append((handler, filter_func))
+        
+        filter_desc = f" with filter" if filter_func else ""
+        logger.debug(f"Subscribed {handler} to {event_type}{filter_desc} on bus {self.bus_id}")
+    
+    # NEW: Convenience method for signal subscriptions
+    def subscribe_to_signals(self, handler: Callable, strategy_ids: List[str]) -> None:
+        """
+        Convenience method for subscribing to signals from specific strategies.
+        
+        Args:
+            handler: Function to call when matching signal is received
+            strategy_ids: List of strategy IDs to receive signals from
+            
+        Example:
+            bus.subscribe_to_signals(
+                portfolio.receive_event,
+                strategy_ids=['momentum_1', 'pairs_1']
+            )
+        """
+        filter_func = lambda e: e.payload.get('strategy_id') in strategy_ids
+        self.subscribe(EventType.SIGNAL.value, handler, filter_func)
     
     def unsubscribe(self, event_type: str, handler: Callable) -> None:
         """
         Unsubscribe from events.
         
+        CHANGE: Updated to work with (handler, filter) tuples.
+        
         Args:
             event_type: Type of events to unsubscribe from
             handler: Handler to remove
         """
-        if handler in self._subscribers[event_type]:
-            self._subscribers[event_type].remove(handler)
-            logger.debug(f"Unsubscribed {handler} from {event_type} on bus {self.bus_id}")
+        # CHANGE: Filter tuples to remove matching handler
+        self._subscribers[event_type] = [
+            (h, f) for h, f in self._subscribers[event_type] if h != handler
+        ]
+        logger.debug(f"Unsubscribed {handler} from {event_type} on bus {self.bus_id}")
     
     def subscribe_all(self, handler: Callable) -> None:
         """
         Subscribe to all events.
+        
+        NOTE: Wildcard subscriptions don't require filters since they're
+        typically used for logging/monitoring, not business logic.
         
         Args:
             handler: Function to call for all events
@@ -558,12 +675,26 @@ class EventBus:
         logger.debug(f"Cleared all subscriptions on bus {self.bus_id}")
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get basic statistics."""
+        """
+        Get basic statistics.
+        
+        CHANGE: Now includes filter statistics.
+        """
+        # Count handlers with filters
+        total_handlers = sum(len(handlers) for handlers in self._subscribers.values())
+        filtered_handlers = sum(
+            1 for handlers in self._subscribers.values() 
+            for _, filter_func in handlers if filter_func is not None
+        )
+        
         return {
             'bus_id': self.bus_id,
             'event_count': self._event_count,
             'error_count': self._error_count,
-            'subscriber_count': sum(len(h) for h in self._subscribers.values()),
+            'filtered_count': self._filtered_count,  # NEW
+            'filter_rate': self._filtered_count / max(1, self._event_count),  # NEW
+            'subscriber_count': total_handlers,
+            'filtered_subscriber_count': filtered_handlers,  # NEW
             'observer_count': len(self._observers),
             'event_types': list(self._subscribers.keys())
         }
@@ -606,6 +737,301 @@ class EventBus:
         """Save trace to file if tracing enabled."""
         if hasattr(self, '_tracer'):
             self._tracer.save_to_file(filepath)
+
+
+# ============================================
+# File: src/core/events/filters.py
+# ============================================
+"""
+Filter helper functions for event subscriptions.
+
+These helpers make it easy to create and compose filters for
+common subscription patterns.
+"""
+
+from typing import Callable, List, Optional, Set, Any
+from .types import Event
+
+
+def combine_filters(*filters: Callable[[Event], bool]) -> Callable[[Event], bool]:
+    """
+    Combine multiple filters with AND logic.
+    
+    All filters must pass for the event to be delivered.
+    
+    Args:
+        *filters: Variable number of filter functions
+        
+    Returns:
+        Combined filter function
+        
+    Example:
+        # Only receive momentum signals for tech stocks
+        filter_func = combine_filters(
+            strategy_filter(['momentum_1']),
+            symbol_filter(['AAPL', 'MSFT', 'GOOGL'])
+        )
+    """
+    def combined(event: Event) -> bool:
+        return all(f(event) for f in filters)
+    return combined
+
+
+def any_of_filters(*filters: Callable[[Event], bool]) -> Callable[[Event], bool]:
+    """
+    Combine multiple filters with OR logic.
+    
+    Any filter passing allows the event to be delivered.
+    
+    Args:
+        *filters: Variable number of filter functions
+        
+    Returns:
+        Combined filter function
+        
+    Example:
+        # Receive signals from either momentum OR mean reversion strategies
+        filter_func = any_of_filters(
+            strategy_filter(['momentum_1']),
+            strategy_filter(['mean_reversion_1'])
+        )
+    """
+    def any_of(event: Event) -> bool:
+        return any(f(event) for f in filters)
+    return any_of
+
+
+def strategy_filter(strategy_ids: List[str]) -> Callable[[Event], bool]:
+    """
+    Create a filter for specific strategy IDs.
+    
+    Args:
+        strategy_ids: List of strategy IDs to accept
+        
+    Returns:
+        Filter function
+        
+    Example:
+        filter_func = strategy_filter(['momentum_1', 'pairs_1'])
+    """
+    strategy_set = set(strategy_ids)
+    
+    def filter_func(event: Event) -> bool:
+        return event.payload.get('strategy_id') in strategy_set
+    
+    return filter_func
+
+
+def symbol_filter(symbols: List[str]) -> Callable[[Event], bool]:
+    """
+    Create a filter for specific symbols.
+    
+    Args:
+        symbols: List of symbols to accept
+        
+    Returns:
+        Filter function
+        
+    Example:
+        filter_func = symbol_filter(['AAPL', 'MSFT', 'GOOGL'])
+    """
+    symbol_set = set(symbols)
+    
+    def filter_func(event: Event) -> bool:
+        return event.payload.get('symbol') in symbol_set
+    
+    return filter_func
+
+
+def classification_filter(classifications: List[str]) -> Callable[[Event], bool]:
+    """
+    Create a filter for specific market classifications.
+    
+    Args:
+        classifications: List of classifications to accept
+        
+    Returns:
+        Filter function
+        
+    Example:
+        # Only trade in trending markets
+        filter_func = classification_filter(['strong_uptrend', 'strong_downtrend'])
+    """
+    classification_set = set(classifications)
+    
+    def filter_func(event: Event) -> bool:
+        return event.payload.get('classification') in classification_set
+    
+    return filter_func
+
+
+def strength_filter(min_strength: float, max_strength: float = 1.0) -> Callable[[Event], bool]:
+    """
+    Create a filter for signal strength.
+    
+    Args:
+        min_strength: Minimum signal strength
+        max_strength: Maximum signal strength
+        
+    Returns:
+        Filter function
+        
+    Example:
+        # Only high conviction signals
+        filter_func = strength_filter(0.8)
+    """
+    def filter_func(event: Event) -> bool:
+        strength = event.payload.get('strength', 0.0)
+        return min_strength <= strength <= max_strength
+    
+    return filter_func
+
+
+def metadata_filter(key: str, value: Any) -> Callable[[Event], bool]:
+    """
+    Create a filter for specific metadata values.
+    
+    Args:
+        key: Metadata key to check
+        value: Required value
+        
+    Returns:
+        Filter function
+        
+    Example:
+        # Only events from backtest containers
+        filter_func = metadata_filter('container_type', 'backtest')
+    """
+    def filter_func(event: Event) -> bool:
+        return event.metadata.get(key) == value
+    
+    return filter_func
+
+
+def payload_filter(key: str, value: Any) -> Callable[[Event], bool]:
+    """
+    Create a filter for specific payload values.
+    
+    Args:
+        key: Payload key to check
+        value: Required value
+        
+    Returns:
+        Filter function
+        
+    Example:
+        # Only BUY signals
+        filter_func = payload_filter('direction', 'BUY')
+    """
+    def filter_func(event: Event) -> bool:
+        return event.payload.get(key) == value
+    
+    return filter_func
+
+
+def custom_filter(predicate: Callable[[Event], bool]) -> Callable[[Event], bool]:
+    """
+    Create a filter with custom logic.
+    
+    This is just a wrapper for clarity when building filter compositions.
+    
+    Args:
+        predicate: Custom predicate function
+        
+    Returns:
+        Filter function
+        
+    Example:
+        # Complex custom logic
+        filter_func = custom_filter(
+            lambda e: e.payload.get('volume', 0) > 1000000 and 
+                     e.payload.get('price', 0) > 50
+        )
+    """
+    return predicate
+
+
+# ============================================
+# Example Usage Patterns
+# ============================================
+
+def create_portfolio_filter(
+    strategy_ids: List[str],
+    symbols: Optional[List[str]] = None,
+    min_strength: float = 0.0,
+    classifications: Optional[List[str]] = None
+) -> Callable[[Event], bool]:
+    """
+    Create a comprehensive portfolio filter.
+    
+    This is an example of how to compose filters for a portfolio container.
+    
+    Args:
+        strategy_ids: Required list of strategy IDs
+        symbols: Optional symbol whitelist
+        min_strength: Minimum signal strength
+        classifications: Optional classification whitelist
+        
+    Returns:
+        Combined filter function
+        
+    Example:
+        filter_func = create_portfolio_filter(
+            strategy_ids=['momentum_1', 'pairs_1'],
+            symbols=['AAPL', 'MSFT', 'GOOGL'],
+            min_strength=0.7,
+            classifications=['trending', 'breakout']
+        )
+    """
+    filters = [strategy_filter(strategy_ids)]
+    
+    if symbols:
+        filters.append(symbol_filter(symbols))
+    
+    if min_strength > 0:
+        filters.append(strength_filter(min_strength))
+    
+    if classifications:
+        filters.append(classification_filter(classifications))
+    
+    return combine_filters(*filters)
+
+
+# ============================================
+# Migration Examples
+# ============================================
+
+def migrate_routing_to_filters():
+    """
+    Example showing how to replace complex routing with filters.
+    
+    OLD: Using routing infrastructure
+    NEW: Using EventBus filters
+    """
+    # OLD: Complex routing setup
+    # route = FilterRoute('signal_route', {...})
+    # route.register_requirements('portfolio_1', ['momentum_1'])
+    # route.setup(containers)
+    # route.start()
+    
+    # NEW: Simple filter at subscription
+    from .bus import EventBus
+    
+    root_bus = EventBus("root")
+    portfolio = ...  # Portfolio container
+    
+    # Direct subscription with filter
+    root_bus.subscribe(
+        EventType.SIGNAL.value,
+        portfolio.receive_event,
+        filter_func=strategy_filter(['momentum_1'])
+    )
+    
+    # Or use convenience method
+    root_bus.subscribe_to_signals(
+        portfolio.receive_event,
+        strategy_ids=['momentum_1']
+    )
 
 
 # ============================================
@@ -1352,3 +1778,246 @@ class DiskEventStorage(EventStorageProtocol):
         """Ensure file is closed on deletion."""
         if hasattr(self, 'current_file') and self.current_file:
             self.current_file.close()
+
+
+# ============================================
+# MIGRATION GUIDE: From Routing to Enhanced EventBus
+# ============================================
+"""
+Migration Guide: Replacing Routing Module with Enhanced EventBus
+
+The routing module is being removed in favor of EventBus with required filtering
+for SIGNAL events. This guide shows how to migrate existing code.
+
+Key Changes:
+1. No more routing module imports
+2. Direct EventBus subscriptions with filters
+3. Simpler, cleaner architecture
+
+Migration Steps:
+
+1. REMOVE ROUTING IMPORTS
+   OLD:
+   ```python
+   from src.core.routing import FilterRoute, create_feature_filter
+   from src.core.routing.factory import RoutingFactory
+   ```
+   
+   NEW:
+   ```python
+   from src.core.events import EventBus, strategy_filter
+   ```
+
+2. REPLACE FEATURE FILTER ROUTES
+   OLD:
+   ```python
+   # Complex routing setup
+   feature_filter = routing_factory.create_route(
+       name='feature_filter',
+       config={
+           'type': 'filter',
+           'filter_field': 'payload.features',
+           'event_types': [EventType.FEATURES]
+       }
+   )
+   feature_filter.register_requirements(...)
+   feature_filter.setup(containers)
+   ```
+   
+   NEW:
+   ```python
+   # Direct subscription - no routing needed
+   # Features are processed in feature containers
+   # Strategies subscribe to root bus with filters
+   ```
+
+3. REPLACE SIGNAL ROUTING
+   OLD:
+   ```python
+   # Complex signal routing with dynamic strategy creation
+   def create_strategy_transform(sid, stype, sconfig):
+       def transform(event):
+           strategy = create_component(stype, ...)
+           return strategy.handle_features(event)
+       return transform
+   ```
+   
+   NEW:
+   ```python
+   # Portfolio subscribes with filter for its strategies
+   root_bus.subscribe(
+       EventType.SIGNAL.value,
+       portfolio.receive_event,
+       filter_func=strategy_filter(['momentum_1', 'pairs_1'])
+   )
+   ```
+
+4. REPLACE RISK SERVICE ROUTE
+   OLD:
+   ```python
+   risk_route = routing_factory.create_route(
+       name='risk_service',
+       config={
+           'type': 'risk_service',
+           'risk_validators': risk_validators,
+           'root_event_bus': root_event_bus
+       }
+   )
+   ```
+   
+   NEW:
+   ```python
+   # Risk validators as simple event handlers
+   def risk_handler(event: Event):
+       if event.event_type == EventType.ORDER_REQUEST.value:
+           # Validate order
+           for validator in risk_validators:
+               if not validator(event):
+                   # Publish rejection
+                   return
+           # Publish approved ORDER event
+   
+   root_bus.subscribe(EventType.ORDER_REQUEST.value, risk_handler)
+   ```
+
+5. REMOVE BROADCAST ROUTES
+   OLD:
+   ```python
+   fill_broadcast = routing_factory.create_route(
+       name='fill_broadcast',
+       config={
+           'type': 'broadcast',
+           'source': 'execution',
+           'targets': list(portfolio_containers.keys()),
+           'allowed_types': [EventType.FILL]
+       }
+   )
+   ```
+   
+   NEW:
+   ```python
+   # Execution publishes to root bus
+   # Portfolios subscribe directly
+   for portfolio in portfolios:
+       root_bus.subscribe(EventType.FILL.value, portfolio.on_fill)
+   ```
+
+6. UPDATE TOPOLOGY BUILDERS
+   OLD:
+   ```python
+   # In topology builder
+   from src.core.coordinator.topologies.helpers.routing import route_backtest_topology
+   routes = route_backtest_topology(containers, config)
+   ```
+   
+   NEW:
+   ```python
+   # In topology builder
+   # Just wire up subscriptions directly
+   def setup_subscriptions(containers, root_bus):
+       # Portfolios subscribe to signals with filters
+       for portfolio_id, portfolio in portfolio_containers.items():
+           strategy_ids = portfolio.config.get('strategy_ids', [])
+           root_bus.subscribe_to_signals(
+               portfolio.receive_event,
+               strategy_ids=strategy_ids
+           )
+       
+       # Risk subscribes to ORDER_REQUEST
+       if risk_manager:
+           root_bus.subscribe(
+               EventType.ORDER_REQUEST.value,
+               risk_manager.validate_order
+           )
+       
+       # Execution subscribes to ORDER
+       root_bus.subscribe(
+           EventType.ORDER.value,
+           execution.on_order
+       )
+       
+       # Portfolios subscribe to FILL
+       for portfolio in portfolio_containers.values():
+           root_bus.subscribe(
+               EventType.FILL.value,
+               portfolio.on_fill
+           )
+   ```
+
+7. REMOVE ROUTING CLEANUP
+   OLD:
+   ```python
+   # In cleanup
+   for route in self.routes:
+       route.stop()
+   ```
+   
+   NEW:
+   ```python
+   # Nothing to clean up - subscriptions cleaned with containers
+   ```
+
+Benefits of New Approach:
+- Simpler: No routing infrastructure to manage
+- Cleaner: Direct subscriptions with filters
+- Safer: Required filters prevent routing errors
+- Faster: No intermediate routing layers
+- Clearer: Event flow is explicit in subscriptions
+
+Common Patterns:
+
+1. Portfolio Signal Filtering:
+   ```python
+   # Each portfolio only gets its assigned strategies
+   bus.subscribe_to_signals(
+       portfolio.receive_event,
+       strategy_ids=['momentum_1', 'mean_reversion_1']
+   )
+   ```
+
+2. Multi-Criteria Filtering:
+   ```python
+   # Complex filtering with composition
+   filter_func = combine_filters(
+       strategy_filter(['momentum_1']),
+       symbol_filter(['AAPL', 'MSFT']),
+       strength_filter(0.7, 1.0)
+   )
+   bus.subscribe(EventType.SIGNAL.value, handler, filter_func)
+   ```
+
+3. Conditional Processing:
+   ```python
+   # Different handlers for different conditions
+   bus.subscribe(
+       EventType.SIGNAL.value,
+       aggressive_handler,
+       filter_func=strength_filter(0.9, 1.0)
+   )
+   
+   bus.subscribe(
+       EventType.SIGNAL.value,
+       conservative_handler,
+       filter_func=strength_filter(0.0, 0.5)
+   )
+   ```
+
+4. Event Transformation:
+   ```python
+   # Transform events in handlers, not routes
+   def order_handler(signal_event):
+       # Transform signal to order
+       order = create_order_from_signal(signal_event)
+       bus.publish(order)
+   
+   bus.subscribe(EventType.SIGNAL.value, order_handler, 
+                filter_func=strategy_filter(['my_strategy']))
+   ```
+
+Testing Migration:
+1. Remove all routing imports
+2. Replace route creation with direct subscriptions
+3. Verify SIGNAL subscriptions have filters
+4. Test event flow with logging
+5. Confirm no events are missed or duplicated
+"""
