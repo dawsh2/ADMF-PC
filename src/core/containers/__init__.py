@@ -94,6 +94,21 @@ from .types import (
     EventHandler
 )
 
+# Synchronization
+from .sync import (
+    AlignmentMode,
+    TimeframeAlignment,
+    DataRequirement,
+    StrategySpecification,
+    BarBuffer,
+    TimeAlignmentBuffer,
+    StrategyOrchestrator,
+    setup_synchronized_feature_container,
+    create_symbol_group_requirement,
+    create_multi_timeframe_requirement,
+    create_pairs_requirement
+)
+
 __all__ = [
     # Canonical container
     'Container',
@@ -140,5 +155,18 @@ __all__ = [
     'ExecutionConfigDict',
     'MetricsConfigDict',
     'ContainerComponent',
-    'EventHandler'
+    'EventHandler',
+    
+    # Synchronization
+    'AlignmentMode',
+    'TimeframeAlignment',
+    'DataRequirement',
+    'StrategySpecification',
+    'BarBuffer',
+    'TimeAlignmentBuffer',
+    'StrategyOrchestrator',
+    'setup_synchronized_feature_container',
+    'create_symbol_group_requirement',
+    'create_multi_timeframe_requirement',
+    'create_pairs_requirement'
 ]

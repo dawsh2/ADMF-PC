@@ -310,12 +310,56 @@ class ContainerFactory:
         """Add components to container based on configuration."""
         components_config = config.get('components', {})
         
-        # Import component registry
+        # Import all available components directly
+        from .components import (
+            DataStreamer,
+            FeatureCalculator,
+            PortfolioState,
+            SignalProcessor,
+            OrderGenerator,
+            RiskValidator,
+            ExecutionEngine
+        )
+        
+        # Import specialized components
         try:
-            from .component_registry import create_component
+            from .components.signal_generator import SignalGeneratorComponent
+            from .components.signal_streamer import SignalStreamerComponent
         except ImportError:
-            logger.warning("Component registry not available")
-            return
+            SignalGeneratorComponent = None
+            SignalStreamerComponent = None
+            logger.debug("Signal generation/streaming components not available")
+        
+        # Import TimeAlignmentBuffer if available
+        try:
+            from .sync import TimeAlignmentBuffer
+        except ImportError:
+            TimeAlignmentBuffer = None
+            logger.debug("TimeAlignmentBuffer not available")
+        
+        # Direct mapping of component types to classes
+        component_classes = {
+            'DataStreamer': DataStreamer,
+            'CSVDataLoader': DataStreamer,  # Alias for backward compatibility
+            'FeatureCalculator': FeatureCalculator,
+            'PortfolioState': PortfolioState,
+            'SignalProcessor': SignalProcessor,
+            'OrderGenerator': OrderGenerator,
+            'RiskValidator': RiskValidator,
+            'ExecutionEngine': ExecutionEngine,
+        }
+        
+        # Add optional components if available
+        if SignalGeneratorComponent:
+            component_classes['SignalGeneratorComponent'] = SignalGeneratorComponent
+            component_classes['SignalGenerator'] = SignalGeneratorComponent  # Alias
+        
+        if SignalStreamerComponent:
+            component_classes['SignalStreamerComponent'] = SignalStreamerComponent
+            component_classes['SignalStreamer'] = SignalStreamerComponent  # Alias
+        
+        if TimeAlignmentBuffer:
+            component_classes['TimeAlignmentBuffer'] = TimeAlignmentBuffer
         
         for component_name, component_config in components_config.items():
             try:
@@ -333,8 +377,14 @@ class ContainerFactory:
                     logger.warning(f"No type specified for component {component_name}")
                     continue
                 
+                # Get component class from mapping
+                component_class = component_classes.get(component_type)
+                if not component_class:
+                    logger.warning(f"Unknown component type: {component_type}")
+                    continue
+                
                 # Create component instance
-                component = create_component(component_type, component_params)
+                component = component_class(**component_params)
                 
                 # Initialize component with container reference
                 if hasattr(component, 'initialize'):

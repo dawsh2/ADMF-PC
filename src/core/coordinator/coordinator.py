@@ -1,84 +1,101 @@
 """
-Coordinator implementation that manages workflow execution.
+Declarative Workflow Manager
 
-The Coordinator is the main entry point that:
-1. Discovers and manages workflow patterns
-2. Maintains oversight of phase completion
-3. Handles result streaming
-4. Manages distributed execution (future)
-5. Always delegates to Sequencer for phase execution
-
-All complexity is properly delegated to workflows and sequences.
+Interprets workflow patterns defined in YAML rather than Python code.
+Handles multi-phase workflows with dependencies, inputs/outputs, and conditional logic.
 """
 
-import uuid
+from typing import Dict, Any, Optional, List, Set
 import logging
-from typing import Dict, Any, Optional, List
+from pathlib import Path
+import yaml
+import json
 from datetime import datetime
+import re
+import uuid
 
-from ..components.discovery import discover_components
-from .protocols import (
-    WorkflowProtocol, 
-    SequenceProtocol,
-    TopologyBuilderProtocol,
-    PhaseConfig
-)
+from .protocols import PhaseConfig, TopologyBuilderProtocol, WorkflowProtocol, SequenceProtocol
 from .topology import TopologyBuilder
 from .sequencer import Sequencer
+from ..components.discovery import discover_components
 
 logger = logging.getLogger(__name__)
 
 
 class Coordinator:
     """
-    Coordinator that manages workflow execution.
+    Executes workflows based on declarative patterns.
     
-    This is the main entry point for the system. It:
-    1. Discovers available workflows and sequences
-    2. Manages workflow execution with phase oversight
-    3. Handles event tracing setup (optional)
-    4. Delegates phase execution to Sequencer
-    5. Aggregates results across phases
-    6. Returns results to user
+    Workflows define multi-phase processes with:
+    - Phase dependencies
+    - Input/output data flow
+    - Conditional execution
+    - Dynamic configuration
     """
     
-    def __init__(self, shared_services: Optional[Dict[str, Any]] = None):
-        """
-        Initialize coordinator.
-        
-        Args:
-            shared_services: Optional shared services like event tracer
-        """
+    def __init__(self, 
+                 topology_builder: Optional[TopologyBuilderProtocol] = None,
+                 sequencer: Optional[Any] = None,
+                 shared_services: Optional[Dict[str, Any]] = None):
+        """Initialize workflow manager."""
         self.coordinator_id = str(uuid.uuid4())
         self.shared_services = shared_services or {}
         
-        # Discover available components
-        self.workflows = self._discover_workflows()
-        sequences = self._discover_sequences()
+        # Component discovery
+        self.discovered_workflows = self._discover_workflows()
+        self.discovered_sequences = self._discover_sequences()
         
-        # Create topology builder and sequencer
-        self.topology_builder = TopologyBuilder()
-        self.sequencer = Sequencer(sequences, self.topology_builder)
+        # Core components
+        self.topology_builder = topology_builder or TopologyBuilder()
+        self.sequencer = sequencer or Sequencer(self.topology_builder)
         
-        # Optional event tracing
+        # Pattern loading
+        self.workflow_patterns = self._load_workflow_patterns()
+        self.phase_outputs = {}  # Store outputs from completed phases
+        
+        # Event tracing support
         self.event_tracer = None
         self._setup_event_tracing()
         
         logger.info(f"Coordinator {self.coordinator_id} initialized with "
-                   f"{len(self.workflows)} workflows and {len(sequences)} sequences")
-    
-    def _setup_event_tracing(self):
-        """Setup event tracing if enabled."""
-        if self.shared_services.get('enable_event_tracing', False):
+                   f"{len(self.discovered_workflows)} discovered workflows, "
+                   f"{len(self.discovered_sequences)} discovered sequences, "
+                   f"and {len(self.workflow_patterns)} workflow patterns")
+        
+    def _load_workflow_patterns(self) -> Dict[str, Dict[str, Any]]:
+        """Load workflow patterns from YAML files."""
+        patterns = {}
+        # Load from config/patterns/workflows
+        project_root = Path(__file__).parent.parent.parent.parent  # Navigate to project root
+        pattern_dir = project_root / 'config' / 'patterns' / 'workflows'
+        
+        # Create directory if it doesn't exist
+        if not pattern_dir.exists():
+            pattern_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Created workflow patterns directory: {pattern_dir}")
+        
+        # Load YAML patterns
+        for pattern_file in pattern_dir.glob('*.yaml'):
             try:
-                from ..events.tracing import EventTracer
-                self.event_tracer = EventTracer(
-                    enabled=True,
-                    trace_dir=self.shared_services.get('trace_dir', './traces')
-                )
-                logger.info("Event tracing initialized")
-            except ImportError:
-                logger.warning("Event tracing not available")
+                with open(pattern_file) as f:
+                    pattern = yaml.safe_load(f)
+                    patterns[pattern_file.stem] = pattern
+                    logger.info(f"Loaded workflow pattern: {pattern_file.stem}")
+            except Exception as e:
+                logger.error(f"Failed to load workflow pattern {pattern_file}: {e}")
+        
+        # Also check for Python-based patterns for hybrid support
+        try:
+            from . import workflow_patterns as python_patterns
+            for name in dir(python_patterns):
+                if name.endswith('_PATTERN'):
+                    pattern_name = name[:-8].lower()  # Remove _PATTERN suffix
+                    patterns[pattern_name] = getattr(python_patterns, name)
+                    logger.info(f"Loaded Python workflow pattern: {pattern_name}")
+        except ImportError:
+            pass
+        
+        return patterns
     
     def _discover_workflows(self) -> Dict[str, WorkflowProtocol]:
         """Discover all available workflows."""
@@ -106,70 +123,448 @@ class Coordinator:
             logger.warning(f"Failed to discover sequences: {e}")
             return {}
     
-    def run_workflow(
-        self,
-        config: Dict[str, Any],
-        workflow_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def _setup_event_tracing(self):
+        """Setup event tracing if enabled."""
+        if self.shared_services.get('enable_event_tracing', False):
+            try:
+                from ..events.tracing import EventTracer
+                self.event_tracer = EventTracer(
+                    enabled=True,
+                    trace_dir=self.shared_services.get('trace_dir', './traces')
+                )
+                logger.info("Event tracing initialized")
+            except ImportError:
+                logger.warning("Event tracing not available")
+    
+    def run_workflow(self, workflow_definition: Dict[str, Any],
+                    workflow_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Execute a workflow based on configuration.
-        
-        This is the main entry point for users.
+        Run a workflow from definition.
         
         Args:
-            config: User configuration including:
-                - workflow: Name of workflow to run (default: simple_backtest)
-                - data: Data configuration
-                - strategies: Strategy configurations
-                - Any workflow-specific parameters
+            workflow_definition: Dict containing:
+                - workflow: Name of workflow pattern or inline definition
+                - config: User configuration
+                - context: Additional context
             workflow_id: Optional workflow ID for tracking
-            
+                
         Returns:
-            Dict containing:
-                - workflow_id: Unique workflow execution ID
-                - success: Whether workflow completed successfully
-                - results: Workflow execution results
-                - metadata: Execution metadata
+            Workflow execution results
         """
         workflow_id = workflow_id or str(uuid.uuid4())
         start_time = datetime.now()
         
+        # Extract configuration
+        if isinstance(workflow_definition, dict) and 'config' in workflow_definition:
+            config = workflow_definition['config']
+            workflow_spec = workflow_definition.get('workflow', 'simple_backtest')
+        else:
+            # Backward compatibility - treat entire dict as config
+            config = workflow_definition
+            workflow_spec = config.get('workflow', 'simple_backtest')
+        
         # Apply trace level presets if specified
         config = self._apply_trace_level_config(config)
         
-        # Get workflow name
-        workflow_name = config.get('workflow', 'simple_backtest')
+        # Get workflow pattern
+        if isinstance(workflow_spec, str):
+            pattern_name = workflow_spec
+            
+            # Check discovered workflows first (for composable support)
+            if pattern_name in self.discovered_workflows:
+                return self._execute_discovered_workflow(pattern_name, config, workflow_id)
+            
+            # Then check patterns
+            pattern = self.workflow_patterns.get(pattern_name)
+            if not pattern:
+                raise ValueError(f"Unknown workflow: {pattern_name}")
+        else:
+            # Inline workflow definition
+            pattern = workflow_spec
         
+        workflow_name = pattern.get('name', pattern_name if isinstance(workflow_spec, str) else 'unnamed_workflow')
         logger.info(f"Starting workflow: {workflow_name} (ID: {workflow_id})")
         
+        # Initialize workflow context
+        workflow_context = {
+            'workflow_name': workflow_name,
+            'workflow_id': workflow_id,
+            'start_time': start_time,
+            'config': config,
+            'pattern': pattern,
+            'phase_outputs': {},
+            'phase_results': {}
+        }
+        workflow_context.update(context)
+        
+        # Execute phases
+        phases = pattern.get('phases', [])
+        results = {
+            'workflow': workflow_name,
+            'phases': {},
+            'success': True,
+            'outputs': {}
+        }
+        
+        for phase_def in phases:
+            phase_name = phase_def.get('name')
+            
+            # Check dependencies
+            if not self._check_dependencies(phase_def, workflow_context):
+                logger.info(f"Skipping phase {phase_name} - dependencies not met")
+                continue
+            
+            # Check conditions
+            if not self._check_conditions(phase_def, workflow_context):
+                logger.info(f"Skipping phase {phase_name} - conditions not met")
+                continue
+            
+            # Execute phase
+            logger.info(f"Executing phase: {phase_name}")
+            phase_result = self._execute_phase(phase_def, workflow_context)
+            
+            # Store results
+            results['phases'][phase_name] = phase_result
+            workflow_context['phase_results'][phase_name] = phase_result
+            
+            # Handle outputs
+            if 'outputs' in phase_def:
+                phase_outputs = self._process_outputs(
+                    phase_def['outputs'], 
+                    phase_result, 
+                    workflow_context
+                )
+                workflow_context['phase_outputs'][phase_name] = phase_outputs
+                results['outputs'][phase_name] = phase_outputs
+            
+            # Check if phase failed
+            if not phase_result.get('success', True):
+                results['success'] = False
+                if phase_def.get('required', True):
+                    logger.error(f"Required phase {phase_name} failed, stopping workflow")
+                    break
+        
+        # Process workflow-level outputs
+        if 'outputs' in pattern:
+            workflow_outputs = self._process_outputs(
+                pattern['outputs'],
+                results,
+                workflow_context
+            )
+            results['outputs']['workflow'] = workflow_outputs
+        
+        # Add summary
+        results['summary'] = self._create_summary(results, workflow_context)
+        
+        return results
+    
+    def _check_dependencies(self, phase_def: Dict[str, Any], 
+                           context: Dict[str, Any]) -> bool:
+        """Check if phase dependencies are satisfied."""
+        depends_on = phase_def.get('depends_on', [])
+        if isinstance(depends_on, str):
+            depends_on = [depends_on]
+        
+        for dep in depends_on:
+            if dep not in context['phase_results']:
+                return False
+            if not context['phase_results'][dep].get('success', True):
+                return False
+        
+        return True
+    
+    def _check_conditions(self, phase_def: Dict[str, Any], 
+                         context: Dict[str, Any]) -> bool:
+        """Check if phase conditions are met."""
+        conditions = phase_def.get('conditions', [])
+        if not conditions:
+            return True
+        
+        if isinstance(conditions, dict):
+            conditions = [conditions]
+        
+        for condition in conditions:
+            if not self._evaluate_condition(condition, context):
+                return False
+        
+        return True
+    
+    def _evaluate_condition(self, condition: Dict[str, Any], 
+                           context: Dict[str, Any]) -> bool:
+        """Evaluate a single condition."""
+        cond_type = condition.get('type', 'expression')
+        
+        if cond_type == 'expression':
+            expr = condition.get('expression')
+            try:
+                # Safe evaluation with limited context
+                safe_context = {
+                    'results': context.get('phase_results', {}),
+                    'config': context.get('config', {}),
+                    'outputs': context.get('phase_outputs', {})
+                }
+                return eval(expr, {"__builtins__": {}}, safe_context)
+            except Exception as e:
+                logger.error(f"Failed to evaluate condition: {e}")
+                return False
+                
+        elif cond_type == 'metric_threshold':
+            phase = condition.get('phase')
+            metric = condition.get('metric')
+            operator = condition.get('operator', '>')
+            threshold = condition.get('threshold')
+            
+            value = self._extract_value(
+                f"phase_results.{phase}.{metric}", 
+                context
+            )
+            
+            if value is None:
+                return False
+            
+            if operator == '>':
+                return value > threshold
+            elif operator == '>=':
+                return value >= threshold
+            elif operator == '<':
+                return value < threshold
+            elif operator == '<=':
+                return value <= threshold
+            elif operator == '==':
+                return value == threshold
+            
+        return True
+    
+    def _execute_phase(self, phase_def: Dict[str, Any], 
+                      context: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a single phase."""
+        phase_name = phase_def.get('name')
+        
+        # Build phase configuration
+        phase_config = self._build_phase_config(phase_def, context)
+        
+        # Create PhaseConfig object
+        phase = PhaseConfig(
+            name=phase_name,
+            topology=phase_def.get('topology', 'backtest'),
+            sequence=phase_def.get('sequence', phase_def.get('pattern', 'single_pass')),
+            config=phase_config,
+            output=phase_def.get('output', {})
+        )
+        
+        # Execute using sequencer
         try:
-            # Execute workflow
-            result = self._execute_workflow(workflow_name, config)
-            
-            # Add event trace if available
-            if self.event_tracer:
-                trace_summary = self.event_tracer.get_summary()
-                result['trace_summary'] = trace_summary
-                logger.info(f"Event trace: {trace_summary.get('total_events', 0)} events")
-            
-            # Add coordinator metadata
-            result['workflow_id'] = workflow_id
-            result['coordinator_id'] = self.coordinator_id
-            result['start_time'] = start_time.isoformat()
-            result['end_time'] = datetime.now().isoformat()
-            
+            result = self.sequencer.execute_sequence(phase, context)
             return result
-            
         except Exception as e:
-            logger.error(f"Workflow {workflow_id} failed: {e}")
+            logger.error(f"Phase {phase_name} failed: {e}")
             return {
-                'workflow_id': workflow_id,
                 'success': False,
-                'error': str(e),
-                'workflow_name': workflow_name,
-                'start_time': start_time.isoformat(),
-                'end_time': datetime.now().isoformat()
+                'phase_name': phase_name,
+                'error': str(e)
             }
+    
+    def _build_phase_config(self, phase_def: Dict[str, Any], 
+                           context: Dict[str, Any]) -> Dict[str, Any]:
+        """Build configuration for a phase."""
+        # Start with base config
+        config = context.get('config', {}).copy()
+        
+        # Apply phase-specific config
+        if 'config' in phase_def:
+            config.update(self._resolve_config(phase_def['config'], context))
+        
+        # Process inputs
+        if 'inputs' in phase_def:
+            inputs = self._resolve_inputs(phase_def['inputs'], context)
+            config['inputs'] = inputs
+        
+        return config
+    
+    def _resolve_config(self, config_spec: Dict[str, Any], 
+                       context: Dict[str, Any]) -> Dict[str, Any]:
+        """Resolve configuration values."""
+        resolved = {}
+        
+        for key, value in config_spec.items():
+            resolved[key] = self._resolve_value(value, context)
+        
+        return resolved
+    
+    def _resolve_inputs(self, inputs_spec: Dict[str, Any], 
+                       context: Dict[str, Any]) -> Dict[str, Any]:
+        """Resolve input specifications."""
+        resolved = {}
+        
+        for key, spec in inputs_spec.items():
+            value = self._resolve_value(spec, context)
+            
+            # Load file inputs if needed
+            if isinstance(value, str) and Path(value).exists():
+                try:
+                    if value.endswith('.json'):
+                        with open(value) as f:
+                            value = json.load(f)
+                    elif value.endswith('.yaml'):
+                        with open(value) as f:
+                            value = yaml.safe_load(f)
+                except Exception as e:
+                    logger.error(f"Failed to load input file {value}: {e}")
+            
+            resolved[key] = value
+        
+        return resolved
+    
+    def _process_outputs(self, outputs_spec: Any, 
+                        result: Dict[str, Any], 
+                        context: Dict[str, Any]) -> Dict[str, Any]:
+        """Process and save outputs."""
+        if isinstance(outputs_spec, list):
+            # Convert list format to dict
+            outputs_spec = {item: item for item in outputs_spec}
+        
+        processed = {}
+        
+        for key, spec in outputs_spec.items():
+            if isinstance(spec, str):
+                # Simple path specification
+                path = self._resolve_value(spec, context)
+                value = self._extract_value(key, result)
+                
+                if path.startswith('./') or path.startswith('/'):
+                    # Save to file
+                    self._save_output(path, value)
+                    processed[key] = path
+                else:
+                    # Just store value
+                    processed[key] = value
+                    
+            elif isinstance(spec, dict):
+                # Complex output specification
+                out_type = spec.get('type', 'extract')
+                
+                if out_type == 'extract':
+                    source = spec.get('source', key)
+                    value = self._extract_value(source, result)
+                    path = spec.get('path')
+                    
+                    if path:
+                        path = self._resolve_value(path, context)
+                        self._save_output(path, value)
+                        processed[key] = path
+                    else:
+                        processed[key] = value
+                        
+                elif out_type == 'aggregate':
+                    # Aggregate multiple values
+                    sources = spec.get('sources', [])
+                    aggregated = {}
+                    for source in sources:
+                        value = self._extract_value(source, result)
+                        aggregated[source] = value
+                    processed[key] = aggregated
+        
+        return processed
+    
+    def _save_output(self, path: str, value: Any) -> None:
+        """Save output to file."""
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            if path.endswith('.json'):
+                with open(path, 'w') as f:
+                    json.dump(value, f, indent=2, default=str)
+            elif path.endswith('.yaml'):
+                with open(path, 'w') as f:
+                    yaml.dump(value, f)
+            else:
+                # Save as text
+                with open(path, 'w') as f:
+                    f.write(str(value))
+            
+            logger.info(f"Saved output to {path}")
+        except Exception as e:
+            logger.error(f"Failed to save output to {path}: {e}")
+    
+    def _resolve_value(self, spec: Any, context: Dict[str, Any]) -> Any:
+        """Resolve a value specification."""
+        if isinstance(spec, str):
+            # Check for template pattern
+            if '{' in spec and '}' in spec:
+                # Extract all template variables
+                pattern = r'\{([^}]+)\}'
+                matches = re.findall(pattern, spec)
+                
+                result = spec
+                for match in matches:
+                    value = self._extract_value(match, context)
+                    if value is not None:
+                        result = result.replace(f"{{{match}}}", str(value))
+                
+                return result
+            
+            # Check for reference pattern
+            elif spec.startswith('$'):
+                return self._extract_value(spec[1:], context)
+        
+        elif isinstance(spec, dict):
+            if 'from_config' in spec:
+                value = self._extract_value(f"config.{spec['from_config']}", context)
+                if value is None:
+                    value = spec.get('default')
+                return value
+            
+            # Recursively resolve dict values
+            resolved = {}
+            for k, v in spec.items():
+                resolved[k] = self._resolve_value(v, context)
+            return resolved
+        
+        elif isinstance(spec, list):
+            # Recursively resolve list items
+            return [self._resolve_value(item, context) for item in spec]
+        
+        return spec
+    
+    def _extract_value(self, path: str, data: Dict[str, Any]) -> Any:
+        """Extract value from nested dict using dot notation."""
+        parts = path.split('.')
+        value = data
+        
+        for part in parts:
+            if isinstance(value, dict) and part in value:
+                value = value[part]
+            else:
+                return None
+        
+        return value
+    
+    def _create_summary(self, results: Dict[str, Any], 
+                       context: Dict[str, Any]) -> Dict[str, Any]:
+        """Create workflow execution summary."""
+        summary = {
+            'workflow': context.get('workflow_name'),
+            'success': results.get('success'),
+            'phases_executed': len(results.get('phases', {})),
+            'phases_succeeded': sum(
+                1 for p in results.get('phases', {}).values() 
+                if p.get('success', True)
+            ),
+            'duration': str(datetime.now() - context.get('start_time')),
+            'outputs_generated': len(results.get('outputs', {}))
+        }
+        
+        # Add key metrics if available
+        metrics = {}
+        for phase_name, phase_result in results.get('phases', {}).items():
+            if 'aggregated' in phase_result:
+                metrics[phase_name] = phase_result['aggregated']
+        
+        if metrics:
+            summary['key_metrics'] = metrics
+        
+        return summary
     
     def _apply_trace_level_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Apply trace level presets if specified."""
@@ -189,40 +584,39 @@ class Coordinator:
             
         return config
     
-    # Backward compatibility methods
+    def _aggregate_phase_results(self, phase_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Aggregate results from all phases."""
+        aggregated = {
+            'total_phases': len(phase_results),
+            'successful_phases': sum(1 for r in phase_results.values() if r.get('success', False)),
+            'phase_metrics': {}
+        }
+        
+        # Extract and aggregate metrics
+        for phase_name, result in phase_results.items():
+            if 'aggregate_metrics' in result:
+                aggregated['phase_metrics'][phase_name] = result['aggregate_metrics']
+            elif 'metrics' in result:
+                aggregated['phase_metrics'][phase_name] = result['metrics']
+        
+        # Calculate primary metric if available
+        primary_metric = None
+        for phase_name, metrics in aggregated['phase_metrics'].items():
+            if 'sharpe_ratio' in metrics:
+                if primary_metric is None or metrics['sharpe_ratio'] > primary_metric:
+                    primary_metric = metrics['sharpe_ratio']
+                    aggregated['best_phase'] = phase_name
+        
+        if primary_metric is not None:
+            aggregated['primary_metric'] = primary_metric
+        
+        return aggregated
     
-    def execute_workflow(
-        self,
-        config: Dict[str, Any],
-        workflow_id: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """Backward compatibility alias for run_workflow."""
-        return self.run_workflow(config, workflow_id)
-    
-    def _execute_workflow(self, workflow_name: str, config: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a workflow with the given configuration.
-        
-        Handles both simple and composable workflows:
-        - Simple workflows execute once
-        - Composable workflows can iterate and branch
-        
-        Args:
-            workflow_name: Name of the workflow to execute
-            config: User configuration
-            
-        Returns:
-            Dict containing:
-                - success: Whether workflow completed successfully
-                - phase_results: Results from each phase (or iterations)
-                - aggregated_results: Aggregated metrics/results
-                - metadata: Execution metadata
-        """
-        # Get workflow
-        if workflow_name not in self.workflows:
-            raise ValueError(f"Unknown workflow: {workflow_name}")
-        
-        workflow = self.workflows[workflow_name]
+    def _execute_discovered_workflow(self, workflow_name: str, 
+                                   config: Dict[str, Any], 
+                                   workflow_id: str) -> Dict[str, Any]:
+        """Execute a discovered workflow (supports composable)."""
+        workflow = self.discovered_workflows[workflow_name]
         
         # Check if workflow is composable
         is_composable = (
@@ -232,58 +626,134 @@ class Coordinator:
         )
         
         if is_composable:
-            return self._execute_composable(workflow, workflow_name, config)
+            return self._execute_composable_workflow(workflow, workflow_name, config, workflow_id)
         else:
-            return self._execute_simple(workflow, workflow_name, config)
+            return self._execute_simple_workflow(workflow, workflow_name, config, workflow_id)
     
-    def _execute_simple(self, workflow: WorkflowProtocol, workflow_name: str, 
-                       config: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a simple (non-composable) workflow once."""
+    def _execute_composable_workflow(self, workflow: WorkflowProtocol,
+                                   workflow_name: str,
+                                   config: Dict[str, Any],
+                                   workflow_id: str) -> Dict[str, Any]:
+        """Execute a composable workflow with iteration/branching."""
+        logger.info(f"Executing composable workflow: {workflow_name}")
+        
+        # Initialize tracking
+        iteration_results = []
+        branch_results = {}
+        iteration = 0
+        max_iterations = config.get('max_iterations', 100)
+        current_config = config.copy()
+        
+        # Iteration loop
+        while iteration < max_iterations:
+            iteration += 1
+            logger.info(f"Workflow iteration {iteration}")
+            
+            # Check if we should continue
+            if hasattr(workflow, 'should_continue') and iteration > 1:
+                if not workflow.should_continue(current_config, iteration_results):
+                    logger.info("Workflow stopping - should_continue returned False")
+                    break
+            
+            # Modify config for next iteration
+            if hasattr(workflow, 'modify_config_for_next') and iteration > 1:
+                current_config = workflow.modify_config_for_next(
+                    current_config, iteration_results
+                )
+            
+            # Execute this iteration
+            iteration_context = {
+                'workflow_name': workflow_name,
+                'workflow_id': workflow_id,
+                'iteration': iteration,
+                'config': current_config
+            }
+            
+            result = self._execute_simple_workflow(
+                workflow, workflow_name, current_config, 
+                f"{workflow_id}_iter{iteration}"
+            )
+            
+            iteration_results.append(result)
+            
+            # Check for branches
+            if hasattr(workflow, 'get_branches'):
+                branches = workflow.get_branches(current_config, result)
+                if branches:
+                    logger.info(f"Workflow branching into {len(branches)} paths")
+                    for branch in branches:
+                        branch_id = branch.branch_id
+                        branch_config = branch.config
+                        branch_result = self._execute_simple_workflow(
+                            workflow, workflow_name, branch_config,
+                            f"{workflow_id}_branch_{branch_id}"
+                        )
+                        branch_results[branch_id] = branch_result
+        
+        # Aggregate results
+        success = all(r.get('success', False) for r in iteration_results)
+        if branch_results:
+            success = success and all(r.get('success', False) for r in branch_results.values())
+        
+        return {
+            'workflow_id': workflow_id,
+            'workflow_name': workflow_name,
+            'success': success,
+            'iterations': len(iteration_results),
+            'iteration_results': iteration_results,
+            'branch_results': branch_results,
+            'aggregated_results': self._aggregate_iteration_results(iteration_results),
+            'workflow_type': 'composable',
+            'coordinator_id': self.coordinator_id
+        }
+    
+    def _execute_simple_workflow(self, workflow: WorkflowProtocol,
+                               workflow_name: str,
+                               config: Dict[str, Any],
+                               workflow_id: str) -> Dict[str, Any]:
+        """Execute a simple (non-composable) workflow."""
         start_time = datetime.now()
         
-        # Apply workflow defaults to config
-        config = self._apply_defaults(config, workflow.defaults)
+        # Apply workflow defaults
+        if hasattr(workflow, 'defaults'):
+            config = self._apply_defaults(config, workflow.defaults)
         
         # Get phase definitions
         phases = workflow.get_phases(config)
         
-        # Create execution context for inter-phase data
+        # Create execution context
         context = {
             'workflow_name': workflow_name,
+            'workflow_id': workflow_id,
             'start_time': start_time,
             'config': config,
-            'phase_data': {}  # Stores output from each phase
+            'phase_data': {},
+            'phase_results': {}
         }
         
-        # Execute phases in dependency order
+        # Execute phases
         phase_results = {}
-        for phase_name, phase_config in self._order_phases(phases).items():
+        for phase_name, phase_config in phases.items():
             logger.info(f"Executing phase: {phase_name}")
             
             try:
-                # Resolve inter-phase data references
-                self._resolve_phase_inputs(phase_config, context)
+                # Create PhaseConfig
+                phase = PhaseConfig(
+                    name=phase_name,
+                    topology=phase_config.get('topology', 'backtest'),
+                    sequence=phase_config.get('sequence', 'single_pass'),
+                    config=phase_config.get('config', config),
+                    output=phase_config.get('output', {})
+                )
                 
                 # Execute phase
-                result = self._execute_phase(phase_config, context)
+                result = self.sequencer.execute_sequence(phase, context)
                 phase_results[phase_name] = result
                 
-                # Store phase output for subsequent phases
+                # Store phase output
                 if result.get('success', False):
                     output_data = result.get('output', {})
-                    
-                    # Check if we should store full results or just output
-                    if phase_config.config.get('store_full_results', False):
-                        # Store complete results including metrics, trades, etc.
-                        context['phase_data'][phase_name] = {
-                            'output': output_data,
-                            'metrics': result.get('aggregated_results', {}),
-                            'summary': result.get('summary', {}),
-                            'results_path': result.get('results_path')  # If saved to disk
-                        }
-                    else:
-                        # Default: just store the output
-                        context['phase_data'][phase_name] = output_data
+                    context['phase_data'][phase_name] = output_data
                     
             except Exception as e:
                 logger.error(f"Phase {phase_name} failed: {e}")
@@ -291,251 +761,62 @@ class Coordinator:
                     'success': False,
                     'error': str(e)
                 }
-                
-                # Fail fast - don't continue if a phase fails
                 break
         
         # Aggregate results
         success = all(r.get('success', False) for r in phase_results.values())
         
         return {
+            'workflow_id': workflow_id,
+            'workflow_name': workflow_name,
             'success': success,
-            'workflow_name': workflow_name,
             'phase_results': phase_results,
-            'aggregated_results': self._aggregate_results(phase_results),
-            'metadata': {
-                'start_time': start_time.isoformat(),
-                'end_time': datetime.now().isoformat(),
-                'duration_seconds': (datetime.now() - start_time).total_seconds(),
-                'phases_executed': len(phase_results),
-                'phases_succeeded': sum(1 for r in phase_results.values() 
-                                       if r.get('success', False))
-            }
-        }
-    
-    def _execute_composable(self, workflow: WorkflowProtocol, workflow_name: str,
-                           config: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a composable workflow with iteration and branching support."""
-        start_time = datetime.now()
-        iteration = 0
-        max_iterations = config.get('max_iterations', 10)
-        
-        # Track all results across iterations
-        all_results = []
-        branch_results = []
-        
-        # Initial config
-        current_config = self._apply_defaults(config, workflow.defaults)
-        
-        while iteration < max_iterations:
-            logger.info(f"Executing {workflow_name} iteration {iteration + 1}")
-            
-            # Execute workflow
-            result = self._execute_simple(workflow, workflow_name, current_config)
-            result['iteration'] = iteration
-            all_results.append(result)
-            
-            # Check if should continue
-            if hasattr(workflow, 'should_continue'):
-                if not workflow.should_continue(result, iteration, current_config):
-                    logger.info(f"Workflow {workflow_name} stopping at iteration {iteration + 1}")
-                    break
-            
-            # Check for branches
-            if hasattr(workflow, 'get_branches'):
-                branches = workflow.get_branches(result, iteration, current_config)
-                for branch_name, branch_config in branches.items():
-                    logger.info(f"Executing branch: {branch_name}")
-                    branch_result = self._execute_simple(workflow, f"{workflow_name}_branch_{branch_name}", branch_config)
-                    branch_result['branch_name'] = branch_name
-                    branch_result['parent_iteration'] = iteration
-                    branch_results.append(branch_result)
-            
-            # Modify config for next iteration
-            if hasattr(workflow, 'modify_config_for_next'):
-                current_config = workflow.modify_config_for_next(result, iteration, current_config)
-            
-            iteration += 1
-        
-        # Return aggregated results
-        return {
-            'success': any(r.get('success', False) for r in all_results),
-            'workflow_name': workflow_name,
-            'iterations': all_results,
-            'branches': branch_results,
-            'aggregated_results': self._aggregate_composable_results(all_results, branch_results),
-            'metadata': {
-                'start_time': start_time.isoformat(),
-                'end_time': datetime.now().isoformat(),
-                'duration_seconds': (datetime.now() - start_time).total_seconds(),
-                'total_iterations': len(all_results),
-                'branches_executed': len(branch_results)
-            }
+            'aggregated_results': self._aggregate_phase_results(phase_results),
+            'workflow_type': 'simple',
+            'coordinator_id': self.coordinator_id,
+            'start_time': start_time.isoformat(),
+            'end_time': datetime.now().isoformat()
         }
     
     def _apply_defaults(self, config: Dict[str, Any], defaults: Dict[str, Any]) -> Dict[str, Any]:
-        """Apply workflow defaults to user config."""
-        # Deep merge defaults with config
+        """Deep merge defaults with config."""
         result = defaults.copy()
-        
-        def deep_merge(base: dict, override: dict):
-            for key, value in override.items():
-                if key in base and isinstance(base[key], dict) and isinstance(value, dict):
-                    deep_merge(base[key], value)
-                else:
-                    base[key] = value
-        
-        deep_merge(result, config)
+        self._deep_merge(result, config)
         return result
     
-    def _order_phases(self, phases: Dict[str, PhaseConfig]) -> Dict[str, PhaseConfig]:
-        """Order phases based on dependencies."""
-        # Simple topological sort
-        ordered = {}
-        remaining = phases.copy()
-        
-        while remaining:
-            # Find phases with no remaining dependencies
-            ready = [
-                name for name, phase in remaining.items()
-                if all(dep in ordered for dep in phase.depends_on)
-            ]
-            
-            if not ready:
-                raise ValueError("Circular dependency in phases")
-            
-            # Add ready phases to ordered list
-            for name in ready:
-                ordered[name] = remaining.pop(name)
-        
-        return ordered
+    def _deep_merge(self, base: Dict[str, Any], update: Dict[str, Any]) -> None:
+        """Deep merge update into base."""
+        for key, value in update.items():
+            if key in base and isinstance(base[key], dict) and isinstance(value, dict):
+                self._deep_merge(base[key], value)
+            else:
+                base[key] = value
     
-    def _resolve_phase_inputs(self, phase_config: PhaseConfig, context: Dict[str, Any]):
-        """Resolve inter-phase data references in phase config."""
-        # Replace references like {phase1.output.signals} with actual data
-        for input_key, reference in phase_config.input.items():
-            if reference.startswith('{') and reference.endswith('}'):
-                # Parse reference
-                path = reference[1:-1].split('.')
-                if len(path) >= 2 and path[0] in context['phase_data']:
-                    # Navigate to referenced data
-                    data = context['phase_data'][path[0]]
-                    for key in path[1:]:
-                        if isinstance(data, dict) and key in data:
-                            data = data[key]
-                        else:
-                            data = None
-                            break
-                    
-                    # Update phase config with actual data
-                    phase_config.config[input_key] = data
-    
-    def _execute_phase(self, phase_config: PhaseConfig, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a single phase with proper context."""
-        # Add results directory to context if specified
-        if 'results_dir' in context.get('config', {}):
-            context['results_dir'] = context['config']['results_dir']
-        
-        # Add workflow metadata
-        context['workflow_name'] = context.get('workflow_name', 'unknown')
-        
-        # Delegate to sequencer
-        result = self.sequencer.execute_sequence(phase_config, context)
-        
-        # Add topology info (sequencer already adds phase_name and sequence)
-        result['topology'] = phase_config.topology
-        
-        return result
-    
-    def _aggregate_results(self, phase_results: Dict[str, Any]) -> Dict[str, Any]:
-        """Aggregate results across all phases."""
-        # Simple aggregation - can be enhanced with ResultAggregator components
-        aggregated = {
-            'total_phases': len(phase_results),
-            'successful_phases': sum(1 for r in phase_results.values() 
-                                   if r.get('success', False)),
-            'phase_metrics': {}
-        }
-        
-        # Collect key metrics from each phase
-        for phase_name, result in phase_results.items():
-            if result.get('metrics'):
-                aggregated['phase_metrics'][phase_name] = result['metrics']
-        
-        # Calculate summary metrics if available
-        if aggregated['phase_metrics']:
-            all_metrics = list(aggregated['phase_metrics'].values())
-            if all_metrics and 'sharpe_ratio' in all_metrics[0]:
-                # Example: average Sharpe across phases
-                aggregated['avg_sharpe_ratio'] = sum(
-                    m.get('sharpe_ratio', 0) for m in all_metrics
-                ) / len(all_metrics)
-        
-        return aggregated
-    
-    def _aggregate_composable_results(self, iteration_results: List[Dict[str, Any]], 
-                                    branch_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Aggregate results from composable workflow execution."""
-        # Find best iteration
-        best_iteration = None
-        best_metric = float('-inf')
-        
-        for i, result in enumerate(iteration_results):
-            if result.get('success', False):
-                # Extract primary metric (could be made configurable)
-                metric = self._extract_primary_metric(result)
-                if metric > best_metric:
-                    best_metric = metric
-                    best_iteration = i
+    def _aggregate_iteration_results(self, iteration_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Aggregate results from multiple iterations."""
+        if not iteration_results:
+            return {}
         
         aggregated = {
-            'best_iteration': best_iteration,
-            'best_metric': best_metric,
             'total_iterations': len(iteration_results),
             'successful_iterations': sum(1 for r in iteration_results if r.get('success', False)),
-            'branches_executed': len(branch_results),
             'iteration_metrics': []
         }
         
-        # Collect metrics from each iteration
+        # Extract metrics from each iteration
         for i, result in enumerate(iteration_results):
-            if result.get('aggregated_results', {}).get('phase_metrics'):
-                iteration_metric = {
-                    'iteration': i,
-                    'success': result.get('success', False),
-                    'primary_metric': self._extract_primary_metric(result)
-                }
-                aggregated['iteration_metrics'].append(iteration_metric)
-        
-        # Add branch results summary
-        if branch_results:
-            aggregated['branch_summary'] = {
-                'total_branches': len(branch_results),
-                'successful_branches': sum(1 for r in branch_results if r.get('success', False))
-            }
+            metrics = result.get('aggregated_results', {})
+            if metrics:
+                aggregated['iteration_metrics'].append({
+                    'iteration': i + 1,
+                    'metrics': metrics
+                })
         
         return aggregated
     
-    def _extract_primary_metric(self, result: Dict[str, Any]) -> float:
-        """Extract the primary metric from a result for comparison."""
-        # Try different paths where the primary metric might be
-        paths = [
-            ['aggregated_results', 'avg_sharpe_ratio'],
-            ['aggregated_results', 'phase_metrics', 'backtest', 'sharpe_ratio'],
-            ['phase_results', 'backtest', 'metrics', 'sharpe_ratio'],
-            ['metrics', 'sharpe_ratio']
-        ]
-        
-        for path in paths:
-            value = result
-            for key in path:
-                if isinstance(value, dict) and key in value:
-                    value = value[key]
-                else:
-                    value = None
-                    break
-            
-            if value is not None and isinstance(value, (int, float)):
-                return float(value)
-        
-        return 0.0
+    def _process_workflow_outputs(self, outputs_spec: Any, phase_results: Dict[str, Any], 
+                                 context: Dict[str, Any]) -> None:
+        """Process workflow-level outputs."""
+        if outputs_spec:
+            workflow_outputs = self._process_outputs(outputs_spec, phase_results, context)
+            context['workflow_outputs'] = workflow_outputs

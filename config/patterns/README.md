@@ -2,20 +2,31 @@
 
 This directory contains declarative patterns that define how the system operates without requiring code changes.
 
+## Location
+
+Patterns are now located in `config/patterns/` to make them more accessible as user-configurable components.
+
 ## Directory Structure
 
 ```
-patterns/
+config/patterns/
 ├── topologies/      # HOW components are connected
 │   ├── backtest.yaml
 │   ├── signal_generation.yaml
 │   └── signal_replay.yaml
-└── sequences/       # HOW phases are executed
-    ├── single_pass.yaml
-    ├── walk_forward.yaml
-    ├── monte_carlo.yaml
-    ├── train_test.yaml
-    └── k_fold.yaml
+├── sequences/       # HOW phases are executed
+│   ├── single_pass.yaml
+│   ├── walk_forward.yaml
+│   ├── monte_carlo.yaml
+│   ├── train_test.yaml
+│   └── k_fold.yaml
+├── workflows/       # Multi-phase workflow patterns
+│   ├── simple_backtest.yaml
+│   ├── adaptive_ensemble.yaml
+│   └── ...
+└── examples/        # Example patterns for reference
+    ├── custom_sequence.yaml
+    └── custom_topology.yaml
 ```
 
 ## Topology Patterns
@@ -127,8 +138,9 @@ To create a custom pattern:
    ```
 
 3. **Place in correct directory**:
-   - `patterns/topologies/` for topology patterns
-   - `patterns/sequences/` for sequence patterns
+   - `config/patterns/topologies/` for topology patterns
+   - `config/patterns/sequences/` for sequence patterns
+   - `config/patterns/workflows/` for workflow patterns
 
 4. **Use in configuration**:
    ```yaml

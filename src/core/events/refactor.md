@@ -19,6 +19,69 @@ Related documents in this directory:
 
 # NOTE: NOW UNCHECK THE LIST, AND LET'S GET TO WORK!
 
+# CRITICAL PRODUCTION REQUIREMENTS
+These features may seem like "nice to have" but are ESSENTIAL:
+
+1. **Container-Specific Tracing** - Without this, large optimizations OOM
+2. **Weak References** - Without this, long-running systems leak memory  
+3. **Event Isolation** - Without this, parallel runs corrupt each other
+4. **Query Interface** - Without this, debugging production issues is impossible
+5. **Filterable, Prunable Tracing** - Without this, metrics calculation blows out memory
+   - Must support retention policies (trade_complete, sliding_window, minimal)
+   - Must filter events to only what's needed for metrics
+   - Must prune completed trades to free memory
+
+6. **Performance Monitoring** - Without this, can't identify bottlenecks
+   - Multi-stage latency tracking (queue time, processing time, total latency)
+   - Per-event timestamps at each lifecycle stage
+   - Zero-overhead when disabled
+
+7. **Correlation & Causation Tracking** - Without this, can't debug complex flows
+   - Correlation IDs to group related events
+   - Causation chains to trace event triggers
+   - Sequence numbering for ordering
+
+8. **Lock-Free Design** - Without this, tracing creates bottlenecks
+   - Batched writes with time/size thresholds
+   - Memory-bounded circular buffers
+   - Graceful degradation under load
+
+9. **Trade-Aware Retention** - Without this, production tracing is impossible
+   - Automatic cleanup when trades close
+   - Keep only events for open positions
+   - Configurable per container type
+
+10. **Result Extraction Framework** - Without this, need duplicate capture infrastructure
+    - Real-time extraction as events flow
+    - Buffered writing modes (append/batch)
+    - SQL table mappings for analytics
+    - Workflow-specific extractor configurations
+
+11. **Thread-Safe Event Handling** - Without this, nested events cause deadlocks
+    - Reentrant locks (RLock) for nested handling
+    - Processing stack tracking
+    - Handler caching for performance
+    - Automatic cache invalidation
+
+12. **Signal Storage & Replay** - Without this, can't optimize efficiently
+    - Sparse storage (only non-zero signals and changes)
+    - Parquet format with compression
+    - Multi-symbol signal support
+    - Metadata tracking for strategy parameters
+
+DO NOT REMOVE THESE FEATURES IN ANY REFACTOR!
+
+# ADDITIONAL REFACTORING TASKS:
+- [ ] Move src/core/containers/metrics.py to src/core/events/metrics/
+  - [ ] Create src/core/events/metrics/ directory structure
+  - [ ] Move StreamingMetrics to src/core/events/metrics/calculators.py
+  - [ ] Extract MetricsEventTracer logic into:
+    - [ ] src/core/events/metrics/observers.py (MetricsObserver implementation)
+    - [ ] src/core/events/metrics/trade_matching.py (trade matching/position tracking logic)
+  - [ ] Add MetricsCalculatorProtocol to src/core/events/protocols.py
+  - [ ] Update all imports throughout the codebase
+  - Rationale: Having a lone metrics.py in containers/ is a code smell. Metrics are fundamentally derived from events, so they belong in the events module.
+
 
 # Refactored Events Module Structure
 # src/core/events/
@@ -1908,6 +1971,314 @@ class DiskEventStorage(EventStorageProtocol):
         """Ensure file is closed on deletion."""
         if hasattr(self, 'current_file') and self.current_file:
             self.current_file.close()
+
+
+# ============================================
+# File: src/core/events/subscriptions.py
+# ============================================
+"""Advanced subscription management with weak references."""
+
+from typing import Optional, Callable, Dict, Any, List
+import weakref
+import logging
+
+logger = logging.getLogger(__name__)
+
+class WeakSubscriptionManager:
+    """
+    Subscription manager using weak references to prevent memory leaks.
+    
+    Critical for long-running systems where handlers may be destroyed.
+    """
+    
+    def __init__(self):
+        self._subscriptions: Dict[str, List[weakref.ref]] = defaultdict(list)
+        
+    def subscribe(self, event_type: str, handler: Callable, 
+                  metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Subscribe with weak reference to handler."""
+        # Use weak reference to allow handler garbage collection
+        weak_handler = weakref.ref(handler, 
+            lambda ref: self._cleanup_dead_ref(event_type, ref))
+        self._subscriptions[event_type].append(weak_handler)
+        
+    def _cleanup_dead_ref(self, event_type: str, dead_ref: weakref.ref) -> None:
+        """Automatically clean up dead references."""
+        self._subscriptions[event_type] = [
+            ref for ref in self._subscriptions[event_type] 
+            if ref is not dead_ref
+        ]
+
+
+# ============================================
+# File: src/core/events/configuration.py
+# ============================================
+"""Container-specific trace configuration."""
+
+from enum import Enum
+from typing import Dict, Any, Optional
+import fnmatch
+
+class TraceLevel(Enum):
+    """Granular trace levels for different container types."""
+    NONE = "none"               # Zero overhead for production
+    METRICS = "metrics"         # Only metrics, no event storage
+    TRADES = "trades"          # Metrics + completed trades
+    EQUITY_CURVE = "equity"    # Metrics + trades + equity snapshots
+    FULL = "full"              # Complete event trace
+
+class TraceConfiguration:
+    """
+    Container-specific trace configuration with wildcard support.
+    
+    Critical for memory management in large-scale optimizations.
+    """
+    
+    def __init__(self, config: Dict[str, Any]):
+        self.default_level = TraceLevel(config.get('default', 'metrics'))
+        self.container_overrides = config.get('overrides', {})
+        
+    def get_trace_level(self, container_id: str) -> TraceLevel:
+        """Get trace level for specific container using wildcards."""
+        # Check exact match first
+        if container_id in self.container_overrides:
+            return TraceLevel(self.container_overrides[container_id])
+            
+        # Check wildcard patterns
+        for pattern, level in self.container_overrides.items():
+            if fnmatch.fnmatch(container_id, pattern):
+                return TraceLevel(level)
+                
+        return self.default_level
+
+# Example configuration for optimization
+trace_config = {
+    'default': 'metrics',  # Most containers only need metrics
+    'overrides': {
+        'portfolio_*': 'metrics',      # Portfolios track metrics only
+        'best_portfolio_*': 'trades',  # Best performers get trade details
+        'analysis_*': 'full',          # Analysis containers get everything
+        'data_*': 'none'               # Data containers need no tracing
+    }
+}
+
+
+# ============================================
+# File: src/core/events/query.py
+# ============================================
+"""Query interface for event analysis and data mining."""
+
+from typing import List, Dict, Any, Optional, Iterator
+import pandas as pd
+from pathlib import Path
+
+class EventQueryInterface:
+    """
+    Query interface for analyzing traced events.
+    
+    Enables data mining and pattern detection on event streams.
+    """
+    
+    def __init__(self, storage_backend: EventStorageProtocol):
+        self.storage = storage_backend
+        
+    def query_by_time_range(self, start: datetime, end: datetime, 
+                           event_types: Optional[List[str]] = None) -> pd.DataFrame:
+        """Query events within time range, return as DataFrame."""
+        events = self.storage.query({
+            'start_time': start,
+            'end_time': end,
+            'event_types': event_types
+        })
+        return self._events_to_dataframe(events)
+        
+    def find_patterns(self, pattern: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Find event patterns for strategy development."""
+        # Example: Find all cases where signal → fill took > 100ms
+        results = []
+        correlation_groups = self._group_by_correlation()
+        
+        for correlation_id, events in correlation_groups.items():
+            if self._matches_pattern(events, pattern):
+                results.append({
+                    'correlation_id': correlation_id,
+                    'events': events,
+                    'metrics': self._calculate_pattern_metrics(events, pattern)
+                })
+        return results
+        
+    def analyze_performance(self, container_id: str) -> Dict[str, Any]:
+        """Analyze performance metrics from event traces."""
+        events = self.storage.query({'container_id': container_id})
+        
+        return {
+            'event_latencies': self._calculate_latencies(events),
+            'throughput': self._calculate_throughput(events),
+            'bottlenecks': self._identify_bottlenecks(events)
+        }
+        
+    def export_to_parquet(self, output_path: Path, 
+                         filters: Optional[Dict[str, Any]] = None) -> None:
+        """Export filtered events to Parquet for data science workflows."""
+        events = self.storage.query(filters or {})
+        df = self._events_to_dataframe(events)
+        df.to_parquet(output_path, compression='snappy')
+
+
+# ============================================
+# File: src/core/events/isolation.py
+# ============================================
+"""Event isolation for parallel execution."""
+
+import threading
+from typing import Dict, Optional, Any
+import weakref
+
+class EventIsolationManager:
+    """
+    Ensures complete isolation between parallel executions.
+    
+    Critical for parallel backtesting and optimization.
+    """
+    
+    _thread_local = threading.local()
+    _container_buses: Dict[str, weakref.ref] = {}
+    
+    @classmethod
+    def get_isolated_bus(cls, container_id: str) -> EventBus:
+        """Get thread-local isolated event bus for container."""
+        # Ensure thread has its own bus registry
+        if not hasattr(cls._thread_local, 'buses'):
+            cls._thread_local.buses = {}
+            
+        # Get or create bus for this container in this thread
+        if container_id not in cls._thread_local.buses:
+            bus = EventBus(f"{container_id}_thread_{threading.get_ident()}")
+            cls._thread_local.buses[container_id] = bus
+            
+            # Store weak reference for cleanup
+            cls._container_buses[f"{container_id}_{threading.get_ident()}"] = \
+                weakref.ref(bus)
+                
+        return cls._thread_local.buses[container_id]
+    
+    @classmethod
+    def cleanup_thread(cls) -> None:
+        """Clean up all buses for current thread."""
+        if hasattr(cls._thread_local, 'buses'):
+            cls._thread_local.buses.clear()
+
+
+# ============================================
+# File: src/core/events/extraction.py
+# ============================================
+"""Result extraction from event streams."""
+
+from typing import Protocol, Dict, Any, List, Optional
+from abc import abstractmethod
+
+class ResultExtractor(Protocol):
+    """Protocol for extracting business results from events."""
+    
+    @abstractmethod
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Extract results from a single event."""
+        ...
+        
+    @abstractmethod
+    def get_results(self) -> Dict[str, Any]:
+        """Get accumulated results."""
+        ...
+
+class MetricsExtractor:
+    """Extract metrics directly from event stream."""
+    
+    def __init__(self):
+        self.metrics = StreamingMetrics()
+        
+    def extract(self, event: Event) -> Optional[Dict[str, Any]]:
+        """Update metrics from relevant events."""
+        if event.event_type == EventType.POSITION_CLOSE:
+            # Extract trade data and update metrics
+            self.metrics.update_from_trade(
+                entry_price=event.payload['entry_price'],
+                exit_price=event.payload['exit_price'],
+                quantity=event.payload['quantity'],
+                direction=event.payload['direction']
+            )
+        elif event.event_type == EventType.PORTFOLIO_UPDATE:
+            self.metrics.update_portfolio_value(
+                event.payload['portfolio_value']
+            )
+        return None
+        
+    def get_results(self) -> Dict[str, Any]:
+        """Get final metrics."""
+        return self.metrics.get_metrics()
+
+
+# ============================================
+# File: src/core/events/validation.py
+# ============================================
+"""Type flow validation for compile-time safety."""
+
+from typing import Dict, List, Set, Optional, Any
+import logging
+
+logger = logging.getLogger(__name__)
+
+class EventFlowValidator:
+    """
+    Validates event flows match expected patterns.
+    
+    Provides compile-time validation and compliance checking.
+    """
+    
+    def __init__(self, expected_flows: Dict[str, List[str]]):
+        """
+        Initialize with expected event flows.
+        
+        Args:
+            expected_flows: Maps initial event to expected sequence
+                           e.g., {'SIGNAL': ['ORDER_REQUEST', 'ORDER', 'FILL']}
+        """
+        self.expected_flows = expected_flows
+        self.flow_violations: List[Dict[str, Any]] = []
+        
+    def validate_sequence(self, events: List[Event]) -> bool:
+        """Validate a sequence of events follows expected patterns."""
+        # Group by correlation ID
+        correlation_groups = self._group_by_correlation(events)
+        
+        for correlation_id, event_group in correlation_groups.items():
+            if not self._validate_group(event_group):
+                self.flow_violations.append({
+                    'correlation_id': correlation_id,
+                    'events': event_group,
+                    'reason': 'Invalid event sequence'
+                })
+                return False
+        return True
+        
+    def _validate_group(self, events: List[Event]) -> bool:
+        """Validate a correlated group of events."""
+        if not events:
+            return True
+            
+        initial_type = events[0].event_type
+        if initial_type not in self.expected_flows:
+            return True  # No validation rules for this type
+            
+        expected = self.expected_flows[initial_type]
+        actual = [e.event_type for e in events[1:]]
+        
+        # Check if actual matches expected (allowing skips)
+        expected_idx = 0
+        for event_type in actual:
+            if expected_idx < len(expected) and event_type == expected[expected_idx]:
+                expected_idx += 1
+                
+        return expected_idx == len(expected)
 
 
 # ============================================
