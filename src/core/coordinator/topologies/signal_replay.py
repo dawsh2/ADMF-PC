@@ -15,7 +15,7 @@ from ...containers.container import ContainerConfig, ContainerRole
 logger = logging.getLogger(__name__)
 
 
-def build_signal_replay_topology(config: Dict[str, Any]) -> Dict[str, Any]:
+def create_signal_replay_topology(config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Build topology for signal replay.
     
@@ -140,10 +140,87 @@ def build_signal_replay_topology(config: Dict[str, Any]) -> Dict[str, Any]:
         }
     }
     
-    logger.info(f"Built signal replay topology for workflow {workflow_id} "
-               f"with {len(config.get('portfolios', []))} portfolios")
+    # 6. Create containers using factory
+    from ...containers.factory import get_global_factory
+    from ...events import strategy_filter
     
-    return topology
+    factory = get_global_factory()
+    containers = {}
+    
+    # Create root container
+    root_config = topology['root_container']
+    root_container = factory.create_container(
+        role=root_config['role'],
+        config=root_config['config']
+    )
+    root_container.container_id = 'root'
+    containers['root'] = root_container
+    
+    # Create signal replay container
+    replay_container = factory.create_container(
+        role=topology['containers']['signal_replay'].role,
+        config=topology['containers']['signal_replay'].config
+    )
+    containers['signal_replay'] = replay_container
+    root_container.add_child_container(replay_container)
+    
+    # Create portfolio containers
+    portfolio_containers = []
+    for container_id, container_config in topology['containers'].items():
+        if container_config.role == ContainerRole.PORTFOLIO:
+            container = factory.create_container(
+                role=container_config.role,
+                config=container_config.config
+            )
+            containers[container_id] = container
+            root_container.add_child_container(container)
+            portfolio_containers.append((container_id, container))
+    
+    # Create execution container
+    exec_container = factory.create_container(
+        role=topology['containers']['execution_engine'].role,
+        config=topology['containers']['execution_engine'].config
+    )
+    containers['execution_engine'] = exec_container
+    root_container.add_child_container(exec_container)
+    
+    # 7. Wire up event subscriptions
+    root_bus = root_container.event_bus
+    
+    # Portfolio containers subscribe to SIGNAL events with strategy filters
+    for portfolio_id, portfolio_container in portfolio_containers:
+        portfolio_config = topology['containers'][portfolio_id].config
+        assigned_strategies = portfolio_config.get('strategy_assignments', [])
+        
+        if assigned_strategies:
+            # Use the signal filter helper
+            root_bus.subscribe_to_signals(
+                portfolio_container.receive_event,
+                strategy_ids=assigned_strategies
+            )
+            logger.info(f"Portfolio {portfolio_id} subscribed to strategies: {assigned_strategies}")
+    
+    # Execution subscribes to ORDER events
+    root_bus.subscribe(
+        'ORDER',  # EventType.ORDER.value
+        exec_container.receive_event
+    )
+    
+    # Portfolios subscribe to FILL events
+    for _, portfolio_container in portfolio_containers:
+        root_bus.subscribe(
+            'FILL',  # EventType.FILL.value
+            portfolio_container.receive_event
+        )
+    
+    logger.info(f"Built signal replay topology for workflow {workflow_id} "
+               f"with {len(portfolio_containers)} portfolios")
+    
+    # Return containers instead of just config
+    return {
+        'containers': containers,
+        'metadata': topology['metadata']
+    }
 
 
 def build_regime_filtered_replay(config: Dict[str, Any], regime: str) -> Dict[str, Any]:
@@ -169,7 +246,7 @@ def build_regime_filtered_replay(config: Dict[str, Any], regime: str) -> Dict[st
     base_workflow = config['workflow_id']
     filtered_config['workflow_id'] = f"{base_workflow}_{regime.lower()}"
     
-    return build_signal_replay_topology(filtered_config)
+    return create_signal_replay_topology(filtered_config)
 
 
 def build_multi_regime_replay(config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:

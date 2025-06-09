@@ -154,6 +154,9 @@ class TopologyBuilder:
             **(metadata or {})
         }
         
+        # 5. Set up event subscriptions based on mode
+        self._setup_event_subscriptions(mode, topology, context)
+        
         self.logger.info(
             f"Built {mode} topology with {len(topology['containers'])} containers "
             f"and {len(topology['routes'])} routes"
@@ -771,3 +774,118 @@ class TopologyBuilder:
     def get_pattern(self, mode: str) -> Optional[Dict[str, Any]]:
         """Get pattern definition for inspection."""
         return self._get_pattern(mode)
+    
+    def _setup_event_subscriptions(self, mode: str, topology: Dict[str, Any], context: Dict[str, Any]) -> None:
+        """
+        Set up event subscriptions for the topology based on mode.
+        
+        This replaces the routing setup with direct EventBus subscriptions.
+        """
+        containers = topology['containers']
+        root_bus = context.get('root_event_bus')
+        
+        if not root_bus:
+            self.logger.warning("No root event bus available for subscriptions")
+            return
+        
+        self.logger.info(f"Setting up event subscriptions for {mode} topology")
+        
+        if mode in ['backtest', 'optimization']:
+            self._setup_backtest_subscriptions(containers, root_bus, topology.get('parameter_combinations', []))
+        elif mode == 'signal_generation':
+            self._setup_signal_generation_subscriptions(containers, root_bus)
+        elif mode == 'signal_replay':
+            self._setup_signal_replay_subscriptions(containers, root_bus)
+        else:
+            self.logger.warning(f"No subscription setup defined for mode: {mode}")
+    
+    def _setup_backtest_subscriptions(self, containers: Dict[str, Any], root_bus: Any, 
+                                     parameter_combinations: List[Dict]) -> None:
+        """Set up subscriptions for backtest topology."""
+        from ..events import EventType
+        
+        # 1. Portfolio containers subscribe to SIGNAL events
+        portfolio_containers = {k: v for k, v in containers.items() if 'portfolio_' in k}
+        
+        for portfolio_name, portfolio in portfolio_containers.items():
+            # Find the corresponding parameter combination
+            combo = None
+            for param_combo in parameter_combinations:
+                if param_combo.get('combo_id') in portfolio_name:
+                    combo = param_combo
+                    break
+            
+            if combo:
+                strategy_type = combo.get('strategy_params', {}).get('type')
+                strategy_id = f"{combo['combo_id']}_{strategy_type}"
+                
+                # Get signal processor component
+                signal_processor = portfolio.get_component('signal_processor')
+                if signal_processor and hasattr(signal_processor, 'on_signal'):
+                    # Create filter for this portfolio
+                    def create_signal_filter(sid):
+                        def filter_func(event):
+                            return event.metadata.get('strategy_id') == sid
+                        return filter_func
+                    
+                    # Subscribe with filter
+                    root_bus.subscribe(
+                        EventType.SIGNAL, 
+                        signal_processor.on_signal,
+                        filter_func=create_signal_filter(strategy_id)
+                    )
+                    self.logger.info(f"Portfolio {portfolio_name} subscribed to signals from strategy {strategy_id}")
+        
+        # 2. Execution subscribes to ORDER events
+        execution_container = containers.get('execution')
+        if execution_container:
+            execution_engine = execution_container.get_component('execution_engine')
+            if execution_engine and hasattr(execution_engine, 'on_order'):
+                root_bus.subscribe(EventType.ORDER, execution_engine.on_order)
+                self.logger.info("Execution engine subscribed to ORDER events")
+        
+        # 3. Portfolios subscribe to FILL events
+        for portfolio_name, portfolio in portfolio_containers.items():
+            portfolio_state = portfolio.get_component('portfolio_state')
+            if portfolio_state and hasattr(portfolio_state, 'on_fill'):
+                root_bus.subscribe(EventType.FILL, portfolio_state.on_fill)
+                self.logger.info(f"Portfolio {portfolio_name} subscribed to FILL events")
+    
+    def _setup_signal_generation_subscriptions(self, containers: Dict[str, Any], root_bus: Any) -> None:
+        """Set up subscriptions for signal generation topology."""
+        # Feature container subscribes to BAR events
+        feature_container = containers.get('feature_processor')
+        if feature_container:
+            root_bus.subscribe('BAR', feature_container.receive_event)
+            self.logger.info("Feature processor subscribed to BAR events")
+        
+        # Signals are captured via event tracing - no additional subscriptions needed
+    
+    def _setup_signal_replay_subscriptions(self, containers: Dict[str, Any], root_bus: Any) -> None:
+        """Set up subscriptions for signal replay topology."""
+        from ..events import EventType
+        
+        # Similar to backtest but without feature processing
+        portfolio_containers = {k: v for k, v in containers.items() if 'portfolio_' in k}
+        
+        # 1. Portfolios subscribe to SIGNAL events (from replay)
+        for portfolio_name, portfolio in portfolio_containers.items():
+            signal_processor = portfolio.get_component('signal_processor')
+            if signal_processor and hasattr(signal_processor, 'on_signal'):
+                root_bus.subscribe(EventType.SIGNAL, signal_processor.on_signal)
+                self.logger.info(f"Portfolio {portfolio_name} subscribed to replayed signals")
+        
+        # 2. Execution subscribes to ORDER events
+        execution_container = containers.get('execution')
+        if execution_container:
+            execution_engine = execution_container.get_component('execution_engine')
+            if execution_engine and hasattr(execution_engine, 'on_order'):
+                root_bus.subscribe(EventType.ORDER, execution_engine.on_order)
+                self.logger.info("Execution engine subscribed to ORDER events")
+        
+        # 3. Portfolios subscribe to FILL events
+        for portfolio_name, portfolio in portfolio_containers.items():
+            portfolio_state = portfolio.get_component('portfolio_state')
+            if portfolio_state and hasattr(portfolio_state, 'on_fill'):
+                root_bus.subscribe(EventType.FILL, portfolio_state.on_fill)
+                self.logger.info(f"Portfolio {portfolio_name} subscribed to FILL events")

@@ -51,7 +51,13 @@ from .types import (
     create_market_event,
     create_signal_event,
     create_system_event,
-    create_error_event
+    create_error_event,
+    # Time utilities
+    parse_event_time,
+    event_age,
+    is_event_stale,
+    format_event_time,
+    get_event_window
 )
 
 from .observers import (
@@ -96,6 +102,13 @@ __all__ = [
     'create_signal_event',
     'create_system_event',
     'create_error_event',
+    
+    # Time utilities
+    'parse_event_time',
+    'event_age',
+    'is_event_stale',
+    'format_event_time',
+    'get_event_window',
     
     # Observers
     'EventTracer',
@@ -223,8 +236,8 @@ class EventFilterProtocol(Protocol):
 """Event types and creation helpers."""
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
-from datetime import datetime
+from typing import Dict, Any, Optional, Union
+from datetime import datetime, time, timezone
 from enum import Enum
 import uuid
 
@@ -405,6 +418,123 @@ def create_error_event(
         causation_id=original_event.metadata.get('event_id') if original_event else None,
         metadata={'category': 'error'}
     )
+
+
+# ============================================
+# Time utilities for event timestamps
+# ============================================
+
+def parse_event_time(time_str: Union[str, datetime]) -> datetime:
+    """
+    Parse various time formats into datetime.
+    
+    Args:
+        time_str: Time string in ISO format or datetime object
+        
+    Returns:
+        Parsed datetime object
+    """
+    if isinstance(time_str, datetime):
+        return time_str
+    
+    # Try common formats
+    formats = [
+        '%Y-%m-%dT%H:%M:%S.%f',
+        '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%d %H:%M:%S.%f',
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%d',
+    ]
+    
+    for fmt in formats:
+        try:
+            return datetime.strptime(time_str, fmt)
+        except ValueError:
+            continue
+    
+    # Try ISO format parsing
+    try:
+        return datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+    except:
+        raise ValueError(f"Could not parse time string: {time_str}")
+
+
+def event_age(event: Event, now: Optional[datetime] = None) -> float:
+    """
+    Calculate age of event in seconds.
+    
+    Args:
+        event: Event to check
+        now: Current time (default: datetime.now())
+        
+    Returns:
+        Age in seconds
+    """
+    if now is None:
+        now = datetime.now()
+    
+    # Ensure both times have same timezone awareness
+    if event.timestamp.tzinfo is None and now.tzinfo is not None:
+        now = now.replace(tzinfo=None)
+    elif event.timestamp.tzinfo is not None and now.tzinfo is None:
+        now = now.replace(tzinfo=event.timestamp.tzinfo)
+    
+    return (now - event.timestamp).total_seconds()
+
+
+def is_event_stale(event: Event, max_age_seconds: float = 60.0) -> bool:
+    """
+    Check if event is older than max age.
+    
+    Args:
+        event: Event to check
+        max_age_seconds: Maximum age in seconds
+        
+    Returns:
+        True if event is stale
+    """
+    return event_age(event) > max_age_seconds
+
+
+def format_event_time(dt: datetime, include_micros: bool = False) -> str:
+    """
+    Format datetime for event display.
+    
+    Args:
+        dt: Datetime to format
+        include_micros: Include microseconds
+        
+    Returns:
+        Formatted time string
+    """
+    if include_micros:
+        return dt.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # milliseconds
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def get_event_window(events: list[Event], 
+                    start_time: Optional[datetime] = None,
+                    end_time: Optional[datetime] = None) -> list[Event]:
+    """
+    Filter events by time window.
+    
+    Args:
+        events: List of events
+        start_time: Window start (inclusive)
+        end_time: Window end (inclusive)
+        
+    Returns:
+        Events within time window
+    """
+    filtered = events
+    
+    if start_time:
+        filtered = [e for e in filtered if e.timestamp >= start_time]
+    
+    if end_time:
+        filtered = [e for e in filtered if e.timestamp <= end_time]
+    
+    return filtered
 
 
 # ============================================

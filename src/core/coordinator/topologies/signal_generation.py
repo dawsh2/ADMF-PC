@@ -21,7 +21,7 @@ from ..topology import create_stateless_components
 logger = logging.getLogger(__name__)
 
 
-def build_signal_generation_topology(config: Dict[str, Any]) -> Dict[str, Any]:
+def create_signal_generation_topology(config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Build topology for signal generation only.
     
@@ -133,10 +133,86 @@ def build_signal_generation_topology(config: Dict[str, Any]) -> Dict[str, Any]:
         'grid_search_size': calculate_grid_search_size(config)
     }
     
+    # 6. Create containers using factory
+    from ...containers.factory import ContainerFactory, get_global_factory
+    
+    factory = get_global_factory()
+    containers = {}
+    
+    # Create symbol/timeframe containers
+    for container_id, container_config in topology['containers'].items():
+        if container_config.role == ContainerRole.DATA:
+            container = factory.create_container(
+                role=container_config.role,
+                config=container_config.config
+            )
+            containers[container_id] = container
+    
+    # Create feature container with components
+    feature_config = topology['containers']['feature_processor']
+    
+    # Register stateless functions with the feature container's signal generator
+    feature_container_config = {
+        **feature_config.config,
+        'stateless_functions': topology['stateless_functions']
+    }
+    
+    feature_container = factory.create_container(
+        role=feature_config.role,
+        config=feature_container_config
+    )
+    containers['feature_processor'] = feature_container
+    
+    # 7. Set up root container for event coordination
+    root_config = ContainerConfig(
+        role=ContainerRole.BACKTEST,  # Use backtest role for root
+        name='signal_generation_root',
+        config={
+            'workflow_id': workflow_id,
+            'enable_event_tracing': config.get('enable_event_tracing', True),
+            'trace_settings': {
+                'events_to_trace': ['SIGNAL', 'CLASSIFICATION_CHANGE'],
+                'trace_dir': signal_output_dir
+            }
+        }
+    )
+    
+    root_container = factory.create_container(
+        role=root_config.role,
+        config=root_config.config
+    )
+    root_container.container_id = 'root'
+    containers['root'] = root_container
+    
+    # 8. Set up parent-child relationships
+    for container_id, container in containers.items():
+        if container_id != 'root':
+            root_container.add_child_container(container)
+    
+    # 9. Wire up event subscriptions
+    root_bus = root_container.event_bus
+    
+    # Feature container subscribes to BAR events
+    root_bus.subscribe(
+        'BAR',  # EventType.BAR.value
+        feature_container.receive_event
+    )
+    
+    # For signal generation, signals are captured via event tracing
+    # No portfolio or execution containers needed
+    
     logger.info(f"Built signal generation topology with {len(config.get('data_sources', []))} data sources "
                f"and {len(strategy_configs)} strategy variants")
     
-    return topology
+    # Return containers instead of just config
+    return {
+        'containers': containers,
+        'metadata': topology['metadata'],
+        'parameter_combinations': [
+            {'strategy_id': sid, 'config': scfg} 
+            for sid, scfg in strategy_configs.items()
+        ]
+    }
 
 
 def _build_strategy_requirements(config: Dict[str, Any], strategy_configs: Dict[str, Any]) -> List[Dict[str, Any]]:
