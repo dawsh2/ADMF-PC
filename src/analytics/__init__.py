@@ -27,6 +27,10 @@ from src.analytics.metrics_collection import (
     MetricsCollector,
     get_phase_metrics,
 )
+from src.analytics.storage import (
+    HybridResultStore,
+    ResultCollector,
+)
 
 __all__ = [
     "BacktestReportGenerator",
@@ -43,4 +47,6 @@ __all__ = [
     "TradeExtractor",
     "MetricsCollector",
     "get_phase_metrics",
+    "HybridResultStore",
+    "ResultCollector",
 ]

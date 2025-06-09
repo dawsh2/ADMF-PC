@@ -1,7 +1,8 @@
 """
-Storage module for ADMF-PC.
+Event storage components for signal replay.
 
-Provides sparse storage for signals, classifier states, and results.
+This module provides sparse storage for signals and classifier states,
+enabling efficient replay of trading strategies without recomputation.
 """
 
 from .signals import (

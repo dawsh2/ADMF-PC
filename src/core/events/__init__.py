@@ -135,6 +135,16 @@ from .enhanced_tracer import (
     StreamingResultProcessor
 )
 
+# Event storage for signal replay
+from .storage import (
+    SignalStorageManager,
+    SignalIndex,
+    ClassifierChangeIndex,
+    MultiSymbolSignal,
+    SignalStorageProtocol,
+    ClassifierStateProtocol
+)
+
 
 
 __all__ = [
@@ -222,5 +232,13 @@ __all__ = [
     
     # Enhanced event tracing
     "EnhancedEventTracer",
-    "StreamingResultProcessor"
+    "StreamingResultProcessor",
+    
+    # Event storage for signal replay
+    "SignalStorageManager",
+    "SignalIndex",
+    "ClassifierChangeIndex",
+    "MultiSymbolSignal",
+    "SignalStorageProtocol",
+    "ClassifierStateProtocol"
 ]

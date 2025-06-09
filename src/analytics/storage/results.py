@@ -11,6 +11,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, timedelta
+from collections import defaultdict
 import pandas as pd
 import json
 import gzip
