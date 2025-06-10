@@ -318,13 +318,24 @@ class EventBus:
         Args:
             trace_config: Configuration for tracing
         """
-        from .observers import create_tracer_from_config
+        from .tracing.observers import create_tracer_from_config
         
         tracer = create_tracer_from_config(trace_config)
         self.attach_observer(tracer)
         
         # Store reference for convenience methods
         self._tracer = tracer
+        
+        # Enable console output if configured
+        if trace_config.get('enable_console_output', False):
+            from .observers.console import create_console_observer_from_config
+            
+            console_observer = create_console_observer_from_config(trace_config)
+            self.attach_observer(console_observer)
+            
+            # Store reference for convenience methods
+            self._console_observer = console_observer
+            logger.info(f"Console output enabled on bus {self.bus_id}")
         
         logger.info(f"Tracing enabled on bus {self.bus_id}")
     
@@ -334,6 +345,11 @@ class EventBus:
             self.detach_observer(self._tracer)
             delattr(self, '_tracer')
             logger.info(f"Tracing disabled on bus {self.bus_id}")
+        
+        if hasattr(self, '_console_observer'):
+            self.detach_observer(self._console_observer)
+            delattr(self, '_console_observer')
+            logger.info(f"Console output disabled on bus {self.bus_id}")
     
     def get_tracer_summary(self) -> Optional[Dict[str, Any]]:
         """Get tracer summary if tracing enabled."""

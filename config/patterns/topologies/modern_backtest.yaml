@@ -1,0 +1,109 @@
+# Modern Backtest Pattern
+# Reflects current architecture: Root → symbol_timeframe → features → portfolios → execution
+
+name: modern_backtest
+description: Modern backtest with centralized feature computation and proper event flow
+
+# Containers to create
+containers:
+  # Root container (coordinator itself acts as root)
+  
+  # Symbol/timeframe data containers - one per symbol/timeframe combo
+  - name_template: "{symbol}_{timeframe}"
+    type: data
+    foreach:
+      symbol:
+        from_config: data.symbols
+        default: []
+      timeframe:
+        from_config: data.timeframes
+        default: ['1d']
+    config:
+      symbol: "{symbol}"
+      timeframe: "{timeframe}"
+      components: ['data_streamer']
+      data_source:
+        from_config: data.data_source
+        default: file
+      data_path:
+        from_config: data.data_path
+      start_date:
+        from_config: data.start_date
+      end_date:
+        from_config: data.end_date
+
+  # Single feature container that receives all BARs
+  - name: features
+    type: features
+    config:
+      components: ['feature_pipeline', 'strategy']
+      indicators:
+        from_config: features.indicators
+        default: []
+      strategies:
+        from_config: strategies
+        default: []
+
+  # Portfolio containers
+  - name_template: "{name}"
+    type: portfolio
+    foreach:
+      portfolio:
+        from_config: portfolio.portfolios
+        default: []
+    config:
+      name: "{portfolio.name}"
+      components: ['portfolio_manager']
+      managed_strategies: "{portfolio.managed_strategies}"
+      initial_capital:
+        from_config: portfolio.initial_capital
+        default: 100000
+      # Enable metrics with trade-complete retention
+      metrics:
+        enabled: true
+      results:
+        retention_policy:
+          from_config: results.retention_policy
+          default: trade_complete
+        max_events:
+          from_config: results.max_events
+          default: 1000
+
+  # Single execution container
+  - name: execution
+    type: execution
+    config:
+      components: ['execution_engine', 'order_manager']
+      mode:
+        from_config: execution.mode
+        default: backtest
+      slippage:
+        from_config: execution.slippage
+        default: 0.001
+      commission:
+        from_config: execution.commission
+        default: 0.005
+
+# Event subscriptions (using root event bus)
+subscriptions:
+  # Feature container subscribes to all BARs
+  - container: features
+    event_type: BAR
+    handler: on_bar
+    
+  # Portfolios subscribe to signals from their managed strategies
+  - container_pattern: "portfolio_*"
+    event_type: SIGNAL
+    handler: on_signal
+    filter: "lambda e: e.payload.get('strategy_id') in container.config.get('managed_strategies', [])"
+    
+  # Execution subscribes to all orders
+  - container: execution
+    event_type: ORDER
+    handler: on_order
+    
+  # Portfolios subscribe to fills (filtered by container_id)
+  - container_pattern: "portfolio_*"
+    event_type: FILL
+    handler: on_fill
+    filter: "lambda e: e.payload.get('container_id') == container.container_id"

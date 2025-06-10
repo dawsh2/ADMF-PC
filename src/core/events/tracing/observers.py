@@ -960,8 +960,11 @@ def create_tracer_from_config(config: Dict[str, Any]) -> EventTracer:
             - max_events: Maximum events to store
             - events_to_trace: List of event types or 'ALL'
             - retention_policy: 'all', 'trade_complete', 'sliding_window', 'minimal'
-            - storage_backend: 'memory' or 'disk'
+            - storage_backend: 'memory', 'disk', or 'hierarchical'
             - storage_config: Backend-specific config
+            - workflow_id: For hierarchical storage context
+            - phase_name: For hierarchical storage context
+            - container_id: For hierarchical storage context
     
     Returns:
         Configured EventTracer instance
@@ -973,6 +976,14 @@ def create_tracer_from_config(config: Dict[str, Any]) -> EventTracer:
     storage_backend = config.get('storage_backend', 'memory')
     storage_config = config.get('storage_config', {})
     storage_config['max_size'] = config.get('max_events', 10000)
+    
+    # Pass hierarchical storage context if provided
+    if storage_backend == 'hierarchical':
+        storage_config.update({
+            'workflow_id': config.get('workflow_id'),
+            'phase_name': config.get('phase_name'),
+            'container_id': config.get('container_id')
+        })
     
     storage = create_storage_backend(storage_backend, storage_config)
     

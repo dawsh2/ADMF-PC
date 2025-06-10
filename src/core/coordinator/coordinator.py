@@ -147,26 +147,30 @@ class Coordinator:
         
         # VALIDATE CONFIGURATION FIRST (if Pydantic available)
         if PYDANTIC_AVAILABLE and WorkflowConfig:
-            validation_errors = get_validation_errors(config)
-            if validation_errors:
-                logger.error(f"Configuration validation failed for workflow {workflow_id}")
-                for error in validation_errors:
-                    logger.error(f"  - {error}")
-                
-                return {
-                    'success': False,
-                    'workflow_id': workflow_id,
-                    'error': 'Configuration validation failed',
-                    'validation_errors': validation_errors,
-                    'summary': {
-                        'workflow': workflow_spec,
+            try:
+                validation_errors = get_validation_errors(config)
+                if validation_errors:
+                    logger.error(f"Configuration validation failed for workflow {workflow_id}")
+                    for error in validation_errors:
+                        logger.error(f"  - {error}")
+                    
+                    return {
                         'success': False,
-                        'validation_failed': True,
-                        'error_count': len(validation_errors)
+                        'workflow_id': workflow_id,
+                        'error': 'Configuration validation failed',
+                        'validation_errors': validation_errors,
+                        'summary': {
+                            'workflow': workflow_spec,
+                            'success': False,
+                            'validation_failed': True,
+                            'error_count': len(validation_errors)
+                        }
                     }
-                }
-            else:
-                logger.info(f"Configuration validation passed for workflow {workflow_id}")
+                else:
+                    logger.info(f"Configuration validation passed for workflow {workflow_id}")
+            except Exception as e:
+                logger.warning(f"Configuration validation failed with error: {e}")
+                logger.debug("Proceeding without validation")
         else:
             logger.debug("Pydantic validation not available, skipping validation")
         

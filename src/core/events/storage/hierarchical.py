@@ -15,8 +15,16 @@ from collections import defaultdict
 import json
 import logging
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
+
+# Optional pyarrow dependency for parquet support
+try:
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    PARQUET_AVAILABLE = True
+except ImportError:
+    pa = None
+    pq = None
+    PARQUET_AVAILABLE = False
 from dataclasses import dataclass, field
 
 from ..protocols import EventStorageProtocol
@@ -29,8 +37,8 @@ logger = logging.getLogger(__name__)
 class HierarchicalStorageConfig:
     """Configuration for hierarchical event storage."""
     
-    # Base directory for all results
-    base_dir: str = "./results"
+    # Base directory for all workspaces
+    base_dir: str = "./workspaces"
     
     # Storage format and options
     format: str = "parquet"  # parquet or jsonl
@@ -66,30 +74,28 @@ class HierarchicalEventStorage(EventStorageProtocol):
     """
     Hierarchical storage optimized for parallel portfolio analysis.
     
-    Directory structure:
-    results/
-    └── {workflow_id}_{timestamp}/
+    Directory structure (workspace-focused):
+    workspaces/
+    └── {workflow_id}/
         ├── metadata.json              # Workflow metadata
-        ├── phases/
-        │   ├── signal_generation/
-        │   │   ├── feature_container/
-        │   │   │   ├── events.parquet
-        │   │   │   └── metrics.json
-        │   │   └── summary.json
-        │   └── backtest/
-        │       ├── portfolio_c0001/   # Per-portfolio traces
-        │       │   ├── events.parquet
-        │       │   ├── signals.parquet
-        │       │   ├── trades.parquet
-        │       │   └── metrics.json
-        │       ├── portfolio_c0002/
-        │       │   └── ...
-        │       ├── execution/
-        │       │   └── events.parquet
-        │       └── summary.json
+        ├── root_id/                   # Root/coordinator container
+        │   ├── events.parquet
+        │   └── metrics.json
+        ├── portfolio1_id/             # Portfolio containers (primary parallelization)
+        │   ├── events.parquet
+        │   ├── signals.parquet
+        │   ├── trades.parquet
+        │   └── metrics.json
+        ├── portfolio2_id/
+        │   └── ...
+        ├── execution_id/              # Execution container
+        │   ├── events.parquet
+        │   └── metrics.json
         └── analysis/
             ├── pattern_library.parquet
             └── optimization_results.json
+    
+    Note: Portfolio containers are the main focus for user analysis and parallelization.
     """
     
     def __init__(self, config: HierarchicalStorageConfig):
@@ -97,6 +103,11 @@ class HierarchicalEventStorage(EventStorageProtocol):
         self.config = config
         self.base_dir = Path(config.base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Check if parquet is available and adjust format if needed
+        if config.format == 'parquet' and not PARQUET_AVAILABLE:
+            logger.warning("PyArrow not available, falling back to JSONL format")
+            self.config.format = 'jsonl'
         
         # Current context
         self.workflow_id: Optional[str] = None
@@ -118,6 +129,7 @@ class HierarchicalEventStorage(EventStorageProtocol):
         self._total_filtered = 0
         
         logger.info(f"HierarchicalEventStorage initialized at {self.base_dir}")
+        logger.info("Using workspace structure: workspaces/{workflow_id}/{container_id}/")
     
     def set_context(self, workflow_id: str, phase_name: Optional[str] = None, 
                    container_id: Optional[str] = None) -> None:
@@ -131,6 +143,10 @@ class HierarchicalEventStorage(EventStorageProtocol):
         path.mkdir(parents=True, exist_ok=True)
         
         logger.debug(f"Storage context set: workflow={workflow_id}, phase={phase_name}, container={container_id}")
+        
+        # Create workspace structure on first use
+        if workflow_id:
+            self._ensure_workspace_structure(workflow_id)
     
     def store(self, event: Event) -> None:
         """Store event with sparse filtering and batching."""
@@ -245,6 +261,45 @@ class HierarchicalEventStorage(EventStorageProtocol):
         
         return results
     
+    def get_portfolio_containers(self) -> List[str]:
+        """Get list of portfolio container IDs in this workspace."""
+        portfolio_containers = []
+        
+        # Check metadata first
+        if self.workflow_id:
+            metadata_path = self.base_dir / self.workflow_id / 'metadata.json'
+            if metadata_path.exists():
+                with open(metadata_path, 'r') as f:
+                    metadata = json.load(f)
+                    return metadata.get('portfolio_containers', [])
+        
+        # Fall back to scanning container IDs
+        for container_id in self.event_counts.keys():
+            if self._identify_container_type(container_id) == 'portfolio':
+                portfolio_containers.append(container_id)
+        
+        return portfolio_containers
+    
+    def get_workspace_info(self) -> Dict[str, Any]:
+        """Get workspace summary information."""
+        portfolio_containers = self.get_portfolio_containers()
+        
+        return {
+            'workspace_id': self.workflow_id,
+            'base_path': str(self.base_dir / self.workflow_id) if self.workflow_id else str(self.base_dir),
+            'portfolio_containers': portfolio_containers,
+            'total_containers': len(self.event_counts),
+            'container_breakdown': {
+                container_id: self._identify_container_type(container_id)
+                for container_id in self.event_counts.keys()
+            },
+            'portfolio_focus': {
+                'enabled': True,
+                'count': len(portfolio_containers),
+                'primary_access_pattern': 'parallelized_portfolio_analysis'
+            }
+        }
+    
     def get_container_events(self, container_id: str) -> List[Event]:
         """Get all events for a specific container."""
         return self.event_buffers.get(container_id, []).copy()
@@ -283,14 +338,21 @@ class HierarchicalEventStorage(EventStorageProtocol):
         }
     
     def get_statistics(self) -> Dict[str, Any]:
-        """Get storage statistics."""
+        """Get storage statistics with workspace focus."""
+        portfolio_containers = self.get_portfolio_containers()
+        
         return {
-            'workflow_id': self.workflow_id,
+            'workspace_id': self.workflow_id,
             'phase_name': self.phase_name,
+            'structure': 'workspaces/{workflow_id}/{container_id}/',
             'total_stored': self._total_stored,
             'total_filtered': self._total_filtered,
             'filter_ratio': self._total_filtered / max(1, self._total_stored + self._total_filtered),
-            'containers': list(self.event_counts.keys()),
+            'containers': {
+                'total': list(self.event_counts.keys()),
+                'portfolio_containers': portfolio_containers,
+                'portfolio_count': len(portfolio_containers)
+            },
             'event_counts': dict(self.event_counts),
             'buffer_status': {
                 cid: len(events) for cid, events in self.event_buffers.items()
@@ -299,6 +361,11 @@ class HierarchicalEventStorage(EventStorageProtocol):
                 'signal_count': sum(len(idx) for idx in self.signal_indices.values()),
                 'trade_count': sum(len(idx) for idx in self.trade_indices.values()),
                 'regime_changes': len(self.regime_changes)
+            },
+            'portfolio_focus': {
+                'primary_analysis_unit': 'portfolio_containers',
+                'parallelization_ready': len(portfolio_containers) > 1,
+                'analysis_path': f"workspaces/{self.workflow_id}/analysis/" if self.workflow_id else None
             }
         }
     
@@ -321,35 +388,79 @@ class HierarchicalEventStorage(EventStorageProtocol):
         
         return True
     
+    def _ensure_workspace_structure(self, workflow_id: str) -> None:
+        """Ensure workspace directory structure exists."""
+        workspace_path = self.base_dir / workflow_id
+        workspace_path.mkdir(parents=True, exist_ok=True)
+        
+        # Create analysis directory for cross-container results
+        analysis_path = workspace_path / 'analysis'
+        analysis_path.mkdir(exist_ok=True)
+        
+        # Create workspace metadata if it doesn't exist
+        metadata_path = workspace_path / 'metadata.json'
+        if not metadata_path.exists():
+            metadata = {
+                'workspace_id': workflow_id,
+                'created_at': datetime.now().isoformat(),
+                'description': 'ADMF-PC workspace for parallel portfolio analysis',
+                'structure': 'workspaces/{workflow_id}/{container_id}/',
+                'portfolio_containers': [],  # Will be populated as containers write
+                'analysis_available': True
+            }
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=2)
+    
+    def _identify_container_type(self, container_id: str) -> str:
+        """Identify container type for workspace organization."""
+        container_lower = container_id.lower()
+        
+        if 'portfolio' in container_lower or 'pf_' in container_lower:
+            return 'portfolio'
+        elif 'execution' in container_lower or 'exec_' in container_lower:
+            return 'execution'
+        elif 'root' in container_lower or 'coord' in container_lower:
+            return 'root'
+        elif 'data' in container_lower or 'feature' in container_lower:
+            return 'data'
+        elif 'strategy' in container_lower or 'signal' in container_lower:
+            return 'strategy'
+        elif 'risk' in container_lower:
+            return 'risk'
+        else:
+            return 'other'
+    
     def _get_current_path(self) -> Path:
-        """Get current storage path based on context."""
+        """Get current storage path based on context (workspace structure)."""
         path = self.base_dir
         
         if self.workflow_id:
             path = path / self.workflow_id
         
-        if self.phase_name and self.config.enable_phase_grouping:
-            path = path / 'phases' / self.phase_name
-        
+        # Skip phase grouping - use flat container structure for portfolio focus
         if self.container_id and self.config.enable_container_isolation:
             path = path / self.container_id
         
         return path
     
     def _get_container_path(self, container_id: str) -> Path:
-        """Get path for specific container."""
+        """Get path for specific container (workspace structure)."""
         path = self.base_dir
         
         if self.workflow_id:
             path = path / self.workflow_id
         
-        if self.phase_name:
-            path = path / 'phases' / self.phase_name
-        
+        # Flat structure: workspaces/{workflow_id}/{container_id}/
         return path / container_id
     
     def _write_parquet(self, events: List[Event], filepath: Path) -> None:
         """Write events to Parquet format."""
+        if not PARQUET_AVAILABLE:
+            logger.warning("PyArrow not available, falling back to JSONL")
+            jsonl_path = filepath.with_suffix('.jsonl')
+            self._write_jsonl(events, jsonl_path)
+            return
+            
         records = []
         for event in events:
             record = {
@@ -401,7 +512,11 @@ class HierarchicalEventStorage(EventStorageProtocol):
         
         if signals:
             df = pd.DataFrame(signals)
-            df.to_parquet(path / 'signals.parquet', compression=self.config.compression)
+            if PARQUET_AVAILABLE:
+                df.to_parquet(path / 'signals.parquet', compression=self.config.compression)
+            else:
+                # Save as CSV instead
+                df.to_csv(path / 'signals.csv', index=False)
     
     def _write_trade_index(self, container_id: str, path: Path) -> None:
         """Write trade index for analysis."""
@@ -438,20 +553,60 @@ class HierarchicalEventStorage(EventStorageProtocol):
         
         if trades:
             df = pd.DataFrame(trades)
-            df.to_parquet(path / 'trades.parquet', compression=self.config.compression)
+            if PARQUET_AVAILABLE:
+                df.to_parquet(path / 'trades.parquet', compression=self.config.compression)
+            else:
+                # Save as CSV instead
+                df.to_csv(path / 'trades.csv', index=False)
     
     def _write_container_metrics(self, container_id: str, path: Path) -> None:
-        """Write container-specific metrics."""
+        """Write container-specific metrics and update workspace metadata."""
+        container_type = self._identify_container_type(container_id)
+        
         metrics = {
             'container_id': container_id,
+            'container_type': container_type,
             'event_counts': dict(self.event_counts.get(container_id, {})),
             'signal_count': len(self.signal_indices.get(container_id, [])),
             'trade_count': len(self.trade_indices.get(container_id, [])),
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'is_portfolio_container': container_type == 'portfolio'
         }
         
         with open(path / 'metrics.json', 'w') as f:
             json.dump(metrics, f, indent=2)
+        
+        # Update workspace metadata with portfolio container info
+        if self.workflow_id and container_type == 'portfolio':
+            self._update_workspace_metadata(container_id)
+    
+    def _update_workspace_metadata(self, portfolio_container_id: str) -> None:
+        """Update workspace metadata with portfolio container information."""
+        if not self.workflow_id:
+            return
+            
+        metadata_path = self.base_dir / self.workflow_id / 'metadata.json'
+        
+        # Load existing metadata
+        if metadata_path.exists():
+            with open(metadata_path, 'r') as f:
+                metadata = json.load(f)
+        else:
+            metadata = {
+                'workspace_id': self.workflow_id,
+                'created_at': datetime.now().isoformat(),
+                'portfolio_containers': []
+            }
+        
+        # Add portfolio container if not already present
+        if portfolio_container_id not in metadata.get('portfolio_containers', []):
+            metadata.setdefault('portfolio_containers', []).append(portfolio_container_id)
+            metadata['last_updated'] = datetime.now().isoformat()
+            metadata['total_portfolio_containers'] = len(metadata['portfolio_containers'])
+            
+            # Write updated metadata
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=2)
     
     def _write_workflow_summary(self) -> None:
         """Write workflow-level summary."""

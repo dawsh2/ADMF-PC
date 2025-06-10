@@ -45,12 +45,12 @@ Example Usage:
 # Core exports - organized by module
 from . import components
 from . import containers
-# from . import coordinator  # Temporarily disabled due to config import issues
+from . import coordinator
 from . import events
 
-# High-level imports for convenience  
-# from .coordinator import Coordinator  # Temporarily disabled due to config issues
-# from .coordinator.types import WorkflowConfig, WorkflowType, WorkflowPhase  # Temporarily disabled
+# High-level imports for convenience
+from .coordinator import Coordinator
+from .coordinator.types import WorkflowConfig, WorkflowType, WorkflowPhase
 
 # Container system
 from .containers import (
@@ -90,15 +90,15 @@ __all__ = [
     # Modules
     "components",
     "containers", 
-    # "coordinator",  # Temporarily disabled
+    "coordinator",
     "events",
     "cli",
     
-    # High-level classes (temporarily disabled)
-    # "Coordinator",
-    # "WorkflowConfig",
-    # "WorkflowType", 
-    # "WorkflowPhase",
+    # High-level classes
+    "Coordinator",
+    "WorkflowConfig",
+    "WorkflowType", 
+    "WorkflowPhase",
     
     # Container system
     "Container",

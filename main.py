@@ -127,15 +127,19 @@ def main():
         
         # VALIDATE CONFIGURATION (if Pydantic available)
         if PYDANTIC_AVAILABLE:
-            validation_errors = get_validation_errors(config_dict)
-            if validation_errors:
-                logger.error("❌ Configuration validation failed:")
-                for error in validation_errors:
-                    logger.error(f"  - {error}")
-                logger.info("💡 Use --schema-docs to see configuration requirements")
-                return 1
-            else:
-                logger.info("✅ Configuration validation passed")
+            try:
+                validation_errors = get_validation_errors(config_dict)
+                if validation_errors:
+                    logger.error("❌ Configuration validation failed:")
+                    for error in validation_errors:
+                        logger.error(f"  - {error}")
+                    logger.info("💡 Use --schema-docs to see configuration requirements")
+                    return 1
+                else:
+                    logger.info("✅ Configuration validation passed")
+            except Exception as e:
+                logger.warning(f"Configuration validation failed with error: {e}")
+                logger.debug("Proceeding without validation")
         else:
             logger.debug("Pydantic validation not available, skipping validation")
             

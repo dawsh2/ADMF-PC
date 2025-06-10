@@ -73,7 +73,7 @@ class TopologyBuilder:
         self._initialize_factories()
         
         # Build evaluation context
-        context = self._build_context(pattern, config, tracing_config)
+        context = self._build_context(pattern, config, tracing_config, metadata)
         
         # Infer required features from strategies
         self._infer_and_inject_features(context)
@@ -160,12 +160,13 @@ class TopologyBuilder:
         return None
     
     def _build_context(self, pattern: Dict[str, Any], config: Dict[str, Any], 
-                      tracing_config: Dict[str, Any]) -> Dict[str, Any]:
+                      tracing_config: Dict[str, Any], metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Build evaluation context for pattern interpretation."""
         context = {
             'config': config,
             'pattern': pattern,
             'tracing': tracing_config,
+            'metadata': metadata,  # Include metadata for container configuration
             'generated': {},
             'root_event_bus': None,  # Still needed for stateless services
             'use_hierarchical_events': True  # Encourage parent-child for containers
@@ -181,7 +182,10 @@ class TopologyBuilder:
                 'trace_id': tracing_config.get('trace_id'),
                 'trace_dir': tracing_config.get('trace_dir', './traces'),
                 'max_events': tracing_config.get('max_events', 10000),
-                'container_settings': tracing_config.get('container_settings', {})
+                'container_settings': tracing_config.get('container_settings', {}),
+                # Include console output settings
+                'enable_console_output': tracing_config.get('enable_console_output', False),
+                'console_filter': tracing_config.get('console_filter', [])
             }
         
         # Create root event bus for stateless services and cross-hierarchy routing
@@ -226,6 +230,9 @@ class TopologyBuilder:
                 items = [items] if items else []
                 
             for item in items:
+                # Skip if item is not a dict (e.g., if it's a string from bad resolution)
+                if not isinstance(item, dict):
+                    continue
                 component = self._create_single_component(comp_type, item)
                 if component:
                     name = item.get('name', item.get('type', comp_type))
@@ -284,6 +291,19 @@ class TopologyBuilder:
                 container = self._create_single_container(name, container_spec, context)
                 if container:
                     containers[name] = container
+                    
+                    # If this container has children, collect them too
+                    if hasattr(container, '_child_containers') and container._child_containers:
+                        # Recursively collect all descendants
+                        def collect_descendants(parent):
+                            descendants = {}
+                            for child_id, child in parent._child_containers.items():
+                                descendants[child_id] = child
+                                if hasattr(child, '_child_containers') and child._child_containers:
+                                    descendants.update(collect_descendants(child))
+                            return descendants
+                        
+                        containers.update(collect_descendants(container))
         
         return containers
     
@@ -373,11 +393,30 @@ class TopologyBuilder:
                 config['risk_params'] = combo['risk_params']
         
         try:
-            container = self.container_factory.create_container(name, config)
+            # Extract components list from config
+            components = config.get('components', [])
+            container_type = config.get('type')
+            
+            # Remove components and type from config as they're passed separately
+            clean_config = {k: v for k, v in config.items() if k not in ['components', 'type']}
+            
+            # Add metadata from context for tracing and results organization
+            if 'metadata' in context:
+                clean_config['metadata'] = context['metadata']
+            
+            container = self.container_factory.create_container(
+                name=name,
+                components=components,
+                config=clean_config,
+                container_type=container_type
+            )
             
             # Create child containers if specified inline
             if 'containers' in spec:
-                self._create_child_containers(container, spec['containers'], context)
+                child_containers = self._create_child_containers(container, spec['containers'], context)
+                # Add child containers to the topology context
+                if 'containers' in context:
+                    context['containers'].update(child_containers)
             
             return container
         except Exception as e:
@@ -385,20 +424,39 @@ class TopologyBuilder:
             return None
     
     def _create_child_containers(self, parent_container: Any, children_specs: List[Dict[str, Any]], 
-                                context: Dict[str, Any]) -> None:
+                                context: Dict[str, Any]) -> Dict[str, Any]:
         """Create child containers inline and establish parent-child relationships."""
+        child_containers = {}
+        
         for child_spec in children_specs:
-            child_name = self._resolve_value(child_spec.get('name'), context)
-            if not child_name:
-                child_name = f"{parent_container.name}_{child_spec.get('type', 'child')}"
-            
-            # Create child with same context
-            child_container = self._create_single_container(child_name, child_spec, context)
-            
-            if child_container:
-                # Establish parent-child relationship
-                parent_container.add_child_container(child_container)
-                self.logger.info(f"Created child: {parent_container.name} -> {child_name}")
+            # Handle foreach in child containers too
+            if 'foreach' in child_spec:
+                children = self._expand_container_foreach(child_spec, context)
+                for name, child in children.items():
+                    if child:
+                        parent_container.add_child_container(child)
+                        child_containers[name] = child
+                        self.logger.info(f"Created child: {parent_container.name} -> {name}")
+            else:
+                child_name = self._resolve_value(child_spec.get('name'), context)
+                if not child_name:
+                    child_name = f"{parent_container.name}_{child_spec.get('type', 'child')}"
+                
+                # Create child with same context
+                child_container = self._create_single_container(child_name, child_spec, context)
+                
+                if child_container:
+                    # Establish parent-child relationship
+                    parent_container.add_child_container(child_container)
+                    child_containers[child_name] = child_container
+                    self.logger.info(f"Created child: {parent_container.name} -> {child_name}")
+                    
+                    # Recursively create children of children
+                    if 'containers' in child_spec:
+                        grandchildren = self._create_child_containers(child_container, child_spec['containers'], context)
+                        child_containers.update(grandchildren)
+        
+        return child_containers
     
     def _create_route(self, route_spec: Dict[str, Any], context: Dict[str, Any],
                      containers: Dict[str, Any]) -> Optional[Any]:

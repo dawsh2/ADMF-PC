@@ -1,31 +1,37 @@
-# Truly empty topology test - no components, no containers
-# This tests the absolute minimum coordinator lifecycle
+# Empty topology test - minimal configuration with no components
+# Testing incremental topology building starting from zero
 
-name: "Empty Topology Test"
+name: empty_topology_test
 
-# Define a custom inline workflow instead of using patterns
+# Workflow
 workflow:
-  name: "empty_workflow"
+  type: simple_backtest
   phases:
-    - name: "test_phase"
-      topology:
-        # Inline topology definition - completely empty
-        name: "empty_topology"
-        description: "Test empty topology"
-        components: []  # No components
-        containers: []  # No containers
-        routes: []      # No routes
-      sequence:
-        # Inline sequence - just runs once
-        type: "single_pass"
-        
-# Still need these for validation
-data:
-  symbols: ["TEST"]
-  start_date: "2024-01-01" 
-  end_date: "2024-01-02"
+    - name: test_phase
 
+# Execution config with full tracing
+execution:
+  mode: backtest
+  enable_event_tracing: true
+  trace_settings:
+    default_retention: full
+    max_events: 1000
+    trace_dir: './traces'
+
+# Minimal data config - no symbols
+data:
+  symbols: []  # Empty symbols list
+  start_date: '2024-01-01'
+  end_date: '2024-01-02'
+
+# Minimal portfolio
 portfolio:
   initial_capital: 100000
-  
-strategies: []  # Empty strategies should work
+
+# No strategies
+strategies: []
+
+# Results
+results:
+  retention_policy: full
+  max_events: 1000

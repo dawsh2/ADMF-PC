@@ -1,0 +1,60 @@
+# Test hierarchical storage with workspace structure
+# This config enables the new workspace-based event storage
+
+name: Hierarchical Storage Test
+type: backtest
+description: Test hierarchical event storage with workspace structure
+
+# Data configuration
+data:
+  source: csv
+  file_path: "data/SPY_1m.csv"
+  max_bars: 3  # Just 3 bars to test storage
+
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  currency: USD
+
+# Strategy configuration
+strategies:
+  - name: test_momentum
+    type: momentum
+    enabled: true
+    allocation: 1.0
+    parameters:
+      lookback_period: 2
+      rsi_period: 2
+
+# Risk management
+risk:
+  position_sizers:
+    - name: fixed_size
+      type: fixed
+      size: 1000
+
+# Execution configuration with hierarchical storage
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical  # Use hierarchical storage
+    max_events: 1000
+    enable_console_output: true
+    console_filter: ["SIGNAL", "FILL", "POSITION_OPEN", "POSITION_CLOSE"]
+    
+    # Container-specific settings
+    container_settings:
+      "portfolio_*":
+        enabled: true
+        max_events: 500
+      "strategy_*":
+        enabled: true
+        max_events: 200
+
+# Analysis configuration
+analysis:
+  metrics:
+    - total_return
+    - sharpe_ratio
+  save_results: true
+  output_format: json

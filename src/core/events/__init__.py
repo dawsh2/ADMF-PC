@@ -60,6 +60,7 @@ from .tracing import (
     # Storage
     MemoryEventStorage,
     DiskEventStorage,
+    HierarchicalEventStorage,
     create_storage_backend,
     
     # Analysis features
@@ -128,6 +129,7 @@ __all__ = [
     # Storage
     'MemoryEventStorage',
     'DiskEventStorage',
+    'HierarchicalEventStorage',
     'create_storage_backend',
     
     # Filters

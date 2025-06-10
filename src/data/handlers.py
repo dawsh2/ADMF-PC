@@ -9,9 +9,12 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 import pandas as pd
 from pathlib import Path
+import logging
 
 from .models import Bar, Timeframe, DataSplit
 from .loaders import SimpleCSVLoader
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleHistoricalDataHandler:
@@ -43,11 +46,18 @@ class SimpleHistoricalDataHandler:
         
         # Data loader
         self.loader = SimpleCSVLoader(data_dir)
+        
+        # Event bus - set by container
+        self.event_bus = None
     
     @property
     def name(self) -> str:
         """Component name for identification."""
         return self.handler_id
+    
+    def set_event_bus(self, event_bus) -> None:
+        """Set the event bus for publishing events."""
+        self.event_bus = event_bus
     
     # Implements DataProvider protocol
     def load_data(self, symbols: List[str]) -> bool:
@@ -79,6 +89,29 @@ class SimpleHistoricalDataHandler:
     def has_data(self, symbol: str) -> bool:
         """Check if data exists for symbol."""
         return symbol in self.data
+    
+    def execute(self) -> None:
+        """
+        Execute data streaming - called during container execution phase.
+        
+        Streams all available bars through the event system.
+        This enables event-driven execution where other components
+        react naturally to BAR events.
+        """
+        if not self._running:
+            self.start()
+        
+        # Stream all bars
+        bars_streamed = 0
+        max_bars = getattr(self, 'max_bars', float('inf'))
+        
+        while self.has_more_data() and bars_streamed < max_bars:
+            if self.update_bars():
+                bars_streamed += 1
+            else:
+                break
+        
+        logger.info(f"Data handler streamed {bars_streamed} bars")
     
     # Implements BarStreamer protocol
     def update_bars(self) -> bool:
@@ -123,13 +156,19 @@ class SimpleHistoricalDataHandler:
             # Update index
             indices[symbol] = idx + 1
             
-            # Emit event if capability available
-            if hasattr(self, 'emit_event'):  # Added by event capability
-                self.emit_event('BAR', {
-                    'symbol': symbol,
-                    'timestamp': timestamp,
-                    'bar': bar.to_dict()
-                })
+            # Publish BAR event to event bus
+            if self.event_bus:
+                from ..core.events.types import Event, EventType
+                event = Event(
+                    event_type=EventType.BAR.value,
+                    payload={
+                        'symbol': symbol,
+                        'timestamp': timestamp,
+                        'bar': bar
+                    },
+                    source_id=self.handler_id
+                )
+                self.event_bus.publish(event)
             
             return True
         

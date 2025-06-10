@@ -452,6 +452,34 @@ class Container:
             self._set_state(ContainerState.ERROR)
             raise
     
+    def execute(self) -> None:
+        """
+        Execution phase - let components do their work.
+        
+        For event-driven systems, this might just start data streaming.
+        Other components react to events naturally.
+        """
+        if self._state != ContainerState.RUNNING:
+            raise InvalidContainerStateError(
+                self.name,
+                self._state,
+                [ContainerState.RUNNING]
+            )
+        
+        logger.debug(f"Container {self.container_id} entering execution phase")
+        
+        # Let each component execute if it needs to
+        # Data streamers will start streaming
+        # Other components are event-driven and will react naturally
+        for name, component in self._components.items():
+            if hasattr(component, 'execute'):
+                try:
+                    logger.debug(f"Executing component {name} in {self.container_id}")
+                    component.execute()
+                except Exception as e:
+                    logger.error(f"Error executing component {name}: {e}")
+                    # Don't stop other components from executing
+    
     def cleanup(self) -> None:
         """Cleanup resources and dispose of components."""
         # Save results before cleanup if disk storage
@@ -701,6 +729,28 @@ class Container:
             'correlation_id': trace_id,
             'max_events': max_events
         }
+        
+        # Check if hierarchical storage should be used
+        storage_backend = trace_settings.get('storage_backend', 'memory')
+        logger.info(f"DEBUG: trace_settings keys: {list(trace_settings.keys())}")
+        logger.info(f"DEBUG: storage_backend value: {storage_backend}")
+        logger.info(f"DEBUG: full trace_settings: {trace_settings}")
+        if storage_backend == 'hierarchical':
+            trace_config['storage_backend'] = 'hierarchical'
+            trace_config['workflow_id'] = metadata.get('workflow_id')
+            trace_config['phase_name'] = metadata.get('phase_name')
+            trace_config['container_id'] = self.container_id
+            
+            logger.info(f"Using hierarchical storage for container {self.container_id}: "
+                       f"workspaces/{metadata.get('workflow_id')}/{self.container_id}/")
+        
+        # Pass through console output settings
+        global_trace_settings = execution_config.get('trace_settings', {})
+        if global_trace_settings.get('enable_console_output', False):
+            trace_config['enable_console_output'] = True
+            trace_config['console_filter'] = global_trace_settings.get('console_filter', [])
+            logger.info(f"Console output enabled for container {self.container_id} with filter: {trace_config['console_filter']}")
+        
         self.event_bus.enable_tracing(trace_config)
         
         logger.info(f"Tracing enabled for container {self.container_id} "
@@ -786,104 +836,55 @@ class Container:
     
     def _setup_metrics(self):
         """
-        Setup event-based metrics tracking.
+        Setup event-based metrics tracking using MetricsObserver.
         
-        Creates a MetricsEventTracer that processes events to calculate
-        metrics with smart retention policies for memory efficiency.
+        Uses trade-complete retention policy for memory efficiency:
+        - Only keeps events for open trades
+        - Prunes events when trades close
+        - Calculates metrics incrementally
         """
+        if self.container_type != 'portfolio':
+            # Only portfolio containers need metrics
+            return
+            
         try:
-            from ..events.tracing.metrics import MetricsEventTracer
+            from ..events.observers.metrics import MetricsObserver, BasicMetricsCalculator
         except ImportError:
-            logger.warning(f"MetricsEventTracer not available for container {self.container_id}")
+            logger.warning(f"MetricsObserver not available for container {self.container_id}")
             return
         
         # Get configuration
         metrics_config = self.config.config.get('metrics', {})
         results_config = self.config.config.get('results', {})
         
-        if self.container_type == 'portfolio':
-            # Build config for metrics tracer
-            tracer_config = {
-                'initial_capital': self.config.config.get('initial_capital', 100000.0),
-                'retention_policy': results_config.get('retention_policy', 'trade_complete'),
-                'max_events': results_config.get('max_events', 1000),
-                'collection': results_config.get('collection', {}),
-                'annualization_factor': metrics_config.get('annualization_factor', 252.0),
-                'min_periods': metrics_config.get('min_periods', 20),
-                'objective_function': self.config.config.get('objective_function', {'name': 'sharpe_ratio'}),
-                'custom_metrics': self.config.config.get('custom_metrics', [])
-            }
-            
-            # Create metrics event tracer
-            self.streaming_metrics = MetricsEventTracer(tracer_config)
-            
-            # Subscribe to all relevant events
-            from ..events import EventType
-            event_types = [
-                EventType.ORDER_REQUEST,
-                EventType.ORDER,
-                EventType.FILL,
-                EventType.PORTFOLIO_UPDATE,
-                EventType.POSITION_UPDATE
-            ]
-            
-            for event_type in event_types:
-                self.event_bus.subscribe(
-                    event_type,
-                    self.streaming_metrics.trace_event
-                )
-            
-            logger.info(f"Event-based metrics tracking enabled for portfolio container {self.container_id}")
-        else:
-            # Non-portfolio containers don't need metrics by default
-            logger.debug(f"No metrics tracking for {self.role.value} container {self.container_id}")
+        # Create metrics calculator with portfolio configuration
+        calculator = BasicMetricsCalculator(
+            initial_capital=self.config.config.get('initial_capital', 100000.0),
+            annualization_factor=metrics_config.get('annualization_factor', 252.0)
+        )
+        
+        # Create observer with trade-complete retention for memory efficiency
+        self.streaming_metrics = MetricsObserver(
+            calculator=calculator,
+            retention_policy=results_config.get('retention_policy', 'trade_complete'),
+            max_events=results_config.get('max_events', 1000)
+        )
+        
+        # Attach observer to event bus
+        self.event_bus.attach_observer(self.streaming_metrics)
+        
+        logger.info(f"MetricsObserver attached to portfolio container {self.container_id} "
+                   f"with retention_policy='trade_complete' for memory efficiency")
     
     def _setup_event_tracing_metrics(self):
         """
-        Setup event tracing as the metrics system for portfolio containers.
+        Alternative setup for event tracing as the metrics system.
         
-        This implements the unified approach where event tracing IS the metrics system.
-        Configuration comes from workflow-defined settings with user overrides.
+        This just calls _setup_metrics() since we now use MetricsObserver
+        for both tracing and metrics with unified trade-complete retention.
         """
-        try:
-            from ..events.tracing.metrics import MetricsEventTracer
-        except ImportError:
-            logger.warning(f"MetricsEventTracer not available for container {self.container_id}")
-            return
-        
-        # Get configuration from workflow-defined settings  
-        event_tracing = self.config.config.get('event_tracing', ['POSITION_OPEN', 'POSITION_CLOSE', 'FILL'])
-        retention_policy = self.config.config.get('retention_policy', 'trade_complete')
-        sliding_window_size = self.config.config.get('sliding_window_size', 1000)
-        
-        # Determine if we should store equity curve based on events being traced
-        store_equity_curve = 'PORTFOLIO_UPDATE' in event_tracing
-        
-        # Setup metrics tracking
-        metrics_config = {
-            'initial_capital': self.config.config.get('initial_capital', 100000.0),
-            'retention_policy': retention_policy,
-            'max_events': sliding_window_size if retention_policy == 'sliding_window' else 10000,
-            'collection': {
-                'store_equity_curve': store_equity_curve,
-                'store_trades': True
-            },
-            'objective_function': self.config.config.get('objective_function', {'name': 'sharpe_ratio'})
-        }
-        
-        self.streaming_metrics = MetricsEventTracer(metrics_config)
-        
-        # Subscribe to specified events
-        from ..events import EventType
-        for event_type_str in event_tracing:
-            try:
-                event_type = EventType[event_type_str]
-                self.event_bus.subscribe(event_type, self.streaming_metrics.trace_event)
-            except KeyError:
-                logger.warning(f"Unknown event type: {event_type_str}")
-        
-        logger.info(f"Event tracing metrics enabled for {self.container_id} - "
-                   f"events: {event_tracing}, retention: {retention_policy}")
+        # Unified approach - MetricsObserver handles both tracing and metrics
+        self._setup_metrics()
     
     def get_metrics(self) -> Optional[Dict[str, Any]]:
         """
@@ -910,14 +911,8 @@ class Container:
         else:
             metrics = {}
         
-        # Add container metadata
-        metrics['container_id'] = self.container_id
-        metrics['container_type'] = self.container_type
-        metrics['role'] = self.role.value
-        
-        # Add basic operational metrics
-        metrics['events_processed'] = self._metrics['events_processed']
-        metrics['events_published'] = self._metrics['events_published']
+        # For MetricsObserver, just return what it provides
+        # It already includes container tracking in observer_stats
         
         return metrics
     
@@ -939,8 +934,8 @@ class Container:
         if not self.streaming_metrics:
             return None
         
-        # For portfolio containers using event tracer
-        if self.role == ContainerRole.PORTFOLIO and hasattr(self.streaming_metrics, 'get_results'):
+        # For portfolio containers using MetricsObserver
+        if self.container_type == 'portfolio' and hasattr(self.streaming_metrics, 'get_results'):
             return self.streaming_metrics.get_results()
         
         # Fallback to basic metrics
@@ -951,7 +946,9 @@ class Container:
         if not self.streaming_metrics:
             return
             
-        results = self.streaming_metrics.get_results()
+        results = self.streaming_metrics.get_metrics() if hasattr(self.streaming_metrics, 'get_metrics') else None
+        if not results:
+            return
         
         # Build path from execution metadata
         metadata = self.config.config.get('metadata', {})

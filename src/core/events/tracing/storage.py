@@ -515,7 +515,7 @@ def create_storage_backend(backend_type: str, config: Dict[str, Any]) -> EventSt
     Create storage backend from configuration.
     
     Args:
-        backend_type: 'memory' or 'disk'
+        backend_type: 'memory', 'disk', 'hierarchical', or 'analytics_parquet'
         config: Backend-specific configuration
         
     Returns:
@@ -535,6 +535,50 @@ def create_storage_backend(backend_type: str, config: Dict[str, Any]) -> EventSt
             compression=config.get('compression', 'gzip'),
             partition_by=config.get('partition_by', 'container'),
             container_isolation=config.get('container_isolation', True)
+        )
+    elif backend_type == 'hierarchical':
+        # Import here to avoid circular dependency
+        from ..storage.hierarchical import HierarchicalEventStorage, HierarchicalStorageConfig
+        
+        # Create configuration object
+        storage_config = HierarchicalStorageConfig(
+            base_dir=config.get('base_dir', './workspaces'),
+            format=config.get('format', 'parquet'),
+            compression=config.get('compression', 'snappy'),
+            batch_size=config.get('batch_size', 1000),
+            max_memory_mb=config.get('max_memory_mb', 100),
+            enable_indices=config.get('enable_indices', True),
+            retention_days=config.get('retention_days'),
+            archive_completed_workflows=config.get('archive_completed_workflows', True)
+        )
+        
+        storage = HierarchicalEventStorage(storage_config)
+        
+        # Set context if provided
+        workflow_id = config.get('workflow_id')
+        phase_name = config.get('phase_name')
+        container_id = config.get('container_id')
+        
+        if workflow_id:
+            storage.set_context(
+                workflow_id=workflow_id,
+                phase_name=phase_name,
+                container_id=container_id
+            )
+        
+        return storage
+    elif backend_type == 'analytics_parquet':
+        # Import here to avoid circular dependency
+        from ....analytics.storage.parquet_backend import ParquetEventStorage
+        
+        # Extract required parameters
+        correlation_id = config.get('correlation_id', 'default_trace')
+        base_path = config.get('base_path', './analytics/traces')
+        
+        return ParquetEventStorage(
+            base_path=base_path,
+            correlation_id=correlation_id,
+            config=config
         )
     else:
         raise ValueError(f"Unknown storage backend: {backend_type}")

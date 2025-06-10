@@ -13,7 +13,7 @@ from datetime import datetime
 import math
 import logging
 
-from ..events import Event, EventType
+from ..types import Event, EventType
 
 logger = logging.getLogger(__name__)
 

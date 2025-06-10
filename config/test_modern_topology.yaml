@@ -1,0 +1,71 @@
+# Modern topology test - reflecting the current architecture
+# Root → symbol_timeframe → features → portfolios → execution
+
+name: modern_topology_test
+
+# Workflow
+workflow:
+  type: simple_backtest
+  phases:
+    - name: test_phase
+      topology: modern_backtest  # Use our modern topology pattern
+
+# Execution config with tracing
+execution:
+  mode: backtest
+  enable_event_tracing: true
+  trace_settings:
+    default_retention: full
+    max_events: 10000
+    trace_dir: './traces'
+
+# Data config with one symbol for testing
+data:
+  symbols: ['SPY']
+  timeframes: ['1d']  # Daily bars
+  start_date: '2024-01-01'
+  end_date: '2024-01-02'
+  max_bars: 0  # Start with 0 bars to test lifecycle
+
+# Feature configuration
+features:
+  # All features computed in single container
+  indicators:
+    - name: sma_20
+      type: sma
+      period: 20
+    - name: sma_50
+      type: sma
+      period: 50
+
+# Portfolio configuration
+portfolio:
+  initial_capital: 100000
+  # Portfolio-specific settings
+  portfolios:
+    - name: portfolio_1
+      managed_strategies: ['momentum_1']  # Which strategies to listen to
+      
+# Strategies (called by feature container)
+strategies:
+  - name: momentum_1
+    type: momentum
+    enabled: true
+    allocation: 1.0
+    config:
+      fast_period: 20
+      slow_period: 50
+
+# Risk configuration (stateless functions)
+risk:
+  position_sizers:
+    - type: fixed
+      size: 100  # 100 shares per trade
+  limits:
+    - type: max_position
+      max_positions: 5
+
+# Results
+results:
+  retention_policy: full
+  max_events: 10000

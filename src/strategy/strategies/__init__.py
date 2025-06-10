@@ -22,6 +22,9 @@ from .mean_reversion_simple import mean_reversion_strategy
 # from .trend_following import trend_following_strategy  # Has import issues
 # from .simple_trend import simple_trend_strategy  # Has import issues
 
+# Import null strategy for testing
+from .null_strategy import NullStrategy
+
 # Lazy imports for strategies with external dependencies
 def _import_mean_reversion():
     from .mean_reversion import MeanReversionStrategy
@@ -51,6 +54,7 @@ def get_strategy_class(strategy_type: str):
         Strategy class
     """
     strategy_map = {
+        'null': lambda: NullStrategy,
         'momentum': lambda: None,  # Using pure functions now
         'mean_reversion': _import_mean_reversion,
         'trend_following': lambda: _import_trend_following()[0],
@@ -73,6 +77,7 @@ def get_strategy_class(strategy_type: str):
 __all__ = [
     # Classes
     "get_strategy_class",
+    "NullStrategy",
     
     # Pure function strategies (decorated)
     "momentum_strategy",

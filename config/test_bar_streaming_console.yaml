@@ -1,0 +1,41 @@
+# Test bar streaming with console output
+# Based on test_bar_streaming but with console event viewing
+
+name: bar_streaming_console_test
+
+# Workflow
+workflow:
+  type: simple_backtest
+  phases:
+    - name: test_phase
+      topology: root_backtest
+
+# Execution config with console tracing
+execution:
+  mode: backtest
+  enable_event_tracing: true
+  trace_settings:
+    default_retention: full
+    max_events: 10  # Limit to see only a few events
+    trace_dir: './traces'
+    console_output: true  # Enable console output
+
+# Data config - limit to very few bars
+data:
+  symbols: ['SPY']
+  timeframes: ['1m']
+  start_date: '2024-01-01'
+  end_date: '2024-01-02'  # Just 1 day
+  max_bars: 5  # Only 5 bars
+
+# Minimal portfolio
+portfolio:
+  initial_capital: 100000
+
+# No strategies
+strategies: []
+
+# Results
+results:
+  retention_policy: full
+  max_events: 10

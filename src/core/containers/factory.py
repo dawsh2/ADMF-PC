@@ -94,7 +94,7 @@ class ContainerFactory:
         # Inject specified components
         for component_name in components:
             if component_name in self._default_components:
-                component = self._create_component(component_name)
+                component = self._create_component(component_name, config)
                 if component:
                     container.add_component(component_name, component)
                     logger.debug(f"Injected {component_name} into container {name}")
@@ -103,20 +103,81 @@ class ContainerFactory:
         
         return container
     
-    def _create_component(self, component_name: str) -> Optional[Any]:
+    def _create_component(self, component_name: str, config: Optional[Dict[str, Any]] = None) -> Optional[Any]:
         """
         Create a component instance.
         
-        For now, this returns mock components for testing.
-        In a full implementation, this would use the component registry.
+        Creates real components when available, falls back to mock for missing ones.
         """
-        # Simplified mock implementation for testing
+        config = config or {}
+        
+        try:
+            # Map component names to actual implementations
+            if component_name == 'data_streamer':
+                from ...data.handlers import SimpleHistoricalDataHandler
+                # Pass config to handler
+                handler = SimpleHistoricalDataHandler(
+                    handler_id=f"data_{config.get('symbol', 'unknown')}",
+                    data_dir=config.get('data_dir', './data')
+                )
+                # Load data if symbols are configured
+                symbols = config.get('symbol', [])
+                if isinstance(symbols, str):
+                    symbols = [symbols]
+                if symbols:
+                    handler.load_data(symbols)
+                # Set max bars if configured
+                if 'max_bars' in config:
+                    handler.max_bars = config['max_bars']
+                return handler
+            elif component_name == 'signal_streamer':
+                from ...data.streamers import SignalStreamerComponent
+                return SignalStreamerComponent()
+            elif component_name == 'portfolio_manager':
+                from ...portfolio import PortfolioState
+                return PortfolioState()
+            elif component_name == 'position_manager':
+                # Position manager is part of PortfolioState
+                from ...portfolio import PortfolioState
+                return PortfolioState()
+            elif component_name == 'risk_manager':
+                from ...risk import RiskLimits
+                return RiskLimits()
+            elif component_name == 'position_sizer':
+                from ...risk import FixedPositionSizer
+                return FixedPositionSizer()
+            elif component_name == 'execution_engine':
+                from ...execution import ExecutionEngine
+                # ExecutionEngine needs component_id and broker
+                from ...execution.brokers import SimulatedBroker
+                broker = SimulatedBroker(config.get('execution', {}))
+                return ExecutionEngine(f"exec_{component_name}", broker)
+            elif component_name == 'order_manager':
+                from ...execution import SyncOrderManager
+                return SyncOrderManager()
+            elif component_name == 'strategy':
+                from ...strategy.strategies import NullStrategy
+                return NullStrategy()
+            else:
+                logger.debug(f"No implementation for {component_name}, using mock")
+                return self._create_mock_component(component_name)
+                
+        except ImportError as e:
+            logger.debug(f"Failed to import {component_name}: {e}, using mock")
+            return self._create_mock_component(component_name)
+    
+    def _create_mock_component(self, component_name: str) -> Any:
+        """Create a mock component for testing."""
         class MockComponent:
             def __init__(self, name):
                 self.name = name
                 self.container = None
                 
-            def initialize(self, container):
+            def initialize(self):
+                # No-op for mock
+                pass
+                
+            def set_container(self, container):
                 self.container = container
                 
             def start(self):
@@ -132,6 +193,7 @@ class ContainerFactory:
                 pass
         
         return MockComponent(component_name)
+    
     
     def create_portfolio_container(
         self, 

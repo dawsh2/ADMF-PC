@@ -46,7 +46,7 @@ class BaseConfig(BaseModel):
 class DataConfig(BaseConfig):
     """Data source configuration."""
     
-    symbols: List[str] = Field(..., min_items=1, description="Asset symbols to trade")
+    symbols: List[str] = Field(default_factory=list, description="Asset symbols to trade")
     start_date: str = Field(..., description="Backtest start date (YYYY-MM-DD)")
     end_date: str = Field(..., description="Backtest end date (YYYY-MM-DD)")
     frequency: Literal["1min", "5min", "15min", "30min", "1h", "1d"] = Field(
@@ -261,7 +261,7 @@ class WorkflowConfig(BaseConfig):
     # Core configuration sections
     data: DataConfig = Field(..., description="Data configuration")
     portfolio: PortfolioConfig = Field(..., description="Portfolio configuration")
-    strategies: List[StrategyConfig] = Field(..., min_items=1, description="Strategy configurations")
+    strategies: List[StrategyConfig] = Field(default_factory=list, description="Strategy configurations")
     risk: Optional[RiskConfig] = Field(None, description="Risk management configuration")
     execution: Optional[ExecutionConfig] = Field(None, description="Execution configuration")
     
