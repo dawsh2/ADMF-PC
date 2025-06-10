@@ -1,39 +1,34 @@
 """
-Data mining and analytics module for ADMF-PC.
-Implements the two-layer architecture combining SQL analytics with event tracing.
+Data mining and pattern discovery for optimization analysis.
+
+Implements two-layer architecture:
+- SQL database for high-level metrics and quick queries
+- Event traces for detailed pattern analysis
 """
 
-from src.analytics.mining.storage.schemas import (
-    create_analytics_schema,
-    OptimizationRun,
-    Trade,
-    DiscoveredPattern,
-    PatternPerformance
-)
+from .models import OptimizationRun
+from .protocols import MetricsAggregatorProtocol
+from .two_layer_mining import TwoLayerMiningSystem
+from .pattern_discovery import TradingPatternMiner
+from .query import EventQueryInterface
 
-from src.analytics.mining.storage.connections import (
-    AnalyticsDatabase
-)
-
-from src.analytics.mining.etl.event_transformer import (
-    EventTransformer,
-    TradeChainBuilder,
-    OptimizationAnalyzer
-)
+# Aliases for backward compatibility
+TwoLayerMiningArchitecture = TwoLayerMiningSystem
+PatternMiner = TradingPatternMiner
 
 __all__ = [
-    # Database
-    'AnalyticsDatabase',
-    
-    # Schema
-    'create_analytics_schema',
+    # Models
     'OptimizationRun',
-    'Trade',
-    'DiscoveredPattern',
-    'PatternPerformance',
     
-    # ETL
-    'EventTransformer',
-    'TradeChainBuilder',
-    'OptimizationAnalyzer',
+    # Protocols
+    'MetricsAggregatorProtocol',
+    
+    # Core components
+    'TwoLayerMiningSystem',
+    'TradingPatternMiner', 
+    'EventQueryInterface',
+    
+    # Backward compatibility aliases
+    'TwoLayerMiningArchitecture',
+    'PatternMiner'
 ]

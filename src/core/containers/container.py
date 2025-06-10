@@ -13,11 +13,12 @@ from typing import Dict, Any, Optional, List, Set, Protocol, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from collections import OrderedDict
 import uuid
 import logging
 
 from ..events import EventBus
-from .protocols import Container as ContainerProtocol, ContainerMetadata, ContainerLimits, ContainerState, ContainerRole
+from .protocols import ContainerProtocol, ContainerMetadata, ContainerLimits, ContainerState
 from .exceptions import (
     ComponentAlreadyExistsError,
     ComponentNotFoundError,
@@ -46,372 +47,124 @@ class ContainerType(Enum):
     DATA = "data"
 
 
-class Phase(Enum):
-    """Workflow phases for container naming."""
-    PHASE1_GRID_SEARCH = "phase1_grid"
-    PHASE2_ENSEMBLE = "phase2_ensemble"
-    PHASE3_VALIDATION = "phase3_validation"
-    PHASE4_WALK_FORWARD = "phase4_walkforward"
-    INITIALIZATION = "init"
-    DATA_PREPARATION = "data_prep"
-    COMPUTATION = "compute"
-    VALIDATION = "validate"
-    AGGREGATION = "aggregate"
-    LIVE = "live"
-    ANALYSIS = "analysis"
-
-
-class ClassifierType(Enum):
-    """Types of classifiers."""
-    HMM = "hmm"
-    PATTERN = "pattern"
-    TREND_VOL = "trend_vol"
-    MULTI_INDICATOR = "multi_ind"
-    ENSEMBLE = "ensemble"
-    NONE = "none"
-
-
-class RiskProfile(Enum):
-    """Risk profiles for portfolio management."""
-    CONSERVATIVE = "conservative"
-    BALANCED = "balanced"
-    AGGRESSIVE = "aggressive"
-    CUSTOM = "custom"
-    NONE = "none"
+# Complex enums removed - these should be configuration-driven metadata instead
 
 
 class ContainerNamingStrategy:
     """
-    Structured naming strategy for containers.
+    Simplified container naming strategy.
     
-    Creates names that:
-    - Enable easy identification of container purpose
-    - Support tracking across optimization phases
-    - Facilitate debugging and monitoring
-    - Allow result aggregation by type
+    Essential components only: role + unique_id
+    Complex naming moved to configuration-driven metadata.
     """
     
     @staticmethod
     def generate_container_id(
         container_type: ContainerType,
-        phase: Optional[Phase] = None,
-        classifier: Optional[ClassifierType] = None,
-        risk_profile: Optional[RiskProfile] = None,
-        timestamp: Optional[datetime] = None,
-        unique_suffix: bool = True,
-        metadata: Optional[Dict[str, Any]] = None
+        name_hint: Optional[str] = None
     ) -> str:
         """
-        Generate a structured container ID.
+        Generate a simple, unique container ID.
         
         Args:
-            container_type: Type of container
-            phase: Current workflow phase
-            classifier: Classifier type (if applicable)
-            risk_profile: Risk profile (if applicable)
-            timestamp: Timestamp for the container
-            unique_suffix: Whether to add UUID suffix
-            metadata: Additional metadata to encode in name
+            container_type: Type of container  
+            name_hint: Optional human-readable hint
             
         Returns:
-            Structured container ID
+            Simple container ID: {type}[_{hint}]_{uuid}
         """
         parts = [container_type.value]
         
-        # Add phase if specified
-        if phase:
-            parts.append(phase.value)
-            
-        # Add classifier if specified and not none
-        if classifier and classifier != ClassifierType.NONE:
-            parts.append(classifier.value)
-            
-        # Add risk profile if specified and not none
-        if risk_profile and risk_profile != RiskProfile.NONE:
-            parts.append(risk_profile.value)
-            
-        # Add metadata elements if provided
-        if metadata:
-            # Add symbol set identifier
-            if 'symbols' in metadata and metadata['symbols']:
-                if len(metadata['symbols']) == 1:
-                    parts.append(metadata['symbols'][0].lower())
-                elif len(metadata['symbols']) <= 3:
-                    parts.append('_'.join(s.lower() for s in metadata['symbols']))
-                else:
-                    parts.append(f"{len(metadata['symbols'])}syms")
-                    
-            # Add strategy identifier
-            if 'strategy' in metadata:
-                parts.append(metadata['strategy'].lower().replace(' ', '_'))
-                
-            # Add optimization trial number
-            if 'trial' in metadata:
-                parts.append(f"t{metadata['trial']}")
-                
-        # Add timestamp
-        if timestamp is None:
-            timestamp = datetime.now()
-        parts.append(timestamp.strftime('%Y%m%d_%H%M%S'))
+        if name_hint:
+            # Sanitize hint: lowercase, replace spaces/special chars with underscores
+            clean_hint = ''.join(c if c.isalnum() else '_' for c in name_hint.lower())
+            clean_hint = '_'.join(p for p in clean_hint.split('_') if p)  # Remove empty parts
+            if clean_hint:
+                parts.append(clean_hint)
         
-        # Add unique suffix if requested
-        if unique_suffix:
-            parts.append(uuid.uuid4().hex[:8])
-            
+        # Always add unique suffix for guaranteed uniqueness
+        parts.append(uuid.uuid4().hex[:8])
+        
         return '_'.join(parts)
         
     @staticmethod
     def parse_container_id(container_id: str) -> Dict[str, Any]:
         """
-        Parse a structured container ID into components.
+        Parse a simple container ID into basic components.
         
         Args:
-            container_id: Container ID to parse
+            container_id: Container ID to parse (format: type[_hint]_uuid)
             
         Returns:
-            Dictionary with parsed components
+            Dictionary with basic parsed components
         """
         parts = container_id.split('_')
+        
         result = {
             'raw_id': container_id,
             'container_type': None,
-            'phase': None,
-            'classifier': None,
-            'risk_profile': None,
-            'timestamp': None,
-            'uuid': None,
-            'metadata': {}
+            'name_hint': None,
+            'uuid': None
         }
         
-        if not parts:
-            return result
-            
-        # Parse container type (always first)
-        try:
-            result['container_type'] = ContainerType(parts[0])
-            idx = 1
-        except ValueError:
-            idx = 0
-            
-        # Try to parse remaining parts
-        while idx < len(parts):
-            part = parts[idx]
-            
-            # Check if it's a phase
+        if len(parts) >= 2:
+            # First part is always container type
             try:
-                for phase in Phase:
-                    if phase.value == part or phase.value.startswith(part):
-                        result['phase'] = phase
-                        idx += 1
-                        continue
-            except:
+                result['container_type'] = ContainerType(parts[0])
+            except ValueError:
                 pass
-                
-            # Check if it's a classifier
-            try:
-                for classifier in ClassifierType:
-                    if classifier.value == part:
-                        result['classifier'] = classifier
-                        idx += 1
-                        continue
-            except:
-                pass
-                
-            # Check if it's a risk profile
-            try:
-                for profile in RiskProfile:
-                    if profile.value == part:
-                        result['risk_profile'] = profile
-                        idx += 1
-                        continue
-            except:
-                pass
-                
-            # Check if it's a timestamp (YYYYMMDD format)
-            if len(part) == 8 and part.isdigit():
-                # Next part should be time (HHMMSS)
-                if idx + 1 < len(parts) and len(parts[idx + 1]) == 6 and parts[idx + 1].isdigit():
-                    try:
-                        timestamp_str = f"{part}_{parts[idx + 1]}"
-                        result['timestamp'] = datetime.strptime(timestamp_str, '%Y%m%d_%H%M%S')
-                        idx += 2
-                        continue
-                    except:
-                        pass
-                        
-            # Check if it's a UUID (8 hex chars at the end)
-            if idx == len(parts) - 1 and len(part) == 8:
+            
+            # Last part is always UUID (8 hex chars)
+            if len(parts[-1]) == 8:
                 try:
-                    int(part, 16)
-                    result['uuid'] = part
-                    idx += 1
-                    continue
-                except:
-                    pass
+                    int(parts[-1], 16)  # Validate it's hex
+                    result['uuid'] = parts[-1]
                     
-            # Otherwise, it's metadata
-            result['metadata'][f'part_{idx}'] = part
-            idx += 1
-            
+                    # Middle parts are name hint (if any)
+                    if len(parts) > 2:
+                        result['name_hint'] = '_'.join(parts[1:-1])
+                except ValueError:
+                    pass
+        
         return result
         
-    @staticmethod
-    def create_hierarchical_id(
-        parent_id: str,
-        child_type: str,
-        child_descriptor: Optional[str] = None
-    ) -> str:
-        """
-        Create a child container ID based on parent.
-        
-        Args:
-            parent_id: Parent container ID
-            child_type: Type of child container
-            child_descriptor: Optional descriptor for child
-            
-        Returns:
-            Child container ID
-        """
-        parts = [parent_id, child_type]
-        
-        if child_descriptor:
-            parts.append(child_descriptor)
-            
-        # Add short UUID for uniqueness
-        parts.append(uuid.uuid4().hex[:6])
-        
-        return '_'.join(parts)
-        
-    @staticmethod
+    @staticmethod  
     def get_container_family(container_id: str) -> str:
         """
-        Get the family/root of a container ID.
-        
-        Useful for grouping related containers.
+        Get the container type from ID for grouping.
         
         Args:
             container_id: Container ID
             
         Returns:
-            Container family identifier
+            Container type or 'unknown'
         """
         parsed = ContainerNamingStrategy.parse_container_id(container_id)
-        
-        family_parts = []
-        
         if parsed['container_type']:
-            family_parts.append(parsed['container_type'].value)
-            
-        if parsed['phase']:
-            family_parts.append(parsed['phase'].value)
-            
-        if parsed['classifier']:
-            family_parts.append(parsed['classifier'].value)
-            
-        return '_'.join(family_parts) if family_parts else 'unknown'
-        
-    @staticmethod
-    def create_workflow_container_id(
-        workflow_id: str,
-        container_type: ContainerType,
-        phase: Phase,
-        iteration: Optional[int] = None
-    ) -> str:
-        """
-        Create container ID for workflow execution.
-        
-        Args:
-            workflow_id: Workflow identifier
-            container_type: Type of container
-            phase: Current phase
-            iteration: Optional iteration number
-            
-        Returns:
-            Workflow container ID
-        """
-        parts = [
-            'wf',
-            workflow_id[:8],  # First 8 chars of workflow ID
-            container_type.value,
-            phase.value
-        ]
-        
-        if iteration is not None:
-            parts.append(f'i{iteration}')
-            
-        parts.append(datetime.now().strftime('%Y%m%d_%H%M%S'))
-        
-        return '_'.join(parts)
+            return parsed['container_type'].value
+        return 'unknown'
 
 
-# Convenience functions for container naming
+# Simplified convenience functions - complex naming logic moved to configuration
 
-def create_backtest_container_id(
-    phase: Phase,
-    classifier: ClassifierType = ClassifierType.NONE,
-    risk_profile: RiskProfile = RiskProfile.BALANCED,
-    **kwargs
-) -> str:
-    """Create a backtest container ID."""
-    return ContainerNamingStrategy.generate_container_id(
-        ContainerType.BACKTEST,
-        phase,
-        classifier,
-        risk_profile,
-        **kwargs
-    )
-
-
-def create_optimization_container_id(
-    phase: Phase,
-    trial_number: int,
-    classifier: ClassifierType = ClassifierType.NONE,
-    **kwargs
-) -> str:
-    """Create an optimization container ID."""
-    metadata = kwargs.get('metadata', {})
-    metadata['trial'] = trial_number
-    kwargs['metadata'] = metadata
-    
-    return ContainerNamingStrategy.generate_container_id(
-        ContainerType.OPTIMIZATION,
-        phase,
-        classifier,
-        metadata=metadata,
-        **kwargs
-    )
-
-
-def create_signal_analysis_container_id(
-    analysis_type: str = "mae_mfe",
-    symbols: Optional[list] = None,
-    **kwargs
-) -> str:
-    """Create a signal analysis container ID."""
-    metadata = kwargs.get('metadata', {})
-    metadata['analysis'] = analysis_type
-    if symbols:
-        metadata['symbols'] = symbols
-    kwargs['metadata'] = metadata
-    
-    return ContainerNamingStrategy.generate_container_id(
-        ContainerType.SIGNAL_GEN,
-        Phase.ANALYSIS,
-        metadata=metadata,
-        **kwargs
-    )
+def create_container_id(container_type: ContainerType, name_hint: Optional[str] = None) -> str:
+    """Create a simple container ID. Complex naming moved to metadata."""
+    return ContainerNamingStrategy.generate_container_id(container_type, name_hint)
 
 
 
 
 @dataclass
 class ContainerConfig:
-    """Configuration for a container."""
-    role: ContainerRole
+    """Configuration for a container - role-agnostic, component-driven."""
     name: str
     container_id: Optional[str] = None
     config: Dict[str, Any] = field(default_factory=dict)
     capabilities: Set[str] = field(default_factory=set)
+    components: List[str] = field(default_factory=list)  # Component types to inject
+    
+    # Optional metadata (replaces role)
+    container_type: Optional[str] = None  # data, strategy, portfolio, etc. - inferred if not set
     
 
 class Container:
@@ -434,11 +187,17 @@ class Container:
             config: Container configuration
         """
         self.config = config
-        self.container_id = config.container_id or f"{config.role.value}_{uuid.uuid4().hex[:8]}"
-        self.container_type = config.role.value
+        
+        # Infer container type from components if not explicitly set
+        if config.container_type:
+            self.container_type = config.container_type
+        else:
+            self.container_type = self._infer_container_type(config.components)
+        
+        self.container_id = config.container_id or f"{self.container_type}_{uuid.uuid4().hex[:8]}"
         
         # Each container gets its own isolated event bus
-        self.event_bus = EventBus(container_id=self.container_id)
+        self.event_bus = EventBus(bus_id=self.container_id)
         
         # State management
         self._state = ContainerState.UNINITIALIZED
@@ -450,14 +209,13 @@ class Container:
         self._parent_container: Optional['Container'] = None
         self._child_containers: Dict[str, 'Container'] = {}
         
-        # Component registry
-        self._components: Dict[str, ContainerComponent] = {}
-        self._component_order: List[str] = []
+        # Component registry - OrderedDict maintains insertion order for lifecycle management
+        self._components: OrderedDict[str, ContainerComponent] = OrderedDict()
         
         # Metadata for composition
         self._metadata = ContainerMetadata(
             container_id=self.container_id,
-            role=config.role,
+            role=self.container_type,  # Use inferred type instead of role
             name=config.name,
             config=config.config
         )
@@ -480,13 +238,41 @@ class Container:
         # Streaming metrics support (optional)
         self.streaming_metrics: Optional[Any] = None
         
-        # Portfolio containers always setup metrics for event tracing
-        if self.role == ContainerRole.PORTFOLIO:
+        # Portfolio containers always setup metrics for event tracing  
+        if self.container_type == 'portfolio':
             self._setup_event_tracing_metrics()
         elif self._should_track_metrics():
             self._setup_metrics()
         
         logger.info(f"Created container: {self.name} ({self.container_id})")
+    
+    def _infer_container_type(self, components: List[str]) -> str:
+        """
+        Infer container type from component composition.
+        
+        Args:
+            components: List of component types
+            
+        Returns:
+            Inferred container type
+        """
+        # Simple heuristics based on component types
+        component_set = set(components)
+        
+        if any(comp in component_set for comp in ['portfolio_manager', 'position_manager', 'portfolio']):
+            return 'portfolio'
+        elif any(comp in component_set for comp in ['strategy', 'signal_generator', 'classifier']):
+            return 'strategy'  
+        elif any(comp in component_set for comp in ['data_streamer', 'bar_streamer', 'signal_streamer']):
+            return 'data'
+        elif any(comp in component_set for comp in ['execution_engine', 'order_manager']):
+            return 'execution'
+        elif any(comp in component_set for comp in ['risk_manager', 'position_sizer']):
+            return 'risk'
+        elif any(comp in component_set for comp in ['analytics', 'metrics_collector']):
+            return 'analytics'
+        else:
+            return 'generic'  # Default fallback
     
     @property
     def name(self) -> str:
@@ -494,9 +280,9 @@ class Container:
         return self.config.name
     
     @property
-    def role(self) -> ContainerRole:
-        """Container role."""
-        return self.config.role
+    def role(self) -> str:
+        """Container type (inferred from components)."""
+        return self.container_type
     
     @property
     def state(self) -> ContainerState:
@@ -537,7 +323,6 @@ class Container:
             raise ComponentAlreadyExistsError(name)
         
         self._components[name] = component
-        self._component_order.append(name)
         
         # If component needs event bus access, provide it
         if hasattr(component, 'set_event_bus'):
@@ -605,9 +390,8 @@ class Container:
         self._set_state(ContainerState.INITIALIZING)
         
         try:
-            # Initialize all components in order
-            for name in self._component_order:
-                component = self._components[name]
+            # Initialize all components in insertion order
+            for name, component in self._components.items():
                 if hasattr(component, 'initialize'):
                     logger.debug(f"Initializing component '{name}'")
                     component.initialize()
@@ -630,9 +414,8 @@ class Container:
             )
         
         try:
-            # Start all components
-            for name in self._component_order:
-                component = self._components[name]
+            # Start all components in insertion order
+            for name, component in self._components.items():
                 if hasattr(component, 'start'):
                     logger.debug(f"Starting component '{name}'")
                     component.start()
@@ -655,9 +438,8 @@ class Container:
         self._set_state(ContainerState.STOPPING)
         
         try:
-            # Stop all components in reverse order
-            for name in reversed(self._component_order):
-                component = self._components[name]
+            # Stop all components in reverse insertion order
+            for name, component in reversed(self._components.items()):
                 if hasattr(component, 'stop'):
                     logger.debug(f"Stopping component '{name}'")
                     component.stop()
@@ -680,18 +462,16 @@ class Container:
         if self._state == ContainerState.RUNNING:
             self.stop()
         
-        # Cleanup all components
-        for name in reversed(self._component_order):
-            component = self._components[name]
+        # Cleanup all components in reverse insertion order
+        for name, component in reversed(self._components.items()):
             if hasattr(component, 'cleanup'):
                 try:
                     component.cleanup()
                 except Exception as e:
                     logger.error(f"Error cleaning up component '{name}': {e}")
         
-        # Clear registries
+        # Clear registry
         self._components.clear()
-        self._component_order.clear()
         
         logger.info(f"Container {self.name} cleaned up")
     
@@ -729,17 +509,17 @@ class Container:
         """Get child container by ID."""
         return self._child_containers.get(container_id)
     
-    def find_containers_by_role(self, role: ContainerRole) -> List['Container']:
-        """Find all nested containers with specific role."""
+    def find_containers_by_type(self, container_type: str) -> List['Container']:
+        """Find all nested containers with specific type."""
         containers = []
         
         # Check direct children
         for child in self._child_containers.values():
-            if child.role == role:
+            if child.container_type == container_type:
                 containers.append(child)
             
             # Recursively check grandchildren
-            containers.extend(child.find_containers_by_role(role))
+            containers.extend(child.find_containers_by_type(container_type))
         
         return containers
     
@@ -984,7 +764,7 @@ class Container:
         Other containers check their configuration.
         """
         # Portfolio containers always track metrics
-        if self.role == ContainerRole.PORTFOLIO:
+        if self.container_type == 'portfolio':
             return True
         
         # Check container configuration
@@ -1012,7 +792,7 @@ class Container:
         metrics with smart retention policies for memory efficiency.
         """
         try:
-            from .metrics import MetricsEventTracer
+            from ..events.tracing.metrics import MetricsEventTracer
         except ImportError:
             logger.warning(f"MetricsEventTracer not available for container {self.container_id}")
             return
@@ -1021,7 +801,7 @@ class Container:
         metrics_config = self.config.config.get('metrics', {})
         results_config = self.config.config.get('results', {})
         
-        if self.role == ContainerRole.PORTFOLIO:
+        if self.container_type == 'portfolio':
             # Build config for metrics tracer
             tracer_config = {
                 'initial_capital': self.config.config.get('initial_capital', 100000.0),
@@ -1066,7 +846,7 @@ class Container:
         Configuration comes from workflow-defined settings with user overrides.
         """
         try:
-            from .metrics import MetricsEventTracer
+            from ..events.tracing.metrics import MetricsEventTracer
         except ImportError:
             logger.warning(f"MetricsEventTracer not available for container {self.container_id}")
             return

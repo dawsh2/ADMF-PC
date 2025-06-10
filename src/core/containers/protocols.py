@@ -1,35 +1,15 @@
 """
-Container protocols for ADMF-PC architecture.
+Container protocols for ADMF-PC using typing.Protocol (NO ABC inheritance).
 
-Defines the unified interfaces that all containers must implement.
-This is the single source of truth for container protocols.
+This module defines pure behavioral contracts for container components,
+following the Protocol+Composition architecture.
 """
 
-from typing import Protocol, Dict, Any, Optional, List, Callable, Set
-from abc import abstractmethod
-from dataclasses import dataclass, field
+from typing import Protocol, runtime_checkable, Dict, Any, Optional, List, Set, Tuple
 from datetime import datetime
 from enum import Enum
 
-from ..types.events import EventBusProtocol
-
-
-class ContainerRole(Enum):
-    """Standard container roles in the system."""
-    BACKTEST = "backtest"
-    DATA = "data"
-    FEATURE = "feature"
-    CLASSIFIER = "classifier"
-    RISK = "risk"
-    PORTFOLIO = "portfolio"
-    STRATEGY = "strategy"
-    EXECUTION = "execution"
-    ANALYSIS = "analysis"
-    SIGNAL_LOG = "signal_log"
-    ENSEMBLE = "ensemble"
-    OPTIMIZATION = "optimization"
-    SIGNAL_CAPTURE = "signal_capture"
-    SIGNAL_REPLAY = "signal_replay"
+from .types import ContainerComponent, ContainerConfigDict
 
 
 class ContainerState(Enum):
@@ -37,282 +17,286 @@ class ContainerState(Enum):
     UNINITIALIZED = "uninitialized"
     INITIALIZING = "initializing"
     INITIALIZED = "initialized"
+    STARTING = "starting"
     RUNNING = "running"
-    PAUSED = "paused"
     STOPPING = "stopping"
     STOPPED = "stopped"
     ERROR = "error"
+    DISPOSED = "disposed"
 
+
+class ContainerRole(Enum):
+    """Container roles in the system."""
+    PORTFOLIO = "portfolio"
+    STRATEGY = "strategy"
+    RISK = "risk"
+    EXECUTION = "execution"
+    DATA = "data"
+    CLASSIFIER = "classifier"
+    INDICATOR = "indicator"
+    ANALYTICS = "analytics"
+
+
+@runtime_checkable
+class ContainerLifecycleProtocol(Protocol):
+    """Protocol for container lifecycle management - NO INHERITANCE!"""
+    
+    def initialize(self) -> None:
+        """Initialize container and components."""
+        ...
+    
+    def start(self) -> None:
+        """Start container and begin processing."""
+        ...
+    
+    def stop(self) -> None:
+        """Stop container gracefully."""
+        ...
+    
+    def dispose(self) -> None:
+        """Dispose container and cleanup resources."""
+        ...
+    
+    @property
+    def state(self) -> ContainerState:
+        """Get current container state."""
+        ...
+
+
+@runtime_checkable
+class ComponentRegistryProtocol(Protocol):
+    """Protocol for component registry management - NO INHERITANCE!"""
+    
+    def add_component(self, name: str, component: ContainerComponent) -> None:
+        """Add component to registry."""
+        ...
+    
+    def get_component(self, name: str) -> Optional[ContainerComponent]:
+        """Get component by name."""
+        ...
+    
+    def remove_component(self, name: str) -> Optional[ContainerComponent]:
+        """Remove component from registry."""
+        ...
+    
+    def list_components(self) -> List[str]:
+        """List all component names."""
+        ...
+    
+    def has_component(self, name: str) -> bool:
+        """Check if component exists."""
+        ...
+
+
+@runtime_checkable
+class StateManagerProtocol(Protocol):
+    """Protocol for container state management - NO INHERITANCE!"""
+    
+    def transition_to(self, new_state: ContainerState) -> bool:
+        """Transition to new state if valid."""
+        ...
+    
+    def can_transition_to(self, new_state: ContainerState) -> bool:
+        """Check if transition is valid."""
+        ...
+    
+    @property
+    def current_state(self) -> ContainerState:
+        """Get current state."""
+        ...
+    
+    @property
+    def state_history(self) -> List[tuple[ContainerState, datetime]]:
+        """Get state transition history."""
+        ...
+
+
+@runtime_checkable
+class ContainerCompositionProtocol(Protocol):
+    """Protocol for parent/child container relationships - NO INHERITANCE!"""
+    
+    def add_child(self, child_id: str, child: 'ContainerProtocol') -> None:
+        """Add child container."""
+        ...
+    
+    def remove_child(self, child_id: str) -> Optional['ContainerProtocol']:
+        """Remove child container."""
+        ...
+    
+    def get_child(self, child_id: str) -> Optional['ContainerProtocol']:
+        """Get child container by ID."""
+        ...
+    
+    def list_children(self) -> List[str]:
+        """List all child container IDs."""
+        ...
+    
+    def set_parent(self, parent: Optional['ContainerProtocol']) -> None:
+        """Set parent container."""
+        ...
+    
+    @property
+    def parent(self) -> Optional['ContainerProtocol']:
+        """Get parent container."""
+        ...
+
+
+@runtime_checkable
+class ContainerEventProtocol(Protocol):
+    """Protocol for container event handling - NO INHERITANCE!"""
+    
+    def process_event(self, event: Any) -> Optional[Any]:
+        """Process incoming event."""
+        ...
+    
+    def publish_event(self, event: Any, scope: str = "local") -> None:
+        """Publish event to specified scope."""
+        ...
+    
+    def setup_event_bus(self, bus_id: str) -> None:
+        """Setup isolated event bus."""
+        ...
+
+
+@runtime_checkable
+class ContainerMetricsProtocol(Protocol):
+    """Protocol for container metrics tracking - NO INHERITANCE!"""
+    
+    def record_event_processed(self) -> None:
+        """Record that an event was processed."""
+        ...
+    
+    def record_event_published(self) -> None:
+        """Record that an event was published."""
+        ...
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get current metrics snapshot."""
+        ...
+    
+    def reset_metrics(self) -> None:
+        """Reset metrics counters."""
+        ...
+
+
+@runtime_checkable
+class ContainerTracingProtocol(Protocol):
+    """Protocol for container event tracing - NO INHERITANCE!"""
+    
+    def start_tracing(self) -> None:
+        """Start event tracing."""
+        ...
+    
+    def stop_tracing(self) -> None:
+        """Stop event tracing."""
+        ...
+    
+    def get_trace_summary(self) -> Dict[str, Any]:
+        """Get trace summary."""
+        ...
+    
+    def save_trace(self, filepath: str) -> None:
+        """Save trace to file."""
+        ...
+
+
+@runtime_checkable
+class ContainerConfigProtocol(Protocol):
+    """Protocol for container configuration management - NO INHERITANCE!"""
+    
+    def update_config(self, updates: Dict[str, Any]) -> None:
+        """Update configuration."""
+        ...
+    
+    def get_config(self, key: str = None) -> Any:
+        """Get configuration value or entire config."""
+        ...
+    
+    def get_capabilities(self) -> Set[str]:
+        """Get container capabilities."""
+        ...
+    
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get container metadata."""
+        ...
+
+
+# Main container protocol that composes all the above
+@runtime_checkable
+class ContainerProtocol(Protocol):
+    """Main container protocol - composed of specialized protocols."""
+    
+    # Basic properties
+    container_id: str
+    name: str
+    role: ContainerRole
+    
+    # Lifecycle
+    def initialize(self) -> None: ...
+    def start(self) -> None: ...
+    def stop(self) -> None: ...
+    def dispose(self) -> None: ...
+    
+    # Component management
+    def add_component(self, name: str, component: ContainerComponent) -> None: ...
+    def get_component(self, name: str) -> Optional[ContainerComponent]: ...
+    
+    # Event handling
+    def process_event(self, event: Any) -> Optional[Any]: ...
+    def publish_event(self, event: Any, scope: str = "local") -> None: ...
+    
+    # Status and metrics
+    def get_status(self) -> Dict[str, Any]: ...
+    def get_metrics(self) -> Optional[Dict[str, Any]]: ...
+    
+    # State access
+    @property
+    def state(self) -> ContainerState: ...
+
+
+# Pure composition data structures - NO INHERITANCE, just data holders
+from dataclasses import dataclass, field
 
 @dataclass
 class ContainerMetadata:
-    """Metadata for container identification and management."""
+    """Container metadata - pure data holder, no inheritance."""
     container_id: str
     role: ContainerRole
     name: str
-    parent_id: Optional[str] = None
-    created_at: datetime = field(default_factory=datetime.now)
     config: Dict[str, Any] = field(default_factory=dict)
-    tags: Set[str] = field(default_factory=set)
+    created_at: datetime = field(default_factory=datetime.now)
+    capabilities: Set[str] = field(default_factory=set)
 
 
 @dataclass
 class ContainerLimits:
-    """Resource limits for container isolation."""
+    """Resource limits - pure data holder, no inheritance."""
     max_memory_mb: Optional[int] = None
     max_cpu_percent: Optional[float] = None
-    max_execution_time_minutes: Optional[int] = None
-    max_child_containers: Optional[int] = None
     max_events_per_second: Optional[int] = None
+    max_components: Optional[int] = None
+    timeout_seconds: Optional[int] = None
 
 
-class Container(Protocol):
-    """
-    Base container protocol with composition capabilities.
-    
-    All containers must implement this interface to work with
-    the coordinator and container lifecycle manager.
-    
-    This protocol now includes hierarchical composition, event scoping,
-    and advanced lifecycle management for the arch-101.md architecture.
-    """
-    
-    @property
-    @abstractmethod
-    def container_id(self) -> str:
-        """Unique identifier for this container."""
-        ...
-        
-    @property
-    @abstractmethod
-    def container_type(self) -> str:
-        """Type of container (backtest, optimization, etc)."""
-        ...
-        
-    @property
-    @abstractmethod
-    def event_bus(self) -> EventBusProtocol:
-        """Container's scoped event bus."""
-        ...
-    
-    @property
-    @abstractmethod
-    def metadata(self) -> ContainerMetadata:
-        """Container identification and metadata."""
-        ...
-    
-    @property
-    @abstractmethod
-    def state(self) -> ContainerState:
-        """Current container state."""
-        ...
-    
-    @property
-    @abstractmethod
-    def parent_container(self) -> Optional['Container']:
-        """Parent container if nested."""
-        ...
-    
-    @property 
-    @abstractmethod
-    def child_containers(self) -> List['Container']:
-        """Child containers nested within this container."""
-        ...
-        
-    @abstractmethod
-    def register_singleton(
-        self,
-        name: str,
-        factory: Callable[[], Any]
-    ) -> None:
-        """
-        Register a singleton component.
-        
-        Args:
-            name: Component name
-            factory: Factory function to create component
-        """
-        ...
-        
-    @abstractmethod
-    def get_component(self, name: str) -> Optional[Any]:
-        """
-        Get a registered component.
-        
-        Args:
-            name: Component name
-            
-        Returns:
-            Component instance or None
-        """
-        ...
-        
-    @abstractmethod
-    async def initialize(self) -> None:
-        """Initialize the container and all components."""
-        ...
-        
-    @abstractmethod
-    async def start(self) -> None:
-        """Start the container and begin processing."""
-        ...
-        
-    @abstractmethod
-    async def stop(self) -> None:
-        """Stop the container gracefully."""
-        ...
-        
-    @abstractmethod
-    async def cleanup(self) -> None:
-        """Cleanup resources and dispose of components."""
-        ...
-    
-    @abstractmethod
-    async def dispose(self) -> None:
-        """Clean up container resources."""
-        ...
-    
-    # Composition Management
-    @abstractmethod
-    def add_child_container(self, child: 'Container') -> None:
-        """Add a child container."""
-        ...
-    
-    @abstractmethod
-    def remove_child_container(self, container_id: str) -> bool:
-        """Remove a child container by ID."""
-        ...
-    
-    @abstractmethod
-    def get_child_container(self, container_id: str) -> Optional['Container']:
-        """Get child container by ID."""
-        ...
-    
-    @abstractmethod
-    def find_containers_by_role(self, role: ContainerRole) -> List['Container']:
-        """Find all nested containers with specific role."""
-        ...
-    
-    # Event Processing with Scoping
-    @abstractmethod
-    async def process_event(self, event: Any) -> Optional[Any]:
-        """Process incoming event and optionally return response."""
-        ...
-    
-    @abstractmethod
-    def publish_event(self, event: Any, target_scope: str = "local") -> None:
-        """Publish event to specified scope (local, parent, children, broadcast)."""
-        ...
-    
-    # Configuration and Status
-    @abstractmethod
-    def update_config(self, config: Dict[str, Any]) -> None:
-        """Update container configuration."""
-        ...
-    
-    @abstractmethod
-    def get_status(self) -> Dict[str, Any]:
-        """Get current container status and metrics."""
-        ...
-    
-    @abstractmethod
-    def get_capabilities(self) -> Set[str]:
-        """Get container capabilities/features."""
-        ...
+# Order tracking protocols for duplicate prevention
 
-
-class BacktestContainer(Container, Protocol):
-    """
-    Protocol for backtest containers.
+@runtime_checkable
+class OrderTrackingProtocol(Protocol):
+    """Protocol for tracking pending orders by symbol/timeframe."""
     
-    Extends base container with backtest-specific methods.
-    """
-    
-    @abstractmethod
-    async def prepare_data(self) -> Dict[str, Any]:
-        """Prepare data for backtesting."""
-        ...
-        
-    @abstractmethod
-    async def execute_backtest(self) -> Dict[str, Any]:
-        """Execute the backtest."""
-        ...
-        
-    @abstractmethod
-    async def get_results(self) -> Dict[str, Any]:
-        """Get backtest results."""
-        ...
-
-
-class SignalGenerationContainer(Container, Protocol):
-    """
-    Protocol for signal generation containers.
-    
-    Used for analysis without execution.
-    """
-    
-    @abstractmethod
-    async def generate_signals(self) -> Dict[str, Any]:
-        """Generate signals without execution."""
-        ...
-        
-    @abstractmethod
-    async def analyze_signals(self) -> Dict[str, Any]:
-        """Analyze generated signals."""
-        ...
-
-
-class SignalReplayContainer(Container, Protocol):
-    """
-    Protocol for signal replay containers.
-    
-    Used for ensemble optimization.
-    """
-    
-    @abstractmethod
-    async def replay_signals(
-        self,
-        signals: Dict[str, List[Any]],
-        weights: Dict[str, float]
-    ) -> Dict[str, Any]:
-        """Replay signals with ensemble weights."""
-        ...
-
-
-
-
-class ContainerFactory(Protocol):
-    """Protocol for container factories."""
-    
-    @abstractmethod
-    def create_instance(self, config: Any) -> Container:
-        """Create a container instance from configuration."""
-        ...
-
-
-class ContainerComposition(Protocol):
-    """Protocol for composing containers according to patterns."""
-    
-    @abstractmethod
-    def create_container(
-        self,
-        role: ContainerRole,
-        config: Dict[str, Any],
-        container_id: Optional[str] = None
-    ) -> Container:
-        """Create a container of specified role."""
+    def has_pending_orders(self, container_id: str, symbol: str, timeframe: str) -> bool:
+        """Check if container has pending orders for symbol/timeframe."""
         ...
     
-    @abstractmethod
-    def compose_pattern(
-        self,
-        pattern: Dict[str, Any],
-        base_config: Dict[str, Any] = None
-    ) -> Container:
-        """Compose containers according to pattern specification."""
+    def register_order(self, container_id: str, symbol: str, timeframe: str, 
+                      order_id: str, metadata: Optional[Dict] = None) -> None:
+        """Register new pending order."""
         ...
     
-    @abstractmethod
-    def validate_pattern(self, pattern: Dict[str, Any]) -> bool:
-        """Validate that pattern is valid and composable."""
+    def clear_order(self, container_id: str, symbol: str, timeframe: str, order_id: str) -> bool:
+        """Clear completed order."""
+        ...
+    
+    def get_pending_summary(self, container_id: str) -> Dict[str, int]:
+        """Get summary of pending orders by symbol_timeframe."""
         ...

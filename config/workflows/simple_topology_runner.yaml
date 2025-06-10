@@ -1,0 +1,13 @@
+# Workflow that runs a single topology using the single_pass sequence
+# This is effectively a "topology runner" workflow
+
+name: "Simple Topology Runner"
+description: "Executes a single topology without multi-phase complexity"
+
+# Single phase that runs the topology
+phases:
+  - name: "run_topology"
+    sequence: "single_topology"  # Use our simple sequence
+    config:
+      # Pass through all config from main workflow config
+      "${config}"

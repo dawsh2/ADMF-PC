@@ -51,7 +51,6 @@ from .protocols import (
     Stateful,
     
     # Trading protocols
-    SignalGenerator,
     DataProvider,
     RiskManager,
     OrderExecutor,
@@ -130,7 +129,6 @@ __all__ = [
     "Optimizable",
     "Monitorable",
     "Stateful",
-    "SignalGenerator",
     "DataProvider",
     "RiskManager",
     "OrderExecutor",

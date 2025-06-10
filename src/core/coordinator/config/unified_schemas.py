@@ -5,15 +5,16 @@ These schemas replace the complex pattern-based schemas with simple,
 mode-based configurations that work with the universal topology.
 """
 
-from .schema_validator import ConfigSchema
+# ConfigSchema was removed - using TypedDict for schemas
+# from .schema_validator import ConfigSchema
 
 
-# Unified backtest schema - works for all three modes
-UNIFIED_WORKFLOW_SCHEMA = ConfigSchema(
-    name="unified_workflow",
-    version="2.0.0",
-    description="Simplified schema for unified architecture workflows",
-    schema={
+# Unified backtest schema - works for all three modes  
+UNIFIED_WORKFLOW_SCHEMA = {
+    "name": "unified_workflow",
+    "version": "2.0.0", 
+    "description": "Simplified schema for unified architecture workflows",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -306,15 +307,15 @@ UNIFIED_WORKFLOW_SCHEMA = ConfigSchema(
             }
         }
     ]
-)
+}
 
 
 # Multi-phase workflow schema (for complex workflows)
-MULTI_PHASE_SCHEMA = ConfigSchema(
-    name="multi_phase_workflow",
-    version="2.0.0", 
-    description="Schema for multi-phase workflows using unified architecture",
-    schema={
+MULTI_PHASE_SCHEMA = {
+    "name": "multi_phase_workflow",
+    "version": "2.0.0", 
+    "description": "Schema for multi-phase workflows using unified architecture",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -354,7 +355,7 @@ MULTI_PHASE_SCHEMA = ConfigSchema(
         },
         "required": ["workflow_type", "parameters"]
     }
-)
+}
 
 
 # Export all schemas

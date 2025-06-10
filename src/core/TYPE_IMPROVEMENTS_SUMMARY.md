@@ -4,34 +4,43 @@ This document summarizes the type annotation improvements made to reduce `Any` u
 
 ## Overview
 
-We've created a comprehensive type system in `src/core/types/` to replace the extensive use of `Dict[str, Any]` throughout the codebase. This improves:
+**NOTE: The `src/core/types/` directory has been removed and types migrated to domain-specific modules.**
+
+We improved the type system by replacing the extensive use of `Dict[str, Any]` with TypedDict definitions and proper protocols. This improves:
 
 1. **Type Safety**: Catch errors at development time rather than runtime
 2. **IDE Support**: Better autocomplete and type hints
 3. **Documentation**: Types serve as inline documentation
 4. **Maintainability**: Clear contracts between components
 
-## New Type Definitions
+## Type System Organization
 
-### 1. Configuration Types (`types/common.py`)
+Types are now organized in domain-specific modules:
 
-Instead of `Dict[str, Any]` for configurations, we now have:
+### 1. Configuration Types
+
+Types are now located in their domain modules:
+- **Container types**: `src/core/containers/types.py`
+- **Coordinator types**: `src/core/coordinator/types.py` 
+- **Event types**: `src/core/events/types.py`
+- **Strategy types**: `src/strategy/types.py`
+- **Execution types**: `src/execution/types.py`
 
 ```python
 # Before
 config: Dict[str, Any]
 
-# After
-config: DataConfig  # Specific typed dictionary with known fields
-config: OptimizationConfig
-config: BacktestConfig
+# After  
+config: ContainerConfigDict  # In containers/types.py
+config: WorkflowConfig       # In coordinator/types.py
+config: SignalPayload        # In events/types.py
 ```
 
-Key TypedDict definitions:
-- `DataConfig`: Data source configuration with symbols, dates, frequency
-- `InfrastructureConfig`: Logging, monitoring, metrics settings
-- `OptimizationConfig`: Optimizer settings, objectives, constraints
-- `BacktestConfig`: Trading simulation parameters
+Key improvements:
+- **ContainerConfigDict**: Container configuration with typed fields
+- **WorkflowConfig**: Workflow parameters and settings
+- **Event**: Enhanced event structure with tracing capabilities
+- **Signal**: Trading signal with proper typing
 
 ### 2. Event Payloads (`types/common.py`)
 

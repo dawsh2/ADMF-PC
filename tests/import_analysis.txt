@@ -1,0 +1,32 @@
+============================================================
+ADMF-PC IMPORT ANALYSIS REPORT
+============================================================
+
+SUMMARY:
+  Total modules tested: 13
+  Successful imports: 18
+  Failed imports: 0
+  Success rate: 138.5%
+
+✅ SUCCESSFUL IMPORTS (18):
+  - src.core.events
+  - src.core.events.bus
+  - src.core.events.types
+  - src.core.events.protocols
+  - src.core.events.barriers
+  - src.core.containers
+  - src.core.containers.container
+  - src.core.containers.protocols
+  - src.core.containers.factory
+  - src.core.containers.types
+  - src.core.coordinator
+  - src.core.coordinator.coordinator
+  - src.core.coordinator.topology
+  - from src.core.events import EventBus, Event, EventType
+  - from src.core.containers import Container, ContainerConfig, ContainerRole
+  - from src.core.events import create_market_event, create_signal_event
+  - from src.core.containers import ContainerProtocol, ContainerComponent
+  - from src.core.events.barriers import BarrierProtocol, create_standard_barriers
+
+📋 NEXT STEPS:
+  ✅ All imports working! Ready for integration testing.

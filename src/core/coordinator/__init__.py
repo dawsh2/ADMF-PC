@@ -19,5 +19,5 @@ __all__ = [
     'TopologyBuilder',
     'WorkflowProtocol',
     'SequenceProtocol',
-    'PhaseConfig'
+    'PhaseConfig',
 ]

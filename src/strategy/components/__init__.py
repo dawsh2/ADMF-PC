@@ -49,10 +49,13 @@ from .features import (
 #     WeightedSignalAggregator
 # )
 
-from .feature_inference import (
-    infer_features_from_strategies,
-    get_strategy_requirements,
-    validate_strategy_configuration
+# Feature inference moved to core.coordinator.topology
+# This is now a topology builder responsibility
+
+from .signal_aggregation import (
+    InternalSignal,
+    SignalCombiner,
+    SignalFilter
 )
 
 # Note: indicators.py merged into features.py - FeatureHub now in features.py
@@ -97,8 +100,10 @@ __all__ = [
     # "SignalReplayer",
     # "WeightedSignalAggregator",
     
-    # Feature Inference
-    "infer_features_from_strategies",
-    "get_strategy_requirements",
-    "validate_strategy_configuration"
+    # Feature Inference - moved to core.coordinator.feature_inference
+    
+    # Signal Aggregation
+    "InternalSignal",
+    "SignalCombiner", 
+    "SignalFilter"
 ]

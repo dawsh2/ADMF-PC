@@ -7,15 +7,25 @@ type safety in container operations.
 
 from typing import (
     TypedDict, NotRequired, Dict, Any, List, Union, Callable, 
-    Optional, Protocol, runtime_checkable
+    Optional, Protocol, runtime_checkable, TYPE_CHECKING
 )
-from .protocols import Container, ContainerRole
+from dataclasses import dataclass, field
+from datetime import timedelta
+
+if TYPE_CHECKING:
+    from .protocols import Container, ContainerRole
+    from ..events import Event
+else:
+    # For runtime, we'll use Any to avoid circular imports
+    Container = Any
+    ContainerRole = Any
+    Event = Any
 
 
 # Type aliases for clarity
 ContainerFactory = Callable[[Dict[str, Any]], Container]
 ComponentFactory = Callable[[Dict[str, Any]], 'ContainerComponent']
-EventHandler = Callable[['Event'], None]
+EventHandler = Callable[[Event], None]
 
 
 @runtime_checkable
@@ -24,6 +34,18 @@ class ContainerComponent(Protocol):
     
     def initialize(self, container: Container) -> None:
         """Initialize component with container reference."""
+        ...
+    
+    def start(self) -> None:
+        """Start the component."""
+        ...
+    
+    def stop(self) -> None:
+        """Stop the component."""
+        ...
+    
+    def get_state(self) -> Dict[str, Any]:
+        """Get component state."""
         ...
     
     def cleanup(self) -> None:
@@ -35,7 +57,7 @@ class ContainerConfigDict(TypedDict):
     """Type definition for container configuration."""
     
     # Core settings
-    role: ContainerRole
+    role: str  # ContainerRole value
     name: str
     container_id: NotRequired[str]
     
@@ -150,3 +172,17 @@ ComponentRegistryEntry = TypedDict('ComponentRegistryEntry', {
     'description': NotRequired[str],
     'config_schema': NotRequired[Dict[str, Any]]
 })
+
+
+# === CONTAINER STRATEGY SPECIFICATION ===
+
+@dataclass  
+class StrategySpecification:
+    """Simple strategy specification for containers - coordinator handles the complex stuff."""
+    strategy_id: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    enabled: bool = True
+    
+    # Basic execution constraints
+    min_time_between_signals: Optional[timedelta] = None
+    max_signals_per_day: Optional[int] = None

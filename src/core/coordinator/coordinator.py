@@ -17,7 +17,17 @@ import uuid
 from .protocols import PhaseConfig, TopologyBuilderProtocol, WorkflowProtocol, SequenceProtocol
 from .topology import TopologyBuilder
 from .sequencer import Sequencer
+from .config.pattern_loader import PatternLoader
+from .config.resolver import ConfigResolver
 from ..components.discovery import discover_components
+
+# Import Pydantic validation (with fallback)
+from .config import (
+    PYDANTIC_AVAILABLE,
+    WorkflowConfig,
+    validate_workflow_dict,
+    get_validation_errors
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,21 +46,27 @@ class Coordinator:
     def __init__(self, 
                  topology_builder: Optional[TopologyBuilderProtocol] = None,
                  sequencer: Optional[Any] = None,
-                 shared_services: Optional[Dict[str, Any]] = None):
+                 shared_services: Optional[Dict[str, Any]] = None,
+                 pattern_loader: Optional[PatternLoader] = None,
+                 config_resolver: Optional[ConfigResolver] = None):
         """Initialize workflow manager."""
         self.coordinator_id = str(uuid.uuid4())
         self.shared_services = shared_services or {}
+        
+        # Shared components
+        self.pattern_loader = pattern_loader or PatternLoader()
+        self.config_resolver = config_resolver or ConfigResolver()
         
         # Component discovery
         self.discovered_workflows = self._discover_workflows()
         self.discovered_sequences = self._discover_sequences()
         
-        # Core components
-        self.topology_builder = topology_builder or TopologyBuilder()
-        self.sequencer = sequencer or Sequencer(self.topology_builder)
+        # Core components  
+        self.topology_builder = topology_builder or TopologyBuilder(self.pattern_loader, self.config_resolver)
+        self.sequencer = sequencer or Sequencer(self.topology_builder, self.pattern_loader, self.config_resolver)
         
         # Pattern loading
-        self.workflow_patterns = self._load_workflow_patterns()
+        self.workflow_patterns = self.pattern_loader.load_patterns('workflows')
         self.phase_outputs = {}  # Store outputs from completed phases
         
         # Event tracing support
@@ -62,40 +78,6 @@ class Coordinator:
                    f"{len(self.discovered_sequences)} discovered sequences, "
                    f"and {len(self.workflow_patterns)} workflow patterns")
         
-    def _load_workflow_patterns(self) -> Dict[str, Dict[str, Any]]:
-        """Load workflow patterns from YAML files."""
-        patterns = {}
-        # Load from config/patterns/workflows
-        project_root = Path(__file__).parent.parent.parent.parent  # Navigate to project root
-        pattern_dir = project_root / 'config' / 'patterns' / 'workflows'
-        
-        # Create directory if it doesn't exist
-        if not pattern_dir.exists():
-            pattern_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created workflow patterns directory: {pattern_dir}")
-        
-        # Load YAML patterns
-        for pattern_file in pattern_dir.glob('*.yaml'):
-            try:
-                with open(pattern_file) as f:
-                    pattern = yaml.safe_load(f)
-                    patterns[pattern_file.stem] = pattern
-                    logger.info(f"Loaded workflow pattern: {pattern_file.stem}")
-            except Exception as e:
-                logger.error(f"Failed to load workflow pattern {pattern_file}: {e}")
-        
-        # Also check for Python-based patterns for hybrid support
-        try:
-            from . import workflow_patterns as python_patterns
-            for name in dir(python_patterns):
-                if name.endswith('_PATTERN'):
-                    pattern_name = name[:-8].lower()  # Remove _PATTERN suffix
-                    patterns[pattern_name] = getattr(python_patterns, name)
-                    logger.info(f"Loaded Python workflow pattern: {pattern_name}")
-        except ImportError:
-            pass
-        
-        return patterns
     
     def _discover_workflows(self) -> Dict[str, WorkflowProtocol]:
         """Discover all available workflows."""
@@ -163,6 +145,31 @@ class Coordinator:
             config = workflow_definition
             workflow_spec = config.get('workflow', 'simple_backtest')
         
+        # VALIDATE CONFIGURATION FIRST (if Pydantic available)
+        if PYDANTIC_AVAILABLE and WorkflowConfig:
+            validation_errors = get_validation_errors(config)
+            if validation_errors:
+                logger.error(f"Configuration validation failed for workflow {workflow_id}")
+                for error in validation_errors:
+                    logger.error(f"  - {error}")
+                
+                return {
+                    'success': False,
+                    'workflow_id': workflow_id,
+                    'error': 'Configuration validation failed',
+                    'validation_errors': validation_errors,
+                    'summary': {
+                        'workflow': workflow_spec,
+                        'success': False,
+                        'validation_failed': True,
+                        'error_count': len(validation_errors)
+                    }
+                }
+            else:
+                logger.info(f"Configuration validation passed for workflow {workflow_id}")
+        else:
+            logger.debug("Pydantic validation not available, skipping validation")
+        
         # Apply trace level presets if specified
         config = self._apply_trace_level_config(config)
         
@@ -185,6 +192,10 @@ class Coordinator:
         workflow_name = pattern.get('name', pattern_name if isinstance(workflow_spec, str) else 'unnamed_workflow')
         logger.info(f"Starting workflow: {workflow_name} (ID: {workflow_id})")
         
+        # Set instance variables for results path building
+        self._current_workflow_id = workflow_name
+        self._current_phase_name = None
+        
         # Initialize workflow context
         workflow_context = {
             'workflow_name': workflow_name,
@@ -195,7 +206,6 @@ class Coordinator:
             'phase_outputs': {},
             'phase_results': {}
         }
-        workflow_context.update(context)
         
         # Execute phases
         phases = pattern.get('phases', [])
@@ -221,6 +231,7 @@ class Coordinator:
             
             # Execute phase
             logger.info(f"Executing phase: {phase_name}")
+            self._current_phase_name = phase_name
             phase_result = self._execute_phase(phase_def, workflow_context)
             
             # Store results
@@ -336,16 +347,17 @@ class Coordinator:
         return True
     
     def _execute_phase(self, phase_def: Dict[str, Any], 
-                      context: Dict[str, Any]) -> Dict[str, Any]:
+                      workflow_context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a single phase."""
         phase_name = phase_def.get('name')
         
         # Build phase configuration
-        phase_config = self._build_phase_config(phase_def, context)
+        phase_config = self._build_phase_config(phase_def, workflow_context)
         
         # Create PhaseConfig object
         phase = PhaseConfig(
             name=phase_name,
+            description=phase_def.get('description', f'Phase {phase_name}'),  # Add description
             topology=phase_def.get('topology', 'backtest'),
             sequence=phase_def.get('sequence', phase_def.get('pattern', 'single_pass')),
             config=phase_config,
@@ -354,7 +366,7 @@ class Coordinator:
         
         # Execute using sequencer
         try:
-            result = self.sequencer.execute_sequence(phase, context)
+            result = self.sequencer.execute_sequence(phase, workflow_context)
             return result
         except Exception as e:
             logger.error(f"Phase {phase_name} failed: {e}")
@@ -467,78 +479,55 @@ class Coordinator:
         return processed
     
     def _save_output(self, path: str, value: Any) -> None:
-        """Save output to file."""
-        path_obj = Path(path)
+        """Save output to file with proper results directory structure."""
+        # Build hierarchical results path
+        path_obj = self._build_results_path(path)
         path_obj.parent.mkdir(parents=True, exist_ok=True)
         
         try:
             if path.endswith('.json'):
-                with open(path, 'w') as f:
+                with open(path_obj, 'w') as f:
                     json.dump(value, f, indent=2, default=str)
             elif path.endswith('.yaml'):
-                with open(path, 'w') as f:
+                with open(path_obj, 'w') as f:
                     yaml.dump(value, f)
             else:
                 # Save as text
-                with open(path, 'w') as f:
+                with open(path_obj, 'w') as f:
                     f.write(str(value))
             
-            logger.info(f"Saved output to {path}")
+            logger.info(f"Saved output to {path_obj}")
         except Exception as e:
-            logger.error(f"Failed to save output to {path}: {e}")
+            logger.error(f"Failed to save output to {path_obj}: {e}")
+    
+    def _build_results_path(self, path: str) -> Path:
+        """Build proper results path with workflow context."""
+        # If path is absolute, use as-is
+        if Path(path).is_absolute():
+            return Path(path)
+        
+        # Build hierarchical path: results/{workflow_id}/{phase_name}/{filename}
+        base_dir = Path(self.config_resolver.config.get('results_dir', './results'))
+        workflow_id = getattr(self, '_current_workflow_id', 'default')
+        phase_name = getattr(self, '_current_phase_name', 'default')
+        
+        # Create timestamped workflow directory
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        workflow_dir = base_dir / f"{workflow_id}_{timestamp}"
+        
+        # Build full path
+        if phase_name and phase_name != 'default':
+            return workflow_dir / phase_name / path
+        else:
+            return workflow_dir / path
     
     def _resolve_value(self, spec: Any, context: Dict[str, Any]) -> Any:
         """Resolve a value specification."""
-        if isinstance(spec, str):
-            # Check for template pattern
-            if '{' in spec and '}' in spec:
-                # Extract all template variables
-                pattern = r'\{([^}]+)\}'
-                matches = re.findall(pattern, spec)
-                
-                result = spec
-                for match in matches:
-                    value = self._extract_value(match, context)
-                    if value is not None:
-                        result = result.replace(f"{{{match}}}", str(value))
-                
-                return result
-            
-            # Check for reference pattern
-            elif spec.startswith('$'):
-                return self._extract_value(spec[1:], context)
-        
-        elif isinstance(spec, dict):
-            if 'from_config' in spec:
-                value = self._extract_value(f"config.{spec['from_config']}", context)
-                if value is None:
-                    value = spec.get('default')
-                return value
-            
-            # Recursively resolve dict values
-            resolved = {}
-            for k, v in spec.items():
-                resolved[k] = self._resolve_value(v, context)
-            return resolved
-        
-        elif isinstance(spec, list):
-            # Recursively resolve list items
-            return [self._resolve_value(item, context) for item in spec]
-        
-        return spec
+        return self.config_resolver.resolve_value(spec, context)
     
     def _extract_value(self, path: str, data: Dict[str, Any]) -> Any:
         """Extract value from nested dict using dot notation."""
-        parts = path.split('.')
-        value = data
-        
-        for part in parts:
-            if isinstance(value, dict) and part in value:
-                value = value[part]
-            else:
-                return None
-        
-        return value
+        return self.config_resolver.extract_value(path, data)
     
     def _create_summary(self, results: Dict[str, Any], 
                        context: Dict[str, Any]) -> Dict[str, Any]:

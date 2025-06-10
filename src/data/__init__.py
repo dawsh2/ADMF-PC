@@ -34,6 +34,7 @@ from .protocols import (
     DataProvider,
     DataLoader,
     BarStreamer,
+    SignalStreamer,
     DataAccessor,
     DataSplitter,
     DataValidator,
@@ -80,14 +81,20 @@ from .handlers import (
 )
 
 from .streamers import (
-    # Streamers - NO INHERITANCE!
+    # Bar streamers - NO INHERITANCE!
     StreamedBar,
-    StreamedSignal,
-    SimpleHistoricalStreamer,
-    SimpleSignalStreamer,
-    SimpleRealTimeStreamer,
-    MultiSourceStreamer,
-    create_streamer
+    SimpleBarStreamer,
+    MultiAssetStreamer,
+    
+    # Signal streamers - NO INHERITANCE!
+    BoundaryAwareReplay,
+    SignalStreamerComponent,
+    
+    # Temporal events - NO INHERITANCE!
+    MarketHours,
+    TemporalEventEmitter,
+    create_temporal_emitter,
+    add_temporal_events_to_streamer,
 )
 
 # Capabilities removed - components implement protocols directly
@@ -103,6 +110,7 @@ __all__ = [
     "DataProvider",
     "DataLoader", 
     "BarStreamer",
+    "SignalStreamer",
     "DataAccessor",
     "DataSplitter",
     "DataValidator",
@@ -139,12 +147,14 @@ __all__ = [
     
     # Streamers
     "StreamedBar",
-    "StreamedSignal",
-    "SimpleHistoricalStreamer",
-    "SimpleSignalStreamer", 
-    "SimpleRealTimeStreamer",
-    "MultiSourceStreamer",
-    "create_streamer",
+    "SimpleBarStreamer",
+    "MultiAssetStreamer",
+    "BoundaryAwareReplay",
+    "SignalStreamerComponent",
+    "MarketHours",
+    "TemporalEventEmitter",
+    "create_temporal_emitter",
+    "add_temporal_events_to_streamer",
     
     # Capabilities removed - components implement protocols directly
     # Enhanced functions removed - use direct creation functions

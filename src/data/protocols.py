@@ -5,27 +5,88 @@ This module defines pure behavioral contracts without implementation,
 following the Protocol+Composition architecture.
 """
 
-from typing import Protocol, runtime_checkable, List, Optional, Dict, Any, Iterator
+from typing import Protocol, runtime_checkable, List, Optional, Dict, Any, Iterator, Callable, TYPE_CHECKING
 from datetime import datetime
 import pandas as pd
 
 from .models import Bar
 
+# Type alias for event handlers
+EventHandler = Callable[[Any], None]
 
+# Import Event for type hints
+if TYPE_CHECKING:
+    from ..core.events.types import Event
+else:
+    Event = Any
+
+
+# Define DataProvider protocol here since data module owns it
 @runtime_checkable
 class DataProvider(Protocol):
-    """Protocol for components that provide market data - NO INHERITANCE!"""
+    """
+    Unified protocol for market data providers.
+    
+    Combines historical data retrieval and real-time subscription capabilities.
+    Used by both data module and components that need data access.
+    """
+    
+    def get_data(self, symbol: str, start: datetime, end: datetime) -> Any:
+        """Retrieve historical market data for a symbol and time range."""
+        ...
     
     def load_data(self, symbols: List[str]) -> bool:
-        """Load data for specified symbols"""
+        """Load data for specified symbols."""
         ...
     
     def get_symbols(self) -> List[str]:
-        """Get loaded symbols"""
+        """Get list of loaded symbols."""
         ...
     
-    def has_data(self, symbol: str) -> bool:
-        """Check if data exists for symbol"""
+    def subscribe_symbol(self, symbol: str, handler: EventHandler) -> None:
+        """Subscribe to real-time updates for a symbol."""
+        ...
+    
+    def unsubscribe_symbol(self, symbol: str, handler: EventHandler) -> None:
+        """Unsubscribe from symbol updates."""
+        ...
+
+
+@runtime_checkable
+class HistoricalDataProvider(Protocol):
+    """
+    Specialized protocol for historical data only.
+    
+    For cases where real-time capabilities are not needed.
+    """
+    
+    def get_data(self, symbol: str, start: datetime, end: datetime) -> Any:
+        """Retrieve historical market data for a symbol and time range."""
+        ...
+        
+    def get_symbols(self) -> List[str]:
+        """Get available symbols."""
+        ...
+
+
+@runtime_checkable
+class RealtimeDataProvider(Protocol):
+    """
+    Specialized protocol for real-time data only.
+    
+    For cases where historical data is not needed.
+    """
+    
+    def subscribe_symbol(self, symbol: str, handler: EventHandler) -> None:
+        """Subscribe to real-time updates for a symbol."""
+        ...
+    
+    def unsubscribe_symbol(self, symbol: str, handler: EventHandler) -> None:
+        """Unsubscribe from symbol updates."""
+        ...
+        
+    def get_subscribed_symbols(self) -> List[str]:
+        """Get currently subscribed symbols."""
         ...
 
 
@@ -56,6 +117,23 @@ class BarStreamer(Protocol):
     
     def reset(self) -> None:
         """Reset to beginning of data"""
+        ...
+
+
+@runtime_checkable
+class SignalStreamer(Protocol):
+    """Protocol for streaming stored signals - NO INHERITANCE!"""
+    
+    def stream_signals(self) -> Iterator['Event']:
+        """Stream signal events from storage"""
+        ...
+    
+    def has_more_signals(self) -> bool:
+        """Check if more signals are available"""
+        ...
+    
+    def reset(self) -> None:
+        """Reset to beginning of signal stream"""
         ...
 
 

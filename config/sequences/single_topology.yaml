@@ -1,0 +1,17 @@
+# Simple sequence that executes a single topology once
+# This is the simplest possible sequence - no phases, no iterations
+
+name: "Single Topology Execution"
+type: "single_pass"
+
+# Just run the topology once
+execution:
+  mode: "sequential"  # No parallelism
+  phases:
+    - name: "main"
+      topology: "backtest"  # Will use the topology from config
+      
+# No walk-forward, no k-fold, just simple execution
+parameters:
+  start_date: "${config.execution.start_date}"
+  end_date: "${config.execution.end_date}"

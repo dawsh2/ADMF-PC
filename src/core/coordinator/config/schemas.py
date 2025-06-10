@@ -4,10 +4,11 @@ This module defines JSON schemas for all configuration types used in the system.
 These schemas ensure configurations are valid before execution.
 """
 
-from .schema_validator import ConfigSchema
+# ConfigSchema was removed - using simple dict schemas
+# from .schema_validator import ConfigSchema
 
 
-# Base component schemas (reusable)
+# Base component schemas (reusable}
 STRATEGY_COMPONENT_SCHEMA = {
     "type": "object",
     "properties": {
@@ -76,11 +77,11 @@ POSITION_SIZER_SCHEMA = {
 }
 
 # Backtest configuration schema
-BACKTEST_SCHEMA = ConfigSchema(
-    name="backtest",
-    version="1.0.0",
-    description="Schema for backtest workflow configurations",
-    schema={
+BACKTEST_SCHEMA = {
+    "name": "backtest",
+    "version": "1.0.0",
+    "description": "Schema for backtest workflow configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -172,7 +173,7 @@ BACKTEST_SCHEMA = ConfigSchema(
         },
         "required": ["name", "data", "portfolio", "strategies"]
     },
-    examples=[{
+    "examples": [{
         "name": "MA Crossover Backtest",
         "type": "backtest",
         "data": {
@@ -193,14 +194,14 @@ BACKTEST_SCHEMA = ConfigSchema(
             }
         }]
     }]
-)
+}
 
 # Optimization configuration schema
-OPTIMIZATION_SCHEMA = ConfigSchema(
-    name="optimization",
-    version="1.0.0", 
-    description="Schema for optimization workflow configurations",
-    schema={
+OPTIMIZATION_SCHEMA = {
+    "name": "optimization",
+    "version": "1.0.0", 
+    "description": "Schema for optimization workflow configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -282,10 +283,10 @@ OPTIMIZATION_SCHEMA = ConfigSchema(
         },
         "required": ["name", "base_config", "optimization"],
         "definitions": {
-            "backtest_config": BACKTEST_SCHEMA.schema
+            "backtest_config": BACKTEST_SCHEMA["schema"]
         }
     },
-    examples=[{
+    "examples": [{
         "name": "MA Strategy Optimization",
         "type": "optimization",
         "base_config": {
@@ -328,14 +329,14 @@ OPTIMIZATION_SCHEMA = ConfigSchema(
             "n_trials": 100
         }
     }]
-)
+}
 
 # Live trading configuration schema
-LIVE_TRADING_SCHEMA = ConfigSchema(
-    name="live_trading",
-    version="1.0.0",
-    description="Schema for live trading workflow configurations",
-    schema={
+LIVE_TRADING_SCHEMA = {
+    "name": "live_trading",
+    "version": "1.0.0",
+    "description": "Schema for live trading workflow configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -457,7 +458,7 @@ LIVE_TRADING_SCHEMA = ConfigSchema(
         },
         "required": ["name", "broker", "data", "portfolio", "strategies"]
     },
-    examples=[{
+    "examples": [{
         "name": "Momentum Live Trading",
         "type": "live_trading",
         "paper_trading": True,
@@ -491,14 +492,14 @@ LIVE_TRADING_SCHEMA = ConfigSchema(
             }]
         }
     }]
-)
+}
 
 # Additional component schemas
-STRATEGY_SCHEMA = ConfigSchema(
-    name="strategy",
-    version="1.0.0",
-    description="Schema for strategy component configurations",
-    schema={
+STRATEGY_SCHEMA = {
+    "name": "strategy",
+    "version": "1.0.0",
+    "description": "Schema for strategy component configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -537,13 +538,13 @@ STRATEGY_SCHEMA = ConfigSchema(
         },
         "required": ["name", "type"]
     }
-)
+}
 
-RISK_SCHEMA = ConfigSchema(
-    name="risk",
-    version="1.0.0",
-    description="Schema for risk management configurations",
-    schema={
+RISK_SCHEMA = {
+    "name": "risk",
+    "version": "1.0.0",
+    "description": "Schema for risk management configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -561,13 +562,13 @@ RISK_SCHEMA = ConfigSchema(
             "rebalance_frequency": {"type": "string", "enum": ["daily", "weekly", "monthly", "none"]}
         }
     }
-)
+}
 
-DATA_SCHEMA = ConfigSchema(
-    name="data",
-    version="1.0.0",
-    description="Schema for data source configurations",
-    schema={
+DATA_SCHEMA = {
+    "name": "data",
+    "version": "1.0.0",
+    "description": "Schema for data source configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -596,13 +597,13 @@ DATA_SCHEMA = ConfigSchema(
         },
         "required": ["source", "type", "symbols"]
     }
-)
+}
 
-EXECUTION_SCHEMA = ConfigSchema(
-    name="execution",
-    version="1.0.0",
-    description="Schema for execution configurations",
-    schema={
+EXECUTION_SCHEMA = {
+    "name": "execution",
+    "version": "1.0.0",
+    "description": "Schema for execution configurations",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -637,15 +638,15 @@ EXECUTION_SCHEMA = ConfigSchema(
         },
         "required": ["mode"]
     }
-)
+}
 
 
 # Results collection and storage schema
-RESULTS_SCHEMA = ConfigSchema(
-    name="results",
-    version="1.0.0",
-    description="Schema for results collection and storage configuration",
-    schema={
+RESULTS_SCHEMA = {
+    "name": "results",
+    "version": "1.0.0",
+    "description": "Schema for results collection and storage configuration",
+    "schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
@@ -666,7 +667,7 @@ RESULTS_SCHEMA = ConfigSchema(
                     "store_equity_curve": {
                         "type": "boolean", 
                         "default": False,
-                        "description": "Store full equity curve (memory intensive)"
+                        "description": "Store full equity curve (memory intensive}"
                     },
                     "snapshot_interval": {
                         "type": "integer", 
@@ -677,7 +678,7 @@ RESULTS_SCHEMA = ConfigSchema(
                     "store_order_book": {
                         "type": "boolean",
                         "default": False,
-                        "description": "Store order book snapshots (very memory intensive)"
+                        "description": "Store order book snapshots (very memory intensive}"
                     },
                     "trade_summary_only": {
                         "type": "boolean",
@@ -761,7 +762,7 @@ RESULTS_SCHEMA = ConfigSchema(
                 "type": "integer",
                 "default": 1000,
                 "minimum": 100,
-                "description": "Maximum events to retain in memory (for sliding_window policy)"
+                "description": "Maximum events to retain in memory (for sliding_window policy}"
             },
             "testing_mode": {
                 "type": "object",
@@ -770,7 +771,7 @@ RESULTS_SCHEMA = ConfigSchema(
                     "store_all_events": {
                         "type": "boolean",
                         "default": False,
-                        "description": "Store all events (different from tracing)"
+                        "description": "Store all events (different from tracing}"
                     },
                     "detailed_timing": {
                         "type": "boolean",
@@ -788,4 +789,4 @@ RESULTS_SCHEMA = ConfigSchema(
         },
         "additionalProperties": False
     }
-)
+}

@@ -1,1 +1,0 @@
-"""Pattern discovery and validation for trading strategies."""

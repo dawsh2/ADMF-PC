@@ -1,16 +1,16 @@
 """
-Trading types and time utilities for execution module.
+Execution types and data structures.
 
-Simple dataclasses for trading concepts - no complex inheritance.
+Core trading types used across backtest and live execution.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, time, timezone
+from datetime import datetime, time
 from typing import Optional, Dict, Any
 from enum import Enum
+from decimal import Decimal
 
 
-# Simple enums for compatibility
 class OrderType(str, Enum):
     """Order type enumeration."""
     MARKET = "market"
@@ -28,6 +28,7 @@ class OrderSide(str, Enum):
 class OrderStatus(str, Enum):
     """Order status enumeration."""
     PENDING = "pending"
+    SUBMITTED = "submitted"
     OPEN = "open"
     FILLED = "filled"
     PARTIALLY_FILLED = "partially_filled"
@@ -42,64 +43,23 @@ class FillStatus(str, Enum):
 
 
 @dataclass
-class Bar:
-    """Market bar data (OHLCV)."""
-    symbol: str
-    timestamp: datetime
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: float
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
-        return {
-            'symbol': self.symbol,
-            'timestamp': self.timestamp.isoformat() if isinstance(self.timestamp, datetime) else str(self.timestamp),
-            'open': self.open,
-            'high': self.high,
-            'low': self.low,
-            'close': self.close,
-            'volume': self.volume
-        }
-
-
-@dataclass
-class Position:
-    """Position in a security."""
-    symbol: str
-    quantity: float
-    avg_price: float
-    current_price: float
-    market_value: float
-    
-    @property
-    def unrealized_pnl(self) -> float:
-        """Calculate unrealized P&L."""
-        return (self.current_price - self.avg_price) * self.quantity
-    
-    @property
-    def pnl_percent(self) -> float:
-        """Calculate P&L percentage."""
-        if self.avg_price == 0:
-            return 0.0
-        return (self.current_price - self.avg_price) / self.avg_price
-
-
-@dataclass
 class Order:
     """Trading order."""
     order_id: str
     symbol: str
-    direction: str  # 'long' or 'short'
-    quantity: float
-    order_type: str  # 'market', 'limit', etc.
-    price: Optional[float] = None
-    timestamp: Optional[datetime] = None
-    portfolio_id: Optional[str] = None
+    side: OrderSide
+    order_type: OrderType
+    quantity: Decimal
+    price: Optional[Decimal] = None  # For limit orders
+    stop_price: Optional[Decimal] = None  # For stop orders
+    time_in_force: str = "DAY"
+    created_at: Optional[datetime] = None
     status: OrderStatus = OrderStatus.PENDING
-    metadata: Optional[Dict[str, Any]] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        if self.created_at is None:
+            self.created_at = datetime.now()
 
 
 @dataclass
@@ -108,14 +68,68 @@ class Fill:
     fill_id: str
     order_id: str
     symbol: str
-    direction: str
-    quantity: float
-    price: float
-    timestamp: datetime
-    portfolio_id: Optional[str] = None
-    commission: float = 0.0
+    side: OrderSide
+    quantity: Decimal
+    price: Decimal
+    commission: Decimal
+    executed_at: datetime
     status: FillStatus = FillStatus.FILLED
-    metadata: Optional[Dict[str, Any]] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Position:
+    """Position representation."""
+    symbol: str
+    quantity: Decimal
+    avg_price: Decimal
+    current_price: Decimal
+    unrealized_pnl: Decimal
+    realized_pnl: Decimal
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Bar:
+    """Market bar data (OHLCV)."""
+    symbol: str
+    timestamp: datetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: Decimal
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            'symbol': self.symbol,
+            'timestamp': self.timestamp.isoformat(),
+            'open': float(self.open),
+            'high': float(self.high),
+            'low': float(self.low),
+            'close': float(self.close),
+            'volume': float(self.volume)
+        }
+
+
+@dataclass
+class ExecutionStats:
+    """Execution statistics."""
+    orders_submitted: int = 0
+    orders_filled: int = 0
+    orders_cancelled: int = 0
+    orders_rejected: int = 0
+    total_commission: Decimal = Decimal('0')
+    total_slippage: Decimal = Decimal('0')
+    avg_fill_time_ms: float = 0.0
+    
+    @property
+    def fill_rate(self) -> float:
+        """Calculate fill rate percentage."""
+        if self.orders_submitted == 0:
+            return 0.0
+        return (self.orders_filled / self.orders_submitted) * 100
 
 
 # ============================================
@@ -176,31 +190,6 @@ def next_market_open(dt: datetime) -> datetime:
         next_day = next_day.replace(day=next_day.day + 1)
         if next_day.weekday() < 5:  # Found a weekday
             return next_day
-
-
-def market_minutes_between(start: datetime, end: datetime) -> int:
-    """
-    Calculate number of market minutes between two times.
-    
-    Args:
-        start: Start time
-        end: End time
-        
-    Returns:
-        Number of minutes when market was open
-    """
-    if end < start:
-        return 0
-    
-    minutes = 0
-    current = start
-    
-    while current < end:
-        if is_market_open(current):
-            minutes += 1
-        current = current.replace(minute=current.minute + 1)
-    
-    return minutes
 
 
 def format_trading_time(dt: datetime) -> str:

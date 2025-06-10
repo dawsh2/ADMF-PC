@@ -42,22 +42,18 @@ Example Usage:
 from .container import (
     Container,
     ContainerConfig,
-    ContainerRole,
-    ContainerState,
-    # Naming strategy
+    # Simplified naming strategy
     ContainerType,
-    Phase,
-    ClassifierType,
-    RiskProfile,
     ContainerNamingStrategy,
-    # Convenience functions
-    create_backtest_container_id,
-    create_optimization_container_id,
-    create_signal_analysis_container_id
+    # Simplified convenience function
+    create_container_id
 )
 
+# Import ContainerRole and ContainerState from protocols for backward compatibility
+from .protocols import ContainerRole, ContainerState
+
 from .protocols import (
-    Container as ContainerProtocol,
+    ContainerProtocol,
     ContainerMetadata,
     ContainerLimits
 )
@@ -65,10 +61,10 @@ from .protocols import (
 # Import factory for convenience
 from .factory import (
     ContainerFactory,
-    ContainerRegistry,
-    get_global_factory,
-    get_global_registry,
-    compose_pattern
+    create_container,
+    create_portfolio_container,
+    create_strategy_container,
+    create_data_container
 )
 
 # Exceptions
@@ -94,16 +90,25 @@ from .types import (
     EventHandler
 )
 
-# Synchronization
-from .sync import (
+# Synchronization - import from unified barriers module
+from ..events.barriers import (
     AlignmentMode,
     TimeframeAlignment,
     DataRequirement,
-    StrategySpecification,
     BarBuffer,
-    TimeAlignmentBuffer,
-    StrategyOrchestrator,
-    setup_synchronized_feature_container,
+    BarrierProtocol,
+    DataAlignmentBarrier,
+    OrderStateBarrier,
+    TimingBarrier,
+    CompositeBarrier,
+    create_standard_barriers,
+    setup_barriers_from_config
+)
+
+# Container-specific utilities
+from .types import StrategySpecification
+from .factory import (
+    setup_simple_container,
     create_symbol_group_requirement,
     create_multi_timeframe_requirement,
     create_pairs_requirement
@@ -116,15 +121,10 @@ __all__ = [
     'ContainerRole',
     'ContainerState',
     
-    # Naming strategy
+    # Simplified naming strategy
     'ContainerType',
-    'Phase',
-    'ClassifierType',
-    'RiskProfile',
     'ContainerNamingStrategy',
-    'create_backtest_container_id',
-    'create_optimization_container_id',
-    'create_signal_analysis_container_id',
+    'create_container_id',
     
     # Protocols
     'ContainerProtocol',
@@ -157,15 +157,22 @@ __all__ = [
     'ContainerComponent',
     'EventHandler',
     
-    # Synchronization
+    # Synchronization - unified barriers system
     'AlignmentMode',
     'TimeframeAlignment',
     'DataRequirement',
-    'StrategySpecification',
     'BarBuffer',
-    'TimeAlignmentBuffer',
-    'StrategyOrchestrator',
-    'setup_synchronized_feature_container',
+    'BarrierProtocol',
+    'DataAlignmentBarrier',
+    'OrderStateBarrier', 
+    'TimingBarrier',
+    'CompositeBarrier',
+    'create_standard_barriers',
+    'setup_barriers_from_config',
+    
+    # Container-specific utilities
+    'StrategySpecification',
+    'setup_simple_container',
     'create_symbol_group_requirement',
     'create_multi_timeframe_requirement',
     'create_pairs_requirement'

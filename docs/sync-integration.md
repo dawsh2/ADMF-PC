@@ -94,7 +94,7 @@ class EventType(Enum):
 
 Create a new file for the synchronization component:
 
-**File Location:** `src/core/containers/components/time_synchronization.py`
+**File Location:** `src/core/containers/sync.py`
 
 This file will contain:
 - `TimeAlignmentBuffer` class
@@ -131,7 +131,7 @@ Replace direct BAR subscriptions with TimeAlignmentBuffer:
 
 ```python
 # In your feature container initialization
-from .components.time_synchronization import TimeAlignmentBuffer, StrategyDataRequirement
+from .sync import TimeAlignmentBuffer, DataRequirement
 
 def setup_feature_container(container, config):
     # Define strategy requirements
@@ -168,7 +168,7 @@ These components work without any changes:
 ## Integration Checklist
 
 - [ ] Add FEATURES and CLASSIFICATION to EventType enum (if missing)
-- [ ] Create `time_synchronization.py` with TimeAlignmentBuffer component
+- [ ] Create `sync.py` with TimeAlignmentBuffer and StrategyOrchestrator components
 - [ ] Update Symbol_Timeframe containers to publish enhanced BAR events
 - [ ] Modify Feature Container setup to use TimeAlignmentBuffer
 - [ ] Update strategy configuration to include `required_data` specifications

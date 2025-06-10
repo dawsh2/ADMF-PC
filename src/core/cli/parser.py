@@ -42,6 +42,7 @@ class CLIArgs:
     # Development arguments
     dry_run: bool = False
     profile: bool = False
+    schema_docs: bool = False
 
     def __post_init__(self):
         if self.log_events is None:
@@ -58,7 +59,7 @@ def parse_arguments() -> CLIArgs:
     parser.add_argument(
         '--config',
         type=str,
-        required=True,
+        required=False,  # Made optional to allow --schema-docs without config
         help='Path to configuration file (YAML)'
     )
     
@@ -187,6 +188,12 @@ def parse_arguments() -> CLIArgs:
         help='Enable performance profiling'
     )
     
+    parser.add_argument(
+        '--schema-docs',
+        action='store_true',
+        help='Print configuration schema documentation and exit'
+    )
+    
     args = parser.parse_args()
     
     # Convert to structured CLIArgs
@@ -208,5 +215,6 @@ def parse_arguments() -> CLIArgs:
         log_json=getattr(args, 'log_json', False),
         verbose=args.verbose,
         dry_run=getattr(args, 'dry_run', False),
-        profile=args.profile
+        profile=args.profile,
+        schema_docs=getattr(args, 'schema_docs', False)
     )

@@ -1,1 +1,0 @@
-"""ETL (Extract-Transform-Load) pipelines for event to SQL transformation."""

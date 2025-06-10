@@ -13,7 +13,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.coordinator.topology import WorkflowMode
-from src.core.types.workflow import WorkflowConfig, WorkflowType, BaseMode
+from src.core.coordinator.types import WorkflowConfig, WorkflowType, BaseMode
 
 
 def test_workflow_modes():

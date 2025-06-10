@@ -1,0 +1,31 @@
+# Truly empty topology test - no components, no containers
+# This tests the absolute minimum coordinator lifecycle
+
+name: "Empty Topology Test"
+
+# Define a custom inline workflow instead of using patterns
+workflow:
+  name: "empty_workflow"
+  phases:
+    - name: "test_phase"
+      topology:
+        # Inline topology definition - completely empty
+        name: "empty_topology"
+        description: "Test empty topology"
+        components: []  # No components
+        containers: []  # No containers
+        routes: []      # No routes
+      sequence:
+        # Inline sequence - just runs once
+        type: "single_pass"
+        
+# Still need these for validation
+data:
+  symbols: ["TEST"]
+  start_date: "2024-01-01" 
+  end_date: "2024-01-02"
+
+portfolio:
+  initial_capital: 100000
+  
+strategies: []  # Empty strategies should work

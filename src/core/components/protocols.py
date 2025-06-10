@@ -101,30 +101,10 @@ class Optimizable(Protocol):
         ...
 
 
-@runtime_checkable
-class SignalGenerator(Protocol):
-    """Protocol for components that generate trading signals."""
-    
-    def generate_signal(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Generate a trading signal from market data."""
-        ...
 
 
-@runtime_checkable
-class DataProvider(Protocol):
-    """Protocol for components that provide market data."""
-    
-    def get_data(self, symbol: str, start: datetime, end: datetime) -> Any:
-        """Retrieve market data for a symbol and time range."""
-        ...
-    
-    def subscribe_symbol(self, symbol: str, handler: EventHandler) -> None:
-        """Subscribe to real-time updates for a symbol."""
-        ...
-    
-    def unsubscribe_symbol(self, symbol: str, handler: EventHandler) -> None:
-        """Unsubscribe from symbol updates."""
-        ...
+# DataProvider moved to data.protocols where it belongs
+from ...data.protocols import DataProvider
 
 
 @runtime_checkable
@@ -350,7 +330,6 @@ class Capability:
     STATEFUL = "stateful"
     
     # Trading-specific capabilities
-    SIGNAL_GENERATOR = "signal_generator"
     DATA_PROVIDER = "data_provider"
     RISK_MANAGER = "risk_manager"
     ORDER_EXECUTOR = "order_executor"
@@ -366,7 +345,6 @@ CAPABILITY_PROTOCOLS = {
     Capability.OPTIMIZABLE: Optimizable,
     Capability.MONITORABLE: Monitorable,
     Capability.STATEFUL: Stateful,
-    Capability.SIGNAL_GENERATOR: SignalGenerator,
     Capability.DATA_PROVIDER: DataProvider,
     Capability.RISK_MANAGER: RiskManager,
     Capability.ORDER_EXECUTOR: OrderExecutor,

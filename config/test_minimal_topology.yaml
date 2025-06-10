@@ -1,0 +1,28 @@
+# Minimal topology for testing coordinator lifecycle
+# Tests: start/stop with no containers
+
+name: "Minimal Topology Test"
+
+# Use the existing simple_backtest workflow
+workflow: "simple_backtest"
+
+# Empty topology - no containers, no data
+topology:
+  containers: {}  # No containers yet
+  
+# Required data section (even if minimal)
+data:
+  symbols: ["TEST"]  # Dummy symbol to satisfy validation
+  start_date: "2024-01-01"
+  end_date: "2024-01-02"
+  
+# Required portfolio section
+portfolio:
+  initial_capital: 100000
+  
+# Required strategies (minimal dummy strategy)
+strategies:
+  - name: "dummy_strategy"
+    type: "momentum"  # Just to satisfy validation
+    enabled: true   # Let it run but with no allocation
+    allocation: 0   # No actual trading

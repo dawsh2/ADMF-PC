@@ -8,90 +8,8 @@ from typing import Protocol, Optional, Dict, List, Any, Set, runtime_checkable
 from enum import Enum
 
 from ..core.components.protocols import Component, Capability
-from ..core.types import OrderType, OrderSide, SignalType
-
-
-@dataclass(frozen=True)
-class Signal:
-    """Trading signal from strategy."""
-    signal_id: str
-    strategy_id: str
-    symbol: str
-    signal_type: SignalType
-    side: OrderSide
-    strength: Decimal  # -1 to 1, magnitude indicates confidence
-    timestamp: datetime
-    metadata: Dict[str, Any]
-    
-    def __post_init__(self):
-        """Validate signal strength."""
-        if not Decimal('-1') <= self.strength <= Decimal('1'):
-            raise ValueError(f"Signal strength must be between -1 and 1, got {self.strength}")
-
-
-@dataclass(frozen=True)
-class Order:
-    """Trading order to be executed."""
-    order_id: str
-    symbol: str
-    side: OrderSide
-    order_type: OrderType
-    quantity: Decimal
-    price: Optional[Decimal]  # None for market orders
-    stop_price: Optional[Decimal]  # For stop orders
-    time_in_force: str  # GTC, IOC, FOK, etc.
-    source_signal: Signal
-    risk_checks_passed: List[str]
-    timestamp: datetime
-    metadata: Dict[str, Any]
-
-
-@dataclass
-class Position:
-    """Current position in a symbol."""
-    symbol: str
-    quantity: Decimal
-    average_price: Decimal
-    current_price: Decimal
-    unrealized_pnl: Decimal
-    realized_pnl: Decimal
-    opened_at: datetime
-    last_updated: datetime
-    metadata: Dict[str, Any]
-    
-    @property
-    def market_value(self) -> Decimal:
-        """Calculate current market value."""
-        return self.quantity * self.current_price
-    
-    @property
-    def cost_basis(self) -> Decimal:
-        """Calculate cost basis."""
-        return self.quantity * self.average_price
-    
-    @property
-    def pnl_percentage(self) -> Decimal:
-        """Calculate P&L percentage."""
-        if self.cost_basis == 0:
-            return Decimal(0)
-        return (self.unrealized_pnl / abs(self.cost_basis)) * 100
-
-
-@dataclass
-class RiskMetrics:
-    """Portfolio risk metrics."""
-    total_value: Decimal
-    cash_balance: Decimal
-    positions_value: Decimal
-    unrealized_pnl: Decimal
-    realized_pnl: Decimal
-    max_drawdown: Decimal
-    current_drawdown: Decimal
-    sharpe_ratio: Optional[Decimal]
-    var_95: Optional[Decimal]  # Value at Risk 95%
-    leverage: Decimal
-    concentration: Dict[str, Decimal]  # Symbol -> % of portfolio
-    timestamp: datetime
+from ..execution.types import OrderType, OrderSide
+from ..strategy.types import SignalType
 
 
 class PositionSizerProtocol(Protocol):
@@ -145,49 +63,15 @@ class RiskLimitProtocol(Protocol):
         ...
 
 
-class PortfolioStateProtocol(Protocol):
-    """Protocol for portfolio state tracking."""
-    
-    @abstractmethod
-    def get_position(self, symbol: str) -> Optional[Position]:
-        """Get current position for symbol."""
-        ...
-    
-    @abstractmethod
-    def get_all_positions(self) -> Dict[str, Position]:
-        """Get all current positions."""
-        ...
-    
-    @abstractmethod
-    def get_cash_balance(self) -> Decimal:
-        """Get current cash balance."""
-        ...
-    
-    @abstractmethod
-    def get_total_value(self) -> Decimal:
-        """Get total portfolio value."""
-        ...
-    
-    @abstractmethod
-    def get_risk_metrics(self) -> RiskMetrics:
-        """Get current risk metrics."""
-        ...
-    
-    @abstractmethod
-    def update_position(
-        self,
-        symbol: str,
-        quantity_delta: Decimal,
-        price: Decimal,
-        timestamp: datetime
-    ) -> Position:
-        """Update position with a trade."""
-        ...
-    
-    @abstractmethod
-    def update_market_prices(self, prices: Dict[str, Decimal]) -> None:
-        """Update market prices for positions."""
-        ...
+# Portfolio types moved to portfolio module
+from ..portfolio.protocols import (
+    PortfolioStateProtocol,
+    Position,
+    RiskMetrics,
+)
+# Use canonical types
+from ..core.events.types import Event
+from ..strategy.types import Signal
 
 
 class SignalProcessorProtocol(Protocol):
@@ -196,23 +80,23 @@ class SignalProcessorProtocol(Protocol):
     @abstractmethod
     def process_signal(
         self,
-        signal: Signal,
+        signal_event: Event,
         portfolio_state: PortfolioStateProtocol,
         position_sizer: PositionSizerProtocol,
         risk_limits: List[RiskLimitProtocol],
         market_data: Dict[str, Any]
-    ) -> Optional[Order]:
+    ) -> Optional[Event]:
         """Process signal into order.
         
         Args:
-            signal: Trading signal
+            signal_event: Trading signal event
             portfolio_state: Current portfolio state
             position_sizer: Position sizing strategy
             risk_limits: Risk limits to check
             market_data: Current market data
             
         Returns:
-            Order if approved, None if vetoed
+            Order event if approved, None if vetoed
         """
         ...
 
@@ -351,9 +235,7 @@ class RiskLimitCapability(RiskCapability):
     pass
 
 
-class PortfolioTrackingCapability(RiskCapability):
-    """Capability for portfolio state tracking."""
-    pass
+# PortfolioTrackingCapability moved to portfolio module
 
 
 # DEPRECATED: Legacy protocols for backward compatibility

@@ -25,7 +25,22 @@ Example Usage:
 # Core protocols
 from .protocols import (
     Strategy,
-    SignalDirection
+    SignalDirection,
+    StatelessStrategy,
+    StatelessClassifier,
+    FeatureProvider,
+    FeatureExtractor
+)
+
+# Validation components for preventing silent failures
+from .validation import (
+    FeatureDependencyError,
+    FeatureValidator,
+    validate_strategy_features,
+    validate_classifier_features,
+    create_validated_strategy,
+    extract_required_features,
+    get_feature_validator
 )
 
 # Note: No capabilities.py - components ARE capabilities through protocol implementation
@@ -56,6 +71,19 @@ __all__ = [
     # Protocols
     "Strategy",
     "SignalDirection",
+    "StatelessStrategy",
+    "StatelessClassifier", 
+    "FeatureProvider",
+    "FeatureExtractor",
+    
+    # Validation - prevents silent strategy failures
+    "FeatureDependencyError",
+    "FeatureValidator",
+    "validate_strategy_features",
+    "validate_classifier_features",
+    "create_validated_strategy",
+    "extract_required_features",
+    "get_feature_validator",
     
     # No capabilities exported - components implement protocols directly
     

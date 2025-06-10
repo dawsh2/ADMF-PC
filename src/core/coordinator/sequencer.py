@@ -15,6 +15,8 @@ import yaml
 
 from .protocols import PhaseConfig, TopologyBuilderProtocol
 from .topology import TopologyBuilder
+from .config.pattern_loader import PatternLoader
+from .config.resolver import ConfigResolver
 from ..containers.protocols import ContainerRole
 
 logger = logging.getLogger(__name__)
@@ -31,152 +33,15 @@ class Sequencer:
     - How to aggregate results
     """
     
-    def __init__(self, topology_builder: Optional[TopologyBuilderProtocol] = None):
+    def __init__(self, topology_builder: Optional[TopologyBuilderProtocol] = None,
+                 pattern_loader: Optional[PatternLoader] = None,
+                 config_resolver: Optional[ConfigResolver] = None):
         """Initialize declarative sequencer."""
-        self.topology_builder = topology_builder or TopologyBuilder()
-        self.sequence_patterns = self._load_sequence_patterns()
+        self.topology_builder = topology_builder or TopologyBuilder(pattern_loader, config_resolver)
+        self.pattern_loader = pattern_loader or PatternLoader()
+        self.config_resolver = config_resolver or ConfigResolver()
+        self.sequence_patterns = self.pattern_loader.load_patterns('sequences')
         
-    def _load_sequence_patterns(self) -> Dict[str, Dict[str, Any]]:
-        """Load sequence patterns from YAML files."""
-        patterns = {}
-        # Load from config/patterns/sequences
-        project_root = Path(__file__).parent.parent.parent.parent  # Navigate to project root
-        pattern_dir = project_root / 'config' / 'patterns' / 'sequences'
-        
-        # Create directory if it doesn't exist
-        if not pattern_dir.exists():
-            pattern_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created sequence patterns directory: {pattern_dir}")
-        
-        # Load YAML patterns
-        for pattern_file in pattern_dir.glob('*.yaml'):
-            try:
-                with open(pattern_file) as f:
-                    pattern = yaml.safe_load(f)
-                    patterns[pattern_file.stem] = pattern
-                    logger.info(f"Loaded sequence pattern: {pattern_file.stem}")
-            except Exception as e:
-                logger.error(f"Failed to load sequence pattern {pattern_file}: {e}")
-        
-        # Also load built-in patterns
-        patterns.update(self._get_builtin_patterns())
-        
-        return patterns
-    
-    def _get_builtin_patterns(self) -> Dict[str, Dict[str, Any]]:
-        """Get built-in sequence patterns."""
-        return {
-            'single_pass': {
-                'name': 'single_pass',
-                'description': 'Execute phase once',
-                'iterations': {
-                    'type': 'single',
-                    'count': 1
-                },
-                'aggregation': {
-                    'type': 'none'  # No aggregation needed
-                }
-            },
-            
-            'walk_forward': {
-                'name': 'walk_forward',
-                'description': 'Rolling window analysis',
-                'iterations': {
-                    'type': 'windowed',
-                    'window_generator': {
-                        'type': 'rolling',
-                        'train_periods': {'from_config': 'walk_forward.train_periods', 'default': 252},
-                        'test_periods': {'from_config': 'walk_forward.test_periods', 'default': 63},
-                        'step_size': {'from_config': 'walk_forward.step_size', 'default': 21}
-                    }
-                },
-                'config_modifiers': [
-                    {
-                        'type': 'set_dates',
-                        'train_start': '{window.train_start}',
-                        'train_end': '{window.train_end}',
-                        'test_start': '{window.test_start}',
-                        'test_end': '{window.test_end}'
-                    }
-                ],
-                'sub_phases': [
-                    {
-                        'name': 'train',
-                        'config_override': {
-                            'start_date': '{train_start}',
-                            'end_date': '{train_end}'
-                        }
-                    },
-                    {
-                        'name': 'test',
-                        'config_override': {
-                            'start_date': '{test_start}',
-                            'end_date': '{test_end}',
-                            'parameters': '{train.optimal_parameters}'
-                        },
-                        'depends_on': 'train'
-                    }
-                ],
-                'aggregation': {
-                    'type': 'statistical',
-                    'source': 'test.metrics',
-                    'operations': ['mean', 'std', 'min', 'max']
-                }
-            },
-            
-            'monte_carlo': {
-                'name': 'monte_carlo',
-                'description': 'Multiple runs with randomization',
-                'iterations': {
-                    'type': 'repeated',
-                    'count': {'from_config': 'monte_carlo.iterations', 'default': 100}
-                },
-                'config_modifiers': [
-                    {
-                        'type': 'add_seed',
-                        'random_seed': '{iteration_index}'
-                    }
-                ],
-                'aggregation': {
-                    'type': 'distribution',
-                    'metrics': ['sharpe_ratio', 'max_drawdown', 'total_return'],
-                    'percentiles': [5, 25, 50, 75, 95]
-                }
-            },
-            
-            'train_test': {
-                'name': 'train_test',
-                'description': 'Simple train/test split',
-                'iterations': {
-                    'type': 'single',
-                    'count': 1
-                },
-                'data_split': {
-                    'type': 'percentage',
-                    'train_ratio': {'from_config': 'train_test.train_ratio', 'default': 0.7}
-                },
-                'sub_phases': [
-                    {
-                        'name': 'train',
-                        'config_override': {
-                            'end_date': '{split_date}'
-                        }
-                    },
-                    {
-                        'name': 'test',
-                        'config_override': {
-                            'start_date': '{split_date}',
-                            'parameters': '{train.optimal_parameters}'
-                        },
-                        'depends_on': 'train'
-                    }
-                ],
-                'aggregation': {
-                    'type': 'comparison',
-                    'phases': ['train', 'test']
-                }
-            }
-        }
     
     def execute_sequence(
         self,
@@ -520,51 +385,11 @@ class Sequencer:
     
     def _extract_nested(self, data: Dict[str, Any], path: str) -> Any:
         """Extract nested value from dict using dot notation."""
-        parts = path.split('.')
-        value = data
-        
-        for part in parts:
-            if isinstance(value, dict) and part in value:
-                value = value[part]
-            else:
-                return None
-        
-        return value
+        return self.config_resolver.extract_value(path, data)
     
     def _resolve_value(self, spec: Any, context: Dict[str, Any]) -> Any:
         """Resolve a value specification."""
-        if isinstance(spec, str) and '{' in spec and '}' in spec:
-            # Template string
-            try:
-                return spec.format(**context)
-            except KeyError:
-                # Try flattening context
-                flat_context = self._flatten_context(context)
-                return spec.format(**flat_context)
-                
-        elif isinstance(spec, dict) and 'from_config' in spec:
-            # Config reference
-            path = spec['from_config']
-            value = self._extract_nested(context['config'], path)
-            if value is None:
-                value = spec.get('default')
-            return value
-        
-        return spec
-    
-    def _flatten_context(self, context: Dict[str, Any], prefix: str = '') -> Dict[str, Any]:
-        """Flatten nested context for template resolution."""
-        flat = {}
-        
-        for key, value in context.items():
-            full_key = f"{prefix}.{key}" if prefix else key
-            
-            if isinstance(value, dict):
-                flat.update(self._flatten_context(value, full_key))
-            else:
-                flat[full_key] = value
-        
-        return flat
+        return self.config_resolver.resolve_value(spec, context)
     
     def _calculate_std(self, values: List[float]) -> float:
         """Calculate standard deviation."""

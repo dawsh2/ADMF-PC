@@ -6,7 +6,7 @@ and building configurations from CLI inputs.
 """
 
 from .parser import parse_arguments, CLIArgs
-from .config_builder import build_workflow_config
+from .args import build_workflow_config
 
 __all__ = [
     'parse_arguments',

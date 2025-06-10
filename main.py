@@ -12,10 +12,16 @@ import time
 # Import core modules
 from src.core.coordinator.coordinator import Coordinator
 from src.core.cli import parse_arguments
-from src.core.cli.config_builder import build_workflow_from_cli
 # TODO: Fix logging import - utils.logging module not found
 # from src.core.utils.logging import setup_logging, configure_event_logging
 import logging
+
+# Import Pydantic validation
+from src.core.coordinator.config import (
+    PYDANTIC_AVAILABLE,
+    get_validation_errors,
+    generate_schema_docs
+)
 
 def setup_logging(level='INFO', console=True, file_path=None, json_format=False):
     """Basic logging setup."""
@@ -68,7 +74,7 @@ def handle_execution_result(result) -> int:
 
 
 
-async def main():
+def main():
     """Main entry point - clean orchestration of CLI parsing, configuration, and execution."""
     # Parse CLI arguments
     args = parse_arguments()
@@ -85,24 +91,60 @@ async def main():
     # Create logger
     logger = logging.getLogger(__name__)
     
+    # Handle schema documentation request
+    if args.schema_docs:
+        if PYDANTIC_AVAILABLE:
+            print("# ADMF-PC Configuration Schema Documentation\n")
+            print(generate_schema_docs())
+            return 0
+        else:
+            print("❌ Schema documentation requires Pydantic: pip install pydantic>=2.0.0")
+            return 1
+    
+    # Check that config is provided for normal operations
+    if not args.config:
+        logger.error("❌ --config is required for workflow execution")
+        logger.info("💡 Use --schema-docs to see configuration requirements")
+        return 1
+    
     # Configure event-specific logging
     if args.log_events:
         configure_event_logging(args.log_events)
         logger.info(f"Event-specific logging enabled for: {', '.join(args.log_events)}")
     
-    # Build workflow configuration from CLI + YAML
+    # Load raw YAML configuration
     try:
-        workflow_config = build_workflow_from_cli(args)
+        from src.core.cli.args import load_yaml_config
+        config_dict = load_yaml_config(args.config)
         logger.info("Configuration loaded successfully")
+        
+        # Apply CLI overrides
+        if args.bars is not None:
+            if 'data' not in config_dict:
+                config_dict['data'] = {}
+            config_dict['data']['max_bars'] = args.bars
+            logger.info(f"Limiting data to {args.bars} bars")
+        
+        # VALIDATE CONFIGURATION (if Pydantic available)
+        if PYDANTIC_AVAILABLE:
+            validation_errors = get_validation_errors(config_dict)
+            if validation_errors:
+                logger.error("❌ Configuration validation failed:")
+                for error in validation_errors:
+                    logger.error(f"  - {error}")
+                logger.info("💡 Use --schema-docs to see configuration requirements")
+                return 1
+            else:
+                logger.info("✅ Configuration validation passed")
+        else:
+            logger.debug("Pydantic validation not available, skipping validation")
+            
     except Exception as e:
         logger.error(f"Failed to load configuration: {e}")
         return 1
     
     # Create and run coordinator
-    coordinator = Coordinator(
-        enable_communication=True,
-        enable_yaml=True
-    )
+    coordinator = Coordinator()
     
     result = None
     try:
@@ -110,9 +152,8 @@ async def main():
         import time
         start_time = time.time()
         
-        result = await coordinator.execute_workflow(
-            workflow_config
-        )
+        # Pass the raw config dict to coordinator
+        result = coordinator.run_workflow(config_dict)
         
         elapsed = time.time() - start_time
         logger.info(f"✅ Workflow execution completed in {elapsed:.2f} seconds")
@@ -124,19 +165,19 @@ async def main():
             print("\n" + readable_report)
         
     except Exception as e:
-        logger.error(f"Workflow execution failed: {e}")
+        logger.error(f"Workflow execution failed: {e}", exc_info=True)
         result = {
             'success': False,
             'errors': [str(e)]
         }
     finally:
         # Clean shutdown
-        await coordinator.shutdown()
+        pass  # Coordinator doesn't have async shutdown
     
     # Handle results and return exit code
     return handle_execution_result(result)
 
 
 if __name__ == '__main__':
-    exit_code = asyncio.run(main())
+    exit_code = main()
     exit(exit_code if exit_code is not None else 0)

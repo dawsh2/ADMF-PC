@@ -24,19 +24,8 @@ from .classifiers import (
     momentum_regime_classifier
 )
 
-# from .classifier import (
-#     ClassifierProtocol,
-#     BaseClassifier,
-#     DummyClassifier
-# )
-
-# from .pattern_classifier import PatternClassifier
-
-# from .classifier_container import (
-#     ClassifierContainer,
-#     create_test_classifier_container,
-#     create_conservative_classifier_container
-# )
+# Old class-based classifiers moved to tmp/deprecated_classifiers/
+# Now using pure function classifiers with @classifier decorator
 
 __all__ = [
     # Types and Events
@@ -46,21 +35,8 @@ __all__ = [
     'ClassificationFeatures',
     'ClassifierConfig',
     
-    # Base Classes
-    # 'ClassifierProtocol',
-    # 'BaseClassifier',
-    # 'DummyClassifier',
-    
-    # Implementations (removed - using pure functions now)
-    # 'PatternClassifier',
-    
-    # Pure function classifiers (decorated)
+    # Pure function classifiers (decorated with @classifier)
     'trend_classifier',
     'volatility_classifier',
-    'momentum_regime_classifier',
-    
-    # Containers
-    # 'ClassifierContainer',
-    # 'create_test_classifier_container',
-    # 'create_conservative_classifier_container'
+    'momentum_regime_classifier'
 ]

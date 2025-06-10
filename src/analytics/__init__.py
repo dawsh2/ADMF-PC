@@ -1,52 +1,35 @@
 """
-Analytics module for ADMF-PC.
+Minimal Parallelization-Ready Analytics Module
 
-This module encompasses all analysis capabilities including:
-- Data mining and pattern discovery
-- Performance analytics and metrics
-- Report generation and visualization
-- Event trace analysis
+Provides immediate value for optimization analysis while maintaining
+a clean foundation for future sophisticated features.
+
+Key Features:
+- SQL-first pattern discovery
+- Correlation ID bridge to event traces  
+- Container-isolated parallel execution
+- Protocol-based composition architecture
 """
-from src.analytics.basic_report import BacktestReportGenerator
-from src.analytics.mining import (
-    AnalyticsDatabase,
-    EventTransformer,
-    TradeChainBuilder,
-    OptimizationAnalyzer,
-)
-from src.analytics.trace_analysis import (
-    TraceAnalyzer,
-    TraceArchiver,
-    analyze_trace,
-    EventExtractor,
-    PortfolioMetricsExtractor,
-    SignalExtractor,
-    TradeExtractor,
-)
-from src.analytics.metrics_collection import (
-    MetricsCollector,
-    get_phase_metrics,
-)
-from src.analytics.storage import (
-    HybridResultStore,
-    ResultCollector,
+
+from .metrics import ContainerMetricsExtractor
+from .patterns import SimplePatternDetector
+from .reports import MinimalReportGenerator
+
+# Data mining features
+from .mining import (
+    TwoLayerMiningArchitecture,
+    PatternMiner,
+    OptimizationRun,
+    MetricsAggregatorProtocol
 )
 
 __all__ = [
-    "BacktestReportGenerator",
-    "AnalyticsDatabase", 
-    "EventTransformer",
-    "TradeChainBuilder",
-    "OptimizationAnalyzer",
-    "TraceAnalyzer",
-    "TraceArchiver",
-    "analyze_trace",
-    "EventExtractor",
-    "PortfolioMetricsExtractor",
-    "SignalExtractor",
-    "TradeExtractor",
-    "MetricsCollector",
-    "get_phase_metrics",
-    "HybridResultStore",
-    "ResultCollector",
+    'ContainerMetricsExtractor',
+    'SimplePatternDetector', 
+    'MinimalReportGenerator',
+    # Mining
+    'TwoLayerMiningArchitecture',
+    'PatternMiner',
+    'OptimizationRun',
+    'MetricsAggregatorProtocol'
 ]

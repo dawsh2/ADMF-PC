@@ -1,156 +1,96 @@
-# ADMF-PC Test Suite
+# ADMF-PC Testing Suite
 
-This directory contains the comprehensive test suite for the ADMF-PC (Adaptive Dynamic Multi-Factor Protocol - Polymorphic Composition) trading system.
+## Overview
 
-## Test Structure
+This testing suite is designed to validate the rewritten ADMF-PC architecture progressively, helping identify and fix integration issues systematically.
+
+## Testing Strategy
+
+### 1. Isolation-First Approach
+
+Since the rewrite has import issues, we test individual modules in isolation first:
 
 ```
 tests/
-├── test_config.py                  # Test configuration and utilities
-├── test_data.py                    # Data integration tests (requires pytest)
-├── run_tests.py                    # Test runner script
-├── validate_imports.py             # Import validation utility
-│
-├── test_risk/                      # Risk module tests
-│   ├── test_signal_advanced.py     # Advanced signal processing tests
-│   └── test_signal_flow.py         # Signal flow management tests
-│
-├── test_execution/                 # Execution module tests
-│   ├── test_market_simulation.py   # Market simulation tests
-│   ├── test_order_flow.py          # Order management tests
-│   └── test_unified_backtest.py    # Unified backtest engine tests
-│
-├── test_integration/               # Integration tests
-│   ├── test_full_backtest_flow.py  # Complete backtest workflow tests
-│   ├── test_risk_execution_integration.py  # Risk-Execution integration
-│   └── test_signal_to_fill_flow.py # Signal to fill flow tests
-│
-└── test_strategies/                # Strategy tests
-    └── test_example_strategies.py  # Example strategy implementations
+├── isolated/          # Tests that don't import full module graph
+│   ├── test_events_isolated.py
+│   ├── test_containers_isolated.py
+│   └── test_barriers_isolated.py
+├── unit/              # Standard unit tests (when imports work)
+│   ├── events/
+│   ├── containers/
+│   └── coordinator/
+├── integration/       # Module integration tests
+│   ├── test_events_containers.py
+│   ├── test_containers_coordinator.py
+│   └── test_full_pipeline.py
+├── system/            # End-to-end system tests
+│   ├── test_basic_backtest.py
+│   └── test_parallel_execution.py
+└── utils/             # Test utilities and fixtures
+    ├── fixtures.py
+    ├── mocks.py
+    └── test_data.py
 ```
 
-## Test Coverage
+### 2. Progressive Integration
 
-### Risk Module Tests
-- **Signal Processing**: Router, validator, cache, prioritizer
-- **Signal Flow**: Flow manager, multi-symbol routing
-- **Portfolio Management**: Position tracking, risk limits
-- **Advanced Features**: Signal aggregation, risk adjustments
+1. **Isolated Tests** - Test individual classes without imports
+2. **Unit Tests** - Test modules once imports are fixed
+3. **Integration Tests** - Test module combinations
+4. **System Tests** - Test complete workflows
 
-### Execution Module Tests
-- **Order Management**: Creation, validation, lifecycle
-- **Market Simulation**: Slippage models, commission models
-- **Backtest Engine**: Unified architecture, event flow
-- **Broker Integration**: Fill simulation, position updates
+### 3. Import Issue Detection
+
+Each test level helps identify:
+- Missing modules
+- Circular imports
+- Interface mismatches
+- Configuration errors
+
+## Test Categories
+
+### Isolated Tests
+- Test individual classes by copying/mocking them
+- No imports from main codebase
+- Validates core logic works
+
+### Unit Tests  
+- Test individual modules once imports work
+- Use proper imports
+- Mock external dependencies
 
 ### Integration Tests
-- **Signal to Fill Flow**: Complete workflow from strategy signal to executed fill
-- **Risk-Execution Integration**: Risk limits, position sizing, order approval
-- **Full Backtest Flow**: End-to-end backtesting with multiple strategies
-- **Multi-Strategy Flow**: Signal aggregation and weighted processing
+- Test module combinations
+- Focus on interfaces and data flow
+- Minimal end-to-end logic
 
-### Strategy Tests
-- **Momentum Strategy**: Signal generation based on price momentum
-- **Mean Reversion Strategy**: Signal generation based on statistical properties
-- **Strategy Integration**: Multiple strategies working together
+### System Tests
+- Complete workflow testing
+- Real data and configurations
+- Performance and reliability testing
 
 ## Running Tests
 
-### Using unittest (no external dependencies)
 ```bash
+# Run isolated tests (should always work)
+python tests/isolated/run_isolated_tests.py
+
+# Run unit tests (when imports are fixed)
+python tests/unit/run_unit_tests.py
+
+# Run integration tests  
+python tests/integration/run_integration_tests.py
+
 # Run all tests
-python3 tests/run_tests.py
-
-# Run specific test category
-python3 tests/run_tests.py --category risk
-python3 tests/run_tests.py --category execution
-python3 tests/run_tests.py --category integration
-
-# Run specific test file
-python3 -m unittest tests.test_risk.test_signal_advanced
+python tests/run_all_tests.py
 ```
 
-### Validate imports
-```bash
-python3 tests/validate_imports.py
-```
+## Test Development Guidelines
 
-## Test Design Principles
-
-1. **PC Architecture Compliance**: All tests follow Protocol + Composition pattern
-2. **No Inheritance**: Tests use composition and protocols only
-3. **Isolated Components**: Each test validates a specific component in isolation
-4. **Integration Coverage**: Separate tests validate component interactions
-5. **Realistic Scenarios**: Tests use realistic market data and trading scenarios
-
-## Key Test Scenarios
-
-### Risk Management
-- Signal validation and deduplication
-- Risk limit enforcement (position limits, exposure limits)
-- Position sizing strategies
-- Portfolio state consistency
-
-### Order Execution
-- Order lifecycle management
-- Fill simulation with slippage and commission
-- Partial fill handling
-- Order status tracking
-
-### Signal Flow
-- Multi-strategy signal collection
-- Signal aggregation and prioritization
-- Routing to appropriate processors
-- Event-driven communication
-
-### Backtesting
-- Historical data processing
-- Strategy performance calculation
-- Risk metrics computation
-- Transaction cost modeling
-
-## Test Utilities
-
-### MockMarketData
-Provides realistic market data for testing:
-- Price generation with volatility
-- Volume simulation
-- Spread calculation
-
-### TestConfig
-Common test configuration:
-- Default test parameters
-- Mock object factories
-- Assertion helpers
-
-### TestSignals
-Pre-defined test signals for common scenarios:
-- Entry/exit signals
-- Risk management signals
-- Multi-strategy signals
-
-## Dependencies
-
-### Core Dependencies (No external packages)
-- unittest (Python standard library)
-- datetime, decimal, typing, etc.
-
-### Optional Dependencies
-- pytest: Enhanced test runner (test_data.py)
-- numpy: Numerical computations (some integration tests)
-
-## Adding New Tests
-
-1. Follow the existing structure and naming conventions
-2. Use composition, not inheritance
-3. Mock external dependencies appropriately
-4. Include both positive and negative test cases
-5. Document test purpose and expected behavior
-6. Ensure tests are independent and can run in any order
-
-## Test Maintenance
-
-- Run `validate_imports.py` after adding new tests
-- Update this README when adding new test categories
-- Keep tests focused and fast-running
-- Remove or update obsolete tests promptly
+1. **Start Isolated** - Write isolated tests first to validate logic
+2. **Mock Heavy** - Use mocks to isolate dependencies  
+3. **Progressive** - Build up from simple to complex
+4. **Document Issues** - Record import/integration problems
+5. **Fix and Test** - Fix issues and add regression tests
+EOF < /dev/null

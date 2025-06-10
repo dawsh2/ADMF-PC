@@ -20,8 +20,8 @@ from pathlib import Path
 import logging
 from enum import Enum
 
-from ..containers.protocols import ContainerRole, Container
-from ..types.events import EventBusProtocol
+from ..containers.protocols import ContainerRole, ContainerProtocol
+from ..events import EventBusProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +154,7 @@ def strategy(
     name: Optional[str] = None,
     features: Optional[List[str]] = None,
     feature_config: Optional[Dict[str, Any]] = None,
+    validate_features: bool = True,
     **metadata
 ):
     """
@@ -174,8 +175,6 @@ def strategy(
     def decorator(func_or_class):
         component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
         
-        factory = func_or_class if callable(func_or_class) else lambda: func_or_class
-        
         # Process feature config metadata
         features_meta = feature_config or {}
         
@@ -187,6 +186,22 @@ def strategy(
         else:
             features_list = features or []
         
+        # Apply feature validation if enabled
+        original_func = func_or_class
+        if validate_features and features_list:
+            from ...strategy.validation import validate_strategy_features
+            
+            # Store required features on function for validator
+            func_or_class.required_features = features_list
+            
+            # Apply validation decorator
+            func_or_class = validate_strategy_features(func_or_class)
+            
+            # Preserve original function reference
+            func_or_class.__wrapped__ = original_func
+        
+        factory = func_or_class if callable(func_or_class) else lambda: func_or_class
+        
         info = ComponentInfo(
             name=component_name,
             component_type='strategy',
@@ -195,6 +210,7 @@ def strategy(
             metadata={
                 'features': features_list,
                 'feature_config': features_meta,
+                'validate_features': validate_features,
                 **metadata
             }
         )
@@ -205,6 +221,10 @@ def strategy(
         if hasattr(func_or_class, '__dict__'):
             func_or_class._component_info = info
         
+        # Ensure required_features is accessible
+        if not hasattr(func_or_class, 'required_features'):
+            func_or_class.required_features = features_list
+        
         return func_or_class
     
     return decorator
@@ -213,18 +233,39 @@ def strategy(
 def classifier(
     name: Optional[str] = None,
     regime_types: Optional[List[str]] = None,
+    features: Optional[List[str]] = None,
+    validate_features: bool = True,
     **metadata
 ):
     """
     Decorator to register a classifier.
     
     Example:
-        @classifier(regime_types=['bull', 'bear', 'sideways'])
+        @classifier(
+            regime_types=['bull', 'bear', 'sideways'],
+            features=['sma', 'volume']
+        )
         def trend_classifier(features, params):
             return regime
     """
     def decorator(func_or_class):
         component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
+        
+        features_list = features or []
+        
+        # Apply feature validation if enabled
+        original_func = func_or_class
+        if validate_features and features_list:
+            from ...strategy.validation import validate_classifier_features
+            
+            # Store required features on function for validator
+            func_or_class.required_features = features_list
+            
+            # Apply validation decorator
+            func_or_class = validate_classifier_features(func_or_class)
+            
+            # Preserve original function reference
+            func_or_class.__wrapped__ = original_func
         
         factory = func_or_class if callable(func_or_class) else lambda: func_or_class
         
@@ -235,6 +276,8 @@ def classifier(
             capabilities={'regime.classification'},
             metadata={
                 'regime_types': regime_types or [],
+                'features': features_list,
+                'validate_features': validate_features,
                 **metadata
             }
         )
@@ -243,6 +286,10 @@ def classifier(
         
         if hasattr(func_or_class, '__dict__'):
             func_or_class._component_info = info
+        
+        # Ensure required_features is accessible
+        if not hasattr(func_or_class, 'required_features'):
+            func_or_class.required_features = features_list
         
         return func_or_class
     

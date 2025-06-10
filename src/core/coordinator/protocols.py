@@ -31,7 +31,7 @@ class TopologyBuilderProtocol(Protocol):
 class SequencerProtocol(Protocol):
     """Protocol for phase sequencers."""
     
-    async def execute_phases(
+    def execute_phases(
         self, 
         pattern: Dict[str, Any], 
         config: Dict[str, Any],
@@ -55,19 +55,19 @@ class SequencerProtocol(Protocol):
 class ResultStreamerProtocol(Protocol):
     """Protocol for result streaming."""
     
-    async def write_result(self, result: Dict[str, Any]) -> None:
+    def write_result(self, result: Dict[str, Any]) -> None:
         """Write a result to the stream."""
         ...
     
-    async def flush(self) -> None:
+    def flush(self) -> None:
         """Flush any buffered results."""
         ...
     
-    async def get_aggregated_results(self) -> Dict[str, Any]:
+    def get_aggregated_results(self) -> Dict[str, Any]:
         """Get aggregated results."""
         ...
     
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the streamer and clean up resources."""
         ...
 
@@ -76,7 +76,7 @@ class ResultStreamerProtocol(Protocol):
 class DataManagerProtocol(Protocol):
     """Protocol for inter-phase data management."""
     
-    async def store_phase_output(
+    def store_phase_output(
         self,
         workflow_id: str,
         phase_name: str,
@@ -86,7 +86,7 @@ class DataManagerProtocol(Protocol):
         """Store output from a phase."""
         ...
     
-    async def get_phase_output(
+    def get_phase_output(
         self,
         workflow_id: str,
         phase_name: str

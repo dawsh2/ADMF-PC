@@ -4,16 +4,18 @@ Architecture Reference: docs/SYSTEM_ARCHITECTURE_V5.MD#risk-module
 Style Guide: STYLE.md - Canonical risk implementations
 
 This module provides canonical Risk management implementations:
-- Portfolio state tracking
 - Position sizing strategies  
 - Risk constraint enforcement
 - Signal processing pipeline
+- Risk limit validation
 
 THE canonical implementations:
-- PortfolioState: Global portfolio tracking
 - Position sizers: Fixed, percentage, volatility-based strategies
 - Risk limits: Position, exposure, drawdown constraints
 - Signal processors: Signal to order conversion pipeline
+- Risk validators: Stateless risk validation components
+
+Note: Portfolio state tracking has been moved to the portfolio module.
 """
 
 from .protocols import (
@@ -22,31 +24,50 @@ from .protocols import (
     OrderSide,
     PositionSizerProtocol,
     RiskLimitProtocol,
-    PortfolioStateProtocol,
     SignalProcessorProtocol,
-    Signal,
-    Order,
+    StatelessRiskValidator,
+    RiskCapability,
+    PositionSizingCapability,
+    RiskLimitCapability,
+)
+# Import portfolio types from portfolio module
+from ..portfolio.protocols import (
     Position,
     RiskMetrics,
+    PortfolioStateProtocol,
 )
-# RiskPortfolioContainer deprecated - use separate Risk and Portfolio containers
+# Import canonical types from their proper modules
+from ..core.events.types import Event
+from ..execution.types import OrderType, OrderSide
+from ..strategy.types import SignalType, Signal
 from .position_sizing import (
+    # Pure functional position size calculators
+    calculate_fixed_position_size,
+    calculate_percentage_position_size,
+    calculate_kelly_position_size,
+    calculate_volatility_based_position_size,
+    calculate_atr_based_position_size,
+    apply_position_constraints,
+    # Backward compatibility wrappers
     FixedPositionSizer,
     PercentagePositionSizer,
     KellyCriterionSizer,
     VolatilityBasedSizer,
 )
 from .limits import (
-    MaxPositionLimit,
-    MaxExposureLimit,
-    MaxDrawdownLimit,
-    VaRLimit,
-    ConcentrationLimit,
-    LeverageLimit,
+    # Pure functional limit checks
+    check_max_position_limit,
+    check_max_drawdown_limit,
+    check_var_limit,
+    check_max_exposure_limit,
+    check_concentration_limit,
+    check_leverage_limit,
+    check_daily_loss_limit,
+    check_symbol_restrictions,
+    check_all_limits,
+    # Backward compatibility
+    RiskLimits,
 )
-from .portfolio_state import PortfolioState
-# Capabilities deprecated with RiskPortfolioContainer
-# Use separate Risk and Portfolio containers instead
 
 __all__ = [
     # Protocols
@@ -55,11 +76,17 @@ __all__ = [
     "RiskLimitProtocol",
     "PortfolioStateProtocol",
     "SignalProcessorProtocol",
-    # Types
+    "StatelessRiskValidator",
+    # Capabilities
+    "RiskCapability",
+    "PositionSizingCapability", 
+    "RiskLimitCapability",
+    # Types (canonical from other modules)
+    "Event",
     "Signal",
     "SignalType", 
     "OrderSide",
-    "Order",
+    "OrderType",
     "Position",
     "RiskMetrics",
     # Position Sizers
@@ -67,13 +94,23 @@ __all__ = [
     "PercentagePositionSizer", 
     "KellyCriterionSizer",
     "VolatilityBasedSizer",
-    # Risk Limits
-    "MaxPositionLimit",
-    "MaxExposureLimit",
-    "MaxDrawdownLimit", 
-    "VaRLimit",
-    "ConcentrationLimit",
-    "LeverageLimit",
-    # Portfolio State
-    "PortfolioState",
+    # Pure functional calculators
+    "calculate_fixed_position_size",
+    "calculate_percentage_position_size",
+    "calculate_kelly_position_size",
+    "calculate_volatility_based_position_size",
+    "calculate_atr_based_position_size",
+    "apply_position_constraints",
+    # Pure functional limit checks
+    "check_max_position_limit",
+    "check_max_drawdown_limit",
+    "check_var_limit",
+    "check_max_exposure_limit",
+    "check_concentration_limit",
+    "check_leverage_limit",
+    "check_daily_loss_limit",
+    "check_symbol_restrictions",
+    "check_all_limits",
+    # Backward compatibility classes
+    "RiskLimits",
 ]

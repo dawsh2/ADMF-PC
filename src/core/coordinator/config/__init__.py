@@ -1,29 +1,86 @@
-"""Configuration validation and schema management."""
+"""
+Coordinator Configuration Utilities
 
-from .schema_validator import (
-    SimpleConfigValidator as ConfigSchemaValidator,
-    SchemaValidationError,
-    ValidationResult,
+Consolidated utilities for pattern loading, configuration resolution, and validation.
+"""
+
+from .pattern_loader import PatternLoader
+from .resolver import ConfigResolver
+from .validator import ConfigValidator, ValidationResult, validate_workflow, check_required_fields
+from .component_schemas import (
+    ComponentSchema,
+    get_component_schema,
+    get_all_schemas_for_type,
+    list_component_types,
+    list_components_for_type,
+    validate_component_config,
+    get_example_config,
+    generate_documentation
 )
 
-# Export schemas as named constants for compatibility
-BACKTEST_SCHEMA = "backtest"
-OPTIMIZATION_SCHEMA = "optimization" 
-LIVE_TRADING_SCHEMA = "live_trading"
-STRATEGY_SCHEMA = "strategy"
-RISK_SCHEMA = "risk"
-DATA_SCHEMA = "data"
-EXECUTION_SCHEMA = "execution"
+# Pydantic models (preferred for new code)
+try:
+    from .models import (
+        WorkflowConfig,
+        DataConfig,
+        PortfolioConfig,
+        StrategyConfig,
+        RiskConfig,
+        RiskLimitConfig,
+        PositionSizerConfig,
+        ExecutionConfig,
+        validate_workflow_dict,
+        get_validation_errors,
+        validate_partial_config,
+        generate_schema_docs,
+        get_example_config as get_pydantic_example
+    )
+    PYDANTIC_AVAILABLE = True
+except ImportError:
+    PYDANTIC_AVAILABLE = False
+    WorkflowConfig = None
+    DataConfig = None
+    PortfolioConfig = None
+    StrategyConfig = None
+    RiskConfig = None
+    RiskLimitConfig = None
+    PositionSizerConfig = None
+    ExecutionConfig = None
+    validate_workflow_dict = None
+    get_validation_errors = None
+    validate_partial_config = None
+    generate_schema_docs = None
+    get_pydantic_example = None
 
 __all__ = [
-    'ConfigSchemaValidator',
-    'SchemaValidationError',
+    'PatternLoader',
+    'ConfigResolver', 
+    'ConfigValidator',
     'ValidationResult',
-    'BACKTEST_SCHEMA',
-    'OPTIMIZATION_SCHEMA',
-    'LIVE_TRADING_SCHEMA',
-    'STRATEGY_SCHEMA',
-    'RISK_SCHEMA',
-    'DATA_SCHEMA',
-    'EXECUTION_SCHEMA'
+    'validate_workflow',
+    'check_required_fields',
+    # Legacy component schemas
+    'ComponentSchema',
+    'get_component_schema',
+    'get_all_schemas_for_type', 
+    'list_component_types',
+    'list_components_for_type',
+    'validate_component_config',
+    'get_example_config',
+    'generate_documentation',
+    # Pydantic models (if available)
+    'PYDANTIC_AVAILABLE',
+    'WorkflowConfig',
+    'DataConfig',
+    'PortfolioConfig', 
+    'StrategyConfig',
+    'RiskConfig',
+    'RiskLimitConfig',
+    'PositionSizerConfig',
+    'ExecutionConfig',
+    'validate_workflow_dict',
+    'get_validation_errors',
+    'validate_partial_config',
+    'generate_schema_docs',
+    'get_pydantic_example'
 ]
