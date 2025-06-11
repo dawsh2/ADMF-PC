@@ -65,6 +65,10 @@ class Coordinator:
         self.topology_builder = topology_builder or TopologyBuilder(self.pattern_loader, self.config_resolver)
         self.sequencer = sequencer or Sequencer(self.topology_builder, self.pattern_loader, self.config_resolver)
         
+        # Add topology runner for direct topology execution
+        from .topology_runner import TopologyRunner
+        self.topology_runner = TopologyRunner(self.topology_builder)
+        
         # Pattern loading
         self.workflow_patterns = self.pattern_loader.load_patterns('workflows')
         self.phase_outputs = {}  # Store outputs from completed phases
@@ -118,6 +122,41 @@ class Coordinator:
             except ImportError:
                 logger.warning("Event tracing not available")
     
+    def run_topology(self, topology_name: str, 
+                    config: Dict[str, Any],
+                    execution_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Execute a topology directly without workflow wrapping.
+        
+        This is the most basic execution primitive - just runs a topology once
+        with the provided configuration.
+        
+        Args:
+            topology_name: Name of topology pattern to execute
+            config: Configuration including data, strategies, execution settings
+            execution_id: Optional execution ID for tracking
+            
+        Returns:
+            Topology execution results
+        """
+        # Load available topology patterns if not already loaded
+        if not hasattr(self, 'topology_patterns'):
+            self.topology_patterns = self.pattern_loader.load_patterns('topologies')
+        
+        # Validate topology exists
+        if topology_name not in self.topology_patterns:
+            raise ValueError(f"Unknown topology: {topology_name}. "
+                           f"Available: {list(self.topology_patterns.keys())}")
+        
+        logger.info(f"Executing topology '{topology_name}' directly")
+        
+        # Delegate to topology runner
+        return self.topology_runner.run_topology(
+            topology_name=topology_name,
+            config=config,
+            execution_id=execution_id
+        )
+    
     def run_workflow(self, workflow_definition: Dict[str, Any],
                     workflow_id: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -143,7 +182,14 @@ class Coordinator:
         else:
             # Backward compatibility - treat entire dict as config
             config = workflow_definition
-            workflow_spec = config.get('workflow', 'simple_backtest')
+            # Check for topology first, then workflow
+            if 'topology' in config and 'workflow' not in config:
+                # Direct topology execution request
+                topology_name = config.pop('topology')  # Remove from config
+                logger.info(f"Config specifies topology '{topology_name}' - executing directly")
+                return self.run_topology(topology_name, config, execution_id=workflow_id)
+            else:
+                workflow_spec = config.get('workflow', 'simple_backtest')
         
         # VALIDATE CONFIGURATION FIRST (if Pydantic available)
         if PYDANTIC_AVAILABLE and WorkflowConfig:
@@ -185,10 +231,20 @@ class Coordinator:
             if pattern_name in self.discovered_workflows:
                 return self._execute_discovered_workflow(pattern_name, config, workflow_id)
             
-            # Then check patterns
+            # Then check workflow patterns
             pattern = self.workflow_patterns.get(pattern_name)
+            
+            # If not a workflow, check if it's a topology pattern
             if not pattern:
-                raise ValueError(f"Unknown workflow: {pattern_name}")
+                if not hasattr(self, 'topology_patterns'):
+                    self.topology_patterns = self.pattern_loader.load_patterns('topologies')
+                    
+                if pattern_name in self.topology_patterns:
+                    # Direct topology execution - no wrapping needed!
+                    logger.info(f"Executing topology '{pattern_name}' directly (no workflow wrapping)")
+                    return self.run_topology(pattern_name, config, execution_id=workflow_id)
+                else:
+                    raise ValueError(f"Unknown workflow or topology: {pattern_name}")
         else:
             # Inline workflow definition
             pattern = workflow_spec
@@ -373,7 +429,7 @@ class Coordinator:
             result = self.sequencer.execute_sequence(phase, workflow_context)
             return result
         except Exception as e:
-            logger.error(f"Phase {phase_name} failed: {e}")
+            logger.error(f"Phase {phase_name} failed: {e}", exc_info=True)
             return {
                 'success': False,
                 'phase_name': phase_name,

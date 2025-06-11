@@ -1,0 +1,42 @@
+topology:
+  name: test_strategy_features
+  type: signal_generation
+  containers:
+    - name: data_container
+      components:
+        - data_streamer
+      config:
+        symbol: SPY
+        data_dir: ./data
+        max_bars: 5
+        trace_level: DEBUG
+        console_output: true
+    
+    - name: strategy_container
+      components:
+        - strategy_state
+      config:
+        symbols: [SPY]
+        features:
+          sma_fast:
+            feature: sma
+            period: 10
+          sma_slow:
+            feature: sma
+            period: 20
+          rsi:
+            feature: rsi
+            period: 14
+        trace_level: DEBUG
+        console_output: true
+
+workflow:
+  name: test_strategy_features
+  type: single_pass
+  phases:
+    - name: test_run
+      topology: signal_generation  # Use signal_generation topology
+      duration: 5  # Process 5 bars
+      containers:
+        - data_container
+        - strategy_container

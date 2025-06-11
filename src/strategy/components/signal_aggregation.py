@@ -9,7 +9,7 @@ from typing import List, Optional, Dict, Any, Callable
 from dataclasses import dataclass
 from enum import Enum
 
-from ..protocols import Signal, SignalDirection
+from ..protocols import SignalDirection
 
 
 @dataclass
@@ -32,7 +32,7 @@ class SignalCombiner:
     def __init__(self, method: str = "weighted_average"):
         self.method = method
         
-    def combine(self, signals: List[InternalSignal]) -> Optional[Signal]:
+    def combine(self, signals: List[InternalSignal]) -> Optional[Dict[str, Any]]:
         """Combine internal signals into final signal."""
         if not signals:
             return None
@@ -46,7 +46,7 @@ class SignalCombiner:
         else:
             raise ValueError(f"Unknown method: {self.method}")
     
-    def _weighted_average(self, signals: List[InternalSignal]) -> Optional[Signal]:
+    def _weighted_average(self, signals: List[InternalSignal]) -> Optional[Dict[str, Any]]:
         """Weighted average of signal strengths."""
         # Group by direction
         buy_strength = 0.0
@@ -71,22 +71,22 @@ class SignalCombiner:
         
         # Determine final direction
         if buy_strength > sell_strength:
-            return Signal(
-                direction=SignalDirection.BUY,
-                strength=buy_strength - sell_strength
-            )
+            return {
+                'direction': SignalDirection.BUY.value,
+                'strength': buy_strength - sell_strength
+            }
         elif sell_strength > buy_strength:
-            return Signal(
-                direction=SignalDirection.SELL,
-                strength=sell_strength - buy_strength
-            )
+            return {
+                'direction': SignalDirection.SELL.value,
+                'strength': sell_strength - buy_strength
+            }
         else:
-            return Signal(
-                direction=SignalDirection.HOLD,
-                strength=0.0
-            )
+            return {
+                'direction': SignalDirection.HOLD.value,
+                'strength': 0.0
+            }
     
-    def _majority_vote(self, signals: List[InternalSignal]) -> Optional[Signal]:
+    def _majority_vote(self, signals: List[InternalSignal]) -> Optional[Dict[str, Any]]:
         """Simple majority voting."""
         buy_votes = sum(1 for s in signals if s.direction == SignalDirection.BUY)
         sell_votes = sum(1 for s in signals if s.direction == SignalDirection.SELL)
@@ -94,23 +94,23 @@ class SignalCombiner:
         
         if buy_votes > sell_votes and buy_votes > hold_votes:
             avg_strength = sum(s.strength for s in signals if s.direction == SignalDirection.BUY) / buy_votes
-            return Signal(direction=SignalDirection.BUY, strength=avg_strength)
+            return {'direction': SignalDirection.BUY.value, 'strength': avg_strength}
         elif sell_votes > buy_votes and sell_votes > hold_votes:
             avg_strength = sum(s.strength for s in signals if s.direction == SignalDirection.SELL) / sell_votes
-            return Signal(direction=SignalDirection.SELL, strength=avg_strength)
+            return {'direction': SignalDirection.SELL.value, 'strength': avg_strength}
         else:
-            return Signal(direction=SignalDirection.HOLD, strength=0.0)
+            return {'direction': SignalDirection.HOLD.value, 'strength': 0.0}
     
-    def _strongest_signal(self, signals: List[InternalSignal]) -> Optional[Signal]:
+    def _strongest_signal(self, signals: List[InternalSignal]) -> Optional[Dict[str, Any]]:
         """Return the strongest signal."""
         if not signals:
             return None
             
         strongest = max(signals, key=lambda s: s.strength)
-        return Signal(
-            direction=strongest.direction,
-            strength=strongest.strength
-        )
+        return {
+            'direction': strongest.direction.value,
+            'strength': strongest.strength
+        }
 
 
 class SignalFilter:

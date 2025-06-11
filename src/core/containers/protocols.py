@@ -278,6 +278,21 @@ class ContainerLimits:
     timeout_seconds: Optional[int] = None
 
 
+# Strategy calling protocol
+
+@runtime_checkable
+class StrategyCallerProtocol(Protocol):
+    """Protocol for containers that execute strategies with features."""
+    
+    def handle_bar_for_strategies(self, event: Any) -> None:
+        """Handle BAR event by updating features and calling strategies."""
+        ...
+    
+    def add_strategy(self, strategy_id: str, strategy_func: Any, parameters: Dict[str, Any]) -> None:
+        """Add a strategy function to be called."""
+        ...
+
+
 # Order tracking protocols for duplicate prevention
 
 @runtime_checkable

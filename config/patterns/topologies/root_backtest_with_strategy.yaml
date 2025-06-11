@@ -1,0 +1,73 @@
+# Root Container Backtest Pattern with Simple Strategy
+# Creates root container + data + features + ONE strategy container for testing
+
+name: root_backtest_with_strategy
+description: Root backtest with one strategy container for signal generation testing
+
+# Containers to create
+containers:
+  # Explicit root container
+  - name: root
+    type: root
+    config:
+      components: []
+      
+    # Child containers
+    containers:
+      # Data containers
+      - name_template: "{symbol}_{timeframe}_data"
+        type: data
+        foreach:
+          symbol:
+            from_config: data.symbols
+            default: []
+          timeframe:
+            from_config: data.timeframes
+            default: ['1d']
+        config:
+          symbol: "{symbol}"
+          timeframe: "{timeframe}"
+          components: ['data_streamer']
+          data_dir: './data'
+          max_bars:
+            from_config: data.max_bars
+            default: null
+          
+      # Feature container
+      - name: features
+        type: features
+        config:
+          components: ['feature_pipeline']
+          
+      # Simple strategy container - just one for testing
+      - name: strategy_test
+        type: strategy
+        config:
+          components: ['strategy']
+          strategy_type: momentum_strategy
+          strategy_params:
+            from_config: strategies.0.params  # Get params from first strategy
+            default: 
+              sma_period: 5
+              rsi_threshold_long: 40
+              rsi_threshold_short: 60
+          
+      # Portfolio containers
+      - name: portfolio_default
+        type: portfolio
+        config:
+          components: ['portfolio_manager']
+          initial_capital:
+            from_config: portfolio.initial_capital
+            default: 100000
+            
+      # Execution container
+      - name: execution
+        type: execution
+        config:
+          components: ['execution_engine']
+          mode:
+            from_config: execution.mode
+            default: backtest
+
+# All containers share root's event bus - simple event flow

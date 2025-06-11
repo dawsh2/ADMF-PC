@@ -47,8 +47,9 @@ class SimpleHistoricalDataHandler:
         # Data loader
         self.loader = SimpleCSVLoader(data_dir)
         
-        # Event bus - set by container
+        # Event bus and container - set by container
         self.event_bus = None
+        self.container = None
     
     @property
     def name(self) -> str:
@@ -58,6 +59,10 @@ class SimpleHistoricalDataHandler:
     def set_event_bus(self, event_bus) -> None:
         """Set the event bus for publishing events."""
         self.event_bus = event_bus
+    
+    def set_container(self, container) -> None:
+        """Set the container reference for parent publishing."""
+        self.container = container
     
     # Implements DataProvider protocol
     def load_data(self, symbols: List[str]) -> bool:
@@ -98,12 +103,16 @@ class SimpleHistoricalDataHandler:
         This enables event-driven execution where other components
         react naturally to BAR events.
         """
+        logger.info(f"Data handler execute() called for symbols: {self.symbols}")
+        
         if not self._running:
             self.start()
         
         # Stream all bars
         bars_streamed = 0
         max_bars = getattr(self, 'max_bars', float('inf'))
+        
+        logger.info(f"Starting to stream bars, max_bars: {max_bars}, has_data: {self.has_more_data()}")
         
         while self.has_more_data() and bars_streamed < max_bars:
             if self.update_bars():
@@ -156,8 +165,23 @@ class SimpleHistoricalDataHandler:
             # Update index
             indices[symbol] = idx + 1
             
-            # Publish BAR event to event bus
-            if self.event_bus:
+            # Publish BAR event to parent container
+            if self.container:
+                from ..core.events.types import Event, EventType
+                event = Event(
+                    event_type=EventType.BAR.value,
+                    payload={
+                        'symbol': symbol,
+                        'timestamp': timestamp,
+                        'bar': bar
+                    },
+                    source_id=self.handler_id,
+                    container_id=self.container.container_id if self.container else None
+                )
+                # Publish to parent so all sibling containers can see it
+                self.container.publish_event(event, target_scope="parent")
+            elif self.event_bus:
+                # Fallback to local bus if no container
                 from ..core.events.types import Event, EventType
                 event = Event(
                     event_type=EventType.BAR.value,

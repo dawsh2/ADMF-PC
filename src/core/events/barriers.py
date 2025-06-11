@@ -25,6 +25,62 @@ from .types import Event, EventType
 logger = logging.getLogger(__name__)
 
 
+# === MONITORING AND STATS ===
+
+@dataclass
+class BarrierStats:
+    """Statistics for monitoring barrier performance."""
+    events_passed: int = 0
+    events_blocked: int = 0
+    last_reset: datetime = field(default_factory=datetime.now)
+    
+    @property
+    def pass_rate(self) -> float:
+        """Calculate the pass rate as a percentage."""
+        total = self.events_passed + self.events_blocked
+        return self.events_passed / total if total > 0 else 0.0
+    
+    @property
+    def total_events(self) -> int:
+        """Total events processed."""
+        return self.events_passed + self.events_blocked
+    
+    def reset(self) -> None:
+        """Reset statistics."""
+        self.events_passed = 0
+        self.events_blocked = 0
+        self.last_reset = datetime.now()
+
+
+# === TIME PROVIDER PROTOCOL ===
+
+@runtime_checkable
+class TimeProviderProtocol(Protocol):
+    """Protocol for providing time to barriers - supports both real-time and simulated time."""
+    
+    def get_current_time(self, event: Optional[Event] = None) -> datetime:
+        """Get current time - either from event (simulated) or system clock (live)."""
+        ...
+
+
+class EventTimeProvider:
+    """Time provider that uses event timestamps for backtesting."""
+    
+    def get_current_time(self, event: Optional[Event] = None) -> datetime:
+        """Get time from event timestamp if available, otherwise use system time."""
+        if event and hasattr(event, 'timestamp') and event.timestamp:
+            return event.timestamp
+        return datetime.now()
+
+
+class SystemTimeProvider:
+    """Time provider that always uses system clock for live trading."""
+    
+    def get_current_time(self, event: Optional[Event] = None) -> datetime:
+        """Always return system time regardless of event."""
+        return datetime.now()
+
+
 # === UNIFIED BARRIER PROTOCOL ===
 
 @runtime_checkable
@@ -125,10 +181,11 @@ class DataAlignmentBarrier:
     required_symbols: List[str]
     required_timeframes: List[str] = field(default_factory=lambda: ['1m'])
     timeout_seconds: Optional[float] = None
+    time_provider: TimeProviderProtocol = field(default_factory=EventTimeProvider)
     
     def __post_init__(self):
         self._received_data: Dict[str, datetime] = {}
-        self._last_reset = datetime.now()
+        self._last_reset = self.time_provider.get_current_time()
     
     def should_proceed(self, event: Event) -> bool:
         """Check if we have all required data."""
@@ -140,7 +197,7 @@ class DataAlignmentBarrier:
         
         if symbol in self.required_symbols and timeframe in self.required_timeframes:
             key = f"{symbol}_{timeframe}"
-            self._received_data[key] = datetime.now()
+            self._received_data[key] = self.time_provider.get_current_time(event)
         
         # Check if we have all required combinations
         required_keys = {
@@ -158,7 +215,7 @@ class DataAlignmentBarrier:
     def reset(self) -> None:
         """Reset received data."""
         self._received_data.clear()
-        self._last_reset = datetime.now()
+        self._last_reset = self.time_provider.get_current_time()
 
 
 @dataclass
@@ -212,6 +269,7 @@ class TimingBarrier:
     max_signals_per_minute: Optional[int] = None
     trading_hours: Optional[tuple] = None  # (start_hour, end_hour)
     min_time_between_signals: Optional[float] = None  # seconds
+    time_provider: TimeProviderProtocol = field(default_factory=EventTimeProvider)
     
     def __post_init__(self):
         self._signal_times: List[datetime] = []
@@ -222,24 +280,24 @@ class TimingBarrier:
         if event.event_type != EventType.SIGNAL.value:
             return True
             
-        now = datetime.now()
+        current_time = self.time_provider.get_current_time(event)
         
         # Check trading hours
         if self.trading_hours:
             start_hour, end_hour = self.trading_hours
-            if not (start_hour <= now.hour < end_hour):
+            if not (start_hour <= current_time.hour < end_hour):
                 return False
         
         # Check minimum time between signals
         if self.min_time_between_signals and self._last_signal_time:
-            time_diff = (now - self._last_signal_time).total_seconds()
+            time_diff = (current_time - self._last_signal_time).total_seconds()
             if time_diff < self.min_time_between_signals:
                 return False
         
         # Check rate limit
         if self.max_signals_per_minute:
             # Remove signals older than 1 minute
-            cutoff = now.timestamp() - 60
+            cutoff = current_time.timestamp() - 60
             self._signal_times = [t for t in self._signal_times if t.timestamp() > cutoff]
             
             if len(self._signal_times) >= self.max_signals_per_minute:
@@ -250,9 +308,9 @@ class TimingBarrier:
     def update_state(self, event: Event) -> None:
         """Update timing state."""
         if event.event_type == EventType.SIGNAL.value:
-            now = datetime.now()
-            self._signal_times.append(now)
-            self._last_signal_time = now
+            current_time = self.time_provider.get_current_time(event)
+            self._signal_times.append(current_time)
+            self._last_signal_time = current_time
     
     def reset(self) -> None:
         """Reset timing state."""
@@ -269,19 +327,31 @@ class CompositeBarrier:
     barriers: List[BarrierProtocol]
     mode: BarrierMode = BarrierMode.ALL
     
+    def __post_init__(self):
+        """Initialize stats tracking."""
+        self.stats = BarrierStats()
+    
     def should_proceed(self, event: Event) -> bool:
         """Check all barriers according to mode."""
         if not self.barriers:
-            return True
+            result = True
+        else:
+            results = [barrier.should_proceed(event) for barrier in self.barriers]
             
-        results = [barrier.should_proceed(event) for barrier in self.barriers]
+            if self.mode == BarrierMode.ALL:
+                result = all(results)
+            elif self.mode == BarrierMode.ANY:
+                result = any(results)
+            else:  # NONE
+                result = True
         
-        if self.mode == BarrierMode.ALL:
-            return all(results)
-        elif self.mode == BarrierMode.ANY:
-            return any(results)
-        else:  # NONE
-            return True
+        # Track statistics
+        if result:
+            self.stats.events_passed += 1
+        else:
+            self.stats.events_blocked += 1
+            
+        return result
     
     def update_state(self, event: Event) -> None:
         """Update all barriers."""
@@ -301,15 +371,32 @@ class CompositeBarrier:
         """Remove a barrier from the composite."""
         if barrier in self.barriers:
             self.barriers.remove(barrier)
+    
+    def get_stats(self) -> Dict[str, BarrierStats]:
+        """Get statistics for each barrier."""
+        stats_dict = {
+            'composite': self.stats
+        }
+        
+        # Add individual barrier stats if they support it
+        for i, barrier in enumerate(self.barriers):
+            if hasattr(barrier, 'stats'):
+                stats_dict[f"barrier_{i}"] = barrier.stats
+            else:
+                # Create basic stats for barriers without tracking
+                stats_dict[f"barrier_{i}"] = BarrierStats()
+        
+        return stats_dict
 
 
 # === FACTORY FUNCTIONS ===
 
-def create_data_barrier(symbols: List[str], timeframes: List[str] = None) -> DataAlignmentBarrier:
+def create_data_barrier(symbols: List[str], timeframes: List[str] = None, time_provider: TimeProviderProtocol = None) -> DataAlignmentBarrier:
     """Create a data alignment barrier for specific symbols/timeframes."""
     return DataAlignmentBarrier(
         required_symbols=symbols,
-        required_timeframes=timeframes or ['1m']
+        required_timeframes=timeframes or ['1m'],
+        time_provider=time_provider or EventTimeProvider()
     )
 
 
@@ -324,13 +411,15 @@ def create_order_barrier(container_id: str, prevent_duplicates: bool = True) -> 
 def create_timing_barrier(
     max_per_minute: Optional[int] = None,
     trading_hours: Optional[tuple] = None,
-    min_gap_seconds: Optional[float] = None
+    min_gap_seconds: Optional[float] = None,
+    time_provider: TimeProviderProtocol = None
 ) -> TimingBarrier:
     """Create a timing constraint barrier."""
     return TimingBarrier(
         max_signals_per_minute=max_per_minute,
         trading_hours=trading_hours,
-        min_time_between_signals=min_gap_seconds
+        min_time_between_signals=min_gap_seconds,
+        time_provider=time_provider or EventTimeProvider()
     )
 
 
@@ -339,14 +428,18 @@ def create_standard_barriers(
     symbols: List[str],
     timeframes: List[str] = None,
     prevent_duplicates: bool = True,
-    max_signals_per_minute: Optional[int] = None
+    max_signals_per_minute: Optional[int] = None,
+    time_provider: TimeProviderProtocol = None
 ) -> CompositeBarrier:
     """Create the standard barrier setup most containers need."""
     barriers = []
     
+    # Use EventTimeProvider by default for backtesting compatibility
+    provider = time_provider or EventTimeProvider()
+    
     # Data alignment
     if symbols:
-        barriers.append(create_data_barrier(symbols, timeframes))
+        barriers.append(create_data_barrier(symbols, timeframes, provider))
     
     # Order state
     if prevent_duplicates:
@@ -354,12 +447,12 @@ def create_standard_barriers(
     
     # Rate limiting
     if max_signals_per_minute:
-        barriers.append(create_timing_barrier(max_per_minute=max_signals_per_minute))
+        barriers.append(create_timing_barrier(max_per_minute=max_signals_per_minute, time_provider=provider))
     
     return CompositeBarrier(barriers, BarrierMode.ALL)
 
 
-def setup_barriers_from_config(config: Dict[str, Any]) -> CompositeBarrier:
+def setup_barriers_from_config(config: Dict[str, Any], time_provider: TimeProviderProtocol = None) -> CompositeBarrier:
     """
     Create barriers from configuration.
     
@@ -377,17 +470,27 @@ def setup_barriers_from_config(config: Dict[str, Any]) -> CompositeBarrier:
             'max_signals_per_minute': 10,
             'trading_hours': [9, 16],
             'min_gap_seconds': 5.0
-        }
+        },
+        'time_mode': 'event'  # 'event' for backtesting, 'system' for live trading
     }
     """
     barriers = []
+    
+    # Determine time provider based on config or parameter
+    if time_provider is None:
+        time_mode = config.get('time_mode', 'event')  # Default to event time for backtesting
+        if time_mode == 'system':
+            time_provider = SystemTimeProvider()
+        else:
+            time_provider = EventTimeProvider()
     
     # Data alignment barrier
     if 'data_alignment' in config:
         data_config = config['data_alignment']
         barrier = create_data_barrier(
             symbols=data_config.get('symbols', []),
-            timeframes=data_config.get('timeframes', ['1m'])
+            timeframes=data_config.get('timeframes', ['1m']),
+            time_provider=time_provider
         )
         barriers.append(barrier)
     
@@ -406,7 +509,8 @@ def setup_barriers_from_config(config: Dict[str, Any]) -> CompositeBarrier:
         barrier = create_timing_barrier(
             max_per_minute=timing_config.get('max_signals_per_minute'),
             trading_hours=tuple(timing_config['trading_hours']) if 'trading_hours' in timing_config else None,
-            min_gap_seconds=timing_config.get('min_gap_seconds')
+            min_gap_seconds=timing_config.get('min_gap_seconds'),
+            time_provider=time_provider
         )
         barriers.append(barrier)
     
@@ -444,3 +548,40 @@ class BarrierMixin:
         """Reset all barriers."""
         if self._barriers:
             self._barriers.reset()
+
+
+# === EXPORTS ===
+
+__all__ = [
+    # Time providers
+    'TimeProviderProtocol',
+    'EventTimeProvider', 
+    'SystemTimeProvider',
+    
+    # Barrier protocol and stats
+    'BarrierProtocol',
+    'BarrierStats',
+    
+    # Barrier implementations
+    'DataAlignmentBarrier',
+    'OrderStateBarrier', 
+    'TimingBarrier',
+    'CompositeBarrier',
+    
+    # Factory functions
+    'create_data_barrier',
+    'create_order_barrier',
+    'create_timing_barrier', 
+    'create_standard_barriers',
+    'setup_barriers_from_config',
+    
+    # Container integration
+    'BarrierMixin',
+    
+    # Enums and types
+    'AlignmentMode',
+    'TimeframeAlignment',
+    'BarrierMode',
+    'DataRequirement',
+    'BarBuffer',
+]

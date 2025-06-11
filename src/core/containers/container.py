@@ -179,12 +179,13 @@ class Container:
     - Configurable, composable, reliable
     """
     
-    def __init__(self, config: ContainerConfig):
+    def __init__(self, config: ContainerConfig, parent_event_bus: Optional[EventBus] = None):
         """
         Initialize container with configuration.
         
         Args:
             config: Container configuration
+            parent_event_bus: Event bus from parent container (None for root container)
         """
         self.config = config
         
@@ -196,8 +197,15 @@ class Container:
         
         self.container_id = config.container_id or f"{self.container_type}_{uuid.uuid4().hex[:8]}"
         
-        # Each container gets its own isolated event bus
-        self.event_bus = EventBus(bus_id=self.container_id)
+        # Only root container creates an event bus, others use parent's bus
+        if parent_event_bus is None:
+            # This is the root container - create the shared event bus
+            self.event_bus = EventBus(bus_id=f"root_{self.container_id}")
+            self._is_root_container = True
+        else:
+            # This is a child container - use parent's event bus
+            self.event_bus = parent_event_bus
+            self._is_root_container = False
         
         # State management
         self._state = ContainerState.UNINITIALIZED
@@ -231,8 +239,8 @@ class Container:
             'last_activity': None
         }
         
-        # Setup event bus tracing if enabled
-        if self._should_enable_tracing():
+        # Setup event bus tracing if enabled (only on root container)
+        if self._is_root_container and self._should_enable_tracing():
             self._setup_tracing()
         
         # Streaming metrics support (optional)
@@ -311,6 +319,11 @@ class Container:
         """Child containers nested within this container."""
         return list(self._child_containers.values())
     
+    @property
+    def components(self) -> Dict[str, ContainerComponent]:
+        """Get all components in this container."""
+        return self._components.copy()
+    
     def add_component(self, name: str, component: ContainerComponent) -> None:
         """
         Add a component to the container.
@@ -323,6 +336,10 @@ class Container:
             raise ComponentAlreadyExistsError(name)
         
         self._components[name] = component
+        
+        # If component needs container reference, provide it
+        if hasattr(component, 'set_container'):
+            component.set_container(self)
         
         # If component needs event bus access, provide it
         if hasattr(component, 'set_event_bus'):
@@ -466,15 +483,16 @@ class Container:
                 [ContainerState.RUNNING]
             )
         
-        logger.debug(f"Container {self.container_id} entering execution phase")
+        logger.info(f"Container {self.container_id} entering execution phase with {len(self._components)} components")
         
         # Let each component execute if it needs to
         # Data streamers will start streaming
         # Other components are event-driven and will react naturally
         for name, component in self._components.items():
+            logger.info(f"Checking component {name}: {type(component).__name__}, has_execute: {hasattr(component, 'execute')}")
             if hasattr(component, 'execute'):
                 try:
-                    logger.debug(f"Executing component {name} in {self.container_id}")
+                    logger.info(f"Executing component {name} in {self.container_id}")
                     component.execute()
                 except Exception as e:
                     logger.error(f"Error executing component {name}: {e}")
@@ -485,6 +503,14 @@ class Container:
         # Save results before cleanup if disk storage
         if self.config.config.get('results_storage') == 'disk':
             self._save_results_before_cleanup()
+        
+        # Flush trace storage before cleanup (configurable)
+        execution_config = self.config.config.get('execution', {})
+        trace_settings = execution_config.get('trace_settings', {})
+        auto_flush = trace_settings.get('auto_flush_on_cleanup', True)  # Default: True
+        
+        if auto_flush:
+            self._flush_trace_storage()
         
         # Ensure stopped first
         if self._state == ContainerState.RUNNING:
@@ -502,6 +528,30 @@ class Container:
         self._components.clear()
         
         logger.info(f"Container {self.name} cleaned up")
+    
+    def _flush_trace_storage(self) -> None:
+        """Flush trace storage to disk before cleanup."""
+        try:
+            # Check if event bus has a tracer with storage
+            if hasattr(self.event_bus, '_tracer') and self.event_bus._tracer:
+                tracer = self.event_bus._tracer
+                
+                # Check if tracer has storage that can be flushed
+                if hasattr(tracer, 'storage') and tracer.storage:
+                    storage = tracer.storage
+                    
+                    # Flush hierarchical storage
+                    if hasattr(storage, 'flush_all'):
+                        storage.flush_all()
+                        logger.info(f"Flushed hierarchical storage for container {self.container_id}")
+                    
+                    # Also try general flush if available
+                    elif hasattr(storage, 'flush'):
+                        storage.flush()
+                        logger.info(f"Flushed storage for container {self.container_id}")
+                
+        except Exception as e:
+            logger.error(f"Error flushing trace storage for container {self.container_id}: {e}")
     
     def _set_state(self, state: ContainerState) -> None:
         """Update container state and track history."""
@@ -563,7 +613,8 @@ class Container:
         Returns:
             The newly created child container
         """
-        child = Container(config)
+        # Pass our event bus to the child container
+        child = Container(config, parent_event_bus=self.event_bus)
         self.add_child_container(child)
         return child
     
@@ -571,7 +622,10 @@ class Container:
     
     def receive_event(self, event: Any) -> None:
         """
-        Receive an event from an route.
+        Receive an event for processing by this container.
+        
+        Since all containers share the root event bus, this method
+        primarily handles metrics tracking and container-specific tracing.
         
         Args:
             event: Event to process
@@ -579,8 +633,21 @@ class Container:
         self._metrics['events_processed'] += 1
         self._metrics['last_activity'] = datetime.now()
         
-        # Publish to internal event bus for components to handle
-        self.event_bus.publish(event)
+        # Container-specific event tracing (if enabled)
+        # Note: This is separate from the main event bus tracing
+        if hasattr(self.event_bus, '_tracer') and self.event_bus._tracer:
+            # Only trace certain event types for portfolio containers
+            if self.container_type == 'portfolio':
+                event_type = getattr(event, 'event_type', None)
+                if event_type in ['SIGNAL', 'FILL', 'ORDER']:
+                    logger.debug(f"Portfolio {self.name} tracing incoming {event_type} event")
+                    self.event_bus._tracer.trace_event(event)
+            # Other containers can define their own rules or trace everything
+            else:
+                self.event_bus._tracer.trace_event(event)
+        
+        # Event is already published to the shared bus by the publisher
+        # No need to republish or forward to children since they share the same bus
     
     # Event Processing and Status methods
     
@@ -590,25 +657,22 @@ class Container:
         # For now, no response processing - can be enhanced later
         return None
     
-    def publish_event(self, event: Any, target_scope: str = "local") -> None:
-        """Publish event to specified scope.
+    def publish_event(self, event: Any, target_scope: str = "global") -> None:
+        """Publish event to the shared root event bus.
         
-        Scopes:
-        - local: Only this container's event bus (default)
-        - parent: Direct parent container (for upward propagation)
+        Since all containers share the same event bus, all events
+        are automatically visible to all containers and components.
         
-        All other communication patterns should use routes.
+        Args:
+            event: Event to publish
+            target_scope: Kept for backward compatibility, but all events go to shared bus
         """
         self._metrics['events_published'] += 1
         self._metrics['last_activity'] = datetime.now()
         
-        if target_scope == "local":
-            self.event_bus.publish(event)
-        elif target_scope == "parent" and self._parent_container:
-            self._parent_container.receive_event(event)
-        else:
-            # Default to local if invalid scope or no parent
-            self.event_bus.publish(event)
+        # All events go to the shared root event bus
+        # All containers and components will see the event automatically
+        self.event_bus.publish(event)
     
     def update_config(self, config: Dict[str, Any]) -> None:
         """Update container configuration."""
@@ -732,14 +796,13 @@ class Container:
         
         # Check if hierarchical storage should be used
         storage_backend = trace_settings.get('storage_backend', 'memory')
-        logger.info(f"DEBUG: trace_settings keys: {list(trace_settings.keys())}")
-        logger.info(f"DEBUG: storage_backend value: {storage_backend}")
-        logger.info(f"DEBUG: full trace_settings: {trace_settings}")
         if storage_backend == 'hierarchical':
             trace_config['storage_backend'] = 'hierarchical'
             trace_config['workflow_id'] = metadata.get('workflow_id')
             trace_config['phase_name'] = metadata.get('phase_name')
             trace_config['container_id'] = self.container_id
+            trace_config['batch_size'] = trace_settings.get('batch_size', 1000)  # Pass through batch_size
+            trace_config['auto_flush_on_cleanup'] = trace_settings.get('auto_flush_on_cleanup', True)
             
             logger.info(f"Using hierarchical storage for container {self.container_id}: "
                        f"workspaces/{metadata.get('workflow_id')}/{self.container_id}/")

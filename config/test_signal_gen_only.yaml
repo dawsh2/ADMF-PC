@@ -1,0 +1,40 @@
+name: "Signal Generation Event Tracing Test"
+description: "Test signal generation with event tracing"
+
+# Use the signal generation workflow, but only the first phase
+workflow: signal_generate_and_replay
+
+# Configuration for the signal generation phase
+strategies:
+  - type: momentum
+    name: test_momentum
+    params:
+      sma_period: 5
+      rsi_period: 5
+
+# Data configuration
+data_source: "file"
+data_path: "SPY_1d.csv"
+data_dir: "./data"
+symbols: ["SPY"]
+timeframes: ["1d"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+max_bars: 30
+
+# Signal save directory
+save_directory: "./workspaces/signals/"
+
+# Event tracing configuration
+enable_event_tracing: true
+trace_settings:
+  storage_backend: "hierarchical"
+  batch_size: 100
+  auto_flush_on_cleanup: true
+  max_events: 10000
+  
+  # Trace all containers to see what's happening
+  container_settings:
+    "*":
+      enabled: true
+      max_events: 5000

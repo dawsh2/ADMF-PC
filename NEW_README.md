@@ -1,32 +1,53 @@
 # ADMF-PC Event Flow Architecture: The Next Evolution
 
 ## Executive Summary
-This is an event-driven quantitative trading framework that's under active development. We've strived to perfect the architecture to allow parallelization with isolation of state between seperate instances. We've worked hard to ensure the system is modular and flexible, so it's able to accomplish whatever a research can throw at it elegantly. The system should stay out of the users way, but enable maximal flexibility and reproducability. 
 
-The core idea of the system is using containers to isolate state where necassary in a parallelized backtest, and leveraging the idea that the data transformation pipeline is linear, e.g: Data-->BARS-->Features-->FEATURE/BAR-->Strategy & Classifiers-->SIGNAL & ClassifierChange-->Portfolio-->ORDER_REQUEST-->Risk-->ORDER-->Execution (applying stateless functional slippage/commission etc)-->FILL-->PORTFOLIO_UPATE (more or less). We take these primitives - containers, events and cross-container-communication-adapters - and use them to create standardized topologies that dynamicaly generate and wire up the proper structure for whatever we're testing. To handle more complex workflows, such as train/test splitting, walkforward validation, we simply recycle the topologies between phases, and use sequencer to orchestrate (which further delegates responsbilities to other modules when appropriate, i.e optimization or analysis). This ensures each phase is created identically to the previous one, while guarenteeing no leakge of state since all components are destroyed at the end of each phase. At a higher level we combine these sequenced topologies into what we call a Workflow, see the Adaptive Ensemble for an example. Notably, the system is interfaced through YAML files (which ensures consistent, well-tested execution paths and proper creation/destruction of containers to guarentee reproducability), which the Coordinator interprets and delegates appropriately to the TopologyBuilder and Sequencer, depending on the Workflow. Lastly, to improve observability nad keep the parallelization tractable we've implemented event tracing, which introduced many tangential benefits. 
+The core idea of the system is using containers to isolate state where necassary in a parallelized backtest, and leveraging that the data transformation pipeline is linear: Data-->BARS-->Features-->FEATURE/BAR-->Strategy & Classifiers-->SIGNAL & ClassifierChange-->Portfolio-->ORDER_REQUEST-->Risk-->ORDER-->Execution (applying stateless functional slippage/commission etc)-->FILL-->PORTFOLIO_UPATE (more or less). It's clearly an event driven system, and to communicate with otherwise isolated containers, we had to devise an adapter, these are under src/core/communication (but since we've simplified the topology into a universal linear flow, we may not need these more extravagent adapters now, but still need a way to communicate from root event bus to containers). We take these primitives - containers, events and cross-communication - and use them to create standardized topologies that dynamicaly generate and wire up the proper system for whatever we're testing (e.g, a multi-asset, multi-strategy, multi-portfolio backtest -- since it uses the same fundemental topology, it should be as easy to wire up as a single backtest). We then leverage this concept to use standardize topologies sequentially to simplify the handling of e.g, train test splits, while maintaing reproducability through the standardization of the process and no state leakage since containers are destroyed after every sequence. At a higher level we combine these sequenced topologies into what we call a Workflow, see the Adaptive Ensemble for an example. Notably, the system is interfaced through YAML files (which ensures consistent, well-tested execution paths and proper creation/destruction of containers to guarentee reproducability), which the Coordinator interprets and delegates appropriately. To keep the parallelization tractable we've implemented event tracing. 
 
-NOTE: The sequencer will be adapted to handle batching for memory intensive operations as it already has all the logic necassary. The Coordinator may be expanded to handle computing across multiple computers. Maybe it is indeed best that Coordinator handle data storage locations. 
-
-
-## UPDATES & TODO 
-- optimization is done by specifying parameter search space in config, which is passed to the to TopologyBuilder, which then passes it to the optimization module for parameter expansion, and uses this to determine number of feature/strategy/classifier/risk/execution configurations to run by using the optimization module for expansion and objective function determination, which portfolio containers then subscribe to accordingly (pretty elegant!) -- confirm objective function is passed correctly
-- containers now enable event tracing (with portfolio containers defaulting to it for performance metrics), with varying degrees of info storage -- this keeps us tied to the event tracing system, which will come in handy later, but also keeps it light to store things in mememory -- CRITICAL insight and upgrade, now we're no longer running two parallel data/metric systems and ensure our tracing is plugged in from day one 
-- !!: still need to formalize how this data is referenced when not stored in memory between runs, and how we determine when to run in memory, and when to write to disk -- my gut tells me the 'move fast and break things' approach is best here, let's just store in memory until it's a problem, but also setup the event tracing to write to disk so I can analyze when running with more detail. We may want to also look into building memory and performance monitoring, so when I do ineivitably push it to it's limit and it crashes, I at least know what caused it. this is an important design decision and i need to help myself clear things up later. I think when if I do start pushing the memory limit, we'll just set a memory limit per container and write to disk if it gets full. simple and dynamic, doesn't require advanced user configurations. and because our root level container encompasses all containers, we can easily set this to a reasonable maximum. 
-- !!: should also be easy to impleement a 'signal_storage' event tracing mode so the container traces it's signal history
-- !!: in the future, we'll run in signal generation mode with no portfolios, only strategies/signal generators generating signals, this will have to be traced on the root event bus since that's where strategies live -- should be easy to implement as a workflow default for the signal-generation topology. 
-- !!: need to complete final code review of all modules under src/core, file by file. some immediate smells are src/core/analysis, src/core/logging, rename src/core/communication to src/core/adapters/, src/core/tracing.py. double check events module and make sure it's good. 
-- !!: then we can proceed with checklist_*.md.
-
-
-
-Once the container tracing and metrics streaming is complete, we'll have crystalized the design.
+NOTE: The sequencer will be adapted to handle batching for memory intensive operations. It already has all the logic necassary. The coordinator may be expanded to handle computing across multiple computers. Maybe it is indeed best that Coordinator handle data storage locations. 
 
 
 
 
-## Part 1: Core Architecture Components
+```
+┌─────────────────────────────────────────────────────────────┐
+│ COORDINATOR (Workflow Orchestration)                        │
+│ • Interprets YAML workflow definitions                      │
+│ • Manages multi-phase execution                             │ 
+│ • Handles dependencies and conditional logic                │
+│ • Aggregates results across phases                          │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│ SEQUENCER (Execution Patterns)                              │
+│ • Executes single phases (single_pass, walk_forward, etc.)  │
+│ • Generates iterations (parameter sweeps, time windows)     │
+│ • Manages phase lifecycle and result aggregation            │
+│ • Handles memory/disk storage modes                         │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│ TOPOLOGY BUILDER (Container Creation)                       │
+│ • Builds container networks from patterns                   │
+│ • Infers features from strategy configurations              │
+│ • Creates hierarchical parent-child relationships           │
+│ • Sets up event subscriptions                               │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│ CONTAINER + EVENTS (Execution Substrate)                    │
+│ • Isolated containers with event buses                      │
+│ • Component composition (no inheritance)                    │
+│ • Hierarchical event communication                          │
+│ • Streaming metrics with trade-complete retention           │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### 1. Stateless Service Pools (Pure Functions)
+
+
+## Part 2: Core Architecture Components
+
+### 2. Stateless Service Pools (Pure Functions)
 
 **Purpose**: Process data without maintaining state, enabling massive parallelization.
 
@@ -58,8 +79,7 @@ Stateless Service Pools
 └─────────────────────────────────────────────────────────────┘
 ```
 
-
-### 2. Symbol Containers (Stateful, Isolated)
+### 1. Symbol Containers (Stateful, Isolated)
 
 **Purpose**: Encapsulate all data and feature computation for a specific symbol+timeframe combination.
 
@@ -132,7 +152,7 @@ Execution Container
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Part 3: Complete Event Flow Diagram 
+## Part 3: Complete Event Flow Diagram
 
 
 
@@ -229,163 +249,28 @@ Execution Container
 
 NOTE: We also maintain two alternative topologies: one for signal generation, which is identical to above but terminates at the 'SIGNALS' line, and other for signal replay, containing the remainder. New topologies can be introduced to incorporate new components, see the 'Signal Filter' examples below, where we overview how to extend the system.
 
+## Part 4: Key Architectural Benefits
 
-## Topologies 
-The preceeding diagram is an example of what we call a 'topology'. It's a set of containers and stateless functions configured with a linear event flow, but with any number of subcomponents at each step. For example, in the topology above we may have any number of strategy components running. These are configured dynamically by the TopologyBuilder which accepts a specification file as input and creates the resultant data flow and object graph. The allows us to extend the system to include new components (e.g a signal filtering module) or run in alternate modes (e.g, signal generation or signal replay) arbitrarily, while ensuring consistent and reusable execution paths and object lifecycles. When running an optimization, we simply pass the TopologyBuilder the expanded parameter set, and it constructs it (for _any_ component, not just strategies). This makes it extremely easy and reliable to interface. The TopologyBuilder just creates whatever it's passed, with the same event flow and object lifecycle, regardless of parameter count or variations.
-
-## Sequences and Phases
-The sequencer is the next object in the abstraction hierarchy. A sequence is responsible for executing a process, or set of processes, over a given topology, or set of topologies. For example, a train/test split using the standard topology above is, in this system, considered two seperate executions managed as one sequence. A simple backtest (one iteration over a data set) is a single execution and single sequence. This is important so object lifecycle is managed properly, ensuring no leakage of state. At the end of each execution, containers are destroyed (this ensures state is cleaned). A Phase is a complete process that uses sequences. Phases are the high-level, objective-achieving processes. For example, an end-to-end optimization using walk-forward validation and applying parameters to an OOS test set. The system works by breaking these down into reusable sequences and topology patterns to simplify execution and development while ensuring no leakage of state and increase reproducablity. 
-
-Lastly, phases are composed into workflows, for multi-step processes like below:
-
-### Adaptive Ensemble Workflow
-
-```
-Phase 1: Grid Search (Signal Generation Mode - Walk-Forward) <-- signal generation topology
-├── Run all parameter combinations using walk-forward validation <-- set of sequences 
-├── Capture signals to event store across all walk-forward windows
-└── Group results by regime within each validation period
-
-Phase 2: Regime Analysis (using Phase 1 performance data)
-├── Find best parameters per detected regime
-└── Store regime-optimal configurations
-
-Phase 3: Adaptive Ensemble Weight Optimization (Signal Replay Mode - Walk-Forward) <-- signal replay topology
-├── Load only signals from each regime across walk-forward windows <-- set of sequences
-├── Find optimal ensemble weights per regime using walk-forward validation
-└── 3x+ faster than replaying all signals
-
-Phase 4: Final Validation (Full Backtest Mode on OOS)
-├── Deploy final regime-adaptive ensemble strategy over OOS/test data
-└── Dynamically switch parameters based on regime
-  ```
-
-
-
-
-### In summary:
-  - Topology = Event flow diagram (Signals, Orders, etc)
-  - Execution Window = Container lifecycle (creation → destruction)
-  - Sequence = Pattern of execution windows (e.g., train_test = 2 windows)
-  - Phase = High-level workflow step that uses a sequence
-  - Workflow = 
-
-
-Sequences are composed into phases, for example a walk-forward validation is just many train/test splits. Phases are the highest level process substep in a _Workflow_.
-
-  I need to add sections about:
-  1. Understanding phases vs sequences vs execution windows
-  2. How container lifecycle writing works
-  
-  
-## Containers, Routers & Events
-These are the building blocks of the system. Events are custom types
-
-  
-## Understanding 
-
-
-## Also need a section on tracing, results and memory management
-
-### 1. Discovery System
-
-All components self-register through decorators, making them automatically discoverable:
-
-```python
-# Strategies self-register
-@strategy(features=['sma', 'rsi'])
-def momentum_strategy(features, bar, params):
-    return {'direction': 'long', 'strength': 0.8}
-
-# Classifiers self-register 
-@classifier(features=['volatility'])
-def volatility_classifier(features, params):
-    return {'regime': 'high_vol', 'confidence': 0.9}
-
-# Execution models self-register
-@execution_model(model_type='slippage')
-class VolumeImpactSlippageModel:
-    def calculate_slippage(self, order, market_price, market_data):
-        # Slippage calculation logic
-```
-
-
-### 3. Dynamic Parameter Grid Expansion
-
-The system automatically generates all parameter combinations:
-
-```
-Strategies × Symbols × Timeframes × Risk Profiles × Execution Models = Total Combinations
-```
-
-Each combination gets its own isolated portfolio container with unique routing:
+### 1. Dynamic Generation
+# Fix this section - rewrite to emphasize dynamic generation of containers and event wiring 
+**Before**: Complex adapter patterns (Pipeline, Broadcast, Hierarchical, etc.)
+**After**: Single linear flow that handles all use cases
 
 ```yaml
-strategies:
-  - type: momentum
-    params: [fast: 10, slow: 20]
-  - type: mean_reversion
-    params: [period: 14]
-    
-risk_profiles:
-  - type: conservative
-  - type: aggressive
-  
-execution_models:
-  - type: retail      # Regular broker costs
-  - type: zero_cost   # Ideal execution
+# Old: Complex adapter configuration
+adapters:
+  - type: hierarchical
+    parent: classifier
+    children: [risk_containers]
+    routing: complex_rules
+  - type: pipeline
+    stages: [data, indicators, strategies, risk, execution]
+
+# New: No adapter configuration needed!
+# The linear flow is implicit in the architecture
 ```
 
-This creates 2 × 2 × 2 = 8 unique portfolio containers, each testing a different combination.
-
-### 4. Event-Based Routing
-
-Components communicate purely through events with intelligent routing:
-
-**Feature Routing**: The FeatureDispatcher ensures each strategy only receives the features it needs:
-```
-SPY_1m Features {sma_20, rsi_14, volume, ...} 
-    ↓ (filtered by FeatureDispatcher)
-Momentum Strategy receives only {sma_20, rsi_14}
-Mean Reversion receives only {rsi_14, bollinger_bands}
-```
-
-**Signal Routing**: Signals are tagged with `combo_id` for precise delivery:
-```
-Strategy generates signal → Tagged with combo_id:"c0001" → Only Portfolio_c0001 processes it
-```
-
-**Fill Routing**: Fills include `portfolio_id` for accurate position updates:
-```
-Execution generates fill → Tagged with portfolio_id:"portfolio_c0001" → Only that portfolio updates
-```
-
-### 5. Scaling Without Code Changes
-
-To add new capabilities, simply create decorated functions:
-
-```python
-# Add a new strategy - system automatically discovers it
-@strategy(features=['atr', 'adx'])
-def trend_following_strategy(features, bar, params):
-    # Strategy logic
-    
-# Add a new execution model - automatically available
-@execution_model(model_type='slippage', name='adverse_market')
-class AdverseMarketSlippage:
-    # High slippage for stress testing
-```
-
-The YAML configuration automatically makes these available:
-```yaml
-strategies:
-  - type: trend_following  # New strategy automatically available
-  
-execution_models:
-  - type: adverse_market   # New execution model automatically available
-```
-
-### 7. Natural Multi-Asset Support
+### 2. Natural Multi-Asset Support
 
 Symbol containers make multi-asset backtesting trivial:
 
@@ -401,17 +286,23 @@ Multi-Asset Configuration:
 
 ### 3. Resource Efficiency
 
-For 24 strategy combinations (6 strategies × 4 classifiers):
+Comparison for 24 strategy combinations (6 strategies × 4 classifiers):
 
 ```
-Architecture Overview:
-├── 0 Strategy Containers (stateless!)
-├── 0 Risk Containers (stateless!)
-├── 24 Portfolio Containers
-├── 0 Classifier Containers (stateless!)
-├── 2-3 Symbol Containers
-└── Total: ~27 Containers
+Old Architecture:                      New Architecture:
+├── 24 Strategy Containers            ├── 0 Strategy Containers (stateless!)
+├── 24 Risk Containers                ├── 0 Risk Containers (stateless!)
+├── 24 Portfolio Containers           ├── 24 Portfolio Containers
+├── 4 Classifier Containers           ├── 0 Classifier Containers (stateless!)
+├── Shared Infrastructure             ├── 2-3 Symbol Containers
+└── Total: 75+ Containers             └── Total: ~27 Containers (60% reduction!)
 ```
+
+### 4. Perfect Isolation Where Needed
+
+- **Symbol Containers**: Isolated for clean multi-symbol separation
+- **Portfolio Containers**: Isolated for parallel parameter testing
+- **Stateless Services**: No isolation needed (no state to contaminate!)
 
 ## Part 5: Common Use Cases
 
@@ -501,8 +392,6 @@ Phase 4: Final Validation (Full Backtest Mode)
 ├── Deploy final regime-adaptive ensemble strategy over OOS/test data
 └── Dynamically switch parameters based on regime
   ```
-
-Notably, workflows can be composed and extended with branching decision logc. The workflow above could become part of a larger workflow which runs this iteratively until returns diminish. 
 
 ## Part 6: Configuration Examples
 
@@ -627,10 +516,19 @@ class PortfolioContainer:
         self.update_position(fill)
 ```
 
+## Part 8: Migration Path
+
+For teams migrating from the old architecture:
+
+1. **Remove complex adapters** - the linear flow handles everything
+2. **Keep portfolio containers** - they still manage state
+3. **Simplify configuration** - no adapter patterns needed
 
 ## Summary
 
+The new EVENT_FLOW_ARCHITECTURE represents a major simplification while maintaining all the power of the original Protocol + Composition design:
 
+- **No complex adapters** - linear flow handles all cases
 - **Natural multi-asset support** through Symbol containers
 - **Perfect isolation** only where needed
 - **Massive parallelization** with minimal overhead

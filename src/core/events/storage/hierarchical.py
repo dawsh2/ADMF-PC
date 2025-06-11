@@ -51,8 +51,8 @@ class HierarchicalStorageConfig:
         EventType.POSITION_CLOSE.value,
         EventType.FILL.value,
         EventType.REGIME_CHANGE.value,
-        EventType.CLASSIFIER_CHANGE.value,
-        EventType.RISK_BREACH.value
+        EventType.RISK_BREACH.value,
+        EventType.BAR.value  # Include BAR events for development/testing
     })
     
     # Hierarchical structure
@@ -153,10 +153,13 @@ class HierarchicalEventStorage(EventStorageProtocol):
         # Apply sparse filtering
         if not self._should_store(event):
             self._total_filtered += 1
+            logger.debug(f"Filtered out event {event.event_type} from container {event.container_id}")
             return
         
         # Determine storage container
-        container_id = event.container_id or self.container_id or 'root'
+        # Use context container_id if set (for incoming event tracing)
+        # Otherwise use event's container_id (for published event tracing)
+        container_id = self.container_id or event.container_id or 'root'
         
         # Buffer event
         self.event_buffers[container_id].append(event)
@@ -190,10 +193,14 @@ class HierarchicalEventStorage(EventStorageProtocol):
     def flush_container(self, container_id: str) -> None:
         """Flush events for a specific container to disk."""
         if not self.event_buffers[container_id]:
+            logger.debug(f"No events to flush for container {container_id}")
             return
         
         events = self.event_buffers[container_id]
         path = self._get_container_path(container_id)
+        
+        # Ensure directory exists
+        path.mkdir(parents=True, exist_ok=True)
         
         if self.config.format == 'parquet':
             self._write_parquet(events, path / 'events.parquet')
@@ -218,9 +225,10 @@ class HierarchicalEventStorage(EventStorageProtocol):
         for container_id in list(self.event_buffers.keys()):
             self.flush_container(container_id)
         
-        # Write workflow summary
+        # Write workflow summary and portfolio summary
         if self.workflow_id:
             self._write_workflow_summary()
+            self.save_portfolio_summary()
     
     def retrieve(self, event_id: str) -> Optional[Event]:
         """Retrieve event by ID using indices."""
@@ -369,6 +377,84 @@ class HierarchicalEventStorage(EventStorageProtocol):
             }
         }
     
+    def create_portfolio_summary(self) -> Dict[str, Any]:
+        """Create accessible JSON summary of portfolio metrics for quick viewing."""
+        portfolio_containers = self.get_portfolio_containers()
+        
+        summary = {
+            'workspace_id': self.workflow_id,
+            'created_at': datetime.now().isoformat(),
+            'portfolio_count': len(portfolio_containers),
+            'portfolios': {}
+        }
+        
+        # Generate summary for each portfolio container
+        for container_id in portfolio_containers:
+            container_path = self._get_container_path(container_id)
+            
+            # Load container metrics if available
+            metrics_path = container_path / 'metrics.json'
+            container_metrics = {}
+            if metrics_path.exists():
+                with open(metrics_path, 'r') as f:
+                    container_metrics = json.load(f)
+            
+            # Build portfolio summary
+            portfolio_summary = {
+                'container_id': container_id,
+                'container_type': 'portfolio',
+                'status': 'active' if container_id in self.event_buffers else 'completed',
+                'event_summary': {
+                    'total_events': sum(container_metrics.get('event_counts', {}).values()),
+                    'signal_count': container_metrics.get('signal_count', 0),
+                    'trade_count': container_metrics.get('trade_count', 0),
+                    'event_breakdown': container_metrics.get('event_counts', {})
+                },
+                'files': {
+                    'events': str(container_path / 'events.parquet') if (container_path / 'events.parquet').exists() else None,
+                    'signals': str(container_path / 'signals.parquet') if (container_path / 'signals.parquet').exists() else None,
+                    'trades': str(container_path / 'trades.parquet') if (container_path / 'trades.parquet').exists() else None,
+                    'metrics': str(metrics_path) if metrics_path.exists() else None
+                },
+                'access_pattern': f"workspaces/{self.workflow_id}/{container_id}/",
+                'last_updated': container_metrics.get('timestamp')
+            }
+            
+            # Add performance metrics if trades exist
+            trades_path = container_path / 'trades.parquet'
+            if trades_path.exists():
+                try:
+                    trades_df = pd.read_parquet(trades_path)
+                    if not trades_df.empty:
+                        portfolio_summary['performance'] = {
+                            'total_trades': len(trades_df),
+                            'total_pnl': float(trades_df['pnl'].sum()) if 'pnl' in trades_df.columns else 0,
+                            'win_rate': float((trades_df['pnl'] > 0).mean()) if 'pnl' in trades_df.columns else 0,
+                            'avg_trade_pnl': float(trades_df['pnl'].mean()) if 'pnl' in trades_df.columns else 0,
+                            'best_trade': float(trades_df['pnl'].max()) if 'pnl' in trades_df.columns else 0,
+                            'worst_trade': float(trades_df['pnl'].min()) if 'pnl' in trades_df.columns else 0
+                        }
+                except Exception as e:
+                    logger.warning(f"Could not load performance metrics for {container_id}: {e}")
+            
+            summary['portfolios'][container_id] = portfolio_summary
+        
+        return summary
+    
+    def save_portfolio_summary(self) -> Optional[str]:
+        """Save portfolio summary to JSON file for easy access."""
+        if not self.workflow_id:
+            return None
+        
+        summary = self.create_portfolio_summary()
+        summary_path = self.base_dir / self.workflow_id / 'portfolio_summary.json'
+        
+        with open(summary_path, 'w') as f:
+            json.dump(summary, f, indent=2)
+        
+        logger.info(f"Portfolio summary saved to {summary_path}")
+        return str(summary_path)
+    
     # Private methods
     
     def _should_store(self, event: Event) -> bool:
@@ -382,7 +468,7 @@ class HierarchicalEventStorage(EventStorageProtocol):
             return True
         
         # Filter out high-frequency events unless explicitly configured
-        high_freq_types = {EventType.BAR.value, EventType.TICK.value, EventType.FEATURES.value}
+        high_freq_types = {EventType.TICK.value, EventType.FEATURES.value}
         if event.event_type in high_freq_types:
             return False
         

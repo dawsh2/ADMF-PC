@@ -1,0 +1,49 @@
+{
+  "workspace_id": "53c67a88-5274-4cfb-aece-90f99b4248da",
+  "created_at": "2025-06-10T22:19:49.807348",
+  "portfolio_count": 2,
+  "portfolios": {
+    "portfolio_c31d836e": {
+      "container_id": "portfolio_c31d836e",
+      "container_type": "portfolio",
+      "status": "completed",
+      "event_summary": {
+        "total_events": 10,
+        "signal_count": 0,
+        "trade_count": 0,
+        "event_breakdown": {
+          "BAR": 10
+        }
+      },
+      "files": {
+        "events": null,
+        "signals": null,
+        "trades": null,
+        "metrics": "workspaces/53c67a88-5274-4cfb-aece-90f99b4248da/portfolio_c31d836e/metrics.json"
+      },
+      "access_pattern": "workspaces/53c67a88-5274-4cfb-aece-90f99b4248da/portfolio_c31d836e/",
+      "last_updated": "2025-06-10T22:19:49.783642"
+    },
+    "portfolio_24ba355b": {
+      "container_id": "portfolio_24ba355b",
+      "container_type": "portfolio",
+      "status": "completed",
+      "event_summary": {
+        "total_events": 10,
+        "signal_count": 0,
+        "trade_count": 0,
+        "event_breakdown": {
+          "BAR": 10
+        }
+      },
+      "files": {
+        "events": null,
+        "signals": null,
+        "trades": null,
+        "metrics": "workspaces/53c67a88-5274-4cfb-aece-90f99b4248da/portfolio_24ba355b/metrics.json"
+      },
+      "access_pattern": "workspaces/53c67a88-5274-4cfb-aece-90f99b4248da/portfolio_24ba355b/",
+      "last_updated": "2025-06-10T22:19:49.788249"
+    }
+  }
+}

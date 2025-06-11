@@ -76,3 +76,22 @@ class EventTracer:
         """Clear all events."""
         self.events.clear()
         self.event_counts.clear()
+    
+    def get_memory_usage(self) -> Dict[str, int]:
+        """Get memory usage breakdown."""
+        import sys
+        
+        # Calculate approximate memory usage
+        events_memory = sum(sys.getsizeof(event) for event in self.events)
+        counts_memory = sys.getsizeof(self.event_counts) + sum(
+            sys.getsizeof(k) + sys.getsizeof(v) 
+            for k, v in self.event_counts.items()
+        )
+        
+        return {
+            'stored_events': len(self.events),
+            'max_events': self.max_events,
+            'memory_usage_bytes': events_memory + counts_memory,
+            'event_types_tracked': len(self.event_counts),
+            'memory_efficiency': len(self.events) / self.max_events if self.max_events > 0 else 0
+        }

@@ -1,0 +1,36 @@
+# Multi-Strategy Signal Generation Test
+# Tests multiple strategies generating signals to separate portfolios
+
+data:
+  source: csv
+  file_path: "data/SPY.csv"
+  start_date: "2023-01-01"
+  end_date: "2023-03-31"
+  
+# Multiple strategies with different parameters
+strategies:
+  - type: momentum
+    name: fast_momentum
+    params:
+      fast_period: 5
+      slow_period: 20
+      signal_threshold: 0.01
+      
+  - type: momentum  
+    name: slow_momentum
+    params:
+      fast_period: 20
+      slow_period: 50
+      signal_threshold: 0.02
+
+execution:
+  initial_capital: 100000
+  commission_rate: 0.001
+  
+  # Event tracing to see all signals
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    batch_size: 1000
+    max_events: 10000
+    trace_specific: ["portfolio"]  # Focus on portfolio containers

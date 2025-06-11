@@ -1,0 +1,54 @@
+name: "Signal Generation Event Tracing Test"
+description: "Test configuration to verify event tracing during signal generation saves to workspaces/"
+
+# Use simple_backtest workflow but with signal_generation topology
+workflow:
+  type: "simple_backtest"
+
+# Override the backtest phase to use signal_generation topology
+phases:
+  - name: "backtest"
+    topology: "signal_generation"
+    sequence: "single_pass"
+    config:
+        # Data configuration
+        data_source: "file"
+        data_path: "SPY_1d.csv"
+        data_dir: "./data"
+        symbols: ["SPY"]
+        timeframes: ["1d"]
+        start_date: "2024-01-01"
+        end_date: "2024-01-31"
+        max_bars: 30  # Small test dataset
+
+        # Strategy configuration
+        strategies:
+          - name: "momentum_1"
+            type: "momentum"
+            params:
+              sma_period: 5  # Shorter period for small dataset
+              rsi_period: 5  # Shorter period for small dataset
+
+        # Signal save directory
+        signal_save_directory: "./workspaces/signals/"
+
+        # Event tracing configuration
+        enable_event_tracing: true
+        trace_settings:
+          # Use hierarchical storage to save to workspaces/
+          storage_backend: "hierarchical"
+          batch_size: 100
+          auto_flush_on_cleanup: true
+          max_events: 10000
+          
+          # Trace specific containers
+          container_settings:
+            "portfolio*":
+              enabled: true
+              max_events: 5000
+            "strategy*":
+              enabled: true
+              max_events: 5000
+            "data*":
+              enabled: true
+              max_events: 5000

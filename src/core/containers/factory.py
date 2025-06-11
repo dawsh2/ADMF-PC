@@ -42,9 +42,8 @@ class ContainerFactory:
             'data_streamer': ComponentSpec('data_streamer', 'data.streamers.BarStreamer'),
             'signal_streamer': ComponentSpec('signal_streamer', 'data.streamers.SignalStreamer'),
             
-            # Strategy components  
-            'strategy': ComponentSpec('strategy', 'strategy.SimpleStrategy'),
-            'classifier': ComponentSpec('classifier', 'strategy.classifiers.RegimeClassifier'),
+            # Strategy components
+            'strategy_state': ComponentSpec('strategy_state', 'strategy.state.StrategyState'),
             
             # Portfolio components
             'portfolio_manager': ComponentSpec('portfolio_manager', 'portfolio.PortfolioManager'),
@@ -68,7 +67,8 @@ class ContainerFactory:
         name: str, 
         components: List[str],
         config: Optional[Dict[str, Any]] = None,
-        container_type: Optional[str] = None
+        container_type: Optional[str] = None,
+        parent_event_bus: Optional[Any] = None
     ) -> Container:
         """
         Create a container with specified components.
@@ -78,6 +78,7 @@ class ContainerFactory:
             components: List of component names to inject
             config: Optional container configuration
             container_type: Optional explicit container type (will be inferred if not provided)
+            parent_event_bus: Optional parent event bus (None for root container)
             
         Returns:
             Configured container instance
@@ -89,7 +90,7 @@ class ContainerFactory:
             container_type=container_type
         )
         
-        container = Container(container_config)
+        container = Container(container_config, parent_event_bus=parent_event_bus)
         
         # Inject specified components
         for component_name in components:
@@ -158,41 +159,20 @@ class ContainerFactory:
             elif component_name == 'strategy':
                 from ...strategy.strategies import NullStrategy
                 return NullStrategy()
+            elif component_name == 'strategy_state':
+                from ...strategy.state import StrategyState
+                return StrategyState(
+                    symbols=config.get('symbols', []),
+                    feature_configs=config.get('features', {})
+                )
             else:
-                logger.debug(f"No implementation for {component_name}, using mock")
-                return self._create_mock_component(component_name)
+                logger.error(f"Unknown component: {component_name}")
+                raise ValueError(f"Unknown component: {component_name}")
                 
         except ImportError as e:
-            logger.debug(f"Failed to import {component_name}: {e}, using mock")
-            return self._create_mock_component(component_name)
+            logger.error(f"Failed to import {component_name}: {e}")
+            raise
     
-    def _create_mock_component(self, component_name: str) -> Any:
-        """Create a mock component for testing."""
-        class MockComponent:
-            def __init__(self, name):
-                self.name = name
-                self.container = None
-                
-            def initialize(self):
-                # No-op for mock
-                pass
-                
-            def set_container(self, container):
-                self.container = container
-                
-            def start(self):
-                pass
-                
-            def stop(self):
-                pass
-                
-            def get_state(self):
-                return {'name': self.name, 'initialized': self.container is not None}
-            
-            def cleanup(self):
-                pass
-        
-        return MockComponent(component_name)
     
     
     def create_portfolio_container(

@@ -58,6 +58,17 @@ class PortfolioState(PortfolioStateProtocol):
         
         # Track order fill commission
         self._last_commission = Decimal(0)
+        
+        # Container reference for event publishing
+        self._container = None
+    
+    def set_container(self, container: Any) -> None:
+        """Set container reference for event publishing.
+        
+        Args:
+            container: The container that owns this portfolio state
+        """
+        self._container = container
     
     def get_position(self, symbol: str) -> Optional[Position]:
         """Get current position for symbol."""
@@ -383,6 +394,22 @@ class PortfolioState(PortfolioStateProtocol):
             if order_id:
                 self.remove_pending_order(order_id)
                 
+        elif event.event_type == "SIGNAL":
+            # Handle signal event - for now just log it
+            payload = event.payload
+            symbol = payload.get("symbol")
+            direction = payload.get("direction")
+            strength = payload.get("strength")
+            strategy_id = payload.get("strategy_id")
+            
+            # Log signal reception for debugging
+            print(f"📨 Portfolio received SIGNAL: {symbol} {direction} strength={strength} from strategy_id={strategy_id}")
+            
+            # TODO: Implement signal processing logic
+            # - Generate orders based on signals
+            # - Apply position sizing
+            # - Check risk limits
+            
         elif event.event_type == "BAR" or event.event_type == "TICK":
             # Handle market data update
             payload = event.payload

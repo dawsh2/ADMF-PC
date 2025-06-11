@@ -1,0 +1,11 @@
+{
+  "container_id": "strategy_e223252d",
+  "container_type": "strategy",
+  "event_counts": {
+    "SIGNAL": 1
+  },
+  "signal_count": 1,
+  "trade_count": 0,
+  "timestamp": "2025-06-10T18:58:00.287298",
+  "is_portfolio_container": false
+}

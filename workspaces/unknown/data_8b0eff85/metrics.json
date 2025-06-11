@@ -1,0 +1,11 @@
+{
+  "container_id": "data_8b0eff85",
+  "container_type": "data",
+  "event_counts": {
+    "BAR": 100
+  },
+  "signal_count": 0,
+  "trade_count": 0,
+  "timestamp": "2025-06-10T17:46:15.886563",
+  "is_portfolio_container": false
+}

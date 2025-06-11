@@ -1,0 +1,62 @@
+name: "Portfolio Event Tracing Test"
+description: "Test configuration to verify portfolio event tracing saves to workspaces/"
+
+# Workflow configuration
+workflow:
+  type: "single_backtest"
+  phases:
+    - name: "backtest"
+      mode: "signal_generation"
+      config:
+        # Data configuration
+        data:
+          symbols: ["SPY"]
+          start_date: "2024-01-01"
+          end_date: "2024-01-31"
+          timeframe: "1d"
+          max_bars: 30  # Small test dataset
+          
+        # Strategy configuration
+        strategies:
+          - name: "momentum_1"
+            type: "momentum"
+            params:
+              sma_period: 20
+              rsi_period: 14
+              
+        # Risk configuration
+        risk_profiles:
+          - name: "conservative"
+            type: "fixed"
+            position_size: 0.1
+            max_positions: 3
+            
+        # Portfolio configuration
+        initial_capital: 100000
+        
+        # Execution configuration with event tracing
+        execution:
+          mode: "vectorized"
+          enable_event_tracing: true
+          trace_settings:
+            # Use hierarchical storage to save to workspaces/
+            storage_backend: "hierarchical"
+            batch_size: 100
+            auto_flush_on_cleanup: true
+            max_events: 10000
+            
+            # Trace specific containers
+            container_settings:
+              "portfolio*":
+                enabled: true
+                max_events: 5000
+              "strategy*":
+                enabled: true
+                max_events: 5000
+                
+        # Results configuration
+        results:
+          save_trades: true
+          save_metrics: true
+          save_equity_curve: true
+          results_dir: "./workspaces"

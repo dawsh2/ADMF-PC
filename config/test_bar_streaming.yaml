@@ -15,9 +15,10 @@ execution:
   mode: backtest
   enable_event_tracing: true
   trace_settings:
+    storage_backend: hierarchical  # Use workspace structure
+    auto_flush_on_cleanup: true    # Auto-flush traces to disk (default: true)
     default_retention: full
     max_events: 1000
-    trace_dir: './traces'
     enable_console_output: true
     console_filter: ['BAR', 'SIGNAL', 'FILL', 'ORDER', 'POSITION_OPEN', 'POSITION_CLOSE']
     container_settings:

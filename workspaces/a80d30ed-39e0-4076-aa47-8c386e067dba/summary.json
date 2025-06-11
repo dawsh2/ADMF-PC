@@ -1,0 +1,37 @@
+{
+  "workflow_id": "a80d30ed-39e0-4076-aa47-8c386e067dba",
+  "timestamp": "2025-06-10T20:03:17.540137",
+  "statistics": {
+    "workspace_id": "a80d30ed-39e0-4076-aa47-8c386e067dba",
+    "phase_name": "backtest",
+    "structure": "workspaces/{workflow_id}/{container_id}/",
+    "total_stored": 0,
+    "total_filtered": 0,
+    "filter_ratio": 0.0,
+    "containers": {
+      "total": [],
+      "portfolio_containers": [],
+      "portfolio_count": 0
+    },
+    "event_counts": {},
+    "buffer_status": {},
+    "sparse_indices": {
+      "signal_count": 0,
+      "trade_count": 0,
+      "regime_changes": 0
+    },
+    "portfolio_focus": {
+      "primary_analysis_unit": "portfolio_containers",
+      "parallelization_ready": false,
+      "analysis_path": "workspaces/a80d30ed-39e0-4076-aa47-8c386e067dba/analysis/"
+    }
+  },
+  "regime_changes": [],
+  "phase_summaries": {
+    "backtest": {
+      "containers": [],
+      "total_events": 0,
+      "filtered_events": 0
+    }
+  }
+}

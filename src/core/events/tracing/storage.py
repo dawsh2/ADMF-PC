@@ -25,25 +25,34 @@ class MemoryEventStorage(EventStorageProtocol):
     Supports multiple indices for efficient querying.
     """
     
-    def __init__(self, max_size: Optional[int] = None, enable_indices: bool = True):
+    def __init__(self, max_size: Optional[int] = None, 
+                 enable_indices: bool = True,
+                 retention_policy: str = "sliding_window"):
         """
         Initialize memory storage.
         
         Args:
             max_size: Maximum events to store (None for unlimited)
             enable_indices: Whether to maintain indices for fast queries
+            retention_policy: How to handle event retention
+                - "sliding_window": Keep last N events
+                - "trade_complete": Keep events until trade completes
+                - "none": No automatic pruning
         """
         self.max_size = max_size
         self.enable_indices = enable_indices
+        self.retention_policy = retention_policy
         
         # Primary storage
         self.events: deque = deque(maxlen=max_size) if max_size else deque()
         
-        # Indices for fast lookup
+        # Indices for fast lookup with size limits
         if enable_indices:
             self._event_id_index: Dict[str, Event] = {}
             self._correlation_index: Dict[str, List[Event]] = defaultdict(list)
             self._type_index: Dict[str, List[Event]] = defaultdict(list)
+            # Track index sizes to prevent unbounded growth
+            self._max_index_size = max_size * 2 if max_size else 100000
         
         self._total_stored = 0
     
@@ -62,6 +71,9 @@ class MemoryEventStorage(EventStorageProtocol):
         # Update indices
         if self.enable_indices:
             self._add_to_indices(event)
+        
+        # Apply retention policy
+        self.apply_retention_policy(event)
     
     def retrieve(self, event_id: str) -> Optional[Event]:
         """Retrieve event by ID."""
@@ -93,41 +105,25 @@ class MemoryEventStorage(EventStorageProtocol):
         return results
     
     def prune(self, criteria: Dict[str, Any]) -> int:
-        """Prune events matching criteria."""
-        # Special handling for correlation-based pruning
-        if 'correlation_id' in criteria and self.enable_indices:
-            correlation_id = criteria['correlation_id']
-            events_to_prune = self._correlation_index.get(correlation_id, []).copy()
-            
-            # Check for exclusions
-            if 'exclude_event_id' in criteria:
-                exclude_id = criteria['exclude_event_id']
-                events_to_prune = [e for e in events_to_prune 
-                                 if e.metadata.get('event_id') != exclude_id]
-            
-            # Remove from storage
-            pruned = 0
-            for event in events_to_prune:
-                try:
-                    self.events.remove(event)
-                    self._remove_from_indices(event)
-                    pruned += 1
-                except ValueError:
-                    pass  # Already removed
-            
-            return pruned
+        """Prune events matching criteria - efficient bulk operation."""
+        # Create new deque to avoid O(n) removals
+        new_events = deque(maxlen=self.max_size)
+        indices_to_rebuild = False
+        pruned = 0
         
-        # General pruning
-        to_remove = []
         for event in self.events:
-            if self._matches_criteria(event, criteria):
-                to_remove.append(event)
+            if not self._matches_criteria(event, criteria):
+                new_events.append(event)
+            else:
+                pruned += 1
+                indices_to_rebuild = True
         
-        for event in to_remove:
-            self.events.remove(event)
-            self._remove_from_indices(event)
+        if indices_to_rebuild:
+            # Rebuild indices from scratch - more efficient for bulk operations
+            self.events = new_events
+            self._rebuild_indices()
         
-        return len(to_remove)
+        return pruned
     
     def count(self) -> int:
         """Get total event count."""
@@ -159,7 +155,11 @@ class MemoryEventStorage(EventStorageProtocol):
     # Private methods
     
     def _add_to_indices(self, event: Event) -> None:
-        """Add event to indices."""
+        """Add event to indices with size management."""
+        # Check if indices are getting too large
+        if self._should_cleanup_indices():
+            self._cleanup_old_indices()
+        
         # Event ID index
         event_id = event.metadata.get('event_id')
         if event_id:
@@ -206,7 +206,20 @@ class MemoryEventStorage(EventStorageProtocol):
         for key, value in criteria.items():
             if key.startswith('exclude_'):
                 continue
+            
+            # Handle special criteria
+            if key == 'timestamp_before':
+                if hasattr(event, 'timestamp') and event.timestamp:
+                    if event.timestamp >= value:
+                        return False
+                continue
+            
+            if key == 'exclude_types':
+                if event.event_type in value:
+                    return False
+                continue
                 
+            # Standard attribute matching
             if hasattr(event, key):
                 if getattr(event, key) != value:
                     return False
@@ -220,6 +233,86 @@ class MemoryEventStorage(EventStorageProtocol):
                 return False
         
         return True
+    
+    def apply_retention_policy(self, event: Event) -> None:
+        """Apply configured retention policy after storing event."""
+        if self.retention_policy == "trade_complete":
+            # Check if this event closes a trade
+            if event.event_type == "POSITION_CLOSE" and event.correlation_id:
+                # Prune all events for this trade
+                self.prune({
+                    'correlation_id': event.correlation_id
+                })
+        elif self.retention_policy == "sliding_window":
+            # Automatic with deque maxlen
+            pass
+        elif self.retention_policy == "minimal":
+            # Only keep essential events
+            if event.event_type not in ["PORTFOLIO_UPDATE", "POSITION_OPEN", "POSITION_CLOSE"]:
+                # Remove non-essential events older than 1 minute
+                from datetime import timedelta
+                cutoff_time = datetime.now() - timedelta(minutes=1)
+                self.prune({
+                    'timestamp_before': cutoff_time,
+                    'exclude_types': ["PORTFOLIO_UPDATE", "POSITION_OPEN", "POSITION_CLOSE"]
+                })
+    
+    def _rebuild_indices(self) -> None:
+        """Rebuild all indices from current events."""
+        if not self.enable_indices:
+            return
+            
+        # Clear existing indices
+        self._event_id_index.clear()
+        self._correlation_index.clear()
+        self._type_index.clear()
+        
+        # Rebuild from events
+        for event in self.events:
+            self._add_to_indices(event)
+    
+    def _should_cleanup_indices(self) -> bool:
+        """Check if indices need cleanup."""
+        if not self.enable_indices:
+            return False
+            
+        total_index_entries = (
+            len(self._event_id_index) +
+            sum(len(events) for events in self._correlation_index.values()) +
+            sum(len(events) for events in self._type_index.values())
+        )
+        return total_index_entries > self._max_index_size
+    
+    def _cleanup_old_indices(self) -> None:
+        """Remove index entries for events no longer in main storage."""
+        if not self.enable_indices:
+            return
+            
+        current_event_ids = {e.metadata.get('event_id') for e in self.events if e.metadata.get('event_id')}
+        
+        # Clean event ID index
+        self._event_id_index = {
+            k: v for k, v in self._event_id_index.items() 
+            if k in current_event_ids
+        }
+        
+        # Clean correlation index
+        for corr_id in list(self._correlation_index.keys()):
+            self._correlation_index[corr_id] = [
+                e for e in self._correlation_index[corr_id] 
+                if e in self.events
+            ]
+            if not self._correlation_index[corr_id]:
+                del self._correlation_index[corr_id]
+        
+        # Clean type index
+        for event_type in list(self._type_index.keys()):
+            self._type_index[event_type] = [
+                e for e in self._type_index[event_type]
+                if e in self.events
+            ]
+            if not self._type_index[event_type]:
+                del self._type_index[event_type]
 
 
 class DiskEventStorage(EventStorageProtocol):
@@ -545,7 +638,7 @@ def create_storage_backend(backend_type: str, config: Dict[str, Any]) -> EventSt
             base_dir=config.get('base_dir', './workspaces'),
             format=config.get('format', 'parquet'),
             compression=config.get('compression', 'snappy'),
-            batch_size=config.get('batch_size', 1000),
+            batch_size=config.get('batch_size', 1000),  # This will get the batch_size from config
             max_memory_mb=config.get('max_memory_mb', 100),
             enable_indices=config.get('enable_indices', True),
             retention_days=config.get('retention_days'),

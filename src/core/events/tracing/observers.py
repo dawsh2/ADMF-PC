@@ -334,6 +334,56 @@ class EventTracer(EventObserverProtocol, EventTracerProtocol):
         
         logger.info(f"Cleared trace {self.correlation_id}")
     
+    def get_memory_usage(self) -> Dict[str, int]:
+        """Get memory usage breakdown."""
+        import sys
+        
+        # Calculate memory for each data structure
+        recent_events_size = len(self.recent_events)
+        container_events_size = sum(len(events) for events in self.container_events.values())
+        correlation_chains_size = sum(len(events) for events in self.correlation_chains.values())
+        event_index_size = len(self.event_index)
+        
+        # Get memory estimates
+        recent_memory = sys.getsizeof(self.recent_events) + sum(
+            sys.getsizeof(event) for event in self.recent_events
+        )
+        
+        container_memory = sys.getsizeof(self.container_events) + sum(
+            sys.getsizeof(k) + sys.getsizeof(v) + sum(sys.getsizeof(e) for e in v)
+            for k, v in self.container_events.items()
+        )
+        
+        correlation_memory = sys.getsizeof(self.correlation_chains) + sum(
+            sys.getsizeof(k) + sys.getsizeof(v) + sum(sys.getsizeof(e) for e in v)
+            for k, v in self.correlation_chains.items()
+        )
+        
+        index_memory = sys.getsizeof(self.event_index) + sum(
+            sys.getsizeof(k) + sys.getsizeof(v)
+            for k, v in self.event_index.items()
+        )
+        
+        total_memory = recent_memory + container_memory + correlation_memory + index_memory
+        
+        return {
+            'recent_events': recent_events_size,
+            'container_events': container_events_size,
+            'correlation_chains': correlation_chains_size,
+            'event_index': event_index_size,
+            'total_unique_events': len(set(
+                id(e) for e in self.recent_events
+            ) | set(
+                id(e) for events in self.container_events.values() for e in events
+            ) | set(
+                id(e) for events in self.correlation_chains.values() for e in events
+            )),
+            'memory_usage_bytes': total_memory,
+            'memory_per_event_avg': total_memory // max(1, recent_events_size),
+            'max_capacity': self.max_events,
+            'utilization_percent': (recent_events_size / self.max_events * 100) if self.max_events > 0 else 0
+        }
+    
     # Private methods
     
     def _should_trace(self, event: Event) -> bool:
@@ -982,7 +1032,9 @@ def create_tracer_from_config(config: Dict[str, Any]) -> EventTracer:
         storage_config.update({
             'workflow_id': config.get('workflow_id'),
             'phase_name': config.get('phase_name'),
-            'container_id': config.get('container_id')
+            'container_id': config.get('container_id'),
+            'batch_size': config.get('batch_size', 1000),  # Pass through batch_size
+            'auto_flush_on_cleanup': config.get('auto_flush_on_cleanup', True)
         })
     
     storage = create_storage_backend(storage_backend, storage_config)

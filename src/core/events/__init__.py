@@ -78,7 +78,7 @@ from .tracing import (
     ClassifierStateProtocol,
 )
 
-from .isolation import EventIsolationManager
+# from .isolation import EventIsolationManager  # Removed - using shared root bus
 from .subscriptions import WeakSubscriptionManager
 from .configuration import (
     TraceLevel,
@@ -149,7 +149,7 @@ __all__ = [
     'TraceLevel',
     'TraceConfiguration',
     'EventQueryInterface',
-    'EventIsolationManager',
+    # 'EventIsolationManager',  # Removed - using shared root bus
     'MetricsExtractor',
     'ObjectiveFunctionExtractor',
     'EventFlowValidator',

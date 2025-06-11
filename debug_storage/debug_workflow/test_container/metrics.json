@@ -1,0 +1,11 @@
+{
+  "container_id": "test_container",
+  "container_type": "other",
+  "event_counts": {
+    "SIGNAL": 1
+  },
+  "signal_count": 1,
+  "trade_count": 0,
+  "timestamp": "2025-06-09T23:41:32.494542",
+  "is_portfolio_container": false
+}

@@ -465,7 +465,7 @@ class Sequencer:
             'mode': topology_mode,
             'config': config,
             'metadata': {
-                'workflow_id': context.get('workflow_name', 'unknown'),
+                'workflow_id': context.get('workflow', {}).get('workflow_id', 'unknown'),
                 'phase_name': phase_config.name
             }
         }
@@ -480,6 +480,9 @@ class Sequencer:
                     f"{context.get('workflow_name', 'unknown')}_{phase_config.name}"),
                 'trace_dir': trace_settings.get('trace_dir', './traces'),
                 'max_events': trace_settings.get('max_events', 10000),
+                'storage_backend': trace_settings.get('storage_backend', 'memory'),  # Include storage backend
+                'batch_size': trace_settings.get('batch_size', 1000),  # Include batch_size
+                'auto_flush_on_cleanup': trace_settings.get('auto_flush_on_cleanup', True),  # Include auto_flush_on_cleanup
                 'container_settings': trace_settings.get('container_settings', {}),
                 # Include console output settings
                 'enable_console_output': trace_settings.get('enable_console_output', False),
@@ -592,93 +595,73 @@ class Sequencer:
                                phase_config: PhaseConfig,
                                context: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Run the actual execution based on topology mode.
+        Run the actual execution - universal for all topology modes.
         
         This is beautifully simple now - just tell containers to execute.
         Event-driven architecture handles the rest naturally.
+        All topologies (backtest, signal_generation, optimization, etc.) 
+        follow the same pattern.
         """
         mode = phase_config.topology
         containers = topology.get('containers', {})
         
-        if mode == 'backtest' or mode == 'root_backtest':
-            # Event-driven execution - just tell containers to execute
-            # Data containers will start streaming
-            # Other containers will react to events naturally
-            logger.info("Starting event-driven execution")
-            
-            # Execute all containers - they know what to do
-            for container_id, container in containers.items():
-                try:
-                    container.execute()
-                    logger.debug(f"Executed container {container_id}")
-                except Exception as e:
-                    logger.error(f"Error executing container {container_id}: {e}")
-            
-            # Wait for completion or timeout
-            # For now, simple approach - could be enhanced with proper completion detection
-            import time
-            max_duration = phase_config.config.get('max_execution_time', 60)  # seconds
-            time.sleep(min(1, max_duration))  # Brief pause for demo
-            
-            # In a real implementation, we'd:
-            # - Monitor event flow
-            # - Check if data streaming is complete
-            # - Wait for all pending events to process
-            # - Have proper completion signaling
-            
-            return {
-                'execution_mode': 'event_driven',
-                'containers_executed': len(containers),
-                'success': True
-            }
-            
-        elif mode == 'signal_generation':
-            # Similar to backtest but focused on signal capture
-            return self._run_signal_generation(topology, phase_config)
-            
-        elif mode == 'optimization':
-            # Run multiple parameter combinations
-            return self._run_optimization(topology, phase_config)
-            
-        else:
-            logger.warning(f"Unknown topology mode: {mode}")
-            return {'mode': mode, 'status': 'completed'}
+        logger.info(f"Starting event-driven execution for mode: {mode}")
+        
+        # Execute all containers - they know what to do
+        # This works for ANY topology because of event-driven architecture
+        for container_id, container in containers.items():
+            try:
+                container.execute()
+                logger.debug(f"Executed container {container_id}")
+            except Exception as e:
+                logger.error(f"Error executing container {container_id}: {e}")
+        
+        # Wait for completion
+        # Containers are event-driven and self-coordinate through the event bus
+        # Data containers stream bars, other containers react to events naturally
+        import time
+        max_duration = phase_config.config.get('max_execution_time', 60)  # seconds
+        time.sleep(min(1, max_duration))  # Allow time for event flow
+        
+        # Note: Event flow validation happens naturally:
+        # - Data containers execute() and stream bars
+        # - Other containers instantiate handlers upon receiving events
+        # - The system is self-coordinating through event subscriptions
+        
+        # Collect metrics from containers
+        execution_metrics = self._collect_execution_metrics(containers)
+        
+        return {
+            'execution_mode': mode,
+            'containers_executed': len(containers),
+            'success': True,
+            **execution_metrics
+        }
     
-    def _run_signal_generation(self, topology: Dict[str, Any],
-                              phase_config: PhaseConfig) -> Dict[str, Any]:
-        """Run signal generation mode."""
-        # Implementation would stream data and capture signals
-        containers = topology.get('containers', {})
+    def _collect_execution_metrics(self, containers: Dict[str, Any]) -> Dict[str, Any]:
+        """Collect metrics from all containers after execution."""
+        metrics = {
+            'bars_processed': 0,
+            'signals_generated': 0,
+            'trades_executed': 0,
+            'portfolios_managed': 0
+        }
         
-        # Find containers with data streaming components
-        data_containers = []
-        for container in containers.values():
-            if hasattr(container, 'get_component'):
-                data_streamer = container.get_component('data_streamer')
-                if data_streamer:
-                    data_containers.append((container, data_streamer))
+        for container_id, container in containers.items():
+            if hasattr(container, 'streaming_metrics') and container.streaming_metrics:
+                container_metrics = container.streaming_metrics.get_results()
+                
+                # Aggregate metrics from different container types
+                metrics['bars_processed'] += container_metrics.get('bars_streamed', 0)
+                metrics['signals_generated'] += container_metrics.get('signals_generated', 0)
+                metrics['trades_executed'] += len(container_metrics.get('trades', []))
+                
+                # Count portfolio containers
+                if hasattr(container, 'get_component'):
+                    if container.get_component('portfolio_manager'):
+                        metrics['portfolios_managed'] += 1
         
-        total_bars = 0
-        for container, data_streamer in data_containers:
-            bars_streamed = 10  # Default for testing
-            total_bars += bars_streamed
-        
-        return {'bars_processed': total_bars, 'signals_generated': 0}
-    
-    def _run_optimization(self, topology: Dict[str, Any],
-                         phase_config: PhaseConfig) -> Dict[str, Any]:
-        """Run optimization mode with multiple parameter combinations."""
-        # Count portfolio containers as proxy for combinations
-        containers = topology.get('containers', {})
-        portfolio_containers = []
-        for container in containers.values():
-            # Portfolio containers have portfolio_manager component
-            if hasattr(container, 'get_component'):
-                portfolio_mgr = container.get_component('portfolio_manager')
-                if portfolio_mgr:
-                    portfolio_containers.append(container)
-        
-        return {'combinations_tested': len(portfolio_containers)}
+        return metrics
     
     def _collect_phase_results(self, topology: Dict[str, Any]) -> Dict[str, Any]:
         """Collect results from all portfolio containers."""

@@ -1,0 +1,58 @@
+# Test signal generation with multiple strategies
+name: test_multi_strategy_signal_gen
+
+# Use signal generation workflow
+workflow:
+  type: simple_backtest
+  phases:
+    - name: signal_gen
+      topology: signal_generation
+
+# Execution config
+execution:
+  mode: signal_generation
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    auto_flush_on_cleanup: true
+    default_retention: full
+    max_events: 10000
+    enable_console_output: true
+    console_filter: ['BAR', 'SIGNAL', 'FEATURE']
+
+# Data config
+symbols: ['SPY']
+timeframes: ['1m']
+data_source: file
+data_path: './data'
+data_dir: './data'
+start_date: '2024-01-01'
+end_date: '2024-01-02'
+max_bars: 10
+
+# Multiple strategies with names - system should auto-extract strategy_names
+strategies:
+  - name: fast_momentum
+    type: momentum
+    params:
+      sma_period: 5
+    symbols: ['SPY']
+  
+  - name: slow_momentum
+    type: momentum 
+    params:
+      sma_period: 20
+    symbols: ['SPY']
+
+# Portfolio config
+portfolio:
+  initial_capital: 100000
+  max_allocation: 1.0
+
+# Signal save directory
+signal_save_directory: './results/signals/'
+
+# Results
+results:
+  retention_policy: full
+  max_events: 10000

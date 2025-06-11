@@ -1,0 +1,52 @@
+# Simple signal generation test - just data + strategy containers
+# Based on root_backtest but with one strategy container added
+
+name: simple_signal_test
+
+# Workflow
+workflow:
+  type: simple_backtest
+  phases:
+    - name: test_phase
+      topology: root_backtest_with_strategy  # Use root topology with one strategy
+
+# Execution config
+execution:
+  mode: backtest
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    auto_flush_on_cleanup: true
+    default_retention: full
+    max_events: 1000
+    enable_console_output: true
+    console_filter: ['BAR', 'SIGNAL', 'FILL', 'ORDER', 'POSITION_OPEN', 'POSITION_CLOSE']
+    container_settings:
+      '*':
+        enabled: true
+        max_events: 1000
+
+# Data config
+data:
+  symbols: ['SPY']
+  timeframes: ['1m']
+  start_date: '2024-01-01'
+  end_date: '2024-01-15'
+
+# Portfolio (required)
+portfolio:
+  initial_capital: 100000
+
+# Simple strategy - just one for testing
+strategies:
+  - name: test_momentum
+    type: momentum_strategy
+    params:
+      sma_period: 5
+      rsi_threshold_long: 40
+      rsi_threshold_short: 60
+
+# Results
+results:
+  retention_policy: full
+  max_events: 1000

@@ -361,3 +361,45 @@ class EventBus:
         """Save trace to file if tracing enabled."""
         if hasattr(self, '_tracer'):
             self._tracer.save_to_file(filepath)
+    
+    # ==================== Monitoring and Debugging Methods ====================
+    
+    def get_handler_count(self, event_type: str) -> int:
+        """Get number of active handlers for debugging."""
+        with self._lock:
+            return len(self._subscribers.get(event_type, []))
+    
+    def list_active_filters(self) -> Dict[str, int]:
+        """List active filters for monitoring."""
+        filter_counts = {}
+        with self._lock:
+            for event_type, handlers in self._subscribers.items():
+                filtered_count = sum(1 for _, filter_func in handlers if filter_func is not None)
+                if filtered_count > 0:
+                    filter_counts[event_type] = filtered_count
+        return filter_counts
+    
+    def get_subscription_stats(self) -> Dict[str, Any]:
+        """Get detailed subscription statistics for monitoring."""
+        with self._lock:
+            stats = {
+                'total_subscriptions': sum(len(handlers) for handlers in self._subscribers.values()),
+                'event_types': len(self._subscribers),
+                'filtered_subscriptions': 0,
+                'unfiltered_subscriptions': 0,
+                'by_event_type': {}
+            }
+            
+            for event_type, handlers in self._subscribers.items():
+                filtered = sum(1 for _, filter_func in handlers if filter_func is not None)
+                unfiltered = len(handlers) - filtered
+                
+                stats['filtered_subscriptions'] += filtered
+                stats['unfiltered_subscriptions'] += unfiltered
+                stats['by_event_type'][event_type] = {
+                    'total': len(handlers),
+                    'filtered': filtered,
+                    'unfiltered': unfiltered
+                }
+            
+            return stats

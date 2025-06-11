@@ -12,8 +12,6 @@ import time
 # Import core modules
 from src.core.coordinator.coordinator import Coordinator
 from src.core.cli import parse_arguments
-# TODO: Fix logging import - utils.logging module not found
-# from src.core.utils.logging import setup_logging, configure_event_logging
 import logging
 
 # Import Pydantic validation
@@ -101,9 +99,22 @@ def main():
             print("❌ Schema documentation requires Pydantic: pip install pydantic>=2.0.0")
             return 1
     
-    # Check that config is provided for normal operations
-    if not args.config:
-        logger.error("❌ --config is required for workflow execution")
+    # Determine config path and action topology
+    config_path = args.config
+    action_topology = None
+    
+    if args.signal_generation:
+        action_topology = 'signal_generation'
+    elif args.backtest:
+        action_topology = 'backtest'
+    elif args.signal_replay:
+        action_topology = 'signal_replay'
+    elif args.optimize:
+        action_topology = 'optimization'
+    
+    # Check that we have both config and action (if action flag is used)
+    if not config_path:
+        logger.error("❌ Configuration file required. Use --config config.yaml")
         logger.info("💡 Use --schema-docs to see configuration requirements")
         return 1
     
@@ -115,8 +126,8 @@ def main():
     # Load raw YAML configuration
     try:
         from src.core.cli.args import load_yaml_config
-        config_dict = load_yaml_config(args.config)
-        logger.info("Configuration loaded successfully")
+        config_dict = load_yaml_config(config_path)
+        logger.info(f"Configuration loaded successfully from {config_path}")
         
         # Apply CLI overrides
         if args.bars is not None:
@@ -156,8 +167,22 @@ def main():
         import time
         start_time = time.time()
         
-        # Pass the raw config dict to coordinator
-        result = coordinator.run_workflow(config_dict)
+        # Route to appropriate execution method based on CLI args
+        logger.debug(f"CLI args - action_topology: {action_topology}, workflow: {args.workflow}, sequence: {args.sequence}")
+        
+        if action_topology:
+            # Clean action flag execution
+            logger.info(f"🎯 Executing {action_topology} topology")
+            result = coordinator.run_topology(action_topology, config_dict)
+            
+        elif args.workflow:
+            # Explicit workflow execution
+            config_dict['workflow'] = args.workflow
+            result = coordinator.run_workflow(config_dict)
+            
+        else:
+            # Config-driven execution (backward compatibility)
+            result = coordinator.run_workflow(config_dict)
         
         elapsed = time.time() - start_time
         logger.info(f"✅ Workflow execution completed in {elapsed:.2f} seconds")

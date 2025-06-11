@@ -1,0 +1,26 @@
+# Clean config - pure business logic, no topology/workflow specs
+data:
+  source: csv
+  file_path: "data/SPY.csv"
+  start_date: "2023-01-01"
+  end_date: "2023-03-31"
+  
+strategies:
+  - type: momentum
+    params:
+      fast_period: 10
+      slow_period: 30
+      signal_threshold: 0.01
+      
+execution:
+  initial_capital: 100000
+  commission_rate: 0.001
+  slippage_model: fixed
+  slippage_bps: 5
+  
+# Optional: tracing for debugging
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    batch_size: 1000
+    max_events: 10000

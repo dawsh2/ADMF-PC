@@ -1,0 +1,29 @@
+{
+  "workspace_id": "030cad5d-9fe8-465a-a43e-d2dd30b1fd60",
+  "created_at": "2025-06-10T20:30:27.470594",
+  "portfolio_count": 1,
+  "portfolios": {
+    "portfolio_19ebd064": {
+      "container_id": "portfolio_19ebd064",
+      "container_type": "portfolio",
+      "status": "completed",
+      "event_summary": {
+        "total_events": 32,
+        "signal_count": 2,
+        "trade_count": 0,
+        "event_breakdown": {
+          "BAR": 30,
+          "SIGNAL": 2
+        }
+      },
+      "files": {
+        "events": null,
+        "signals": null,
+        "trades": null,
+        "metrics": "workspaces/030cad5d-9fe8-465a-a43e-d2dd30b1fd60/portfolio_19ebd064/metrics.json"
+      },
+      "access_pattern": "workspaces/030cad5d-9fe8-465a-a43e-d2dd30b1fd60/portfolio_19ebd064/",
+      "last_updated": "2025-06-10T20:30:26.448402"
+    }
+  }
+}

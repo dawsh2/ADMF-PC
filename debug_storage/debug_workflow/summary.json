@@ -1,0 +1,47 @@
+{
+  "workflow_id": "debug_workflow",
+  "timestamp": "2025-06-09T23:41:32.494629",
+  "statistics": {
+    "workspace_id": "debug_workflow",
+    "phase_name": "test_phase",
+    "structure": "workspaces/{workflow_id}/{container_id}/",
+    "total_stored": 1,
+    "total_filtered": 0,
+    "filter_ratio": 0.0,
+    "containers": {
+      "total": [
+        "test_container"
+      ],
+      "portfolio_containers": [],
+      "portfolio_count": 0
+    },
+    "event_counts": {
+      "test_container": {
+        "SIGNAL": 1
+      }
+    },
+    "buffer_status": {
+      "test_container": 0
+    },
+    "sparse_indices": {
+      "signal_count": 1,
+      "trade_count": 0,
+      "regime_changes": 0
+    },
+    "portfolio_focus": {
+      "primary_analysis_unit": "portfolio_containers",
+      "parallelization_ready": false,
+      "analysis_path": "workspaces/debug_workflow/analysis/"
+    }
+  },
+  "regime_changes": [],
+  "phase_summaries": {
+    "test_phase": {
+      "containers": [
+        "test_container"
+      ],
+      "total_events": 1,
+      "filtered_events": 0
+    }
+  }
+}

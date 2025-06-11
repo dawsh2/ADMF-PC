@@ -1,0 +1,66 @@
+# Test configuration for signal generation topology
+workflow:
+  name: test_signal_generation
+  type: single_pass
+  phases:
+    - name: generate_signals
+      topology: signal_generation
+      sequence: single_pass
+      config:
+        # Required by signal_generation pattern
+        symbols: [SPY]
+        timeframes: [1m]
+        data_source: file
+        data_path: ./data
+        
+        # Feature configuration
+        features:
+          sma_fast:
+            feature: sma
+            period: 10
+          sma_slow:
+            feature: sma
+            period: 20
+          rsi:
+            feature: rsi
+            period: 14
+        
+        # Strategy configuration 
+        strategies:
+          - type: momentum
+            params:
+              sma_period: 5
+              rsi_period: 5  # Reduce RSI period to match available data
+              rsi_threshold_long: 30
+              rsi_threshold_short: 70
+        
+        # Signal storage
+        signal_save_directory: ./results/signals/
+        
+        # Data limits
+        max_bars: 20
+        
+        # Tracing
+        trace_level: DEBUG
+        console_output: true
+        
+        # Execution config
+        execution:
+          enable_event_tracing: true
+          trace_settings:
+            enable_console_output: true
+            storage_backend: hierarchical  # Use disk-based hierarchical storage
+            trace_dir: ./workspaces         # Directory for trace storage
+            max_events: 10000               # Maximum events per container
+            batch_size: 10000               # Keep events in memory, flush at end
+            auto_flush_on_cleanup: true     # Ensure events are flushed when containers cleanup
+            container_settings:
+              portfolio*:                   # Only trace portfolio containers
+                enabled: true
+                max_events: 10000
+              data*:                        # Disable tracing for data containers
+                enabled: false
+              strategy*:                    # Disable tracing for strategy containers
+                enabled: false
+              root*:                        # Disable tracing for root container
+                enabled: false

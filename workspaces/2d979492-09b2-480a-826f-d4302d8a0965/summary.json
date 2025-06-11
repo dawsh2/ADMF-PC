@@ -1,0 +1,53 @@
+{
+  "workflow_id": "2d979492-09b2-480a-826f-d4302d8a0965",
+  "timestamp": "2025-06-10T20:24:57.882671",
+  "statistics": {
+    "workspace_id": "2d979492-09b2-480a-826f-d4302d8a0965",
+    "phase_name": "main",
+    "structure": "workspaces/{workflow_id}/{container_id}/",
+    "total_stored": 62,
+    "total_filtered": 0,
+    "filter_ratio": 0.0,
+    "containers": {
+      "total": [
+        "data_c33f81af",
+        "strategy_2e64ec23"
+      ],
+      "portfolio_containers": [],
+      "portfolio_count": 0
+    },
+    "event_counts": {
+      "data_c33f81af": {
+        "BAR": 60
+      },
+      "strategy_2e64ec23": {
+        "SIGNAL": 2
+      }
+    },
+    "buffer_status": {
+      "data_c33f81af": 0,
+      "strategy_2e64ec23": 0
+    },
+    "sparse_indices": {
+      "signal_count": 2,
+      "trade_count": 0,
+      "regime_changes": 0
+    },
+    "portfolio_focus": {
+      "primary_analysis_unit": "portfolio_containers",
+      "parallelization_ready": false,
+      "analysis_path": "workspaces/2d979492-09b2-480a-826f-d4302d8a0965/analysis/"
+    }
+  },
+  "regime_changes": [],
+  "phase_summaries": {
+    "main": {
+      "containers": [
+        "data_c33f81af",
+        "strategy_2e64ec23"
+      ],
+      "total_events": 62,
+      "filtered_events": 0
+    }
+  }
+}

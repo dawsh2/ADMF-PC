@@ -1,0 +1,56 @@
+# Explicit signal generation configuration
+workflow:
+  name: test_explicit_signal_gen
+  type: single_pass
+  phases:
+    - name: generate_signals
+      topology: signal_generation
+      sequence: single_pass
+      config:
+        # Top-level container structure
+        root_container:
+          name: root
+          type: root
+          components: []
+          
+        # Child containers
+        containers:
+          - name: data_container
+            type: data
+            components: ['data_streamer']
+            config:
+              symbol: SPY
+              data_dir: ./data
+              max_bars: 5
+              
+          - name: strategy_container  
+            type: strategy
+            components: ['strategy_state']
+            config:
+              symbols: [SPY]
+              features:
+                sma_fast:
+                  feature: sma
+                  period: 10
+                sma_slow:
+                  feature: sma
+                  period: 20
+                rsi:
+                  feature: rsi
+                  period: 14
+              # Add a simple momentum strategy
+              strategies:
+                - id: momentum_1
+                  type: momentum
+                  params:
+                    fast_period: 10
+                    slow_period: 20
+        
+        # Execution settings
+        execution:
+          enable_event_tracing: true
+          trace_settings:
+            enable_console_output: true
+            console_filter: ['BAR', 'SIGNAL']
+            trace_dir: ./traces
+            max_events: 1000

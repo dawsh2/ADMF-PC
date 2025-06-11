@@ -1,0 +1,65 @@
+# Grid Search Configuration for Regime-Adaptive System
+# Phase 1: Signal Generation with Parameter Sweep
+
+data:
+  source: csv
+  file_path: "data/SPY.csv"
+  start_date: "2020-01-01"
+  end_date: "2023-12-31"
+  
+# Grid search across multiple strategy parameters
+strategies:
+  - type: momentum
+    param_grid:
+      fast_period: [5, 10, 20]
+      slow_period: [30, 50, 100]
+      signal_threshold: [0.01, 0.02, 0.03]
+      
+  - type: mean_reversion
+    param_grid:
+      lookback_period: [10, 20, 30]
+      entry_zscore: [1.5, 2.0, 2.5]
+      exit_zscore: [0, 0.5, 1.0]
+
+# Features for regime detection
+features:
+  - name: market_regime
+    type: regime_classifier
+    params:
+      volatility_window: 20
+      trend_window: 50
+      
+  - name: vix_level
+    type: external_indicator
+    source: "data/VIX.csv"
+    
+  - name: volume_profile
+    type: volume_analysis
+    window: 20
+
+# Walk-forward validation setup
+walk_forward:
+  train_months: 12
+  test_months: 3
+  step_months: 3
+  min_train_size: 252  # 1 year of trading days
+
+# Signal generation settings
+signal_generation:
+  save_signals: true
+  signal_format: parquet
+  include_features: true
+  include_regime_labels: true
+
+# Execution settings for performance
+execution:
+  parallel_workers: 4
+  chunk_size: 50000
+  memory_efficient: true
+  
+  # Event tracing for debugging
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    trace_specific: ["signal_generator"]
+    max_events: 100000

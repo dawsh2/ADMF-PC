@@ -152,6 +152,9 @@ def validate_strategy_features(strategy_func: Callable) -> Callable:
     """
     Decorator that validates features before strategy execution.
     
+    This decorator dynamically constructs the required parameterized feature names
+    based on the strategy's parameters at runtime.
+    
     Usage:
         @validate_strategy_features
         def my_strategy(features, bar, params):
@@ -160,21 +163,34 @@ def validate_strategy_features(strategy_func: Callable) -> Callable:
     """
     @wraps(strategy_func)
     def wrapper(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Any:
-        # Extract required features from function
-        required_features = getattr(strategy_func, 'required_features', [])
+        # Dynamic feature validation - construct actual required feature names
+        required_features = []
         
-        # If not set via attribute, try to infer from component info
-        if not required_features and hasattr(strategy_func, '_component_info'):
+        # Get feature config from component info
+        if hasattr(strategy_func, '_component_info'):
             component_info = strategy_func._component_info
             metadata = component_info.metadata
-            
-            # Try to get from feature_config
             feature_config = metadata.get('feature_config', {})
-            if feature_config:
-                required_features = list(feature_config.keys())
-            else:
-                # Fall back to features list
-                required_features = metadata.get('features', [])
+            
+            # For each feature type, construct the actual parameterized name
+            for feature_name, feature_meta in feature_config.items():
+                param_names = feature_meta.get('params', [])
+                default_value = feature_meta.get('default')
+                
+                if param_names:
+                    # Use first parameter to construct feature name
+                    param_name = param_names[0]  # e.g., 'sma_period'
+                    param_value = params.get(param_name, default_value)
+                    if param_value is not None:
+                        # Construct parameterized feature name: sma_20, rsi_14, etc.
+                        required_features.append(f'{feature_name}_{param_value}')
+                else:
+                    # Feature without parameters
+                    required_features.append(feature_name)
+        
+        # Fall back to static required_features if no dynamic construction
+        if not required_features:
+            required_features = getattr(strategy_func, 'required_features', [])
         
         if required_features:
             validator = get_feature_validator()

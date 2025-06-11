@@ -1,0 +1,12 @@
+{
+  "container_id": "portfolio_19ebd064",
+  "container_type": "portfolio",
+  "event_counts": {
+    "BAR": 30,
+    "SIGNAL": 2
+  },
+  "signal_count": 2,
+  "trade_count": 0,
+  "timestamp": "2025-06-10T20:30:26.448402",
+  "is_portfolio_container": true
+}

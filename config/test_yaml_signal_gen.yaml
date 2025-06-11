@@ -1,0 +1,46 @@
+# Test YAML signal generation with root container
+workflow:
+  name: yaml_signal_generation
+  type: single_pass
+  phases:
+    - name: generate_signals
+      topology: signal_generation_root
+      sequence: single_pass
+      config:
+        # Data configuration
+        symbols: [SPY]
+        timeframes: [1m]
+        data_dir: ./data
+        max_bars: 50
+        
+        # Feature configuration
+        features:
+          sma_fast:
+            feature: sma
+            period: 5
+          sma_slow:
+            feature: sma
+            period: 10
+          rsi:
+            feature: rsi
+            period: 14
+        
+        # Strategy configuration
+        strategies:
+          - id: momentum_1
+            type: momentum
+            params:
+              fast_period: 5
+              slow_period: 10
+        
+        # Signal storage
+        signal_save_directory: ./workspaces/yaml_test/signals/
+        
+        # Execution settings
+        execution:
+          enable_event_tracing: true
+          trace_settings:
+            enable_console_output: true
+            console_filter: ['BAR', 'SIGNAL']
+            trace_dir: ./workspaces/yaml_test/traces
+            max_events: 1000

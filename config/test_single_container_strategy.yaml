@@ -1,0 +1,47 @@
+# Single container test to validate strategy with features
+name: Single Container Strategy Test
+description: Test momentum strategy with features in a single container
+
+phases:
+  - name: test_phase
+    sequence: single_pass
+    topology:
+      name: custom_test
+      containers:
+        # Single container with both data and strategy
+        - name: combined_test
+          type: strategy
+          config:
+            components: 
+              - data_streamer
+              - strategy_wrapper
+            # Data config
+            symbol: SPY
+            data_dir: ./data
+            max_bars: 30
+            # Strategy config
+            strategy_name: momentum
+            strategy_id: momentum_test
+            symbols: ['SPY']
+            min_bars: 20
+            features:
+              sma_20: 
+                feature: sma
+                period: 20
+              rsi: 
+                feature: rsi
+                period: 14
+            strategy_params:
+              sma_period: 20
+              rsi_threshold_long: 30
+              rsi_threshold_short: 70
+
+# Global execution settings
+execution:
+  mode: backtest
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    enable_console_output: true
+    console_filter: ['BAR', 'SIGNAL']
+    max_events: 1000

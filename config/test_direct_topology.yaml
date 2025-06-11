@@ -1,0 +1,41 @@
+name: "Direct Topology Test"
+description: "Test running a topology pattern directly without workflow wrapper"
+
+# Specify topology instead of workflow
+topology: signal_generation
+
+# Configuration for signal generation
+data_source: "file"
+data_path: "SPY_1d.csv"
+data_dir: "./data"
+symbols: ["SPY"]
+timeframes: ["1d"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+max_bars: 30
+
+# Strategy configuration
+strategies:
+  - name: "test_momentum"
+    type: "momentum"
+    params:
+      sma_period: 5
+      rsi_period: 5
+
+# Signal save directory
+signal_save_directory: "./workspaces/signals/"
+
+# Event tracing configuration - needs to be under execution
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: "hierarchical"
+    batch_size: 10
+    auto_flush_on_cleanup: true
+    max_events: 10000
+    
+    # Trace portfolio containers to see signal reception
+    container_settings:
+      "portfolio*":
+        enabled: true
+        max_events: 5000

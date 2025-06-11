@@ -40,6 +40,27 @@ containers:
         config:
           components: ['feature_pipeline']
           
+      # Strategy with feature pipeline
+      - name: momentum_strategy
+        type: strategy
+        config:
+          components: ['strategy_wrapper']
+          strategy_name: momentum
+          strategy_id: momentum_sma_rsi
+          symbols: ['SPY']
+          min_bars: 20
+          features:
+            sma_20: 
+              feature: sma
+              period: 20
+            rsi: 
+              feature: rsi
+              period: 14
+          strategy_params:
+            sma_period: 20
+            rsi_threshold_long: 30
+            rsi_threshold_short: 70
+          
       # Portfolio containers
       - name: portfolio_default
         type: portfolio

@@ -1,0 +1,48 @@
+name: "Signal Generation Event Tracing Test"
+description: "Test configuration to verify event tracing during signal generation saves to workspaces/"
+
+# Topology configuration - use signal_generation pattern
+topology:
+  pattern: "signal_generation"
+  
+# Data configuration
+data_source: "file"
+data_path: "SPY_1d.csv"
+data_dir: "./data"
+symbols: ["SPY"]
+timeframes: ["1d"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+max_bars: 30  # Small test dataset
+
+# Strategy configuration
+strategies:
+  - name: "momentum_1"
+    type: "momentum"
+    params:
+      sma_period: 5  # Shorter period for small dataset
+      rsi_period: 5  # Shorter period for small dataset
+
+# Signal save directory
+signal_save_directory: "./workspaces/signals/"
+
+# Event tracing configuration (no execution mode needed for signal generation)
+enable_event_tracing: true
+trace_settings:
+  # Use hierarchical storage to save to workspaces/
+  storage_backend: "hierarchical"
+  batch_size: 100
+  auto_flush_on_cleanup: true
+  max_events: 10000
+  
+  # Trace specific containers
+  container_settings:
+    "portfolio*":
+      enabled: true
+      max_events: 5000
+    "strategy*":
+      enabled: true
+      max_events: 5000
+    "data*":
+      enabled: true
+      max_events: 5000

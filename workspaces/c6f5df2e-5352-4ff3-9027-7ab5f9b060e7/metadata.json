@@ -1,0 +1,12 @@
+{
+  "workspace_id": "c6f5df2e-5352-4ff3-9027-7ab5f9b060e7",
+  "created_at": "2025-06-10T22:02:27.974187",
+  "description": "ADMF-PC workspace for parallel portfolio analysis",
+  "structure": "workspaces/{workflow_id}/{container_id}/",
+  "portfolio_containers": [
+    "portfolio_68fc59e2"
+  ],
+  "analysis_available": true,
+  "last_updated": "2025-06-10T22:02:28.998819",
+  "total_portfolio_containers": 1
+}

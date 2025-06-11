@@ -6,7 +6,7 @@ Useful for testing topology lifecycle without actual trading logic.
 """
 
 from typing import Optional, Dict, Any
-from ..protocols import StrategyProtocol
+from ..protocols import Strategy
 from ..types import Signal
 from ...data.models import Bar
 

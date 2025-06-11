@@ -78,6 +78,9 @@ class TopologyBuilder:
         # Infer required features from strategies
         self._infer_and_inject_features(context)
         
+        # Auto-extract strategy names from strategies list for portfolio containers
+        self._extract_and_inject_strategy_names(context)
+        
         # Build topology
         topology = {
             'name': pattern.get('name', mode),
@@ -116,7 +119,7 @@ class TopologyBuilder:
                     topology['routes'].append(route)
         
         # 4. Apply behaviors
-        if 'behaviors' in pattern:
+        if 'behaviors' in pattern and pattern['behaviors'] is not None:
             self.logger.info("Applying behaviors")
             for behavior_spec in pattern['behaviors']:
                 self._apply_behavior(behavior_spec, context, topology)
@@ -153,10 +156,6 @@ class TopologyBuilder:
         if mode in self.patterns:
             return self.patterns[mode]
         
-        # Special handling for optimization
-        if mode == 'optimization' and 'backtest' in self.patterns:
-            return self.patterns['backtest']
-        
         return None
     
     def _build_context(self, pattern: Dict[str, Any], config: Dict[str, Any], 
@@ -182,6 +181,9 @@ class TopologyBuilder:
                 'trace_id': tracing_config.get('trace_id'),
                 'trace_dir': tracing_config.get('trace_dir', './traces'),
                 'max_events': tracing_config.get('max_events', 10000),
+                'storage_backend': tracing_config.get('storage_backend', 'memory'),  # Add storage backend support
+                'batch_size': tracing_config.get('batch_size', 1000),  # Add batch_size support
+                'auto_flush_on_cleanup': tracing_config.get('auto_flush_on_cleanup', True),  # Add auto_flush_on_cleanup support
                 'container_settings': tracing_config.get('container_settings', {}),
                 # Include console output settings
                 'enable_console_output': tracing_config.get('enable_console_output', False),
@@ -225,11 +227,14 @@ class TopologyBuilder:
         # Get items from config or spec
         from_config = comp_spec.get('from_config')
         if from_config:
-            items = self._resolve_value(from_config, context)
+            # Direct access to config instead of using broken resolver
+            items = context.get('config', {}).get(from_config, [])
+            self.logger.info(f"Resolved {from_config} to: {items}")
             if not isinstance(items, list):
                 items = [items] if items else []
                 
             for item in items:
+                self.logger.info(f"Processing {comp_type} item: {item}")
                 # Skip if item is not a dict (e.g., if it's a string from bad resolution)
                 if not isinstance(item, dict):
                     continue
@@ -239,6 +244,7 @@ class TopologyBuilder:
                     if comp_type not in components:
                         components[comp_type] = {}
                     components[comp_type][name] = component
+                    self.logger.info(f"Added {comp_type} component: {name}")
         else:
             # Create single component
             component = self._create_single_component(comp_type, comp_spec)
@@ -251,29 +257,49 @@ class TopologyBuilder:
         return components
     
     def _create_single_component(self, comp_type: str, config: Dict[str, Any]):
-        """Create a single stateless component."""
-        # TODO: Implement actual component creation
-        # For now, return mock components for testing
+        """Find and return stateless function reference."""
+        import importlib
+        import inspect
         
         try:
             if comp_type == 'strategies':
-                # Mock strategy for testing
-                return {'type': 'strategy', 'name': config.get('name', 'test_strategy'), 'config': config}
-            elif comp_type == 'classifiers':
-                # Mock classifier
-                return {'type': 'classifier', 'name': config.get('name', 'test_classifier'), 'config': config}
-            elif comp_type == 'risk_validators':
-                # Mock risk validator
-                return {'type': 'risk_validator', 'name': config.get('name', 'test_risk'), 'config': config}
-            elif comp_type == 'execution_models':
-                # Mock execution model
-                return {'type': 'execution_model', 'name': config.get('name', 'test_execution'), 'config': config}
+                # Get strategy function reference
+                strategy_type = config.get('type', '')
+                
+                # Map strategy types to their likely function names
+                function_candidates = [
+                    f'{strategy_type}_strategy',  # momentum -> momentum_strategy
+                    strategy_type,                # momentum -> momentum
+                ]
+                
+                # Try importing from the appropriate module
+                module_name = strategy_type.replace('_strategy', '')  # Remove _strategy suffix if present
+                module_path = f'src.strategy.strategies.{module_name}'
+                
+                try:
+                    module = importlib.import_module(module_path)
+                    
+                    # Look for the function by name
+                    for candidate in function_candidates:
+                        if hasattr(module, candidate):
+                            func = getattr(module, candidate)
+                            if callable(func):
+                                self.logger.info(f"Found strategy function: {candidate} in {module_path}")
+                                return func
+                    
+                    self.logger.warning(f"No strategy function found for type '{strategy_type}' in {module_path}")
+                    return None
+                    
+                except ImportError as e:
+                    self.logger.warning(f"Could not import strategy module {module_path}: {e}")
+                    return None
+                
             else:
-                self.logger.warning(f"Unknown component type: {comp_type}")
-                # Return generic mock component
-                return {'type': comp_type, 'name': config.get('name', f'test_{comp_type}'), 'config': config}
+                # Other component types not implemented yet
+                return None
+                
         except Exception as e:
-            self.logger.error(f"Failed to create component {comp_type}: {e}")
+            self.logger.error(f"Failed to find component {comp_type}: {e}")
             return None
     
     def _create_containers(self, container_spec: Dict[str, Any], 
@@ -393,9 +419,9 @@ class TopologyBuilder:
                 config['risk_params'] = combo['risk_params']
         
         try:
-            # Extract components list from config
-            components = config.get('components', [])
-            container_type = config.get('type')
+            # Extract components list from spec, not config
+            components = spec.get('components', [])
+            container_type = spec.get('type')
             
             # Remove components and type from config as they're passed separately
             clean_config = {k: v for k, v in config.items() if k not in ['components', 'type']}
@@ -851,13 +877,47 @@ class TopologyBuilder:
     
     def _setup_signal_generation_subscriptions(self, containers: Dict[str, Any], root_bus: Any) -> None:
         """Set up subscriptions for signal generation topology."""
-        # Feature container subscribes to BAR events
-        feature_container = containers.get('feature_processor')
-        if feature_container:
-            root_bus.subscribe('BAR', feature_container.receive_event)
-            self.logger.info("Feature processor subscribed to BAR events")
+        from ..events import EventType
         
-        # Signals are captured via event tracing - no additional subscriptions needed
+        # Portfolio containers subscribe to SIGNAL events from root bus
+        portfolio_containers = {k: v for k, v in containers.items() if 'portfolio' in k}
+        
+        for portfolio_name, portfolio in portfolio_containers.items():
+            # Get portfolio manager component that can handle signals
+            portfolio_manager = portfolio.get_component('portfolio_manager')
+            if portfolio_manager and hasattr(portfolio_manager, 'process_event'):
+                
+                # Subscribe to SIGNAL events on the portfolio's own event bus
+                # Signals flow: strategy -> parent (root) -> root forwards to all children including portfolio
+                event_type_str = EventType.SIGNAL.value if hasattr(EventType.SIGNAL, 'value') else str(EventType.SIGNAL)
+                
+                # Get managed strategies for this portfolio from config
+                portfolio_config = portfolio.config.config if hasattr(portfolio.config, 'config') else {}
+                managed_strategies = portfolio_config.get('managed_strategies', ['default'])
+                
+                # Create filter function for strategy_id filtering
+                def create_strategy_filter(strategies):
+                    def filter_func(event):
+                        strategy_id = event.payload.get('strategy_id', '') if hasattr(event, 'payload') else ''
+                        # For signal generation mode, match any strategy ending with the managed strategy name
+                        # e.g., managed_strategies=['default'] matches strategy_id='SPY_momentum'
+                        for managed_strategy in strategies:
+                            if managed_strategy == 'default' or strategy_id.endswith(f'_{managed_strategy}') or strategy_id == managed_strategy:
+                                return True
+                        return False
+                    return filter_func
+                
+                # Subscribe directly - Container.receive_event() handles tracing
+                portfolio.event_bus.subscribe(
+                    event_type_str, 
+                    portfolio_manager.process_event,
+                    filter_func=create_strategy_filter(managed_strategies)
+                )
+                self.logger.info(f"Portfolio {portfolio_name} subscribed to '{event_type_str}' events with strategy filter: {managed_strategies}")
+            else:
+                self.logger.warning(f"Portfolio {portfolio_name} has no portfolio_manager with process_event method")
+        
+        # Signals are also captured via event tracing for storage and replay
     
     def _setup_signal_replay_subscriptions(self, containers: Dict[str, Any], root_bus: Any) -> None:
         """Set up subscriptions for signal replay topology."""
@@ -887,6 +947,50 @@ class TopologyBuilder:
             if portfolio_state and hasattr(portfolio_state, 'on_fill'):
                 root_bus.subscribe(EventType.FILL, portfolio_state.on_fill)
                 self.logger.info(f"Portfolio {portfolio_name} subscribed to FILL events")
+    def _extract_and_inject_strategy_names(self, context: Dict[str, Any]) -> None:
+        """
+        Automatically extract strategy names from strategies list and inject
+        into context for portfolio container creation.
+        
+        This allows users to just define strategies with names, and the system
+        automatically creates the strategy_names list needed by portfolio containers.
+        """
+        strategies = context.get('config', {}).get('strategies', [])
+        if not strategies:
+            self.logger.info("No strategies found in config, skipping strategy name extraction")
+            return
+        
+        # Extract strategy names from the strategies list
+        strategy_names = []
+        for strategy_config in strategies:
+            strategy_name = strategy_config.get('name')
+            if strategy_name:
+                strategy_names.append(strategy_name)
+            else:
+                # Fallback to strategy type if no name provided
+                strategy_type = strategy_config.get('type', 'default')
+                strategy_names.append(strategy_type)
+        
+        if strategy_names:
+            self.logger.info(f"Extracted strategy names from strategies list: {strategy_names}")
+            
+            # Inject strategy_names into config so portfolio containers can use it
+            if 'strategy_names' not in context['config']:
+                context['config']['strategy_names'] = strategy_names
+                self.logger.info(f"Injected strategy_names into config: {strategy_names}")
+            else:
+                # Merge with existing strategy_names if present
+                existing_names = context['config']['strategy_names']
+                if not isinstance(existing_names, list):
+                    existing_names = [existing_names]
+                
+                # Combine and deduplicate
+                combined_names = list(set(existing_names + strategy_names))
+                context['config']['strategy_names'] = combined_names
+                self.logger.info(f"Merged strategy_names: {existing_names} + {strategy_names} = {combined_names}")
+        else:
+            self.logger.warning("No strategy names could be extracted from strategies list")
+
     def _infer_and_inject_features(self, context: Dict[str, Any]) -> None:
         """
         Automatically infer required features from strategy configurations
@@ -898,7 +1002,7 @@ class TopologyBuilder:
         - Features get added to context for feature containers to use
         """
         # Look for strategies in the user config
-        strategies = context.get("strategies", [])
+        strategies = context.get('config', {}).get('strategies', [])
         if not strategies:
             self.logger.info("No strategies found in config, skipping feature inference")
             return
@@ -922,6 +1026,51 @@ class TopologyBuilder:
                     combined = existing.union(required_features)
                     context["inferred_features"] = list(combined)
                     
+                # Convert inferred features to proper feature configs for StrategyState
+                feature_configs = {}
+                from ..components.discovery import get_component_registry
+                registry = get_component_registry()
+                
+                for strategy_config in strategies:
+                    strategy_type = strategy_config.get('type', strategy_config.get('class'))
+                    strategy_params = strategy_config.get('params', strategy_config.get('parameters', {}))
+                    
+                    # Get strategy metadata from registry to build feature configs
+                    strategy_info = None
+                    for name_variant in [strategy_type, f'{strategy_type}_strategy', strategy_type.replace('_strategy', '')]:
+                        strategy_info = registry.get_component(name_variant)
+                        if strategy_info:
+                            break
+                    
+                    if strategy_info:
+                        feature_config = strategy_info.metadata.get('feature_config', {})
+                        for feature_name, feature_meta in feature_config.items():
+                            param_names = feature_meta.get('params', [])
+                            default_value = feature_meta.get('default')
+                            
+                            if param_names:
+                                # Use first parameter to construct feature config
+                                param_name = param_names[0]  # e.g., 'sma_period'
+                                param_value = strategy_params.get(param_name, default_value)
+                                if param_value is not None:
+                                    # Create feature config: sma_5: {feature: sma, period: 5}
+                                    feature_key = f'{feature_name}_{param_value}'
+                                    feature_configs[feature_key] = {
+                                        'feature': feature_name,
+                                        param_name.replace(f'{feature_name}_', ''): param_value
+                                    }
+                            else:
+                                # Feature without parameters
+                                feature_configs[feature_name] = {'feature': feature_name}
+                
+                # Add feature configs to context config for strategy containers  
+                if "feature_configs" not in context['config']:
+                    context['config']["feature_configs"] = feature_configs
+                else:
+                    context['config']["feature_configs"].update(feature_configs)
+                
+                self.logger.info(f"Generated feature configs: {feature_configs}")
+                
                 # Also add to top-level features config for backward compatibility
                 if "features" not in context:
                     context["features"] = list(required_features)
@@ -951,16 +1100,30 @@ class TopologyBuilder:
             Set of required feature identifiers
         """
         from ..components.discovery import get_component_registry
+        import importlib
         
         required_features = set()
         registry = get_component_registry()
         
         for strategy_config in strategies:
             strategy_type = strategy_config.get('type', strategy_config.get('class'))
-            strategy_params = strategy_config.get('parameters', {})
+            strategy_params = strategy_config.get('params', strategy_config.get('parameters', {}))
+            
+            # Import the strategy module to ensure decorator runs
+            try:
+                module_name = strategy_type.replace('_strategy', '')  
+                module_path = f'src.strategy.strategies.{module_name}'
+                importlib.import_module(module_path)
+            except ImportError:
+                self.logger.debug(f"Could not import {module_path} for feature inference")
             
             # Get strategy metadata from registry
-            strategy_info = registry.get_component(strategy_type)
+            # Try different name variations
+            strategy_info = None
+            for name_variant in [strategy_type, f'{strategy_type}_strategy', strategy_type.replace('_strategy', '')]:
+                strategy_info = registry.get_component(name_variant)
+                if strategy_info:
+                    break
             
             if strategy_info:
                 # Extract feature requirements from metadata

@@ -14,13 +14,17 @@ from typing import Optional, List
 class CLIArgs:
     """Structured representation of CLI arguments."""
     # Core arguments
-    config: str
+    config: Optional[str] = None
     
-    # Execution mode arguments
-    mode: Optional[str] = None
-    signal_log: Optional[str] = None
-    signal_output: Optional[str] = None
-    weights: Optional[str] = None
+    # Clean topology action flags (mutually exclusive)
+    signal_generation: bool = False
+    backtest: bool = False
+    signal_replay: bool = False
+    optimize: bool = False
+    
+    # Workflow and sequence arguments  
+    workflow: Optional[str] = None
+    sequence: Optional[str] = None
     
     # Data arguments
     dataset: Optional[str] = None
@@ -63,34 +67,45 @@ def parse_arguments() -> CLIArgs:
         help='Path to configuration file (YAML)'
     )
     
-    # Execution mode arguments
-    parser.add_argument(
-        '--mode',
-        type=str,
-        choices=['backtest', 'optimization', 'signal-generation', 'signal-replay', 'live'],
-        default=None,
-        help='Override execution mode from config'
+    # Clean topology action flags - each implies a specific topology
+    action_group = parser.add_mutually_exclusive_group()
+    
+    action_group.add_argument(
+        '--signal-generation', '-sg',
+        action='store_true',
+        help='Generate trading signals from strategies'
     )
     
-    parser.add_argument(
-        '--signal-log',
-        type=str,
-        default=None,
-        help='Path to signal log file for replay mode'
+    action_group.add_argument(
+        '--backtest', '-bt',
+        action='store_true',
+        help='Run backtest simulation'
     )
     
-    parser.add_argument(
-        '--signal-output',
-        type=str,
-        default=None,
-        help='Path to save generated signals (signal-generation mode)'
+    action_group.add_argument(
+        '--signal-replay', '-sr',
+        action='store_true',
+        help='Replay previously generated signals'
     )
     
-    parser.add_argument(
-        '--weights',
+    action_group.add_argument(
+        '--optimize', '-opt',
+        action='store_true',
+        help='Run parameter optimization'
+    )
+    
+    # Workflow for complex multi-phase executions
+    action_group.add_argument(
+        '--workflow', '-w',
         type=str,
-        default=None,
-        help='JSON string or file with strategy weights for signal-replay mode'
+        help='Execute a workflow pattern (e.g., research_pipeline)'
+    )
+    
+    # Sequence patterns
+    parser.add_argument(
+        '--sequence', '-s',
+        type=str,
+        help='Apply sequence pattern (e.g., walk_forward, parameter_sweep)'
     )
     
     # Data arguments
@@ -199,21 +214,29 @@ def parse_arguments() -> CLIArgs:
     # Convert to structured CLIArgs
     return CLIArgs(
         config=args.config,
-        mode=args.mode,
-        signal_log=getattr(args, 'signal_log', None),
-        signal_output=getattr(args, 'signal_output', None),
-        weights=args.weights,
+        # Clean topology action flags
+        signal_generation=getattr(args, 'signal_generation', False),
+        backtest=getattr(args, 'backtest', False),
+        signal_replay=getattr(args, 'signal_replay', False),
+        optimize=getattr(args, 'optimize', False),
+        # Workflow and sequence arguments
+        workflow=getattr(args, 'workflow', None),
+        sequence=getattr(args, 'sequence', None),
+        # Data arguments
         dataset=args.dataset,
         bars=args.bars,
         split_ratio=getattr(args, 'split_ratio', None),
+        # Execution arguments
         parallel=args.parallel,
         checkpoint=args.checkpoint,
         output_dir=getattr(args, 'output_dir', None),
+        # Logging arguments
         log_level=getattr(args, 'log_level', 'INFO'),
         log_events=getattr(args, 'log_events', []),
         log_file=getattr(args, 'log_file', None),
         log_json=getattr(args, 'log_json', False),
         verbose=args.verbose,
+        # Development arguments
         dry_run=getattr(args, 'dry_run', False),
         profile=args.profile,
         schema_docs=getattr(args, 'schema_docs', False)

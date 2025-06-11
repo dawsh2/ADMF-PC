@@ -11,12 +11,14 @@ This package contains the coordinator system that:
 from .coordinator import Coordinator
 from .sequencer import Sequencer
 from .topology import TopologyBuilder
+from .topology_runner import TopologyRunner
 from .protocols import WorkflowProtocol, SequenceProtocol, PhaseConfig
 
 __all__ = [
     'Coordinator',
     'Sequencer', 
     'TopologyBuilder',
+    'TopologyRunner',
     'WorkflowProtocol',
     'SequenceProtocol',
     'PhaseConfig',
