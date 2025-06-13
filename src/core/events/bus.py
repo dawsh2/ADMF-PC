@@ -123,8 +123,11 @@ class EventBus:
             if 'event_id' not in event.metadata:
                 event.metadata['event_id'] = f"{event.event_type}_{uuid.uuid4().hex[:8]}"
             
+            # Create snapshots to avoid modification during iteration
+            observers_snapshot = list(self._observers)
+            
             # Notify observers of publish
-            for observer in self._observers:
+            for observer in observers_snapshot:
                 try:
                     observer.on_publish(event)
                 except Exception as e:
@@ -132,7 +135,7 @@ class EventBus:
             
             self._event_count += 1
             
-            # Get handlers
+            # Get handlers - already creates new list via concatenation
             handlers = self._subscribers.get(event.event_type, [])
             wildcard_handlers = self._subscribers.get('*', [])
             all_handlers = handlers + wildcard_handlers
@@ -148,7 +151,7 @@ class EventBus:
                     handler(event)
                     
                     # Notify observers of successful delivery
-                    for observer in self._observers:
+                    for observer in observers_snapshot:
                         try:
                             observer.on_delivered(event, handler)
                         except Exception as e:
@@ -158,7 +161,7 @@ class EventBus:
                     self._error_count += 1
                     
                     # Notify observers of error
-                    for observer in self._observers:
+                    for observer in observers_snapshot:
                         try:
                             observer.on_error(event, handler, e)
                         except Exception as e2:

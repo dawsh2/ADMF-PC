@@ -1,0 +1,62 @@
+name: "Multi-Strategy Parameter Expansion Test"
+description: "Test parameter expansion across multiple distinct strategies"
+
+topology: signal_generation
+
+# Data configuration
+symbols:
+  - SPY
+timeframes:
+  - 1m
+data_source: file
+data_path: './data/SPY_1m.csv'
+start_date: '2024-01-15'
+end_date: '2024-01-15'
+  
+# Multiple strategies with parameter expansion
+strategies:
+  # MA Crossover with parameter grid
+  - type: ma_crossover
+    params:
+      fast_period: [5, 10, 20]
+      slow_period: [30, 50]
+  
+  # Simple Momentum with parameter grid
+  - type: simple_momentum
+    params:
+      sma_period: [10, 20, 50]
+      rsi_threshold_long: [20, 30, 40]
+      rsi_threshold_short: [60, 70, 80]
+      exit_bars: [5, 10]
+  
+  # Mean Reversion with parameter grid
+  - type: mean_reversion
+    params:
+      entry_threshold: [1.5, 2.0, 2.5]
+      exit_threshold: [0.25, 0.5, 0.75]
+
+# Event bus settings - process all signals
+event_filters:
+  signal:
+    filter_type: "all"
+
+# Execution settings - no wait time needed for signal generation
+execution:
+  max_duration: 0.0
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    events_to_trace: ["SIGNAL"]  # Only trace signal events, not BAR events
+    max_events: 50000  # Increase limit for more bars
+
+# Performance tracking
+performance:
+  store_traces: true
+  trace_path: "./workspaces/multi_strategy_expansion"
+
+# Optional: Store strategy metadata
+metadata:
+  test_type: "multi_strategy_parameter_expansion"
+  strategies_tested: 3
+  total_combinations_expected: 48  # 6 + 18 + 6 = 30 total

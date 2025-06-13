@@ -7,20 +7,29 @@ without inheritance.
 """
 
 from .features import (
-    # Stateless feature functions
+    # Stateless feature functions - now organized by category
     sma_feature,
     ema_feature,
+    dema_feature,
+    tema_feature,
     rsi_feature,
-    macd_feature,
-    bollinger_bands_feature,
-    atr_feature,
     stochastic_feature,
     williams_r_feature,
     cci_feature,
+    macd_feature,
     adx_feature,
-    volume_features,
-    momentum_features,
-    price_action_features,
+    momentum_feature,
+    vortex_feature,
+    atr_feature,
+    bollinger_bands_feature,
+    keltner_channel_feature,
+    donchian_channel_feature,
+    volatility_feature,
+    volume_feature,
+    volume_sma_feature,
+    volume_ratio_feature,
+    ichimoku_feature,
+    # Utilities
     compute_feature,
     compute_multiple_features,
     FEATURE_REGISTRY,
@@ -62,20 +71,28 @@ from .signal_aggregation import (
 
 
 __all__ = [
-    # Stateless feature functions
+    # Stateless feature functions - organized by category
     "sma_feature",
     "ema_feature",
+    "dema_feature",
+    "tema_feature",
     "rsi_feature",
-    "macd_feature",
-    "bollinger_bands_feature",
-    "atr_feature",
     "stochastic_feature",
     "williams_r_feature",
     "cci_feature",
+    "macd_feature",
     "adx_feature",
-    "volume_features",
-    "momentum_features",
-    "price_action_features",
+    "momentum_feature",
+    "vortex_feature",
+    "atr_feature",
+    "bollinger_bands_feature",
+    "keltner_channel_feature",
+    "donchian_channel_feature",
+    "volatility_feature",
+    "volume_feature",
+    "volume_sma_feature",
+    "volume_ratio_feature",
+    "ichimoku_feature",
     "compute_feature",
     "compute_multiple_features",
     "FEATURE_REGISTRY",
@@ -86,21 +103,6 @@ __all__ = [
     "DEFAULT_MOMENTUM_FEATURES",
     "DEFAULT_MEAN_REVERSION_FEATURES",
     "DEFAULT_VOLATILITY_FEATURES",
-    
-    # Classifiers - moved to strategy.classifiers
-    # "MarketRegime",
-    # "TrendClassifier", 
-    # "VolatilityClassifier",
-    # "CompositeClassifier",
-    # "create_market_regime_classifier",
-    
-    # Signal Replay - moved elsewhere
-    # "CapturedSignal",
-    # "SignalCapture",
-    # "SignalReplayer",
-    # "WeightedSignalAggregator",
-    
-    # Feature Inference - moved to core.coordinator.feature_inference
     
     # Signal Aggregation
     "InternalSignal",

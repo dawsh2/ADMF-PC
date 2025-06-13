@@ -1,0 +1,128 @@
+ User approved Claude's plan:
+  ⎿  Study-Level Directory Organization for WFV
+
+     Enhanced CLI Arguments
+
+     --results-dir momentum_wfv_study    # Study-level directory name
+     --wfv-windows 5                     # Total WFV windows  
+     --wfv-window 2                      # Execute specific window
+     --phase train                       # Training or test phase
+     --strategies "momentum:lookback=10,20,30"
+     --parameters optimal.json           # Load selected parameters
+
+     Improved Workspace Structure
+
+     workspaces/
+     └── momentum_wfv_study/              # Study-level directory (from --results-dir)
+         ├── window_01_train/             # Window 1 training phase
+         │   ├── signals/
+         │   ├── generations/             # All GA generations  
+         │   │   ├── gen_01.json
+         │   │   ├── gen_25.json
+         │   │   └── gen_50.json
+         │   └── analytics.db
+         ├── window_01_test/              # Window 1 test phase
+         │   ├── signals/
+         │   └── analytics.db
+         ├── window_02_train/             # Window 2 training phase
+         │   ├── signals/
+         │   ├── generations/
+         │   └── analytics.db
+         ├── window_02_test/              # Window 2 test phase
+         │   ├── signals/
+         │   └── analytics.db
+         ├── study_summary.json           # Cross-window analysis
+         └── final_test/                  # Final held-out validation
+             ├── signals/
+             └── analytics.db
+
+     Directory Auto-Generation Logic
+
+     The system automatically creates subdirectories based on:
+     - Study Name: From --results-dir momentum_wfv_study
+     - Window Number: From --wfv-window 2 → window_02_
+     - Phase: From --phase train → _train or _test
+     - Final Result: workspaces/momentum_wfv_study/window_02_train/
+
+     CLI Workflow Examples
+
+     Window 1 Training
+
+     python main.py --signal-generation \
+         --strategies "momentum:lookback=10,20,30" \
+         --dataset train \
+         --results-dir momentum_wfv_study \
+         --wfv-windows=5 --wfv-window=1 --phase=train
+     Output: workspaces/momentum_wfv_study/window_01_train/
+
+     Window 1 Testing (after manual analysis)
+
+     python main.py --signal-generation \
+         --parameters optimal_gen25_w1.json \
+         --dataset train \
+         --results-dir momentum_wfv_study \
+         --wfv-windows=5 --wfv-window=1 --phase=test
+     Output: workspaces/momentum_wfv_study/window_01_test/
+
+     Final Validation (held-out test)
+
+     python main.py --backtest \
+         --parameters final_optimal_params.json \
+         --dataset test \
+         --results-dir momentum_wfv_study
+     Output: workspaces/momentum_wfv_study/final_test/
+
+     Implementation Changes
+
+     1. Enhanced MultiStrategyTracer Workspace Logic
+
+     def _setup_multi_strategy_tracer(self, topology, context, tracing_config):
+         # Get study directory from CLI args
+         results_dir = context.get('results_dir', 'default_study')
+         wfv_window = context.get('wfv_window')
+         phase = context.get('phase')
+         
+         if wfv_window and phase:
+             # WFV execution: study_name/window_XX_phase/
+             workspace_name = f"window_{wfv_window:02d}_{phase}"
+             full_path = f"workspaces/{results_dir}/{workspace_name}"
+         else:
+             # Regular execution: study_name/run_unique_id/
+             workspace_name = f"run_{unique_id}"
+             full_path = f"workspaces/{results_dir}/{workspace_name}"
+
+     2. Cross-Window Analysis Support
+
+     # Study-level analysis file
+     study_summary = {
+         "study_name": "momentum_wfv_study",
+         "windows_completed": [1, 2],
+         "optimal_generations": {
+             "window_01": 25,
+             "window_02": 22
+         },
+         "performance_summary": {...}
+     }
+
+     Benefits of Study-Level Organization
+
+     1. Clean Separation: Each study in its own directory
+     2. Easy Navigation: All related WFV runs grouped together  
+     3. Cross-Window Analysis: Study-level summary files
+     4. Multiple Studies: Run different strategies/timeframes in parallel
+     5. Archive Management: Easy to zip/backup entire studies
+     6. Parameter Tracking: Clear progression of selected parameters across windows
+
+     Multiple Study Management
+
+     # Study 1: Momentum strategies
+     python main.py --results-dir momentum_wfv_study --wfv-window=1 --phase=train
+
+     # Study 2: Mean reversion strategies  
+     python main.py --results-dir mean_reversion_study --wfv-window=1 --phase=train
+
+     # Study 3: Multi-timeframe analysis
+     python main.py --results-dir multi_tf_study --wfv-window=1 --phase=train
+
+     This organization makes it much easier to manage multiple concurrent studies and provides clean separation of different research projects.
+

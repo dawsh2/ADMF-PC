@@ -65,16 +65,23 @@ class TopologyRunner:
         result['end_time'] = datetime.now().isoformat()
         result['duration_seconds'] = (datetime.now() - start_time).total_seconds()
         
+        # Include topology metadata for analytics integration
+        if 'metadata' in topology:
+            result['topology_metadata'] = topology['metadata']
+        
         return result
     
     def _build_topology_definition(self, topology_name: str, 
                                   config: Dict[str, Any],
                                   execution_id: str) -> Dict[str, Any]:
         """Build topology definition with metadata and tracing."""
+        # Preserve existing metadata from config and add execution metadata
+        existing_metadata = config.get('metadata', {})
         topology_def = {
             'mode': topology_name,
             'config': config,
             'metadata': {
+                **existing_metadata,  # Preserve config metadata (config_name, config_file, etc.)
                 'execution_id': execution_id,
                 'topology_name': topology_name,
                 'timestamp': datetime.now().isoformat()
@@ -165,6 +172,19 @@ class TopologyRunner:
                     logger.debug(f"Stopped container: {name}")
                 except Exception as e:
                     logger.error(f"Error stopping container {name}: {e}")
+            
+            # Finalize MultiStrategyTracer if present
+            if 'multi_strategy_tracer' in topology:
+                logger.info("Finalizing MultiStrategyTracer")
+                try:
+                    tracer = topology['multi_strategy_tracer']
+                    tracer_results = tracer.finalize()
+                    result['tracer_results'] = tracer_results
+                    logger.info(f"MultiStrategyTracer finalized: {tracer_results.get('compression_ratio', 0):.1f}% compression")
+                    logger.info(f"Saved {len(tracer_results.get('components', {}))} component signal files")
+                except Exception as e:
+                    logger.error(f"Error finalizing MultiStrategyTracer: {e}")
+                    result['errors'].append(f"Tracer finalization error: {str(e)}")
             
             # Cleanup
             logger.info("Cleaning up containers")

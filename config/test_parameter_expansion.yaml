@@ -1,0 +1,50 @@
+# Test parameter expansion for signal generation
+name: "Parameter Expansion Signal Generation Test"
+
+data:
+  symbols: ['SPY']
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+symbols: ['SPY']
+timeframes: ['1m']
+max_bars: 100  # More data for better testing
+
+# Add portfolio config to satisfy validation
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+# Parameter expansion - test multiple MA period combinations
+strategies:
+  - name: 'ma_crossover'
+    type: 'ma_crossover'
+    params:
+      # These will be expanded into multiple strategy instances
+      fast_period: [5, 10, 20]  # 3 values
+      slow_period: [20, 30, 50]  # 3 values
+      # This should create 9 combinations total
+
+execution:
+  max_duration: 0.0
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'strategy*':
+        enabled: true
+      'data*':
+        enabled: false  # Don't trace data containers
+      'portfolio*':
+        enabled: false  # Signal generation doesn't need portfolio
+
+metadata:
+  workflow_id: 'parameter_expansion_test'
+  experiment_type: 'signal_generation'
+  notes: 'Testing topology builder with parameter expansion'
+
+# Use the signal generation topology
+topology: 'signal_generation'

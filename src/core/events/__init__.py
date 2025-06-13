@@ -30,6 +30,7 @@ from .types import (
     create_signal_event,
     create_system_event,
     create_error_event,
+    create_classification_event,
     # Time utilities
     parse_event_time,
     event_age,
@@ -113,6 +114,7 @@ __all__ = [
     'create_signal_event',
     'create_system_event',
     'create_error_event',
+    'create_classification_event',
     
     # Time utilities
     'parse_event_time',

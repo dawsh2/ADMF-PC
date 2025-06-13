@@ -49,46 +49,32 @@ containers:
           max_bars:
             from_config: max_bars
 
-      # Strategy containers - one per symbol/timeframe
-      - name_template: "{symbol}_{timeframe}_strategy"
+      # Single strategy container that processes all symbols/timeframes
+      - name: "strategy"
         type: strategy
         components: ["strategy_state"]
-        foreach:
-          symbol:
-            from_config: symbols
-          timeframe:
-            from_config: timeframes
         config:
-          symbols: ["{symbol}"]
+          symbols:
+            from_config: symbols
           features:
             from_config: feature_configs
             default: {}
           strategies:
             from_config: strategies
             default: []
+          classifiers:
+            from_config: classifiers
+            default: []
+          # Pass through execution config to enable tracing
+          execution:
+            from_config: execution
+          metadata:
+            from_config: metadata
       
-      # Portfolio containers - one per strategy to collect its signals
-      # These act as filters, capturing only signals from specific strategies
-      - name_template: "portfolio_{strategy_name}"
-        type: portfolio
-        components: ["portfolio_manager", "position_manager"]
-        foreach:
-          strategy_name:
-            from_config: strategy_names
-            default: ["default"]
-        config:
-          managed_strategies: ["{strategy_name}"]
-          signal_collection_only: true  # Don't execute trades, just collect signals
+      # No portfolio containers needed - strategy containers handle their own signal tracing
 
 # Routes to create
-routes:
-  # Signal saver - captures and saves all signals
-  - name: signal_saver
-    type: signal_saver
-    source: "$root_event_bus"
-    save_directory:
-      from_config: signal_save_directory
-      default: "./results/signals/"
+routes: []  # No routes needed - strategy containers handle signal tracing directly
 
 # Special behaviors
 behaviors:

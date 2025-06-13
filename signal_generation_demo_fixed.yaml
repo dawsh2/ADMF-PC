@@ -1,0 +1,67 @@
+# ADMF-PC Signal Generation Demo Configuration (Pydantic-compliant)
+# This demonstrates the complete signal flow using main.py --signal-generation
+
+name: "Signal Generation Demo"
+description: "Complete signal generation flow demonstration"
+workflow_type: "backtest"
+
+# Data configuration (required)
+data:
+  symbols: ['SPY']
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+  frequency: "1d"
+  source: "file"
+  file_path: "data/SPY_1d.csv"
+  timezone: "UTC"
+
+# Portfolio configuration (required)
+portfolio:
+  initial_capital: 100000
+  currency: "USD"
+  commission_type: "percentage"
+  commission_value: 0.001
+  slippage_type: "percentage"
+  slippage_value: 0.001
+
+# Strategy configuration (required)
+strategies:
+  - name: "ma_crossover_demo"
+    type: "ma_crossover"
+    enabled: true
+    allocation: 1.0
+    parameters:
+      fast_period: 5
+      slow_period: 20
+
+# Execution settings
+execution:
+  type: "simulated"
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: "hierarchical"
+    use_sparse_storage: true  # Enable temporal sparse storage
+    enable_console_output: true
+    console_filter: ["SIGNAL"]
+    container_settings:
+      "portfolio*":
+        enabled: true
+        max_events: 1000
+    batch_size: 100
+    trace_dir: "./workspaces"
+  slippage: 0.001
+  commission: 0.005
+  latency_ms: 0
+
+# Additional configuration for signal generation
+symbols: ['SPY']
+timeframes: ['1D']
+max_bars: 50
+
+# Metadata (this needs to be at root level for Pydantic)
+version: "1.0.0"
+tags: ["demo", "signal_generation", "ma_crossover"]
+metadata:
+  workflow_id: "signal_demo_test"  # This will be used instead of 'unknown'
+  description: "Complete signal generation flow demonstration"
+  created_at: "2025-06-11"

@@ -3,3 +3,5 @@ numpy>=1.20.0
 PyYAML>=6.0.0
 plotly>=5.0.0
 pydantic>=2.0.0
+duckdb>=0.8.0
+pyarrow>=20.0.0

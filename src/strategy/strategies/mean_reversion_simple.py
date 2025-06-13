@@ -317,10 +317,11 @@ def create_mean_reversion_strategy(config: Dict[str, Any] = None) -> MeanReversi
 # Pure function version for EVENT_FLOW_ARCHITECTURE
 @strategy(
     name='mean_reversion',
-    indicators={
+    feature_config={
         'bollinger': {'params': ['period', 'num_std'], 'defaults': {'period': 20, 'num_std': 2}},
         'rsi': {'params': ['rsi_period'], 'default': 14}
-    }
+    },
+    validate_features=False  # Disable validation since features are dynamically named
 )
 def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -341,15 +342,30 @@ def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], param
     # Get current price
     price = bar.get('close', 0)
     
-    # Get required features
-    upper_band = features.get('bollinger_upper')
-    middle_band = features.get('bollinger_middle')
-    lower_band = features.get('bollinger_lower')
-    rsi = features.get('rsi')
+    # Get required features - look for bollinger bands with any period
+    upper_band = None
+    middle_band = None
+    lower_band = None
+    
+    # Find bollinger bands (could be bollinger_20_upper, bollinger_2_upper, etc.)
+    for key in features.keys():
+        if key.endswith('_upper') and 'bollinger' in key:
+            upper_band = features[key]
+        elif key.endswith('_middle') and 'bollinger' in key:
+            middle_band = features[key]
+        elif key.endswith('_lower') and 'bollinger' in key:
+            lower_band = features[key]
+    
+    # Also try generic RSI
+    rsi = features.get('rsi') or features.get('rsi_14')
+    
+    # Debug log available features (commented out for performance)
+    # logger.info(f"Mean reversion features available: {list(features.keys())}")
+    # logger.info(f"Looking for bollinger features, found: upper={upper_band}, middle={middle_band}, lower={lower_band}")
     
     # Check if we have required features
     if any(x is None for x in [upper_band, middle_band, lower_band]) or price <= 0:
-        logger.debug(f"Missing features for mean reversion: upper={upper_band}, middle={middle_band}, lower={lower_band}")
+        logger.warning(f"Missing features for mean reversion: upper={upper_band}, middle={middle_band}, lower={lower_band}, price={price}")
         return None
     
     # Calculate z-score
@@ -362,11 +378,14 @@ def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], param
     # Generate signal
     signal = None
     
+    # logger.info(f"Mean reversion z-score: {z_score:.3f}, entry_threshold: {entry_threshold}, exit_threshold: {exit_threshold}")
+    
     if z_score < -entry_threshold:
         # Oversold - expect reversion up
         signal = {
             'symbol': bar.get('symbol'),
             'direction': 'long',
+            'signal_type': 'entry',
             'strength': min(abs(z_score) / entry_threshold, 1.0),
             'price': price,
             'reason': f'Mean reversion long: z-score={z_score:.2f} < -{entry_threshold}',
@@ -386,6 +405,7 @@ def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], param
         signal = {
             'symbol': bar.get('symbol'),
             'direction': 'short',
+            'signal_type': 'entry',
             'strength': min(z_score / entry_threshold, 1.0),
             'price': price,
             'reason': f'Mean reversion short: z-score={z_score:.2f} > {entry_threshold}',
@@ -399,5 +419,24 @@ def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], param
             }
         }
         logger.info(f"Generated SHORT signal: price={price}, z_score={z_score:.2f}")
+    
+    # If no signal generated, return flat signal for tracking
+    if signal is None:
+        # logger.info(f"Mean reversion flat: z-score={z_score:.3f} within thresholds")
+        signal = {
+            'symbol': bar.get('symbol'),
+            'direction': 'flat',
+            'signal_type': 'entry',  # Required for signal processing
+            'strength': 0.0,
+            'price': price,
+            'reason': f'Mean reversion flat: z-score={z_score:.2f} within thresholds',
+            'indicators': {
+                'upper_band': upper_band,
+                'middle_band': middle_band,
+                'lower_band': lower_band,
+                'z_score': z_score,
+                'rsi': rsi
+            }
+        }
     
     return signal

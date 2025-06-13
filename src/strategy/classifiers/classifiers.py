@@ -39,10 +39,23 @@ def trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[s
     """
     # Extract parameters with defaults
     trend_threshold = params.get('trend_threshold', 0.02)
+    fast_period = params.get('fast_period', 10)
+    slow_period = params.get('slow_period', 20)
     
-    # Get required features
-    fast_ma = features.get('sma_fast')
-    slow_ma = features.get('sma_slow')
+    # Get required features - try multiple naming patterns
+    fast_ma = features.get('sma_fast') or features.get(f'sma_{fast_period}')
+    slow_ma = features.get('sma_slow') or features.get(f'sma_{slow_period}')
+    
+    # Also check for strategy-specific feature names
+    if fast_ma is None or slow_ma is None:
+        # Look for any SMA features and use appropriate ones based on period
+        sma_features = {k: v for k, v in features.items() if k.startswith('sma_')}
+        if sma_features:
+            sorted_smas = sorted([(int(k.split('_')[1]), v) for k, v in sma_features.items() if '_' in k and k.split('_')[1].isdigit()])
+            if len(sorted_smas) >= 2:
+                # Use smallest period as fast, larger as slow
+                fast_ma = sorted_smas[0][1]
+                slow_ma = sorted_smas[-1][1]
     
     # Return default if features missing
     if fast_ma is None or slow_ma is None or slow_ma == 0:
@@ -108,10 +121,22 @@ def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> D
     # Extract parameters with defaults
     high_vol_threshold = params.get('high_vol_threshold', 1.5)
     low_vol_threshold = params.get('low_vol_threshold', 0.5)
+    atr_period = params.get('atr_period', 14)
     
-    # Get volatility measure (prefer ATR if available)
-    current_vol = features.get('atr') or features.get('volatility')
-    avg_vol = features.get('atr_sma') or features.get('volatility_sma')
+    # Get volatility measure - try multiple naming patterns
+    current_vol = features.get('atr') or features.get(f'atr_{atr_period}') or features.get('volatility')
+    avg_vol = features.get('atr_sma') or features.get(f'atr_{atr_period}_sma') or features.get('volatility_sma')
+    
+    # If no volatility features found, try to compute from price movement
+    if current_vol is None and 'close' in features:
+        # Use price-based volatility as fallback
+        price = features.get('close', 0)
+        if price > 0:
+            # Look for any high-low range
+            high = features.get('high', price)
+            low = features.get('low', price) 
+            current_vol = (high - low) / price if price > 0 else 0
+            avg_vol = current_vol  # Use same value if no average available
     
     # Return default if features missing
     if current_vol is None or avg_vol is None or avg_vol == 0:
@@ -161,7 +186,7 @@ def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> D
 @classifier(
     name='momentum_regime_classifier',
     regime_types=['strong_momentum', 'weak_momentum', 'no_momentum'],
-    features=['rsi', 'macd', 'momentum']
+    features=['rsi', 'macd_macd', 'momentum_momentum_10']
 )
 def momentum_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -178,11 +203,33 @@ def momentum_regime_classifier(features: Dict[str, Any], params: Dict[str, Any])
     rsi_overbought = params.get('rsi_overbought', 70)
     rsi_oversold = params.get('rsi_oversold', 30)
     momentum_threshold = params.get('momentum_threshold', 0.02)
+    rsi_period = params.get('rsi_period', 14)
+    momentum_period = params.get('momentum_period', 10)
     
-    # Get features
-    rsi = features.get('rsi')
-    momentum = features.get('momentum', 0)
-    macd = features.get('macd')
+    # Get features - try multiple naming patterns
+    rsi = features.get('rsi') or features.get(f'rsi_{rsi_period}')
+    
+    # Try various momentum feature names
+    momentum = (features.get('momentum_momentum_10') or 
+                features.get(f'momentum_momentum_{momentum_period}') or
+                features.get('momentum_momentum_20') or 
+                features.get('momentum') or
+                features.get(f'momentum_{momentum_period}') or
+                0)
+    
+    # Try various MACD feature names
+    macd = features.get('macd_macd') or features.get('macd')
+    
+    # If no momentum indicators, try to compute from price changes
+    if rsi is None and momentum == 0:
+        # Look for price-based momentum
+        close = features.get('close')
+        if close and any(k.startswith('sma_') for k in features):
+            # Use SMA crossover as momentum proxy
+            sma_features = {k: v for k, v in features.items() if k.startswith('sma_')}
+            if len(sma_features) >= 2:
+                sorted_smas = sorted(sma_features.values())
+                momentum = (sorted_smas[-1] - sorted_smas[0]) / sorted_smas[0] if sorted_smas[0] > 0 else 0
     
     if rsi is None:
         return {
@@ -228,3 +275,105 @@ def momentum_regime_classifier(features: Dict[str, Any], params: Dict[str, Any])
                 'reason': 'No significant momentum'
             }
         }
+
+
+@classifier(
+    name='market_state_classifier',
+    regime_types=['trending_low_vol', 'trending_high_vol', 'ranging_low_vol', 'ranging_high_vol'],
+    features=['atr', 'sma_fast', 'sma_slow']
+)
+def market_state_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Pure function market state classifier based on volatility and trend.
+    
+    Args:
+        features: Calculated indicators (atr, moving averages)
+        params: Classifier parameters (vol_lookback, trend_lookback, regime_threshold)
+        
+    Returns:
+        Regime dict with classification and confidence
+    """
+    # Extract parameters
+    vol_lookback = params.get('vol_lookback', 20)
+    trend_lookback = params.get('trend_lookback', 50)
+    regime_threshold = params.get('regime_threshold', 0.5)
+    
+    # Get features - be flexible with naming
+    atr = features.get(f'atr_{vol_lookback}') or features.get('atr')
+    price = features.get('close', 0)
+    
+    # Try to find appropriate MAs based on available features
+    fast_ma = features.get(f'sma_{trend_lookback//2}') or features.get('sma_fast')
+    slow_ma = features.get(f'sma_{trend_lookback}') or features.get('sma_slow')
+    
+    # If specific MAs not found, look for any available SMAs
+    if fast_ma is None or slow_ma is None:
+        sma_features = {k: v for k, v in features.items() if k.startswith('sma_') and '_' in k}
+        if sma_features:
+            # Extract periods and sort
+            sma_list = []
+            for k, v in sma_features.items():
+                try:
+                    period = int(k.split('_')[1])
+                    sma_list.append((period, v))
+                except (ValueError, IndexError):
+                    continue
+            
+            if len(sma_list) >= 2:
+                sma_list.sort(key=lambda x: x[0])
+                # Use shorter period as fast, longer as slow
+                fast_ma = fast_ma or sma_list[0][1]
+                slow_ma = slow_ma or sma_list[-1][1]
+    
+    # Compute simple volatility if ATR not available
+    if atr is None and price > 0:
+        # Use price movement as volatility proxy
+        high = features.get('high', price)
+        low = features.get('low', price)
+        atr = (high - low) / price * 100  # As percentage
+    
+    if atr is None or price <= 0 or fast_ma is None or slow_ma is None:
+        return {
+            'regime': 'ranging_low_vol',
+            'confidence': 0.0,
+            'metadata': {'reason': 'Missing required features'}
+        }
+    
+    # Normalize volatility as percentage of price
+    vol_pct = (atr / price) * 100
+    
+    # Calculate trend strength
+    trend_strength = abs(fast_ma - slow_ma) / slow_ma * 100
+    
+    # Classify volatility
+    is_high_vol = vol_pct > regime_threshold
+    
+    # Classify trend
+    is_trending = trend_strength > regime_threshold
+    
+    # Determine market state
+    if is_trending:
+        if is_high_vol:
+            regime = "trending_high_vol"
+        else:
+            regime = "trending_low_vol"
+    else:
+        if is_high_vol:
+            regime = "ranging_high_vol"
+        else:
+            regime = "ranging_low_vol"
+    
+    confidence = (vol_pct + trend_strength) / (regime_threshold * 4)
+    confidence = min(confidence, 1.0)
+    
+    return {
+        'regime': regime,
+        'confidence': confidence,
+        'metadata': {
+            'vol_pct': vol_pct,
+            'trend_strength': trend_strength,
+            'is_trending': is_trending,
+            'is_high_vol': is_high_vol,
+            'reason': f'Vol: {vol_pct:.2f}%, Trend: {trend_strength:.2f}%'
+        }
+    }

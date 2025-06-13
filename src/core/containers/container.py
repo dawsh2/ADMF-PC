@@ -173,10 +173,16 @@ class Container:
     
     Implements Container protocol with composition capabilities for the arch-101.md architecture:
     - Protocol + Composition (no inheritance)
-    - Isolated event buses for Data, Strategy, Risk, Execution modules
+    - Shared root event bus for all containers (simplified communication)
     - Hierarchical composition with parent/child relationships
     - Pluggable route communication
     - Configurable, composable, reliable
+    
+    Architecture:
+    - Root container creates and owns the shared event bus
+    - Child containers receive reference to parent's event bus
+    - All components use the same event bus for communication
+    - Eliminates need for event forwarding between containers
     """
     
     def __init__(self, config: ContainerConfig, parent_event_bus: Optional[EventBus] = None):
@@ -200,7 +206,8 @@ class Container:
         # Only root container creates an event bus, others use parent's bus
         if parent_event_bus is None:
             # This is the root container - create the shared event bus
-            self.event_bus = EventBus(bus_id=f"root_{self.container_id}")
+            # Use container_id directly to avoid double "root_" prefix
+            self.event_bus = EventBus(bus_id=self.container_id)
             self._is_root_container = True
         else:
             # This is a child container - use parent's event bus
@@ -239,20 +246,23 @@ class Container:
             'last_activity': None
         }
         
-        # Setup event bus tracing if enabled (only on root container)
-        if self._is_root_container and self._should_enable_tracing():
+        # Setup event bus tracing if enabled
+        # Portfolio containers use their own tracing mechanism
+        if self.container_type != 'portfolio' and self._should_enable_tracing():
             self._setup_tracing()
         
         # Streaming metrics support (optional)
         self.streaming_metrics: Optional[Any] = None
         
-        # Portfolio containers always setup metrics for event tracing  
+        # Portfolio containers get their own tracer for proper storage isolation
         if self.container_type == 'portfolio':
+            self._setup_portfolio_tracing()
             self._setup_event_tracing_metrics()
         elif self._should_track_metrics():
             self._setup_metrics()
         
-        logger.info(f"Created container: {self.name} ({self.container_id})")
+        
+        logger.info(f"Created container: {self.name} ({self.container_id}) with event_bus: {id(self.event_bus)}")
     
     def _infer_container_type(self, components: List[str]) -> str:
         """
@@ -413,6 +423,7 @@ class Container:
                     logger.debug(f"Initializing component '{name}'")
                     component.initialize()
             
+            
             self._set_state(ContainerState.INITIALIZED)
             logger.info(f"Container {self.name} initialized successfully")
             
@@ -532,6 +543,29 @@ class Container:
     def _flush_trace_storage(self) -> None:
         """Flush trace storage to disk before cleanup."""
         try:
+            # For portfolio containers, flush the portfolio tracer
+            if self.container_type == 'portfolio' and hasattr(self, '_portfolio_tracer'):
+                # Check if it's a hierarchical tracer with save method
+                if hasattr(self._portfolio_tracer, 'save'):
+                    saved_files = self._portfolio_tracer.save()
+                    logger.info(f"Saved hierarchical storage for portfolio container {self.container_id}: {saved_files}")
+                elif hasattr(self._portfolio_tracer, 'flush'):
+                    self._portfolio_tracer.flush()
+                    logger.info(f"Flushed portfolio tracer for container {self.container_id}")
+                return
+            
+            # For strategy containers, flush all strategy tracers
+            if self.container_type == 'strategy' and hasattr(self, '_strategy_tracers'):
+                for strategy_id, tracer in self._strategy_tracers.items():
+                    # Check if it's a hierarchical tracer with save method
+                    if hasattr(tracer, 'save'):
+                        saved_files = tracer.save()
+                        logger.info(f"Saved hierarchical storage for {strategy_id}: {saved_files}")
+                    elif hasattr(tracer, 'flush'):
+                        tracer.flush()
+                        logger.info(f"Flushed strategy tracer for {strategy_id}")
+                return
+            
             # Check if event bus has a tracer with storage
             if hasattr(self.event_bus, '_tracer') and self.event_bus._tracer:
                 tracer = self.event_bus._tracer
@@ -714,6 +748,7 @@ class Container:
     # These methods provide optional event tracing functionality
     # Containers decide whether to trace based on their configuration
     
+    
     def _should_enable_tracing(self) -> bool:
         """
         Check if tracing should be enabled based on config.
@@ -748,6 +783,84 @@ class Container:
         
         # Default to true if tracing is enabled globally
         return True
+    
+    def _setup_portfolio_tracing(self):
+        """
+        Setup portfolio-specific tracing.
+        
+        Portfolio containers get their own tracer that stores events
+        in their own directory, even when sharing a root event bus.
+        """
+        execution_config = self.config.config.get('execution', {})
+        logger.info(f"Portfolio tracing - execution_config keys: {list(execution_config.keys())}")
+        if not execution_config.get('enable_event_tracing', False):
+            return
+            
+        trace_settings = execution_config.get('trace_settings', {})
+        logger.info(f"Portfolio tracing - trace_settings: {trace_settings}")
+        
+        # Check if this portfolio should be traced
+        container_settings = trace_settings.get('container_settings', {})
+        should_trace = False
+        
+        for pattern, settings in container_settings.items():
+            if '*' in pattern:
+                prefix = pattern.replace('*', '')
+                if self.container_id.startswith(prefix) or self.name.startswith(prefix):
+                    should_trace = settings.get('enabled', True)
+                    break
+            elif pattern == self.container_id or pattern == self.name:
+                should_trace = settings.get('enabled', True)
+                break
+        
+        if not should_trace:
+            return
+            
+        # Get managed strategies from config
+        managed_strategies = self.config.config.get('managed_strategies', ['default'])
+        
+        # Get managed classifiers from config (if any)
+        managed_classifiers = self.config.config.get('managed_classifiers', [])
+        
+        # Create portfolio-specific tracer
+        # Check storage type from trace settings
+        storage_type = trace_settings.get('storage', {}).get('type', 'sparse')
+        use_sparse = trace_settings.get('use_sparse_storage', False)
+        
+        # Determine which tracer to use
+        if storage_type == 'hierarchical':
+            from ..events.observers.hierarchical_portfolio_tracer import HierarchicalPortfolioTracer as PortfolioTracer
+            logger.info(f"Using HierarchicalPortfolioTracer for {self.container_id}")
+        elif use_sparse or storage_type == 'sparse':
+            from ..events.observers.sparse_portfolio_tracer import SparsePortfolioTracer as PortfolioTracer
+            logger.info(f"Using SparsePortfolioTracer for {self.container_id}")
+        else:
+            from ..events.observers.portfolio_tracer import PortfolioTracer
+            logger.info(f"Using regular PortfolioTracer for {self.container_id}")
+        
+        metadata = self.config.config.get('metadata', {})
+        workflow_id = metadata.get('workflow_id', 'unknown')
+        
+        storage_config = {
+            'storage_backend': trace_settings.get('storage_backend', 'hierarchical'),
+            'batch_size': trace_settings.get('batch_size', 1000),
+            'base_dir': trace_settings.get('storage', {}).get('base_dir', './workspaces')
+        }
+        
+        self._portfolio_tracer = PortfolioTracer(
+            container_id=self.container_id,
+            workflow_id=workflow_id,
+            managed_strategies=managed_strategies,
+            managed_classifiers=managed_classifiers,
+            storage_config=storage_config,
+            portfolio_container=self
+        )
+        
+        # Attach to event bus
+        self.event_bus.attach_observer(self._portfolio_tracer)
+        
+        logger.info(f"Portfolio tracing enabled for {self.container_id} "
+                   f"managing strategies: {managed_strategies}, classifiers: {managed_classifiers}")
     
     def _setup_tracing(self):
         """
@@ -818,6 +931,7 @@ class Container:
         
         logger.info(f"Tracing enabled for container {self.container_id} "
                    f"with trace_id: {trace_id}, max_events: {max_events}")
+    
     
     def get_trace_summary(self) -> Optional[Dict[str, Any]]:
         """Get trace summary if tracing is enabled."""

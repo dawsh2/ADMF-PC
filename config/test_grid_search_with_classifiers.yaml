@@ -1,0 +1,67 @@
+# Test Grid Search with Classifiers
+name: "Grid Search with Classifier Test"
+
+data:
+  symbols: ['SPY']
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+symbols: ['SPY']
+timeframes: ['1m']
+max_bars: 100  # Enough data for classifiers to work
+
+# Grid search parameters
+parameter_grid:
+  fast_periods: [5, 10]
+  slow_periods: [20, 30]
+
+# This will be expanded into multiple strategies
+strategy_template:
+  type: 'ma_crossover'
+  name_template: 'ma_{fast}_{slow}'
+
+# Add classifiers to test feature inference
+classifiers:
+  - name: 'trend_classifier'
+    type: 'trend_classifier'
+    params:
+      trend_threshold: 0.02
+      fast_period: 10
+      slow_period: 20
+      
+  - name: 'volatility_regime'
+    type: 'volatility_classifier' 
+    params:
+      high_vol_threshold: 1.5
+      low_vol_threshold: 0.5
+      atr_period: 14
+      
+  - name: 'momentum_regime'
+    type: 'momentum_regime_classifier'
+    params:
+      rsi_overbought: 70
+      rsi_oversold: 30
+      momentum_threshold: 0.02
+      rsi_period: 14
+      momentum_period: 10
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'portfolio*':
+        enabled: true
+      'strategy*':
+        enabled: true
+
+metadata:
+  workflow_id: 'grid_search_classifiers'
+  experiment_type: 'parameter_optimization_with_classifiers'

@@ -1,0 +1,35 @@
+# Minimal test config for sparse storage with required fields
+name: "Sparse Storage Test"
+data:
+  symbols: ['SPY']
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+symbols: ['SPY']
+timeframes: ['1m']
+max_bars: 50
+
+strategies:
+  - name: 'ma_crossover_demo'
+    type: 'ma_crossover'
+    params:
+      fast_period: 5
+      slow_period: 20
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'portfolio*':
+        enabled: true
+
+metadata:
+  workflow_id: 'sparse_test'

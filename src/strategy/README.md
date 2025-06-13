@@ -219,6 +219,65 @@ def classify(self, data: Dict[str, Any]) -> str:
     """Classify current market conditions"""
 ```
 
+## Strategy Discovery and Registration
+
+### IMPORTANT: Strategy Decorator Requirement
+
+All pure function strategies MUST use the `@strategy` decorator for automatic discovery and feature inference:
+
+```python
+from ...core.components.discovery import strategy
+
+@strategy(
+    name='my_strategy',
+    feature_config={
+        'sma': {'params': ['sma_period'], 'defaults': {'sma_period': 20}},
+        'rsi': {'params': [], 'default': 14}  # RSI with default period
+    }
+)
+def my_strategy_function(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Strategy implementation"""
+    pass
+```
+
+### Why the Decorator is Required
+
+1. **Automatic Discovery**: The topology builder uses the component registry to find strategies
+2. **Feature Inference**: The decorator metadata enables automatic feature requirement detection
+3. **Parameter Expansion**: Grid search and parameter optimization rely on the metadata
+
+### Decorator Parameters
+
+- `name`: Strategy identifier used in configs and discovery
+- `feature_config`: Dictionary mapping feature/indicator names to their configuration:
+  - `params`: List of parameter names that map to strategy params
+  - `defaults`: Default values for specific parameters
+  - `default`: Single default value when no params are needed
+
+### Example: Complete Strategy with Discovery
+
+```python
+@strategy(
+    name='mean_reversion',
+    feature_config={
+        'bollinger': {
+            'params': ['period', 'num_std'], 
+            'defaults': {'period': 20, 'num_std': 2}
+        },
+        'rsi': {
+            'params': ['rsi_period'], 
+            'default': 14
+        }
+    }
+)
+def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Mean reversion strategy using Bollinger Bands."""
+    # Strategy implementation
+    pass
+```
+
+Without this decorator, the strategy will NOT be discovered by the topology builder and feature inference will fail!
+
 ## Configuration Patterns
 
 ### YAML Configuration

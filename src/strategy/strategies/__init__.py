@@ -12,18 +12,25 @@ for automatic discovery.
 # Import only what doesn't have external dependencies
 # Old class-based strategies are being phased out
 
-# Import pure function strategies for discovery
+# Import legacy pure function strategies for discovery
 from .momentum import (
     momentum_strategy, 
     dual_momentum_strategy, 
     price_momentum_strategy
 )
 from .mean_reversion_simple import mean_reversion_strategy
-# from .trend_following import trend_following_strategy  # Has import issues
-# from .simple_trend import simple_trend_strategy  # Has import issues
+from .rsi_strategy import rsi_strategy
+from .macd_strategy import macd_strategy
+from .breakout_strategy import breakout_strategy
+from .ma_crossover import ma_crossover_strategy
 
 # Import null strategy for testing
-from .null_strategy import NullStrategy
+# from .core.null_strategy import NullStrategy  # Commented out due to import error
+
+# Import new composable indicator strategies (temporarily disabled due to import issues)
+# from .indicators import *
+# from .ensemble import *
+# from .core import *
 
 # Lazy imports for strategies with external dependencies
 def _import_mean_reversion():
@@ -54,7 +61,7 @@ def get_strategy_class(strategy_type: str):
         Strategy class
     """
     strategy_map = {
-        'null': lambda: NullStrategy,
+        # 'null': lambda: NullStrategy,  # Commented out due to import error
         'momentum': lambda: None,  # Using pure functions now
         'mean_reversion': _import_mean_reversion,
         'trend_following': lambda: _import_trend_following()[0],
@@ -77,19 +84,23 @@ def get_strategy_class(strategy_type: str):
 __all__ = [
     # Classes
     "get_strategy_class",
-    "NullStrategy",
     
-    # Pure function strategies (decorated)
+    # Legacy pure function strategies (decorated)
     "momentum_strategy",
     "dual_momentum_strategy",
     "price_momentum_strategy",
     "mean_reversion_strategy",
-    # "trend_following_strategy",  # Has import issues
-    # "simple_trend_strategy",  # Has import issues
+    "rsi_strategy",
+    "macd_strategy",
+    "breakout_strategy",
+    "ma_crossover_strategy",
     
     # Lazy imports
     "_import_mean_reversion",
     "_import_trend_following",
     "_import_arbitrage",
     "_import_market_making"
+    
+    # Note: New indicator strategies, ensemble strategies, and core strategies 
+    # are imported via * and will be available directly
 ]

@@ -1,0 +1,41 @@
+# Test configuration for signal performance analysis
+# Uses simple momentum strategy with small dataset
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+start_date: "2024-01-01"
+end_date: "2024-01-05"  # Just a few days for testing
+max_bars: 1000
+
+# Single strategy for clear signal pairs
+strategies:
+  - name: test_momentum
+    type: momentum
+    params:
+      sma_period: 10
+      rsi_period: 14
+      rsi_threshold_long: 30
+      rsi_threshold_short: 70
+      signal_threshold: 0.01
+
+# Enable sparse storage with performance tracking
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage_backend: memory  # Use memory since we're using MultiStrategyTracer for storage
+    batch_size: 100
+    auto_flush_on_cleanup: true
+    enable_console_output: true
+    console_filter: ["SIGNAL"]  # Show signals in console
+
+# Store results for analysis
+results:
+  streaming_metrics: true
+  results_storage: disk

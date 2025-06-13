@@ -1,0 +1,37 @@
+# Test configuration for pure MA crossover signals
+# This should generate a signal on every bar after warmup
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+start_date: "2024-03-26"
+end_date: "2024-03-26"  # Just one day
+max_bars: 50  # Small number for testing
+
+# Pure MA crossover strategy
+strategies:
+  - name: test_ma
+    type: ma_crossover
+    params:
+      fast_period: 5
+      slow_period: 10
+
+# Enable hierarchical storage and console output
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    batch_size: 10
+    auto_flush_on_cleanup: true
+    enable_console_output: true
+    console_filter: ["SIGNAL", "BAR"]  # Show both
+
+# Store results
+results:
+  streaming_metrics: true
+  results_storage: disk

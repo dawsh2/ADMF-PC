@@ -130,6 +130,23 @@ class ContainerFactory:
                 # Set max bars if configured
                 if 'max_bars' in config:
                     handler.max_bars = config['max_bars']
+                
+                # Configure train/test split if specified
+                if config.get('split_ratio'):
+                    handler.setup_split(ratio=config['split_ratio'])
+                    if config.get('dataset'):
+                        handler.set_active_split(config['dataset'])
+                
+                # Configure WFV window if specified
+                if all(k in config for k in ['wfv_window', 'wfv_windows', 'wfv_phase']):
+                    wfv_dataset = config.get('wfv_dataset', 'train')
+                    handler.setup_wfv_window(
+                        window_num=config['wfv_window'],
+                        total_windows=config['wfv_windows'],
+                        phase=config['wfv_phase'],
+                        dataset_split=wfv_dataset
+                    )
+                
                 return handler
             elif component_name == 'signal_streamer':
                 from ...data.streamers import SignalStreamerComponent
@@ -159,9 +176,9 @@ class ContainerFactory:
             elif component_name == 'strategy':
                 from ...strategy.strategies import NullStrategy
                 return NullStrategy()
-            elif component_name == 'strategy_state':
-                from ...strategy.state import StrategyState
-                return StrategyState(
+            elif component_name == 'strategy_state' or component_name == 'component_state':
+                from ...strategy.state import ComponentState
+                return ComponentState(
                     symbols=config.get('symbols', []),
                     feature_configs=config.get('features', {})
                 )

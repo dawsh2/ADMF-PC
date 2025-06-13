@@ -1,0 +1,82 @@
+# Example of complete parameter optimization workflow
+name: "MA Crossover Parameter Optimization"
+
+# Phase 1: Training - Run all parameter combinations
+phases:
+  train:
+    topology: 'backtest'  # Use backtest topology for full simulation
+    data:
+      symbols: ['SPY']
+      source: 'csv'
+      start_date: '2024-01-01'
+      end_date: '2024-06-30'
+    
+    symbols: ['SPY']
+    timeframes: ['1m']
+    max_bars: 5000  # 6 months of 1m data
+    
+    portfolio:
+      initial_capital: 100000
+      position_sizing: 'fixed'
+      max_positions: 1
+    
+    # Parameter expansion - will create 8 valid combinations
+    strategies:
+      - name: 'ma_crossover'
+        type: 'ma_crossover'
+        params:
+          fast_period: [5, 10, 20]
+          slow_period: [20, 30, 50]
+    
+    execution:
+      enable_event_tracing: true
+      trace_settings:
+        use_sparse_storage: true
+        enable_metrics_observer: true  # Track Sharpe, returns, etc.
+        objective_metric: 'sharpe_ratio'  # What to optimize
+        container_settings:
+          'portfolio*':
+            enabled: true  # Need portfolio events for metrics
+    
+    output:
+      - parameter_performance  # Store metrics for each parameter set
+      - best_parameters       # Identify top performers
+
+# Phase 2: Validation - Test best parameters on out-of-sample data
+  validate:
+    topology: 'backtest'
+    data:
+      symbols: ['SPY']
+      source: 'csv'
+      start_date: '2024-07-01'  # Out of sample
+      end_date: '2024-12-31'
+    
+    # Use best parameters from training phase
+    input:
+      strategies: 'train.best_parameters'
+    
+    execution:
+      enable_event_tracing: true
+      trace_settings:
+        enable_metrics_observer: true
+    
+    output:
+      - validation_metrics
+      - final_results
+
+# Sequence configuration
+sequence:
+  type: 'train_test'
+  train_ratio: 0.6  # Already handled by date splits above
+  selection_method: 'top_n'
+  selection_params:
+    n: 3  # Select top 3 parameter sets
+    metric: 'sharpe_ratio'
+  
+# Metadata
+metadata:
+  workflow_id: 'ma_optimization'
+  experiment_type: 'parameter_optimization'
+  notes: |
+    Tests all MA crossover combinations on training data,
+    selects top 3 by Sharpe ratio, validates on out-of-sample data

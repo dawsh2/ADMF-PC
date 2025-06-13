@@ -58,6 +58,16 @@ def build_workflow_config(args: CLIArgs, base_config: Dict[str, Any]) -> Workflo
     if args.output_dir:
         workflow_config.parameters['output_dir'] = args.output_dir
         
+    # Apply WFV and study configuration
+    if args.results_dir:
+        workflow_config.parameters['results_dir'] = args.results_dir
+    if args.wfv_windows:
+        workflow_config.parameters['wfv_windows'] = args.wfv_windows
+    if args.wfv_window:
+        workflow_config.parameters['wfv_window'] = args.wfv_window
+    if args.phase:
+        workflow_config.parameters['phase'] = args.phase
+        
     # Apply logging and development options
     if args.verbose:
         workflow_config.parameters['verbose'] = True

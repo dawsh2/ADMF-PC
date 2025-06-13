@@ -1,0 +1,61 @@
+{
+  "metadata": {
+    "total_bars": 51,
+    "total_changes": 3,
+    "strategies": [
+      "SPY_ma_crossover"
+    ]
+  },
+  "changes": [
+    {
+      "idx": 20,
+      "ts": "2024-01-21T10:00:00",
+      "sym": "SPY",
+      "val": 1,
+      "strat": "ma_crossover",
+      "px": 522.0
+    },
+    {
+      "idx": 31,
+      "ts": "2024-01-32T10:00:00",
+      "sym": "SPY",
+      "val": -1,
+      "strat": "ma_crossover",
+      "px": 517.9
+    },
+    {
+      "idx": 41,
+      "ts": "2024-02-01T10:00:00",
+      "sym": "SPY",
+      "val": 1,
+      "strat": "ma_crossover",
+      "px": 521.05
+    }
+  ],
+  "ranges": [
+    {
+      "strategy": "SPY_ma_crossover",
+      "signal": 1,
+      "start_bar": 20,
+      "end_bar": 30,
+      "start_ts": "2024-01-21T10:00:00",
+      "start_price": 522.0
+    },
+    {
+      "strategy": "SPY_ma_crossover",
+      "signal": -1,
+      "start_bar": 31,
+      "end_bar": 40,
+      "start_ts": "2024-01-32T10:00:00",
+      "start_price": 517.9
+    },
+    {
+      "strategy": "SPY_ma_crossover",
+      "signal": 1,
+      "start_bar": 41,
+      "end_bar": 50,
+      "start_ts": "2024-02-01T10:00:00",
+      "start_price": 521.05
+    }
+  ]
+}

@@ -13,6 +13,7 @@ class SignalType(str, Enum):
     ENTRY = "entry"
     EXIT = "exit"
     REBALANCE = "rebalance"
+    CLASSIFICATION = "classification"  # For classifier outputs
 
 
 class SignalDirection(str, Enum):
@@ -24,18 +25,19 @@ class SignalDirection(str, Enum):
 
 @dataclass
 class Signal:
-    """Trading signal from strategy."""
+    """Trading signal from strategy or classifier."""
     symbol: str
-    direction: str  # 'long', 'short', 'flat'
-    strength: float  # 0.0 to 1.0
+    direction: str  # For strategies: 'long', 'short', 'flat'. For classifiers: regime name
+    strength: float  # 0.0 to 1.0 - trade strength or classification confidence
     timestamp: datetime
-    strategy_id: str  # Strategy that generated the signal
+    strategy_id: str  # Strategy/classifier that generated the signal
     signal_type: SignalType = SignalType.ENTRY
     metadata: Optional[Dict[str, Any]] = field(default_factory=dict)
+    value: Optional[Any] = None  # Optional field for structured data (classifier outputs, etc.)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for event payload."""
-        return {
+        result = {
             'symbol': self.symbol,
             'direction': self.direction,
             'strength': self.strength,
@@ -44,6 +46,9 @@ class Signal:
             'signal_type': self.signal_type.value,
             'metadata': self.metadata
         }
+        if self.value is not None:
+            result['value'] = self.value
+        return result
 
 
 @dataclass 

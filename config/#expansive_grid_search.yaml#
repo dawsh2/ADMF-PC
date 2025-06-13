@@ -1,0 +1,146 @@
+# Expansive Grid Search Configuration
+# Tests multiple strategy types with parameter expansions
+# and multiple classifier types with their own parameters
+
+name: expansive_grid_search
+description: Comprehensive parameter grid search across strategies and classifiers
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2023-01-01"
+end_date: "2023-02-01"
+max_bars: 2000
+
+# Topology pattern
+topology_pattern: signal_generation
+
+# Feature configuration will be automatically inferred by topology builder
+# based on strategy requirements and parameter values
+
+# Multiple strategy types with parameter expansions
+strategies:
+  # Moving Average Crossover strategies
+  - type: ma_crossover
+    name: ma_crossover_grid
+    params:
+      fast_period: [5, 10, 20]      # 3 values
+      slow_period: [20, 50, 100]    # 3 values
+      stop_loss_pct: [1.0, 2.0]     # 2 values
+      # Total: 3 * 3 * 2 = 18 combinations
+      
+  # Simple Momentum strategies
+  - type: simple_momentum
+    name: momentum_grid
+    params:
+      sma_period: [10, 20, 50]           # 3 values
+      rsi_threshold_long: [25, 30, 35]   # 3 values
+      rsi_threshold_short: [65, 70, 75]  # 3 values
+      exit_bars: [5, 10, 20]             # 3 values
+      # Total: 3 * 3 * 3 * 3 = 81 combinations
+      
+  # Mean Reversion strategies
+  - type: mean_reversion
+    name: mean_reversion_grid
+    params:
+      bb_period: [10, 20]                # 2 values
+      bb_std: [1.5, 2.0, 2.5]           # 3 values
+      rsi_oversold: [20, 30]            # 2 values
+      rsi_overbought: [70, 80]          # 2 values
+      hold_bars: [3, 5, 10]             # 3 values
+      # Total: 2 * 3 * 2 * 2 * 3 = 72 combinations
+      
+  # RSI strategies
+  - type: rsi_strategy
+    name: rsi_grid
+    params:
+      rsi_period: [7, 14, 21]           # 3 values
+      oversold_threshold: [20, 25, 30]  # 3 values
+      overbought_threshold: [70, 75, 80] # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  # MACD strategies
+  - type: macd_strategy
+    name: macd_grid
+    params:
+      fast_ema: [5, 12]                 # 2 values
+      slow_ema: [20, 26]                # 2 values
+      signal_ema: [7, 9]                # 2 values
+      threshold: [0.0, 0.5]             # 2 values
+      # Total: 2 * 2 * 2 * 2 = 16 combinations
+      
+  # Breakout strategies
+  - type: breakout_strategy
+    name: breakout_grid
+    params:
+      lookback_period: [20, 50]         # 2 values
+      breakout_mult: [1.0, 1.5, 2.0]    # 3 values
+      volume_mult: [1.2, 1.5]           # 2 values
+      stop_loss_atr: [1.0, 2.0]         # 2 values
+      # Total: 2 * 3 * 2 * 2 = 24 combinations
+
+g# Multiple classifier types with parameter expansions
+classifiers:
+  # Momentum Regime classifiers
+  - type: momentum_regime_classifier
+    name: momentum_regime_grid
+    params:
+      rsi_overbought: [65, 70, 75]      # 3 values
+      rsi_oversold: [25, 30, 35]        # 3 values
+      momentum_threshold: [0.05, 0.10, 0.15] # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  # Volatility classifiers
+  - type: volatility_classifier
+    name: volatility_grid
+    params:
+      high_vol_threshold: [1.5, 2.0, 2.5]  # 3 values
+      low_vol_threshold: [0.3, 0.5, 0.7]   # 3 values
+      lookback_period: [20, 30]            # 2 values
+      # Total: 3 * 3 * 2 = 18 combinations
+      
+  # Trend classifiers
+  - type: trend_classifier
+    name: trend_grid
+    params:
+      trend_threshold: [0.01, 0.02, 0.03]  # 3 values
+      fast_ma: [10, 20]                    # 2 values
+      slow_ma: [50, 100]                   # 2 values
+      # Total: 3 * 2 * 2 = 12 combinations
+      
+  # Market State classifiers
+  - type: market_state_classifier
+    name: market_state_grid
+    params:
+      vol_lookback: [20, 30]               # 2 values
+      trend_lookback: [50, 100]            # 2 values
+      regime_threshold: [0.5, 1.0]         # 2 values
+      # Total: 2 * 2 * 2 = 8 combinations
+
+# Execution settings
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    max_events: 500000
+    storage_backend: hierarchical
+    use_sparse_storage: true
+    batch_size: 10000
+    
+# Metadata
+metadata:
+  experiment_id: expansive_grid_v1
+  description: |
+    Comprehensive grid search testing:
+    - 6 strategy types with parameter expansions
+    - 4 classifier types with parameter expansions
+    - Expected total: ~238 strategies and ~65 classifiers
+    - Total combinations: 238 * 65 = 15,470 strategy-classifier pairs
+  analysis_goals:
+    - Find best performing strategies overall
+    - Find best performing classifiers (most stable regimes)
+    - Identify optimal strategy-classifier pairings
+    - Understand parameter sensitivity
+    - Extract top configurations for further testing

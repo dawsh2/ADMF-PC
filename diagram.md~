@@ -1,0 +1,574 @@
+# Multi-Phase Workflow Architecture for ADMF-PC
+
+## Idealized Architecture: Infinite Compute Single-Pass
+
+*This shows the complete end-to-end architecture if we had unlimited cores and could run everything in parallel without resource constraints.*
+
+```
+# Multi-Phase Workflow Architecture for ADMF-PC
+
+## Idealized Architecture: Infinite Compute Single-Pass
+
+*This shows the complete end-to-end architecture if we had unlimited cores and could run everything in parallel without resource constraints.*
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        MAIN PRODUCER PROCESS                                │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────────────────┐ │
+│  │ Data        │  │ Shared       │  │ Feature Cache & Distribution        │ │
+│  │ Streamers   │→ │ Feature      │→ │ • OHLCV, Volume, Technical Indicators│ │
+│  │             │  │ Computer     │  │ • Market Microstructure              │ │
+│  └─────────────┘  └──────────────┘  │ • Cross-Asset Correlations          │ │
+│                                      └─────────────────────────────────────┘ │
+│                           ↓                          ↓                       │
+│                  ┌─────────────────┐       ┌─────────────────┐              │
+│                  │ IPC Queue       │       │ IPC Queue       │              │
+│                  │ (Features)      │       │ (Market Data)   │              │
+│                  └─────────────────┘       └─────────────────┘              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                             ↓                          ↓
+        ┌────────────────────┼──────────────────────────┼────────────────────┐
+        ↓                    ↓                          ↓                    ↓
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ STRATEGY WORKER │ │ STRATEGY WORKER │ │ STRATEGY WORKER │ │ STRATEGY WORKER │
+│    PROCESS 1    │ │    PROCESS 2    │ │    PROCESS 3    │ │    PROCESS N    │
+│                 │ │                 │ │                 │ │                 │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │ML Model A   │ │ │ │ML Model B   │ │ │ │Traditional  │ │ │ │ML Model Z   │ │
+│ │(LSTM)       │ │ │ │(XGBoost)    │ │ │ │Strategies   │ │ │ │(Transformer)│ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │Inference    │ │ │ │Inference    │ │ │ │Rule-based  │ │ │ │Inference    │ │
+│ │Engine       │ │ │ │Engine       │ │ │ │Logic        │ │ │ │Engine       │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+        ↓                    ↓                    ↓                    ↓
+        └────────────────────┼────────────────────┼────────────────────┘
+                             ↓                    ↓
+                    ┌─────────────────┐  ┌─────────────────┐
+                    │ IPC Queue       │  │ Signal Router & │
+                    │ (Raw Signals)   │→ │ Aggregator      │
+                    └─────────────────┘  └─────────────────┘
+                                                  ↓
+                                         ┌─────────────────┐
+                                         │ IPC Queue       │
+                                         │ (Final Signals) │
+                                         └─────────────────┘
+                                                  ↓
+        ┌────────────────────┼────────────────────┼────────────────────┐
+        ↓                    ↓                    ↓                    ↓
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│PORTFOLIO STATE  │ │PORTFOLIO STATE  │ │PORTFOLIO STATE  │ │PORTFOLIO STATE  │
+│  WORKER 1       │ │  WORKER 2       │ │  WORKER 3       │ │  WORKER N       │
+│                 │ │                 │ │                 │ │                 │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │Portfolio    │ │ │ │Portfolio    │ │ │ │Portfolio    │ │ │ │Portfolio    │ │
+│ │State for    │ │ │ │State for    │ │ │ │State for    │ │ │ │State for    │ │
+│ │VaR Risk     │ │ │ │ML Risk      │ │ │ │Correlation  │ │ │ │Custom Risk  │ │
+│ │Models       │ │ │ │Models       │ │ │ │Risk Models  │ │ │ │Models       │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │State        │ │ │ │State        │ │ │ │State        │ │ │ │State        │ │
+│ │Engineering  │ │ │ │Engineering  │ │ │ │Engineering  │ │ │ │Engineering  │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+        ↓                    ↓                    ↓                    ↓
+        └────────────────────┼────────────────────┼────────────────────┘
+                             ↓                    ↓
+                    ┌─────────────────┐  ┌─────────────────┐
+                    │ IPC Queue       │  │ Portfolio State │
+                    │ (Portfolio      │→ │ Router &        │
+                    │  States)        │  │ Distributor     │
+                    └─────────────────┘  └─────────────────┘
+                                                  ↓
+                                         ┌─────────────────┐
+                                         │ IPC Queue       │
+                                         │ (Routed States) │
+                                         └─────────────────┘
+                                                  ↓
+        ┌────────────────────┼────────────────────┼────────────────────┐
+        ↓                    ↓                    ↓                    ↓
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ RISK WORKER     │ │ RISK WORKER     │ │ RISK WORKER     │ │ RISK WORKER     │
+│    PROCESS 1    │ │    PROCESS 2    │ │    PROCESS 3    │ │    PROCESS N    │
+│                 │ │                 │ │                 │ │                 │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │Portfolio    │ │ │ │Correlation  │ │ │ │Stateless    │ │ │ │Custom ML    │ │
+│ │Optimization │ │ │ │Risk ML      │ │ │ │Risk Group   │ │ │ │Risk Ensemble│ │
+│ │ML Model     │ │ │ │Model        │ │ │ │(VaR, Limits)│ │ │ │             │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │Risk Feature │ │ │ │Risk Feature │ │ │ │Risk Feature │ │ │ │Risk Feature │ │
+│ │Engineering  │ │ │ │Engineering  │ │ │ │Engineering  │ │ │ │Engineering  │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+        ↓                    ↓                    ↓                    ↓
+        └────────────────────┼────────────────────┼────────────────────┘
+                             ↓                    ↓
+                    ┌─────────────────┐  ┌─────────────────┐
+                    │ IPC Queue       │  │ Risk Assessment │
+                    │ (Risk Signals)  │→ │ Aggregator      │
+                    └─────────────────┘  └─────────────────┘
+                                                  ↓
+                                         ┌─────────────────┐
+                                         │ IPC Queue       │
+                                         │ (Risk Decisions)│
+                                         └─────────────────┘
+                                                  ↓
+        ┌────────────────────┼────────────────────┼────────────────────┐
+        ↓                    ↓                    ↓                    ↓
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│FINAL PORTFOLIO  │ │FINAL PORTFOLIO  │ │FINAL PORTFOLIO  │ │FINAL PORTFOLIO  │
+│   WORKER 1      │ │   WORKER 2      │ │   WORKER 3      │ │   WORKER N      │
+│                 │ │                 │ │                 │ │                 │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │Portfolio    │ │ │ │Portfolio    │ │ │ │Portfolio    │ │ │ │Portfolio    │ │
+│ │Manager      │ │ │ │Manager      │ │ │ │Manager      │ │ │ │Manager      │ │
+│ │(Signal +    │ │ │ │(Signal +    │ │ │ │(Signal +    │ │ │ │(Signal +    │ │
+│ │Risk Fusion) │ │ │ │Risk Fusion) │ │ │ │Risk Fusion) │ │ │ │Risk Fusion) │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+│ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌─────────────┐ │
+│ │Order        │ │ │ │Order        │ │ │ │Order        │ │ │ │Order        │ │
+│ │Generation   │ │ │ │Generation   │ │ │ │Generation   │ │ │ │Generation   │ │
+│ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │ │ └─────────────┘ │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+        ↓                    ↓                    ↓                    ↓
+        └────────────────────┼────────────────────┼────────────────────┘
+                             ↓                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      EXECUTION PROCESS                                      │
+│  ┌─────────────────┐                    ┌─────────────────┐                │
+│  │ IPC Queue       │ ←─ Receives ORDERs │ IPC Queue       │                │
+│  │ (Orders)        │                    │ (Fills)         │ ←─ Publishes   │
+│  └─────────────────┘                    └─────────────────┘    FILLs        │
+│           ↓                                       ↑                         │
+│  ┌─────────────────┐                             │                         │
+│  │ Execution       │─────────────────────────────┘                         │
+│  │ Engine          │                                                       │
+│  └─────────────────┘                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+*In practice, this architecture requires unlimited compute resources. The multi-phase approach below solves the resource constraint problem while maintaining identical functionality.*
+
+---
+
+## Real-World Multi-Phase Implementation
+
+## Phase 1: Shared Feature Computation & Stateless Strategies
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PHASE 1: FEATURES & STATELESS STRATEGIES             │
+│                                                                             │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────────────────┐ │
+│  │ Data        │  │ Shared       │  │ Feature Cache & Distribution        │ │
+│  │ Streamers   │→ │ Feature      │→ │ • OHLCV, Volume, Technical Indicators│ │
+│  │             │  │ Computer     │  │ • Market Microstructure              │ │
+│  └─────────────┘  └──────────────┘  │ • Cross-Asset Correlations          │ │
+│                                      └─────────────────────────────────────┘ │
+│                                                 ↓                           │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │STATELESS GROUP 1│ │STATELESS GROUP 2│ │STATELESS GROUP 3│ │STATELESS    ││
+│ │• MA Crossover   │ │• RSI Momentum   │ │• Bollinger      │ │GROUP N      ││
+│ │• Simple Momentum│ │• Volume Signals │ │• Channel Break  │ │             ││
+│ │• Price Patterns │ │• Trend Following│ │• Mean Reversion │ │             ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE SIGNALS   │                             │
+│                            │ stateless_      │                             │
+│                            │ signals.parquet │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 2: ML Strategy Processing
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PHASE 2: ML STRATEGY PROCESSING                      │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load Cached     │  │ ML Feature      │  │ Advanced Feature Cache      │ │
+│  │ Basic Features  │→ │ Engineering     │→ │ • Correlation Matrices      │ │
+│  │                 │  │                 │  │ • Regime Detection          │ │
+│  └─────────────────┘  └─────────────────┘  │ • Cross-Asset Features      │ │
+│                                             └─────────────────────────────┘ │
+│                                                         ↓                   │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │ ML STRATEGY 1   │ │ ML STRATEGY 2   │ │ ML STRATEGY 3   │ │ ML STRATEGY │ │
+│ │ LSTM Predictor  │ │ XGBoost Ensemble│ │ Transformer     │ │ N           │ │
+│ │ (Sequential)    │ │ (Sequential)    │ │ (Sequential)    │ │             │ │
+│ │                 │ │                 │ │                 │ │             │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE SIGNALS   │                             │
+│                            │ ml_strategy_    │                             │
+│                            │ signals.parquet │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 3: Portfolio State Generation
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PHASE 3: PORTFOLIO STATE GENERATION                      │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load Cached     │  │ Load Cached     │  │ Portfolio State Engineering │ │
+│  │ Stateless       │  │ ML Strategy     │  │ • Signal Performance        │ │
+│  │ Signals         │  │ Signals         │  │ • Strategy Correlations     │ │
+│  └─────────────────┘  └─────────────────┘  │ • Portfolio Exposures       │ │
+│                                             │ • Meta-Signal Analytics     │ │
+│                                             └─────────────────────────────┘ │
+│                                                         ↓                   │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │PORTFOLIO STATE  │ │PORTFOLIO STATE  │ │PORTFOLIO STATE  │ │PORTFOLIO    ││
+│ │STREAMER 1       │ │STREAMER 2       │ │STREAMER 3       │ │STATE        ││
+│ │(For VaR Risk)   │ │(For ML Risk)    │ │(For Corr Risk)  │ │STREAMER N   ││
+│ │• Simple State   │ │• Rich Features  │ │• Correlation    │ │             ││
+│ │• Position Vector│ │• Factor Loadings│ │• Cross-Asset    │ │             ││
+│ │• Basic Metrics  │ │• Regime Data    │ │• Exposure Maps  │ │             ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE PORTFOLIO │                             │
+│                            │ STATES          │                             │
+│                            │ portfolio_      │                             │
+│                            │ states.parquet  │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 4: Risk Model Processing & Optimization
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PHASE 4: RISK MODEL PROCESSING                           │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load Portfolio  │  │ Load Portfolio  │  │ Risk Feature Engineering    │ │
+│  │ State for       │  │ State for       │  │ • State Transformations     │ │
+│  │ VaR Models      │  │ ML Risk Models  │  │ • Risk Context Analysis     │ │
+│  └─────────────────┘  └─────────────────┘  │ • Portfolio Optimization    │ │
+│                                             │ • Ensemble Risk Features    │ │
+│                                             └─────────────────────────────┘ │
+│                                                         ↓                   │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │STATELESS RISK   │ │ ML RISK MODEL 1 │ │ ML RISK MODEL 2 │ │ ML RISK     ││
+│ │GROUP            │ │ Portfolio       │ │ Correlation     │ │ MODEL N     ││
+│ │• Basic VaR      │ │ Optimization    │ │ Risk Assessment │ │ Custom      ││
+│ │• Position Limits│ │ (Sequential)    │ │ (Sequential)    │ │ Ensemble    ││
+│ │• Volatility     │ │                 │ │                 │ │             ││
+│ │• Correlation    │ │                 │ │                 │ │             ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE RISK      │                             │
+│                            │ ASSESSMENTS     │                             │
+│                            │ risk_models.    │                             │
+│                            │ parquet         │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 5: Final Portfolio Decision Making & Execution
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PHASE 5: FINAL PORTFOLIO PROCESSING                      │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load All Cached │  │ Load All Cached │  │ Load All Cached Risk        │ │
+│  │ Strategy        │  │ Portfolio       │  │ Assessments                 │ │
+│  │ Signals         │  │ States          │  │                             │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
+│                                     ↓                                       │
+│                            ┌─────────────────┐                             │
+│                            │ SIGNAL,         │                             │
+│                            │ PORTFOLIO STATE │                             │
+│                            │ & RISK          │                             │
+│                            │ SYNCHRONIZATION │                             │
+│                            └─────────────────┘                             │
+│                                     ↓                                       │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │PORTFOLIO BATCH 1│ │PORTFOLIO BATCH 2│ │PORTFOLIO BATCH 3│ │PORTFOLIO    ││
+│ │ Portfolios      │ │ Portfolios      │ │ Portfolios      │ │ BATCH N     ││
+│ │ 1-500           │ │ 501-1000        │ │ 1001-1500       │ │             ││
+│ │                 │ │                 │ │                 │ │             ││
+│ │ • Signal Fusion │ │ • Signal Fusion │ │ • Signal Fusion │ │ • Signal    ││
+│ │ • State Review  │ │ • State Review  │ │ • State Review  │ │   Fusion    ││
+│ │ • Risk Control  │ │ • Risk Control  │ │ • Risk Control  │ │ • State     ││
+│ │ • Order Gen     │ │ • Order Gen     │ │ • Order Gen     │ │   Review    ││
+│ │                 │ │                 │ │                 │ │ • Risk      ││
+│ │                 │ │                 │ │                 │ │   Control   ││
+│ │                 │ │                 │ │                 │ │ • Order Gen ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                                                                             │
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │                      EXECUTION PROCESS                                  │ │
+│ │  ┌─────────────────┐                    ┌─────────────────┐            │ │
+│ │  │ Order           │ ←─ Receives ORDERs │ Fill            │            │ │
+│ │  │ Aggregation     │                    │ Distribution    │            │ │
+│ │  └─────────────────┘                    └─────────────────┘            │ │
+│ │           ↓                                       ↑                     │ │
+│ │  ┌─────────────────┐                             │                     │ │
+│ │  │ Execution       │─────────────────────────────┘                     │ │
+│ │  │ Engine          │                                                   │ │
+│ │  └─────────────────┘                                                   │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Key Multi-Phase Workflow Benefits
+
+### **Phase Isolation & Optimization**
+- **Phase 1**: Fast stateless strategies complete in seconds
+- **Phase 2**: ML strategies get full system resources sequentially
+- **Phase 3**: Risk models process optimized signal combinations
+- **Phase 4**: Portfolio decisions made with complete information
+
+### **Intelligent Caching Strategy**
+- **Features**: Computed once, reused across all phases
+- **Signals**: Strategy outputs cached for risk model analysis
+- **Risk Assessments**: Cached for portfolio decision making
+- **Grid Search**: Rerun phases with different parameters without recomputation
+
+### **Configurable Orchestration**
+```yaml
+workflow_mode: "multi_phase_optimized"
+
+phases:
+  stateless_strategies:
+    grouping: "by_feature_overlap"
+    parallel_cores: 8
+    
+  ml_strategies:
+    processing: "sequential_max_resources"
+    parallel_cores: 8
+    
+  portfolio_state_generation:
+    state_streamers: "parallel_by_risk_config"
+    parallel_cores: 8
+    
+  risk_models:
+    stateless_group_size: 10
+    ml_models_sequential: true
+    parallel_cores: 8
+    
+  final_portfolio_processing:
+    batch_size: 500
+    synchronization: "signals_states_and_risk"
+    parallel_cores: 6
+```
+
+### **Scalability Through Phases**
+- **Research**: Run individual phases for rapid iteration
+- **Grid Search**: Vary portfolio state configurations in Phase 3, risk parameters in Phase 4
+- **Validation**: Full multi-phase run provides perfect signal, state, and risk synchronization
+- **Production**: Single-pass mode for real-time deployment
+
+*In practice, this architecture requires unlimited compute resources. The multi-phase approach below solves the resource constraint problem while maintaining identical functionality.*
+
+---
+
+## Real-World Multi-Phase Implementation
+
+## Phase 1: Shared Feature Computation & Stateless Strategies
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PHASE 1: FEATURES & STATELESS STRATEGIES             │
+│                                                                             │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────────────────┐ │
+│  │ Data        │  │ Shared       │  │ Feature Cache & Distribution        │ │
+│  │ Streamers   │→ │ Feature      │→ │ • OHLCV, Volume, Technical Indicators│ │
+│  │             │  │ Computer     │  │ • Market Microstructure              │ │
+│  └─────────────┘  └──────────────┘  │ • Cross-Asset Correlations          │ │
+│                                      └─────────────────────────────────────┘ │
+│                                                 ↓                           │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │STATELESS GROUP 1│ │STATELESS GROUP 2│ │STATELESS GROUP 3│ │STATELESS    ││
+│ │• MA Crossover   │ │• RSI Momentum   │ │• Bollinger      │ │GROUP N      ││
+│ │• Simple Momentum│ │• Volume Signals │ │• Channel Break  │ │             ││
+│ │• Price Patterns │ │• Trend Following│ │• Mean Reversion │ │             ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE SIGNALS   │                             │
+│                            │ stateless_      │                             │
+│                            │ signals.parquet │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 2: ML Strategy Processing
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PHASE 2: ML STRATEGY PROCESSING                      │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load Cached     │  │ ML Feature      │  │ Advanced Feature Cache      │ │
+│  │ Basic Features  │→ │ Engineering     │→ │ • Correlation Matrices      │ │
+│  │                 │  │                 │  │ • Regime Detection          │ │
+│  └─────────────────┘  └─────────────────┘  │ • Cross-Asset Features      │ │
+│                                             └─────────────────────────────┘ │
+│                                                         ↓                   │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │ ML STRATEGY 1   │ │ ML STRATEGY 2   │ │ ML STRATEGY 3   │ │ ML STRATEGY │ │
+│ │ LSTM Predictor  │ │ XGBoost Ensemble│ │ Transformer     │ │ N           │ │
+│ │ (Sequential)    │ │ (Sequential)    │ │ (Sequential)    │ │             │ │
+│ │                 │ │                 │ │                 │ │             │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE SIGNALS   │                             │
+│                            │ ml_strategy_    │                             │
+│                            │ signals.parquet │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 3: Risk Model Processing & Optimization
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PHASE 3: RISK MODEL PROCESSING                           │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load Cached     │  │ Load Cached     │  │ Signal Meta-Analysis &      │ │
+│  │ Stateless       │  │ ML Strategy     │  │ Risk Feature Engineering    │ │
+│  │ Signals         │  │ Signals         │  │ • Signal Correlations       │ │
+│  └─────────────────┘  └─────────────────┘  │ • Strategy Performance      │ │
+│                                             │ • Portfolio Exposure        │ │
+│                                             └─────────────────────────────┘ │
+│                                                         ↓                   │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │STATELESS RISK   │ │ ML RISK MODEL 1 │ │ ML RISK MODEL 2 │ │ ML RISK     ││
+│ │GROUP            │ │ Portfolio       │ │ Correlation     │ │ MODEL N     ││
+│ │• Basic VaR      │ │ Optimization    │ │ Risk Assessment │ │ Custom      ││
+│ │• Position Limits│ │ (Sequential)    │ │ (Sequential)    │ │ Ensemble    ││
+│ │• Volatility     │ │                 │ │                 │ │             ││
+│ │• Correlation    │ │                 │ │                 │ │             ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                            ┌─────────────────┐                             │
+│                            │ CACHE RISK      │                             │
+│                            │ ASSESSMENTS     │                             │
+│                            │ risk_models.    │                             │
+│                            │ parquet         │                             │
+│                            └─────────────────┘                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Phase 4: Portfolio Decision Making & Execution
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    PHASE 4: PORTFOLIO PROCESSING                            │
+│                                                                             │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐ │
+│  │ Load All Cached │  │ Load All Cached │  │ Load All Cached Risk        │ │
+│  │ Strategy        │  │ ML Strategy     │  │ Assessments                 │ │
+│  │ Signals         │  │ Signals         │  │                             │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────────────────┘ │
+│                                     ↓                                       │
+│                            ┌─────────────────┐                             │
+│                            │ SIGNAL & RISK   │                             │
+│                            │ SYNCHRONIZATION │                             │
+│                            │ ENGINE          │                             │
+│                            └─────────────────┘                             │
+│                                     ↓                                       │
+│        ┌────────────────────┼────────────────────┼────────────────────┐    │
+│        ↓                    ↓                    ↓                    ↓    │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐│
+│ │PORTFOLIO BATCH 1│ │PORTFOLIO BATCH 2│ │PORTFOLIO BATCH 3│ │PORTFOLIO    ││
+│ │ Portfolios      │ │ Portfolios      │ │ Portfolios      │ │ BATCH N     ││
+│ │ 1-500           │ │ 501-1000        │ │ 1001-1500       │ │             ││
+│ │                 │ │                 │ │                 │ │             ││
+│ │ • Signal Fusion │ │ • Signal Fusion │ │ • Signal Fusion │ │ • Signal    ││
+│ │ • Risk Control  │ │ • Risk Control  │ │ • Risk Control  │ │   Fusion    ││
+│ │ • Order Gen     │ │ • Order Gen     │ │ • Order Gen     │ │ • Risk      ││
+│ │                 │ │                 │ │                 │ │   Control   ││
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘│
+│                                      ↓                                     │
+│                                                                             │
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │                      EXECUTION PROCESS                                  │ │
+│ │  ┌─────────────────┐                    ┌─────────────────┐            │ │
+│ │  │ Order           │ ←─ Receives ORDERs │ Fill            │            │ │
+│ │  │ Aggregation     │                    │ Distribution    │            │ │
+│ │  └─────────────────┘                    └─────────────────┘            │ │
+│ │           ↓                                       ↑                     │ │
+│ │  ┌─────────────────┐                             │                     │ │
+│ │  │ Execution       │─────────────────────────────┘                     │ │
+│ │  │ Engine          │                                                   │ │
+│ │  └─────────────────┘                                                   │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Key Multi-Phase Workflow Benefits
+
+### **Phase Isolation & Optimization**
+- **Phase 1**: Fast stateless strategies complete in seconds
+- **Phase 2**: ML strategies get full system resources sequentially
+- **Phase 3**: Risk models process optimized signal combinations
+- **Phase 4**: Portfolio decisions made with complete information
+
+### **Intelligent Caching Strategy**
+- **Features**: Computed once, reused across all phases
+- **Signals**: Strategy outputs cached for risk model analysis
+- **Risk Assessments**: Cached for portfolio decision making
+- **Grid Search**: Rerun phases with different parameters without recomputation
+
+### **Configurable Orchestration**
+```yaml
+workflow_mode: "multi_phase_optimized"
+
+phases:
+  stateless_strategies:
+    grouping: "by_feature_overlap"
+    parallel_cores: 8
+    
+  ml_strategies:
+    processing: "sequential_max_resources"
+    parallel_cores: 8
+    
+  risk_models:
+    stateless_group_size: 10
+    ml_models_sequential: true
+    parallel_cores: 8
+    
+  portfolio_processing:
+    batch_size: 500
+    signal_synchronization: "perfect"
+    parallel_cores: 6
+```
+
+### **Scalability Through Phases**
+- **Research**: Run individual phases for rapid iteration
+- **Grid Search**: Vary risk parameters in Phase 3 without recomputing strategies
+- **Validation**: Full multi-phase run provides perfect signal synchronization
+- **Production**: Single-pass mode for real-time deployment

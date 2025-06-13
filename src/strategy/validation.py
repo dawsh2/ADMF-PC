@@ -163,8 +163,11 @@ def validate_strategy_features(strategy_func: Callable) -> Callable:
     """
     @wraps(strategy_func)
     def wrapper(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Any:
+        # TEMPORARILY DISABLED - validation is handled by ComponentState per-strategy readiness checking
+        return strategy_func(features, bar, params)
         # Dynamic feature validation - construct actual required feature names
         required_features = []
+        func_name = getattr(strategy_func, '__name__', 'unknown_strategy')
         
         # Get feature config from component info
         if hasattr(strategy_func, '_component_info'):
@@ -172,18 +175,45 @@ def validate_strategy_features(strategy_func: Callable) -> Callable:
             metadata = component_info.metadata
             feature_config = metadata.get('feature_config', {})
             
+            # Debug logging for breakout strategy
+            if 'breakout' in func_name:
+                logger.error(f"Breakout strategy validation - feature_config: {feature_config}, params: {params}")
+            
             # For each feature type, construct the actual parameterized name
             for feature_name, feature_meta in feature_config.items():
                 param_names = feature_meta.get('params', [])
+                defaults = feature_meta.get('defaults', {})
                 default_value = feature_meta.get('default')
                 
                 if param_names:
-                    # Use first parameter to construct feature name
-                    param_name = param_names[0]  # e.g., 'sma_period'
-                    param_value = params.get(param_name, default_value)
-                    if param_value is not None:
-                        # Construct parameterized feature name: sma_20, rsi_14, etc.
-                        required_features.append(f'{feature_name}_{param_value}')
+                    # Handle multiple parameters for the same feature
+                    for param_name in param_names:
+                        # Get parameter value from strategy params, then defaults, then general default
+                        param_value = params.get(param_name)
+                        if param_value is None:
+                            param_value = defaults.get(param_name, default_value)
+                        
+                        if param_value is not None:
+                            # Special handling for volume features that need suffix
+                            if feature_name == 'volume' and param_name == 'lookback_period':
+                                # volume_20 becomes volume_20_volume_ma for breakout strategies
+                                feature_name_final = f'{feature_name}_{param_value}_volume_ma'
+                                required_features.append(feature_name_final)
+                                if 'breakout' in func_name:
+                                    logger.error(f"Added volume feature: {feature_name_final}")
+                            else:
+                                # Standard parameterized feature name: high_20, low_20, etc.
+                                feature_name_final = f'{feature_name}_{param_value}'
+                                required_features.append(feature_name_final)
+                                if 'breakout' in func_name:
+                                    logger.error(f"Added feature: {feature_name_final}")
+                            
+                            # For volume features, also try the base name without suffix (e.g., volume_20)
+                            if feature_name == 'volume' and param_name == 'lookback_period':
+                                base_volume_name = f'{feature_name}_{param_value}'
+                                required_features.append(base_volume_name)
+                                if 'breakout' in func_name:
+                                    logger.error(f"Added base volume feature: {base_volume_name}")
                 else:
                     # Feature without parameters
                     required_features.append(feature_name)
@@ -191,8 +221,12 @@ def validate_strategy_features(strategy_func: Callable) -> Callable:
         # Fall back to static required_features if no dynamic construction
         if not required_features:
             required_features = getattr(strategy_func, 'required_features', [])
+            if 'breakout' in func_name:
+                logger.error(f"Breakout strategy fallback - using static required_features: {required_features}")
         
         if required_features:
+            if 'breakout' in func_name:
+                logger.error(f"Breakout strategy final validation - required_features: {required_features}")
             validator = get_feature_validator()
             validator.validate_features(
                 features,

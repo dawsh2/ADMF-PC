@@ -1,0 +1,40 @@
+# Simple test configuration to ensure signal generation
+# Uses mean reversion strategy which should generate more signals
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+start_date: "2024-01-01"
+end_date: "2024-01-02"  # Just one day
+max_bars: 200  # Fewer bars for testing
+
+# Use mean reversion strategy which generates more signals
+strategies:
+  - name: test_mean_reversion
+    type: mean_reversion_simple
+    params:
+      bb_period: 20
+      bb_std: 2.0
+      rsi_period: 14
+      rsi_oversold: 30
+      rsi_overbought: 70
+
+# Enable hierarchical storage
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    batch_size: 50
+    auto_flush_on_cleanup: true
+    enable_console_output: true
+    console_filter: ["SIGNAL", "BAR"]  # Show both bars and signals
+
+# Store results
+results:
+  streaming_metrics: true
+  results_storage: disk

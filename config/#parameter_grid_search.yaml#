@@ -1,0 +1,40 @@
+# Parameter Grid Search Configuration
+name: "MA Crossover Parameter Grid Search"
+
+data:
+  symbols: ['SPY']
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+symbols: ['SPY']
+timeframes: ['1m']
+max_bars: 500  # More data for better evaluation
+
+# Grid search parameters
+parameter_grid:
+  fast_periods: [5, 10, 15, 20]
+  slow_periods: [20, 30, 40, 50]
+
+# This will be expanded into multiple strategies
+strategy_template:
+  type: 'ma_crossover'
+  name_template: 'ma_{fast}_{slow}'
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'portfolio*':
+        enabled: true
+
+metadata:
+  workflow_id: 'grid_search'
+  experiment_type: 'parameter_optimization'

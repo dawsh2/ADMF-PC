@@ -1,60 +1,122 @@
-# Test hierarchical storage with workspace structure
-# This config enables the new workspace-based event storage
+# Test configuration for hierarchical Parquet storage
+# Uses the new HierarchicalPortfolioTracer instead of SparsePortfolioTracer
 
-name: Hierarchical Storage Test
-type: backtest
-description: Test hierarchical event storage with workspace structure
+name: test_hierarchical_storage
+description: Test hierarchical storage with multiple strategies and classifiers
+
+# Topology configuration
+topology:
+  mode: signal_generation
+  
+  # Tracing configuration - use hierarchical storage
+  tracing:
+    enabled: true
+    storage:
+      type: hierarchical  # New storage type
+      base_dir: ./analytics_storage
+    components:
+      portfolio:
+        # Use the new hierarchical tracer
+        type: hierarchical_portfolio_tracer
+        config:
+          storage:
+            base_dir: ./analytics_storage
 
 # Data configuration
 data:
-  source: csv
-  file_path: "data/SPY_1m.csv"
-  max_bars: 3  # Just 3 bars to test storage
+  source:
+    type: csv
+    path: data/SPY_1m.csv
+  symbols:
+    - SPY
+  timeframe: 1m
+  start_date: "2024-01-01"
+  end_date: "2024-01-31"
 
-# Portfolio configuration
-portfolio:
-  initial_capital: 100000
-  currency: USD
+# Required fields for signal generation topology
+symbols:
+  - SPY
+timeframes:
+  - 1m
+data_source: file
+data_path: data/SPY_1m.csv
+max_bars: 100  # Just process 100 bars for testing
 
-# Strategy configuration
+# Multiple strategies to test organization
 strategies:
-  - name: test_momentum
-    type: momentum
-    enabled: true
-    allocation: 1.0
-    parameters:
-      lookback_period: 2
-      rsi_period: 2
+  - name: momentum_fast
+    type: simple_momentum
+    params:
+      lookback_period: 10
+      momentum_threshold: 0.02
+  
+  - name: momentum_slow
+    type: simple_momentum
+    params:
+      lookback_period: 30
+      momentum_threshold: 0.01
+  
+  - name: ma_crossover_5_20
+    type: ma_crossover
+    params:
+      fast_period: 5
+      slow_period: 20
+  
+  - name: ma_crossover_10_50
+    type: ma_crossover
+    params:
+      fast_period: 10
+      slow_period: 50
+  
+  - name: mean_reversion_bb
+    type: mean_reversion
+    params:
+      bb_period: 20
+      num_std: 2.0
+      entry_threshold: 0.95
 
-# Risk management
+# Multiple classifiers to test organization
+classifiers:
+  - name: trend_classifier
+    type: trend_classifier
+    params:
+      lookback_period: 50
+      trend_threshold: 0.01
+  
+  - name: volatility_regime
+    type: volatility_classifier
+    params:
+      lookback_period: 20
+      vol_threshold: 0.02
+  
+  - name: market_state_hmm
+    type: hmm_regime
+    params:
+      n_states: 3
+      lookback_period: 100
+
+# Risk configuration
 risk:
-  position_sizers:
-    - name: fixed_size
-      type: fixed
-      size: 1000
+  position_limits:
+    max_position_size: 0.05
+    max_total_exposure: 0.5
+  stop_loss:
+    enabled: true
+    percent: 0.02
 
-# Execution configuration with hierarchical storage
+# Execution settings
 execution:
+  mode: signal_only  # Just generate signals, no execution
+  capital: 100000
   enable_event_tracing: true
   trace_settings:
-    storage_backend: hierarchical  # Use hierarchical storage
-    max_events: 1000
-    enable_console_output: true
-    console_filter: ["SIGNAL", "FILL", "POSITION_OPEN", "POSITION_CLOSE"]
-    
-    # Container-specific settings
-    container_settings:
-      "portfolio_*":
-        enabled: true
-        max_events: 500
-      "strategy_*":
-        enabled: true
-        max_events: 200
-
-# Analysis configuration
-analysis:
-  metrics:
-    - total_return
-    - sharpe_ratio
-  save_results: true
-  output_format: json
+    use_sparse_storage: true
+    storage:
+      type: hierarchical
+      base_dir: ./analytics_storage
+  
+# Output configuration
+output:
+  save_signals: true
+  save_performance: true
+  format: parquet  # Use Parquet format

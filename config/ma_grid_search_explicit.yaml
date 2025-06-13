@@ -1,0 +1,107 @@
+# Explicit MA Crossover Grid Search Configuration
+name: "MA Crossover Parameter Grid Search"
+
+data:
+  symbols: ['SPY']
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+symbols: ['SPY']
+timeframes: ['1m']
+max_bars: 500
+
+# Explicitly define all strategy combinations
+strategies:
+  # Fast 5
+  - name: 'ma_5_20'
+    type: 'ma_crossover'
+    params:
+      fast_period: 5
+      slow_period: 20
+  
+  - name: 'ma_5_30'
+    type: 'ma_crossover'
+    params:
+      fast_period: 5
+      slow_period: 30
+      
+  - name: 'ma_5_40'
+    type: 'ma_crossover'
+    params:
+      fast_period: 5
+      slow_period: 40
+      
+  - name: 'ma_5_50'
+    type: 'ma_crossover'
+    params:
+      fast_period: 5
+      slow_period: 50
+      
+  # Fast 10
+  - name: 'ma_10_20'
+    type: 'ma_crossover'
+    params:
+      fast_period: 10
+      slow_period: 20
+      
+  - name: 'ma_10_30'
+    type: 'ma_crossover'
+    params:
+      fast_period: 10
+      slow_period: 30
+      
+  - name: 'ma_10_40'
+    type: 'ma_crossover'
+    params:
+      fast_period: 10
+      slow_period: 40
+      
+  - name: 'ma_10_50'
+    type: 'ma_crossover'
+    params:
+      fast_period: 10
+      slow_period: 50
+      
+  # Fast 15  
+  - name: 'ma_15_20'
+    type: 'ma_crossover'
+    params:
+      fast_period: 15
+      slow_period: 20
+      
+  - name: 'ma_15_30'
+    type: 'ma_crossover'
+    params:
+      fast_period: 15
+      slow_period: 30
+      
+  - name: 'ma_15_40'
+    type: 'ma_crossover'
+    params:
+      fast_period: 15
+      slow_period: 40
+      
+  - name: 'ma_15_50'
+    type: 'ma_crossover'
+    params:
+      fast_period: 15
+      slow_period: 50
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'portfolio*':
+        enabled: true
+
+metadata:
+  workflow_id: 'ma_grid_search'
+  experiment_type: 'parameter_optimization'

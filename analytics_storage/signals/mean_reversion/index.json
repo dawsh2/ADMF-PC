@@ -1,0 +1,16 @@
+{
+  "type": "mean_reversion",
+  "files": [
+    {
+      "type": "mean_reversion",
+      "name": "mean_reversion_bb",
+      "parameters": {},
+      "total_items": 12,
+      "compression_ratio": 0,
+      "created_at": "2025-06-13T11:28:27.830093",
+      "file_hash": "99914b93",
+      "file_path": "analytics_storage/signals/mean_reversion/mean_reversion_99914b93.json"
+    }
+  ],
+  "updated_at": "2025-06-13T11:28:27.830822"
+}

@@ -165,7 +165,8 @@ class SimpleHistoricalDataHandler:
             # Update index
             indices[symbol] = idx + 1
             
-            # Publish BAR event to parent container
+            # Publish BAR event to shared root event bus
+            logger.debug(f"Publishing BAR event - container: {self.container}, event_bus: {self.event_bus}")
             if self.container:
                 from ..core.events.types import Event, EventType
                 event = Event(
@@ -175,11 +176,12 @@ class SimpleHistoricalDataHandler:
                         'timestamp': timestamp,
                         'bar': bar
                     },
-                    source_id=self.handler_id,
+                    source_id=f"data_{symbol}",
                     container_id=self.container.container_id if self.container else None
                 )
-                # Publish to parent so all sibling containers can see it
-                self.container.publish_event(event, target_scope="parent")
+                logger.info(f"📊 Publishing BAR event #{self._timeline_idx} for {symbol} at {timestamp}")
+                # Publish directly to container's event bus (should be shared root bus)
+                self.container.event_bus.publish(event)
             elif self.event_bus:
                 # Fallback to local bus if no container
                 from ..core.events.types import Event, EventType
@@ -192,6 +194,7 @@ class SimpleHistoricalDataHandler:
                     },
                     source_id=self.handler_id
                 )
+                logger.info(f"📊 Publishing BAR event #{self._timeline_idx} for {symbol} at {timestamp}")
                 self.event_bus.publish(event)
             
             return True
@@ -368,6 +371,141 @@ class SimpleHistoricalDataHandler:
                 for symbol in self.symbols
             }
         }
+    
+    def setup_wfv_window(self, window_num: int, total_windows: int, 
+                         phase: str, dataset_split: str = 'train') -> None:
+        """
+        Setup walk-forward validation window with sliding window methodology.
+        
+        Uses sliding windows where each window's test data becomes part of 
+        the next window's training data.
+        
+        Args:
+            window_num: Current window number (1-based)
+            total_windows: Total number of WFV windows
+            phase: 'train' or 'test' phase
+            dataset_split: 'train' or 'test' split of full dataset
+        """
+        if window_num < 1 or window_num > total_windows:
+            raise ValueError(f"Window {window_num} must be between 1 and {total_windows}")
+        
+        # Get the base dataset (train or test split)
+        base_data = self._get_base_dataset(dataset_split)
+        
+        if not base_data:
+            raise ValueError(f"No data available for {dataset_split} split")
+        
+        # Calculate sliding window boundaries
+        window_data = self._calculate_wfv_window(base_data, window_num, total_windows, phase)
+        
+        # Create WFV split
+        split_name = f"wfv_w{window_num}_{phase}"
+        self.splits[split_name] = DataSplit(
+            name=split_name,
+            data=window_data,
+            start_date=min(df.index[0] for df in window_data.values() if len(df) > 0),
+            end_date=max(df.index[-1] for df in window_data.values() if len(df) > 0)
+        )
+        
+        # Initialize indices for the split
+        for symbol in window_data:
+            self.splits[split_name].indices[symbol] = 0
+        
+        # Set as active split
+        self.set_active_split(split_name)
+        
+        logger.info(f"Setup WFV window {window_num}/{total_windows} ({phase}) on {dataset_split} split")
+        logger.info(f"Window data: {sum(len(df) for df in window_data.values())} bars total")
+    
+    def _get_base_dataset(self, dataset_split: str) -> Dict[str, pd.DataFrame]:
+        """
+        Get the base dataset for WFV (train or test split).
+        
+        Args:
+            dataset_split: 'train', 'test', or 'full'
+            
+        Returns:
+            Dictionary of symbol -> DataFrame
+        """
+        if dataset_split == 'train' and 'train' in self.splits:
+            return self.splits['train'].data
+        elif dataset_split == 'test' and 'test' in self.splits:
+            return self.splits['test'].data
+        elif dataset_split == 'full':
+            return self.data
+        else:
+            logger.warning(f"Split '{dataset_split}' not found, using full dataset")
+            return self.data
+    
+    def _calculate_wfv_window(self, base_data: Dict[str, pd.DataFrame], 
+                             window_num: int, total_windows: int, 
+                             phase: str) -> Dict[str, pd.DataFrame]:
+        """
+        Calculate sliding window boundaries for WFV.
+        
+        Uses expanding training windows with fixed test sizes for proper
+        walk-forward validation methodology.
+        
+        Args:
+            base_data: Base dataset dictionary
+            window_num: Current window number (1-based)
+            total_windows: Total number of windows
+            phase: 'train' or 'test'
+            
+        Returns:
+            Window data dictionary
+        """
+        window_data = {}
+        
+        for symbol, df in base_data.items():
+            if len(df) == 0:
+                window_data[symbol] = df.copy()
+                continue
+            
+            total_bars = len(df)
+            
+            # Calculate window sizing
+            # Reserve some data for final test window
+            usable_bars = int(total_bars * 0.9)  # Use 90% for WFV, reserve 10% for final
+            test_size = max(50, usable_bars // (total_windows * 4))  # Test size: ~1/4 of average window
+            
+            # Calculate window boundaries (sliding window approach)
+            step_size = max(test_size // 2, 25)  # Overlap windows by 50%
+            
+            # Window start positions
+            window_start = (window_num - 1) * step_size
+            
+            if phase == 'train':
+                # Training: expanding window from start to current window end
+                train_end = window_start + (window_num * test_size) + (window_num * step_size)
+                train_end = min(train_end, usable_bars - test_size)  # Leave room for test
+                
+                start_idx = 0
+                end_idx = train_end
+                
+            else:  # phase == 'test'
+                # Testing: fixed size window after training data
+                train_end = window_start + (window_num * test_size) + (window_num * step_size)
+                train_end = min(train_end, usable_bars - test_size)
+                
+                start_idx = train_end
+                end_idx = min(train_end + test_size, usable_bars)
+            
+            # Ensure valid boundaries
+            start_idx = max(0, start_idx)
+            end_idx = min(end_idx, total_bars)
+            
+            if start_idx >= end_idx:
+                logger.warning(f"Invalid window boundaries for {symbol} window {window_num}: "
+                              f"start={start_idx}, end={end_idx}")
+                window_data[symbol] = df.iloc[0:0].copy()  # Empty DataFrame
+            else:
+                window_data[symbol] = df.iloc[start_idx:end_idx].copy()
+                
+                logger.debug(f"WFV Window {window_num} ({phase}) for {symbol}: "
+                            f"bars {start_idx}-{end_idx} ({end_idx-start_idx} bars)")
+        
+        return window_data
     
     # Implements HasLifecycle protocol (can be moved to capability)
     def start(self) -> None:

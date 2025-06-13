@@ -19,7 +19,7 @@ from .topology import TopologyBuilder
 from .sequencer import Sequencer
 from .config.pattern_loader import PatternLoader
 from .config.resolver import ConfigResolver
-from ..components.discovery import discover_components
+from ..components.discovery import discover_components, discover_components_in_module
 
 # Import Pydantic validation (with fallback)
 from .config import (
@@ -86,12 +86,9 @@ class Coordinator:
     def _discover_workflows(self) -> Dict[str, WorkflowProtocol]:
         """Discover all available workflows."""
         try:
-            components = discover_components(
-                "src.core.coordinator.workflows",
-                protocol_type=WorkflowProtocol,
-                component_type="workflow"
-            )
-            return {name: comp() for name, comp in components.items()}
+            # Simple discovery for now - workflows are pattern-based
+            discover_components_in_module("src.core.coordinator.workflows")
+            return {}  # Return empty dict since workflows are pattern-based
         except Exception as e:
             logger.warning(f"Failed to discover workflows: {e}")
             return {}
@@ -99,12 +96,9 @@ class Coordinator:
     def _discover_sequences(self) -> Dict[str, SequenceProtocol]:
         """Discover all available sequences."""
         try:
-            components = discover_components(
-                "src.core.coordinator.sequences",
-                protocol_type=SequenceProtocol,
-                component_type="sequence"
-            )
-            return {name: comp() for name, comp in components.items()}
+            # Simple discovery for now - sequences are pattern-based
+            discover_components_in_module("src.core.coordinator.sequences")
+            return {}  # Return empty dict since sequences are pattern-based
         except Exception as e:
             logger.warning(f"Failed to discover sequences: {e}")
             return {}
@@ -150,12 +144,28 @@ class Coordinator:
         
         logger.info(f"Executing topology '{topology_name}' directly")
         
+        # Configure WFV if specified
+        config = self._configure_wfv_if_needed(config)
+        
         # Delegate to topology runner
-        return self.topology_runner.run_topology(
+        result = self.topology_runner.run_topology(
             topology_name=topology_name,
             config=config,
             execution_id=execution_id
         )
+        
+        # Integrate with SQL analytics if run was successful
+        if result.get('success'):
+            try:
+                from ...analytics.integration import integrate_with_topology_result
+                workspace_path = integrate_with_topology_result(result, topology_name, config)
+                if workspace_path:
+                    result['analytics_workspace'] = str(workspace_path)
+                    logger.info(f"📊 SQL analytics workspace created: {workspace_path.name}")
+            except Exception as e:
+                logger.warning(f"Failed to create SQL analytics workspace: {e}")
+        
+        return result
     
     def run_workflow(self, workflow_definition: Dict[str, Any],
                     workflow_id: Optional[str] = None) -> Dict[str, Any]:
@@ -869,3 +879,51 @@ class Coordinator:
         if outputs_spec:
             workflow_outputs = self._process_outputs(outputs_spec, phase_results, context)
             context['workflow_outputs'] = workflow_outputs
+    
+    def _configure_wfv_if_needed(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Configure walk-forward validation if WFV parameters are present.
+        
+        Args:
+            config: Configuration dictionary
+            
+        Returns:
+            Modified configuration with WFV setup if needed
+        """
+        wfv_window = config.get('wfv_window')
+        wfv_windows = config.get('wfv_windows')
+        phase = config.get('phase')
+        dataset = config.get('dataset', 'train')
+        
+        # Only configure WFV if all required parameters are present
+        if not (wfv_window and wfv_windows and phase):
+            return config
+        
+        logger.info(f"Configuring WFV: window {wfv_window}/{wfv_windows}, phase={phase}, dataset={dataset}")
+        
+        # Configure data handler for WFV
+        if 'data' not in config:
+            config['data'] = {}
+        
+        # Add WFV configuration to data config
+        config['data']['wfv_window'] = wfv_window
+        config['data']['wfv_windows'] = wfv_windows
+        config['data']['wfv_phase'] = phase
+        config['data']['wfv_dataset'] = dataset
+        
+        # Ensure we have train/test split configured for the base dataset
+        if dataset in ['train', 'test'] and 'split_ratio' not in config['data']:
+            config['data']['split_ratio'] = 0.8  # Default 80/20 split
+            logger.info("Added default 80/20 train/test split for WFV")
+        
+        # Configure workspace organization for study-level directories
+        if 'execution' not in config:
+            config['execution'] = {}
+        
+        if 'trace_settings' not in config['execution']:
+            config['execution']['trace_settings'] = {}
+        
+        # The workspace directory structure will be handled by MultiStrategyTracer
+        # based on results_dir, wfv_window, and phase parameters
+        
+        return config

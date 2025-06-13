@@ -1,0 +1,10 @@
+usage: main.py [-h] [--config CONFIG] [--signal-generation | --backtest |
+               --signal-replay | --optimize | --workflow WORKFLOW]
+               [--sequence SEQUENCE] [--dataset {train,test,full}]
+               [--bars BARS] [--split-ratio SPLIT_RATIO] [--parallel PARALLEL]
+               [--checkpoint CHECKPOINT] [--output-dir OUTPUT_DIR]
+               [--log-level {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+               [--log-events [{BAR,INDICATOR,SIGNAL,ORDER,FILL,PORTFOLIO,TRADE_LOOP} ...]]
+               [--log-file LOG_FILE] [--log-json] [--verbose] [--dry-run]
+               [--profile] [--schema-docs]
+main.py: error: unrecognized arguments: --topology signal_generation_strategy_trace

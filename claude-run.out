@@ -1,0 +1,831 @@
+2025-06-11 17:11:57,214 - __main__ - INFO - Configuration loaded successfully from config/test_strategy_signal_tracing.yaml
+2025-06-11 17:11:57,214 - __main__ - WARNING - Configuration validation failed with error: 'TypeError' object has no attribute 'errors'
+2025-06-11 17:11:57,214 - src.core.coordinator.coordinator - WARNING - Failed to discover workflows: discover_components() got an unexpected keyword argument 'protocol_type'
+2025-06-11 17:11:57,214 - src.core.coordinator.coordinator - WARNING - Failed to discover sequences: discover_components() got an unexpected keyword argument 'protocol_type'
+2025-06-11 17:11:57,217 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation
+2025-06-11 17:11:57,220 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: modern_backtest
+2025-06-11 17:11:57,224 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest_with_strategy
+2025-06-11 17:11:57,227 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest
+2025-06-11 17:11:57,229 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_replay
+2025-06-11 17:11:57,233 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation_strategy_trace
+2025-06-11 17:11:57,237 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: backtest
+2025-06-11 17:11:57,238 - src.core.coordinator.config.pattern_loader - INFO - Loaded 7 topologies patterns
+2025-06-11 17:11:57,240 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: composed_walk_forward
+2025-06-11 17:11:57,242 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: train_test
+2025-06-11 17:11:57,245 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: walk_forward_composed
+2025-06-11 17:11:57,247 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: parameter_sweep
+2025-06-11 17:11:57,250 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: walk_forward
+2025-06-11 17:11:57,251 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: single_pass
+2025-06-11 17:11:57,253 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: k_fold
+2025-06-11 17:11:57,254 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: nested_monte_carlo
+2025-06-11 17:11:57,256 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: monte_carlo
+2025-06-11 17:11:57,256 - src.core.coordinator.config.pattern_loader - INFO - Loaded 9 sequences patterns
+2025-06-11 17:11:57,261 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: adaptive_ensemble
+2025-06-11 17:11:57,262 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: simple_backtest
+2025-06-11 17:11:57,265 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: signal_generate_and_replay
+2025-06-11 17:11:57,267 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: modular_workflow
+2025-06-11 17:11:57,272 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: research_pipeline
+2025-06-11 17:11:57,278 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: composable_research
+2025-06-11 17:11:57,278 - src.core.coordinator.config.pattern_loader - INFO - Loaded 6 workflows patterns
+2025-06-11 17:11:57,278 - src.core.coordinator.coordinator - INFO - Coordinator 73fd07f4-9226-4f16-a409-7bc71a1f25e7 initialized with 0 discovered workflows, 0 discovered sequences, and 6 workflow patterns
+2025-06-11 17:11:57,278 - __main__ - INFO - 🚀 Starting workflow execution...
+2025-06-11 17:11:57,278 - __main__ - INFO - 🎯 Executing signal_generation topology
+2025-06-11 17:11:57,280 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation
+2025-06-11 17:11:57,284 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: modern_backtest
+2025-06-11 17:11:57,286 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest_with_strategy
+2025-06-11 17:11:57,291 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest
+2025-06-11 17:11:57,298 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_replay
+2025-06-11 17:11:57,306 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation_strategy_trace
+2025-06-11 17:11:57,314 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: backtest
+2025-06-11 17:11:57,314 - src.core.coordinator.config.pattern_loader - INFO - Loaded 7 topologies patterns
+2025-06-11 17:11:57,314 - src.core.coordinator.coordinator - INFO - Executing topology 'signal_generation' directly
+2025-06-11 17:11:57,315 - src.core.coordinator.topology_runner - INFO - Executing topology 'signal_generation' (ID: 3de21142-1bee-4c30-b4ca-9030fe598dec)
+2025-06-11 17:11:57,315 - src.core.coordinator.topology - INFO - Building signal_generation topology
+2025-06-11 17:11:57,315 - src.core.coordinator.topology - INFO - Inferring features from 2 strategies
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Strategy 'ma_crossover' requires features: ['sma_20', 'sma_5']
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Strategy 'ma_crossover' requires features: ['sma_10', 'sma_20', 'sma_30', 'sma_5']
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Inferred features: ['sma_10', 'sma_20', 'sma_30', 'sma_5']
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Generated feature configs: {'sma_30': {'feature': 'sma', 'period': 30}, 'sma_20': {'feature': 'sma', 'period': 20}, 'sma_10': {'feature': 'sma', 'period': 10}, 'sma_5': {'feature': 'sma', 'period': 5}}
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Injected 4 features into context
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Extracted strategy names from strategies list: ['ma_crossover_5_20', 'ma_crossover_10_30']
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Injected strategy_names into config: ['ma_crossover_5_20', 'ma_crossover_10_30']
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Creating stateless components
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Resolved strategies to: [{'name': 'ma_crossover_5_20', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 20}}, {'name': 'ma_crossover_10_30', 'type': 'ma_crossover', 'params': {'fast_period': 10, 'slow_period': 30}}]
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Processing strategies item: {'name': 'ma_crossover_5_20', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 20}}
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Found strategy function: ma_crossover_strategy in src.strategy.strategies.ma_crossover
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Added strategies component: ma_crossover_5_20
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Processing strategies item: {'name': 'ma_crossover_10_30', 'type': 'ma_crossover', 'params': {'fast_period': 10, 'slow_period': 30}}
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Found strategy function: ma_crossover_strategy in src.strategy.strategies.ma_crossover
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Added strategies component: ma_crossover_10_30
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Resolved classifiers to: []
+2025-06-11 17:11:57,352 - src.core.coordinator.topology - INFO - Creating containers
+2025-06-11 17:11:57,353 - src.core.events.tracing.observers - INFO - EventTracer created: root_bcd70f70, retention: all, container_isolation: True
+2025-06-11 17:11:57,353 - src.core.events.bus - INFO - Tracing enabled on bus root_bcd70f70
+2025-06-11 17:11:57,353 - src.core.containers.container - INFO - Tracing enabled for container root_bcd70f70 with trace_id: root_bcd70f70, max_events: 10000
+2025-06-11 17:11:57,353 - src.core.containers.container - INFO - Created container: root (root_bcd70f70) with event_bus: 4437296144
+2025-06-11 17:11:57,353 - src.core.events.tracing.observers - INFO - EventTracer created: data_81381d89, retention: all, container_isolation: True
+2025-06-11 17:11:57,353 - src.core.events.bus - INFO - Tracing enabled on bus root_bcd70f70
+2025-06-11 17:11:57,353 - src.core.containers.container - INFO - Tracing enabled for container data_81381d89 with trace_id: data_81381d89, max_events: 10000
+2025-06-11 17:11:57,353 - src.core.containers.container - INFO - Created container: SPY_1m_data (data_81381d89) with event_bus: 4437296144
+2025-06-11 17:11:58,052 - src.core.containers.container - INFO - Added child container data_81381d89 to root_bcd70f70
+2025-06-11 17:11:58,052 - src.core.coordinator.topology - INFO - Created child: root -> SPY_1m_data
+2025-06-11 17:11:58,052 - src.core.events.tracing.observers - INFO - EventTracer created: strategy_02071d52, retention: all, container_isolation: True
+2025-06-11 17:11:58,052 - src.core.events.bus - INFO - Tracing enabled on bus root_bcd70f70
+2025-06-11 17:11:58,052 - src.core.containers.container - INFO - Tracing enabled for container strategy_02071d52 with trace_id: strategy_02071d52, max_events: 10000
+2025-06-11 17:11:58,052 - src.core.containers.container - INFO - Created container: strategy (strategy_02071d52) with event_bus: 4437296144
+2025-06-11 17:11:58,054 - src.strategy.state - INFO - StrategyState subscribing to event_bus: <src.core.events.bus.EventBus object at 0x1087bc410>
+2025-06-11 17:11:58,054 - src.strategy.state - INFO - StrategyState subscribed to BAR events in container strategy
+2025-06-11 17:11:58,054 - src.strategy.state - INFO - StrategyState received features config: {'sma_30': {'feature': 'sma', 'period': 30}, 'sma_20': {'feature': 'sma', 'period': 20}, 'sma_10': {'feature': 'sma', 'period': 10}, 'sma_5': {'feature': 'sma', 'period': 5}}
+2025-06-11 17:11:58,054 - src.strategy.state - INFO - Configured 4 features
+2025-06-11 17:11:58,054 - src.strategy.state - INFO - Configured 4 features from container config
+2025-06-11 17:11:58,054 - src.strategy.state - INFO - Loading 2 strategies from config
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Using 2 strategies from topology
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Strategy ma_crossover_5_20 config: {'name': 'ma_crossover_5_20', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 20}}
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Strategy ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Loaded strategy: ma_crossover_5_20 from topology
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Strategy ma_crossover_10_30 config: {'name': 'ma_crossover_10_30', 'type': 'ma_crossover', 'params': {'fast_period': 10, 'slow_period': 30}}
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Strategy ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,055 - src.strategy.state - INFO - Loaded strategy: ma_crossover_10_30 from topology
+2025-06-11 17:11:58,055 - src.core.containers.container - INFO - Added child container strategy_02071d52 to root_bcd70f70
+2025-06-11 17:11:58,055 - src.core.coordinator.topology - INFO - Created child: root -> strategy
+2025-06-11 17:11:58,055 - src.core.coordinator.topology - INFO - Creating routes
+2025-06-11 17:11:58,055 - src.core.coordinator.topology - INFO - Applying behaviors
+2025-06-11 17:11:58,055 - src.core.coordinator.topology - INFO - Skipping feature dispatcher - not implemented yet
+2025-06-11 17:11:58,055 - src.core.coordinator.topology - INFO - Setting up event subscriptions for signal_generation topology
+2025-06-11 17:11:58,055 - src.core.coordinator.topology - INFO - Built signal_generation topology with 3 containers and 0 routes
+2025-06-11 17:11:58,055 - src.core.coordinator.topology_runner - INFO - Initializing 3 containers
+2025-06-11 17:11:58,055 - src.core.containers.container - INFO - Container root initialized successfully
+2025-06-11 17:11:58,055 - src.core.containers.container - INFO - Container SPY_1m_data initialized successfully
+2025-06-11 17:11:58,058 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage path: ./workspaces/tmp/20250611_171158
+2025-06-11 17:11:58,058 - src.core.events.observers.sparse_portfolio_tracer - INFO - SparsePortfolioTracer initialized for strategy_SPY_ma_crossover_5_20 managing strategies: ['SPY_ma_crossover_5_20']
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Strategy signal tracing enabled for SPY_ma_crossover_5_20
+2025-06-11 17:11:58,058 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage path: ./workspaces/tmp/20250611_171158
+2025-06-11 17:11:58,058 - src.core.events.observers.sparse_portfolio_tracer - INFO - SparsePortfolioTracer initialized for strategy_SPY_ma_crossover_10_30 managing strategies: ['SPY_ma_crossover_10_30']
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Strategy signal tracing enabled for SPY_ma_crossover_10_30
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Strategy signal tracing enabled for 2 strategies in container strategy_02071d52
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Container strategy initialized successfully
+2025-06-11 17:11:58,058 - src.core.coordinator.topology_runner - INFO - Starting containers
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Container root started successfully
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Container SPY_1m_data started successfully
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Container strategy started successfully
+2025-06-11 17:11:58,058 - src.core.coordinator.topology_runner - INFO - Executing containers
+2025-06-11 17:11:58,058 - src.core.coordinator.topology_runner - INFO - Executing container: data_81381d89
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Container data_81381d89 entering execution phase with 1 components
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Checking component data_streamer: SimpleHistoricalDataHandler, has_execute: True
+2025-06-11 17:11:58,058 - src.core.containers.container - INFO - Executing component data_streamer in data_81381d89
+2025-06-11 17:11:58,058 - src.data.handlers - INFO - Data handler execute() called for symbols: ['SPY']
+2025-06-11 17:11:58,058 - src.data.handlers - INFO - Starting to stream bars, max_bars: 50, has_data: True
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - Processing BAR for SPY: close=521.01, bar_count=1
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - Features for SPY: [] -> {}
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - Insufficient data for SPY: 1 bars (need 5)
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,059 - src.strategy.state - INFO - Processing BAR for SPY: close=521.07, bar_count=2
+2025-06-11 17:11:58,060 - src.strategy.state - INFO - Features for SPY: [] -> {}
+2025-06-11 17:11:58,060 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,060 - src.strategy.state - INFO - Insufficient data for SPY: 2 bars (need 5)
+2025-06-11 17:11:58,060 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,060 - src.strategy.state - INFO - Processing BAR for SPY: close=521.22, bar_count=3
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Features for SPY: [] -> {}
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Insufficient data for SPY: 3 bars (need 5)
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Processing BAR for SPY: close=521.2896, bar_count=4
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Features for SPY: [] -> {}
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Insufficient data for SPY: 4 bars (need 5)
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Processing BAR for SPY: close=521.36, bar_count=5
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Features for SPY: ['sma_5'] -> {'sma_5': 521.18992}
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Available features: ['sma_5']
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,061 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,061 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.36, fast_sma=521.18992, slow_sma=None
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.36, fast_sma=None, slow_sma=None
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Processing BAR for SPY: close=521.1297, bar_count=6
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Features for SPY: ['sma_5'] -> {'sma_5': 521.21386}
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Available features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.1297, fast_sma=521.21386, slow_sma=None
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.1297, fast_sma=None, slow_sma=None
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Processing BAR for SPY: close=521.12, bar_count=7
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Features for SPY: ['sma_5'] -> {'sma_5': 521.2238600000001}
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Available features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.12, fast_sma=521.2238600000001, slow_sma=None
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,062 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.12, fast_sma=None, slow_sma=None
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,062 - src.strategy.state - INFO - Processing BAR for SPY: close=521.25, bar_count=8
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Features for SPY: ['sma_5'] -> {'sma_5': 521.22986}
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Available features: ['sma_5']
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.25, fast_sma=521.22986, slow_sma=None
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.25, fast_sma=None, slow_sma=None
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Processing BAR for SPY: close=521.02, bar_count=9
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Features for SPY: ['sma_5'] -> {'sma_5': 521.1759399999999}
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Available features: ['sma_5']
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.02, fast_sma=521.1759399999999, slow_sma=None
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5']
+2025-06-11 17:11:58,063 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.02, fast_sma=None, slow_sma=None
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,063 - src.strategy.state - INFO - Processing BAR for SPY: close=521.09, bar_count=10
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.12194, 'sma_10': 521.15593}
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.09, fast_sma=521.12194, slow_sma=None
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.09, fast_sma=521.15593, slow_sma=None
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Processing BAR for SPY: close=521.02, bar_count=11
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.1, 'sma_10': 521.15693}
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.02, fast_sma=521.1, slow_sma=None
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.02, fast_sma=521.15693, slow_sma=None
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Processing BAR for SPY: close=520.8522, bar_count=12
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.0464400000001, 'sma_10': 521.13515}
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,064 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=520.8522, fast_sma=521.0464400000001, slow_sma=None
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,064 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=520.8522, fast_sma=521.13515, slow_sma=None
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Processing BAR for SPY: close=520.895, bar_count=13
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 520.97544, 'sma_10': 521.10265}
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=520.895, fast_sma=520.97544, slow_sma=None
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=520.895, fast_sma=521.10265, slow_sma=None
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Processing BAR for SPY: close=521.085, bar_count=14
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 520.9884400000001, 'sma_10': 521.08219}
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.085, fast_sma=520.9884400000001, slow_sma=None
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,065 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.085, fast_sma=521.08219, slow_sma=None
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,065 - src.strategy.state - INFO - Processing BAR for SPY: close=521.155, bar_count=15
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.00144, 'sma_10': 521.06169}
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.155, fast_sma=521.00144, slow_sma=None
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.155, fast_sma=521.06169, slow_sma=None
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Processing BAR for SPY: close=521.066, bar_count=16
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.0106400000001, 'sma_10': 521.0553199999999}
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.066, fast_sma=521.0106400000001, slow_sma=None
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.066, fast_sma=521.0553199999999, slow_sma=None
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Processing BAR for SPY: close=521.11, bar_count=17
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.0622, 'sma_10': 521.05432}
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,066 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.11, fast_sma=521.0622, slow_sma=None
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.11, fast_sma=521.05432, slow_sma=None
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Processing BAR for SPY: close=521.09, bar_count=18
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.1012, 'sma_10': 521.03832}
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.09, fast_sma=521.1012, slow_sma=None
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.09, fast_sma=521.03832, slow_sma=None
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Processing BAR for SPY: close=521.17, bar_count=19
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10'] -> {'sma_5': 521.1182, 'sma_10': 521.05332}
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.17, fast_sma=521.1182, slow_sma=None
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10']
+2025-06-11 17:11:58,067 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.17, fast_sma=521.05332, slow_sma=None
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,067 - src.strategy.state - INFO - Processing BAR for SPY: close=521.19, bar_count=20
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.1252000000001, 'sma_10': 521.06332, 'sma_20': 521.109625}
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.19, fast_sma=521.1252000000001, slow_sma=521.109625
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.13 > slow_sma=521.11
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.067898', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,068 - src.core.events.storage.temporal_sparse_storage - INFO - First signal for SPY_SPY_ma_crossover_5_20: long at bar 0
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.19, fast_sma=521.06332, slow_sma=None
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Processing BAR for SPY: close=521.215, bar_count=21
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.155, 'sma_10': 521.08282, 'sma_20': 521.119875}
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.215, fast_sma=521.155, slow_sma=521.119875
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.15 > slow_sma=521.12
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.068418', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,068 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.215, fast_sma=521.08282, slow_sma=None
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,068 - src.strategy.state - INFO - Processing BAR for SPY: close=521.08, bar_count=22
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.149, 'sma_10': 521.1056000000001, 'sma_20': 521.1203750000001}
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.08, fast_sma=521.149, slow_sma=521.1203750000001
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.15 > slow_sma=521.12
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.068921', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.08, fast_sma=521.1056000000001, slow_sma=None
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Processing BAR for SPY: close=521.12, bar_count=23
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.155, 'sma_10': 521.1281, 'sma_20': 521.1153750000001}
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.12, fast_sma=521.155, slow_sma=521.1153750000001
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.15 > slow_sma=521.12
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.069411', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,069 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.12, fast_sma=521.1281, slow_sma=None
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,069 - src.strategy.state - INFO - Processing BAR for SPY: close=521.0069, bar_count=24
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.12238, 'sma_10': 521.1202900000001, 'sma_20': 521.1012400000001}
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.0069, fast_sma=521.12238, slow_sma=521.1012400000001
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.12 > slow_sma=521.10
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.069892', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.0069, fast_sma=521.1202900000001, slow_sma=None
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Processing BAR for SPY: close=520.955, bar_count=25
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.07538, 'sma_10': 521.1002900000001, 'sma_20': 521.08099}
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=520.955, fast_sma=521.07538, slow_sma=521.08099
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - Generated SHORT signal for SPY: fast_sma=521.08 < slow_sma=521.08
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'short', 'strength': -1.0, 'timestamp': '2025-06-11T17:11:58.070378', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,070 - src.core.events.storage.temporal_sparse_storage - INFO - Signal change for SPY_SPY_ma_crossover_5_20: 1 -> -1 at bar 5
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,070 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=520.955, fast_sma=521.1002900000001, slow_sma=None
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,070 - src.strategy.state - INFO - Processing BAR for SPY: close=521.04, bar_count=26
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.04038, 'sma_10': 521.0976900000001, 'sma_20': 521.076505}
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.04, fast_sma=521.04038, slow_sma=521.076505
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - Generated SHORT signal for SPY: fast_sma=521.04 < slow_sma=521.08
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'short', 'strength': -1.0, 'timestamp': '2025-06-11T17:11:58.070917', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.04, fast_sma=521.0976900000001, slow_sma=None
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Processing BAR for SPY: close=521.145, bar_count=27
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.0533800000001, 'sma_10': 521.10119, 'sma_20': 521.077755}
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.145, fast_sma=521.0533800000001, slow_sma=521.077755
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - Generated SHORT signal for SPY: fast_sma=521.05 < slow_sma=521.08
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'short', 'strength': -1.0, 'timestamp': '2025-06-11T17:11:58.071428', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,071 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.145, fast_sma=521.10119, slow_sma=None
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,071 - src.strategy.state - INFO - Processing BAR for SPY: close=521.125, bar_count=28
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.05438, 'sma_10': 521.1046899999999, 'sma_20': 521.071505}
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.125, fast_sma=521.05438, slow_sma=521.071505
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - Generated SHORT signal for SPY: fast_sma=521.05 < slow_sma=521.07
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'short', 'strength': -1.0, 'timestamp': '2025-06-11T17:11:58.071927', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.125, fast_sma=521.1046899999999, slow_sma=None
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Processing BAR for SPY: close=521.14, bar_count=29
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20'] -> {'sma_5': 521.081, 'sma_10': 521.10169, 'sma_20': 521.077505}
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.14, fast_sma=521.081, slow_sma=521.077505
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.08 > slow_sma=521.08
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.072406', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,072 - src.core.events.storage.temporal_sparse_storage - INFO - Signal change for SPY_SPY_ma_crossover_5_20: -1 -> 1 at bar 9
+2025-06-11 17:11:58,072 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage: 3/10 signals stored (30.0%)
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20']
+2025-06-11 17:11:58,072 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.14, fast_sma=521.10169, slow_sma=None
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,072 - src.strategy.state - INFO - Processing BAR for SPY: close=521.25, bar_count=30
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.14, 'sma_10': 521.10769, 'sma_20': 521.085505, 'sma_30': 521.1089800000001}
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.25, fast_sma=521.14, slow_sma=521.085505
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.14 > slow_sma=521.09
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.072907', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.25, fast_sma=521.10769, slow_sma=521.1089800000001
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - Generated SHORT signal for SPY: fast_sma=521.11 < slow_sma=521.11
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'short', 'strength': -1.0, 'timestamp': '2025-06-11T17:11:58.072907', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,073 - src.core.events.storage.temporal_sparse_storage - INFO - First signal for SPY_SPY_ma_crossover_10_30: short at bar 0
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Processing BAR for SPY: close=521.35, bar_count=31
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.202, 'sma_10': 521.1211900000001, 'sma_20': 521.102005, 'sma_30': 521.1203133333333}
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.35, fast_sma=521.202, slow_sma=521.102005
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.20 > slow_sma=521.10
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.073448', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.35, fast_sma=521.1211900000001, slow_sma=521.1203133333333
+2025-06-11 17:11:58,073 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.12 > slow_sma=521.12
+2025-06-11 17:11:58,073 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.073448', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,073 - src.core.events.storage.temporal_sparse_storage - INFO - Signal change for SPY_SPY_ma_crossover_10_30: -1 -> 1 at bar 1
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Processing BAR for SPY: close=521.2801, bar_count=32
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.22902, 'sma_10': 521.1412, 'sma_20': 521.1234, 'sma_30': 521.1273166666666}
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.2801, fast_sma=521.22902, slow_sma=521.1234
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.23 > slow_sma=521.12
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.073993', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.2801, fast_sma=521.1412, slow_sma=521.1273166666666
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.14 > slow_sma=521.13
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.073993', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Processing BAR for SPY: close=521.29, bar_count=33
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.2620199999999, 'sma_10': 521.1582000000001, 'sma_20': 521.1431500000001, 'sma_30': 521.1296500000001}
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.29, fast_sma=521.2620199999999, slow_sma=521.1431500000001
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.26 > slow_sma=521.14
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.074517', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.29, fast_sma=521.1582000000001, slow_sma=521.1296500000001
+2025-06-11 17:11:58,074 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.16 > slow_sma=521.13
+2025-06-11 17:11:58,074 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.074517', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Processing BAR for SPY: close=521.25, bar_count=34
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.2840199999999, 'sma_10': 521.18251, 'sma_20': 521.1514, 'sma_30': 521.12833}
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.25, fast_sma=521.2840199999999, slow_sma=521.1514
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.28 > slow_sma=521.15
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.075041', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.25, fast_sma=521.18251, slow_sma=521.12833
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.18 > slow_sma=521.13
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.075041', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Processing BAR for SPY: close=521.33, bar_count=35
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.30002, 'sma_10': 521.22001, 'sma_20': 521.1601499999999, 'sma_30': 521.12733}
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.33, fast_sma=521.30002, slow_sma=521.1601499999999
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.16
+2025-06-11 17:11:58,075 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.075567', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,075 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.33, fast_sma=521.22001, slow_sma=521.12733
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.22 > slow_sma=521.13
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.075567', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Processing BAR for SPY: close=521.31, bar_count=36
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.2920200000001, 'sma_10': 521.2470099999999, 'sma_20': 521.17235, 'sma_30': 521.13334}
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.31, fast_sma=521.2920200000001, slow_sma=521.17235
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.17
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.076094', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.31, fast_sma=521.2470099999999, slow_sma=521.13334
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.25 > slow_sma=521.13
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.076094', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Processing BAR for SPY: close=521.3, bar_count=37
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.296, 'sma_10': 521.26251, 'sma_20': 521.1818499999999, 'sma_30': 521.13934}
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,076 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.3, fast_sma=521.296, slow_sma=521.1818499999999
+2025-06-11 17:11:58,076 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.18
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.076622', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.3, fast_sma=521.26251, slow_sma=521.13934
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.26 > slow_sma=521.14
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.076622', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Processing BAR for SPY: close=521.43, bar_count=38
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.324, 'sma_10': 521.2930100000001, 'sma_20': 521.19885, 'sma_30': 521.1453399999999}
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.43, fast_sma=521.324, slow_sma=521.19885
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.32 > slow_sma=521.20
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.077142', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.43, fast_sma=521.2930100000001, slow_sma=521.1453399999999
+2025-06-11 17:11:58,077 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.15
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.077142', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,077 - src.strategy.state - INFO - Processing BAR for SPY: close=521.38, bar_count=39
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.35, 'sma_10': 521.31701, 'sma_20': 521.20935, 'sma_30': 521.15734}
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,078 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,078 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.38, fast_sma=521.35, slow_sma=521.20935
+2025-06-11 17:11:58,078 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.35 > slow_sma=521.21
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.077831', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,078 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage: 3/20 signals stored (15.0%)
+2025-06-11 17:11:58,078 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,078 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.38, fast_sma=521.31701, slow_sma=521.15734
+2025-06-11 17:11:58,078 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.32 > slow_sma=521.16
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.077831', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,078 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage: 2/10 signals stored (20.0%)
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Processing BAR for SPY: close=521.3, bar_count=40
+2025-06-11 17:11:58,078 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.344, 'sma_10': 521.32201, 'sma_20': 521.21485, 'sma_30': 521.1643399999999}
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,079 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,079 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.3, fast_sma=521.344, slow_sma=521.21485
+2025-06-11 17:11:58,079 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.34 > slow_sma=521.21
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.078578', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,079 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,079 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.3, fast_sma=521.32201, slow_sma=521.1643399999999
+2025-06-11 17:11:58,079 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.32 > slow_sma=521.16
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.078578', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Processing BAR for SPY: close=521.14, bar_count=41
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.31, 'sma_10': 521.3010099999999, 'sma_20': 521.2111, 'sma_30': 521.16834}
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,079 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,080 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,080 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.14, fast_sma=521.31, slow_sma=521.2111
+2025-06-11 17:11:58,080 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.31 > slow_sma=521.21
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.079422', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,080 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,080 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.14, fast_sma=521.3010099999999, slow_sma=521.16834
+2025-06-11 17:11:58,080 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.17
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.079422', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,080 - src.strategy.state - INFO - Processing BAR for SPY: close=521.175, bar_count=42
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.285, 'sma_10': 521.2905, 'sma_20': 521.21585, 'sma_30': 521.1791}
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.175, fast_sma=521.285, slow_sma=521.21585
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.28 > slow_sma=521.22
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.080624', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.175, fast_sma=521.2905, slow_sma=521.1791
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.18
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.080624', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Processing BAR for SPY: close=521.29, bar_count=43
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.257, 'sma_10': 521.2905, 'sma_20': 521.22435, 'sma_30': 521.1922666666667}
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.29, fast_sma=521.257, slow_sma=521.22435
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.26 > slow_sma=521.22
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.081265', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.29, fast_sma=521.2905, slow_sma=521.1922666666667
+2025-06-11 17:11:58,081 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.19
+2025-06-11 17:11:58,081 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.081265', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Processing BAR for SPY: close=521.3001, bar_count=44
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.24102, 'sma_10': 521.2955099999999, 'sma_20': 521.23901, 'sma_30': 521.1994366666667}
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,082 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,082 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.3001, fast_sma=521.24102, slow_sma=521.23901
+2025-06-11 17:11:58,082 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.24 > slow_sma=521.24
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.082026', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,082 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,082 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.3001, fast_sma=521.2955099999999, slow_sma=521.1994366666667
+2025-06-11 17:11:58,082 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.20
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.082026', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,082 - src.strategy.state - INFO - Processing BAR for SPY: close=521.33, bar_count=45
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.24702, 'sma_10': 521.2955099999999, 'sma_20': 521.25776, 'sma_30': 521.2052699999999}
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.33, fast_sma=521.24702, slow_sma=521.25776
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - Generated SHORT signal for SPY: fast_sma=521.25 < slow_sma=521.26
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'short', 'strength': -1.0, 'timestamp': '2025-06-11T17:11:58.082830', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,083 - src.core.events.storage.temporal_sparse_storage - INFO - Signal change for SPY_SPY_ma_crossover_5_20: 1 -> -1 at bar 25
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.33, fast_sma=521.2955099999999, slow_sma=521.2052699999999
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.21
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.082830', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Processing BAR for SPY: close=521.275, bar_count=46
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.2740200000001, 'sma_10': 521.29201, 'sma_20': 521.26951, 'sma_30': 521.2122366666666}
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.275, fast_sma=521.2740200000001, slow_sma=521.26951
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.27 > slow_sma=521.27
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.083440', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,083 - src.core.events.storage.temporal_sparse_storage - INFO - Signal change for SPY_SPY_ma_crossover_5_20: -1 -> 1 at bar 26
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.275, fast_sma=521.29201, slow_sma=521.2122366666666
+2025-06-11 17:11:58,083 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.21
+2025-06-11 17:11:58,083 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.083440', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Processing BAR for SPY: close=521.32, bar_count=47
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.3030200000001, 'sma_10': 521.29401, 'sma_20': 521.27826, 'sma_30': 521.2192366666667}
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,084 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,084 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.32, fast_sma=521.3030200000001, slow_sma=521.27826
+2025-06-11 17:11:58,084 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.28
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.084018', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,084 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,084 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.32, fast_sma=521.29401, slow_sma=521.2192366666667
+2025-06-11 17:11:58,084 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.22
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.084018', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,084 - src.strategy.state - INFO - Processing BAR for SPY: close=521.38, bar_count=48
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.3210200000001, 'sma_10': 521.28901, 'sma_20': 521.29101, 'sma_30': 521.2289033333333}
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.38, fast_sma=521.3210200000001, slow_sma=521.29101
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.32 > slow_sma=521.29
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.084722', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.38, fast_sma=521.28901, slow_sma=521.2289033333333
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.29 > slow_sma=521.23
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.084722', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Processing BAR for SPY: close=521.48, bar_count=49
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.3570000000001, 'sma_10': 521.29901, 'sma_20': 521.30801, 'sma_30': 521.2392366666667}
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.48, fast_sma=521.3570000000001, slow_sma=521.30801
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.36 > slow_sma=521.31
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.085424', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,085 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage: 5/30 signals stored (16.7%)
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.48, fast_sma=521.29901, slow_sma=521.2392366666667
+2025-06-11 17:11:58,085 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.30 > slow_sma=521.24
+2025-06-11 17:11:58,085 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.085424', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,086 - src.core.events.observers.sparse_portfolio_tracer - INFO - Sparse storage: 2/20 signals stored (10.0%)
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Processing BAR for SPY: close=521.425, bar_count=50
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Features for SPY: ['sma_5', 'sma_10', 'sma_20', 'sma_30'] -> {'sma_5': 521.376, 'sma_10': 521.31151, 'sma_20': 521.3167599999999, 'sma_30': 521.24707}
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Feature configs: ['sma_30', 'sma_20', 'sma_10', 'sma_5']
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Sufficient data for SPY, executing 2 strategies
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Available features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Strategy SPY_ma_crossover_5_20 params: {'fast_period': 5, 'slow_period': 20}
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - Strategy SPY_ma_crossover_10_30 params: {'fast_period': 10, 'slow_period': 30}
+2025-06-11 17:11:58,086 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,086 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.425, fast_sma=521.376, slow_sma=521.3167599999999
+2025-06-11 17:11:58,086 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.38 > slow_sma=521.32
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.086058', 'strategy_id': 'SPY_ma_crossover_5_20', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,086 - src.strategy.strategies.ma_crossover - INFO - MA Crossover called with features: ['sma_5', 'sma_10', 'sma_20', 'sma_30']
+2025-06-11 17:11:58,086 - src.strategy.strategies.ma_crossover - INFO - MA Crossover: price=521.425, fast_sma=521.31151, slow_sma=521.24707
+2025-06-11 17:11:58,086 - src.strategy.strategies.ma_crossover - INFO - Generated LONG signal for SPY: fast_sma=521.31 > slow_sma=521.25
+2025-06-11 17:11:58,086 - src.strategy.state - INFO - 📡 Publishing SIGNAL event: SIGNAL with payload: {'symbol': 'SPY', 'direction': 'long', 'strength': 1.0, 'timestamp': '2025-06-11T17:11:58.086058', 'strategy_id': 'SPY_ma_crossover_10_30', 'signal_type': 'entry', 'metadata': {}}
+2025-06-11 17:11:58,086 - src.data.handlers - INFO - Data handler streamed 50 bars
+2025-06-11 17:11:58,086 - src.core.coordinator.topology_runner - INFO - Waiting 0.0s for event processing
+2025-06-11 17:11:58,086 - src.core.coordinator.topology_runner - INFO - Stopping containers
+2025-06-11 17:11:58,086 - src.core.containers.container - INFO - Container strategy stopped successfully
+2025-06-11 17:11:58,086 - src.core.containers.container - INFO - Container SPY_1m_data stopped successfully
+2025-06-11 17:11:58,086 - src.core.containers.container - INFO - Container root stopped successfully
+2025-06-11 17:11:58,086 - src.core.coordinator.topology_runner - INFO - Cleaning up containers
+2025-06-11 17:11:58,086 - src.core.events.observers.sparse_portfolio_tracer - INFO - Including performance metrics in sparse storage: {'container_id': 'strategy_02071d52', 'container_type': 'strategy', 'events_processed': 0, 'events_published': 52, 'uptime_seconds': 0.028023}
+2025-06-11 17:11:58,086 - src.core.events.observers.sparse_portfolio_tracer - INFO - Portfolio config keys: ['name', 'symbols', 'features', 'strategies', 'execution', 'metadata', 'stateless_components']
+2025-06-11 17:11:58,086 - src.core.events.observers.sparse_portfolio_tracer - INFO - Found 2 strategies in config
+2025-06-11 17:11:58,087 - src.core.events.storage.temporal_sparse_storage - INFO - Saved 5 signal changes to workspaces/tmp/20250611_171158/signals_strategy_SPY_ma_crossover_5_20_20250611_171158.json
+2025-06-11 17:11:58,087 - src.core.events.storage.temporal_sparse_storage - INFO - Compression: 5 changes for 31 bars (16.1% of original)
+2025-06-11 17:11:58,087 - src.core.events.observers.sparse_portfolio_tracer - INFO - Flushed sparse signals for strategy_SPY_ma_crossover_5_20: 5 changes from 31 signals (6.2x compression)
+2025-06-11 17:11:58,087 - src.core.containers.container - INFO - Flushed strategy tracer for SPY_ma_crossover_5_20
+2025-06-11 17:11:58,087 - src.core.events.observers.sparse_portfolio_tracer - INFO - Including performance metrics in sparse storage: {'container_id': 'strategy_02071d52', 'container_type': 'strategy', 'events_processed': 0, 'events_published': 52, 'uptime_seconds': 0.028441}
+2025-06-11 17:11:58,087 - src.core.events.observers.sparse_portfolio_tracer - INFO - Portfolio config keys: ['name', 'symbols', 'features', 'strategies', 'execution', 'metadata', 'stateless_components']
+2025-06-11 17:11:58,087 - src.core.events.observers.sparse_portfolio_tracer - INFO - Found 2 strategies in config
+2025-06-11 17:11:58,087 - src.core.events.storage.temporal_sparse_storage - INFO - Saved 2 signal changes to workspaces/tmp/20250611_171158/signals_strategy_SPY_ma_crossover_10_30_20250611_171158.json
+2025-06-11 17:11:58,087 - src.core.events.storage.temporal_sparse_storage - INFO - Compression: 2 changes for 21 bars (9.5% of original)
+2025-06-11 17:11:58,087 - src.core.events.observers.sparse_portfolio_tracer - INFO - Flushed sparse signals for strategy_SPY_ma_crossover_10_30: 2 changes from 21 signals (10.5x compression)
+2025-06-11 17:11:58,087 - src.core.containers.container - INFO - Flushed strategy tracer for SPY_ma_crossover_10_30
+2025-06-11 17:11:58,087 - src.core.containers.container - INFO - Container strategy cleaned up
+2025-06-11 17:11:58,087 - src.core.containers.container - INFO - Container SPY_1m_data cleaned up
+2025-06-11 17:11:58,091 - src.core.containers.container - INFO - Container root cleaned up
+2025-06-11 17:11:58,091 - __main__ - INFO - ✅ Workflow execution completed in 0.81 seconds
+2025-06-11 17:11:58,091 - __main__ - INFO - Workflow completed successfully

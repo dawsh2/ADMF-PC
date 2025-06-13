@@ -1,0 +1,243 @@
+# Comprehensive Parameter Grid Search Configuration
+# Multi-strategy, multi-classifier parameter optimization
+
+name: comprehensive_grid_search
+description: Full parameter search across strategies and classifiers
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2023-01-01"
+end_date: "2023-02-01"
+max_bars: 10000  # More data for robust analysis
+
+# Topology pattern
+topology_pattern: signal_generation
+
+# Comprehensive feature set for all strategies
+feature_configs:
+  # Simple moving averages
+  sma_5:
+    feature: sma
+    period: 5
+  sma_10:
+    feature: sma
+    period: 10
+  sma_20:
+    feature: sma
+    period: 20
+  sma_50:
+    feature: sma
+    period: 50
+  sma_100:
+    feature: sma
+    period: 100
+  
+  # Exponential moving averages  
+  ema_10:
+    feature: ema
+    period: 10
+  ema_20:
+    feature: ema
+    period: 20
+  ema_50:
+    feature: ema
+    period: 50
+    
+  # Technical indicators
+  rsi:
+    feature: rsi
+    period: 14
+  rsi_fast:
+    feature: rsi
+    period: 7
+  macd:
+    feature: macd
+    fast: 12
+    slow: 26
+    signal: 9
+  momentum:
+    feature: momentum
+    periods: [5, 10, 20, 30]
+  atr:
+    feature: atr
+    period: 14
+  bb:
+    feature: bollinger_bands
+    period: 20
+    std: 2
+  volatility:
+    feature: volatility
+    period: 20
+  volatility_fast:
+    feature: volatility
+    period: 10
+
+# Strategy parameter grids
+strategy_grids:
+  # Momentum strategies with different speeds
+  momentum_strategies:
+    - type: simple_momentum
+      base_name: momentum
+      param_grid:
+        sma_period: [10, 20]
+        rsi_threshold_long: [20, 25, 30, 35]
+        rsi_threshold_short: [65, 70, 75, 80]
+        exit_bars: [3, 5, 10, 20]
+        
+  # MA crossover variations
+  ma_strategies:
+    - type: ma_crossover
+      base_name: ma_cross
+      param_grid:
+        fast_period: [5, 10, 15, 20]
+        slow_period: [20, 30, 50, 100]
+        stop_loss_pct: [0.5, 1.0, 1.5, 2.0]
+        take_profit_pct: [1.0, 2.0, 3.0, 5.0]
+        use_ema: [true, false]
+        
+  # Mean reversion strategies
+  mean_reversion_strategies:
+    - type: mean_reversion
+      base_name: mean_rev
+      param_grid:
+        lookback_period: [10, 20, 30, 50]
+        entry_threshold: [1.0, 1.5, 2.0, 2.5, 3.0]
+        exit_threshold: [0.0, 0.5, 1.0]
+        stop_loss_std: [2.0, 3.0, 4.0]
+        use_bb: [true, false]
+        
+  # RSI-based strategies
+  rsi_strategies:
+    - type: rsi_reversal
+      base_name: rsi_rev
+      param_grid:
+        rsi_period: [7, 14, 21]
+        oversold_threshold: [20, 25, 30, 35]
+        overbought_threshold: [65, 70, 75, 80]
+        confirmation_bars: [0, 1, 2]
+        exit_on_neutral: [true, false]
+        
+  # Volatility breakout strategies
+  vol_strategies:
+    - type: volatility_breakout
+      base_name: vol_break
+      param_grid:
+        atr_period: [10, 14, 20]
+        breakout_multiplier: [1.5, 2.0, 2.5, 3.0]
+        stop_multiplier: [0.5, 1.0, 1.5]
+        trailing_stop: [true, false]
+
+# Classifier parameter grids
+classifier_grids:
+  # Momentum regime classifiers
+  momentum_classifiers:
+    - type: momentum_regime_classifier
+      base_name: mom_regime
+      param_grid:
+        rsi_overbought: [65, 70, 75, 80]
+        rsi_oversold: [20, 25, 30, 35]
+        momentum_threshold: [0.02, 0.05, 0.10, 0.15, 0.20]
+        min_bars_in_regime: [1, 3, 5, 10]  # Add persistence
+        
+  # Volatility regime classifiers
+  volatility_classifiers:
+    - type: volatility_classifier
+      base_name: vol_regime
+      param_grid:
+        high_vol_threshold: [1.2, 1.5, 2.0, 2.5]
+        low_vol_threshold: [0.3, 0.5, 0.7, 0.8]
+        lookback_period: [10, 20, 30, 50]
+        smoothing: [1, 3, 5]  # EMA smoothing
+        
+  # Trend classifiers
+  trend_classifiers:
+    - type: trend_classifier
+      base_name: trend_regime
+      param_grid:
+        trend_threshold: [0.005, 0.01, 0.02, 0.03, 0.05]
+        fast_ma: [5, 10, 20]
+        slow_ma: [20, 50, 100, 200]
+        min_trend_bars: [3, 5, 10]
+        
+  # Market phase classifier
+  market_classifiers:
+    - type: market_phase_classifier
+      base_name: market_phase
+      param_grid:
+        adx_threshold: [20, 25, 30, 35]
+        adx_period: [14, 20, 30]
+        volume_ma_period: [20, 50]
+        regime_types: [["trending", "ranging"], ["bull", "bear", "neutral"]]
+
+# Execution settings
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    max_events: 100000
+    storage_backend: hierarchical
+    use_sparse_storage: true
+    batch_size: 5000
+    
+  # Performance tracking
+  track_metrics:
+    - total_return
+    - sharpe_ratio
+    - max_drawdown
+    - win_rate
+    - profit_factor
+    - trades_per_day
+    - avg_trade_duration
+    - regime_performance  # Performance broken down by regime
+
+# Parameter expansion settings
+parameter_expansion:
+  enabled: true
+  mode: smart_grid  # Use smart sampling for large grids
+  sampling_strategy:
+    # For large parameter spaces, use Latin Hypercube or similar
+    method: latin_hypercube
+    max_combinations_per_strategy: 100
+    # Or use full grid for smaller spaces
+    full_grid_threshold: 50  # Use full grid if < 50 combinations
+    
+# Analysis configuration
+analysis:
+  output_format: parquet  # Efficient storage for large results
+  save_every_n: 100  # Save incremental results
+  
+  # Correlation analysis settings
+  correlation_analysis:
+    enabled: true
+    min_correlation: 0.3  # Only save significant correlations
+    
+  # Regime performance matrix
+  regime_matrix:
+    enabled: true
+    metrics: ["sharpe", "win_rate", "avg_return"]
+    
+  # Feature importance (which features drive performance)
+  feature_importance:
+    enabled: true
+    method: mutual_information
+
+# Output configuration
+output:
+  base_dir: ./workspaces/grid_search
+  structure:
+    - by_strategy/      # Results grouped by strategy
+    - by_classifier/    # Results grouped by classifier  
+    - by_regime/        # Results grouped by regime
+    - correlations/     # Strategy-classifier correlations
+    - best_performers/  # Top N configurations
+    
+# Metadata
+metadata:
+  experiment_id: comprehensive_param_search_v1
+  created_date: 2024-12-06
+  objective: |
+    Find optimal strategy parameters for each market regime
+    and identify best strategy-classifier pairings

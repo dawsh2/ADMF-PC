@@ -36,6 +36,7 @@ class EventType(Enum):
     # Analysis events
     REGIME_CHANGE = "REGIME_CHANGE"
     RISK_BREACH = "RISK_BREACH"
+    CLASSIFICATION = "CLASSIFICATION"  # Classifier outputs
 
 
 @dataclass
@@ -194,6 +195,33 @@ def create_error_event(
         container_id=container_id,
         causation_id=original_event.metadata.get('event_id') if original_event else None,
         metadata={'category': 'error'}
+    )
+
+def create_classification_event(
+    symbol: str,
+    regime: str,
+    confidence: float,
+    classifier_id: str,
+    previous_regime: Optional[str] = None,
+    features: Optional[Dict[str, float]] = None,
+    source_id: Optional[str] = None,
+    container_id: Optional[str] = None
+) -> Event:
+    """Create a classification event."""
+    return Event(
+        event_type=EventType.CLASSIFICATION.value,
+        payload={
+            'symbol': symbol,
+            'regime': regime,
+            'confidence': confidence,
+            'classifier_id': classifier_id,
+            'previous_regime': previous_regime,
+            'features': features or {},
+            'is_regime_change': previous_regime is not None and previous_regime != regime
+        },
+        source_id=source_id,
+        container_id=container_id,
+        metadata={'category': 'classification'}
     )
 
 

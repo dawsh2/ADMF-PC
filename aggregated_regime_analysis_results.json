@@ -1,0 +1,53 @@
+{
+  "aggregated_regimes": [
+    {
+      "regime": "no_momentum",
+      "start": "2025-04-02 14:48:00",
+      "end": "2025-04-02 18:47:00",
+      "duration_hours": 3.9833333333333334,
+      "changes": 240
+    },
+    {
+      "regime": "no_momentum",
+      "start": "2025-04-02 18:48:00",
+      "end": "2025-04-02 19:23:00",
+      "duration_hours": 0.5833333333333334,
+      "changes": 36
+    }
+  ],
+  "performance": [
+    {
+      "regime": "no_momentum",
+      "start": "2025-04-02 14:48:00",
+      "end": "2025-04-02 18:47:00",
+      "duration_hours": 3.9833333333333334,
+      "changes_within": 240,
+      "return_pct": 0.3683978447094596,
+      "volatility": 1.856900319598445,
+      "high_low_range": 1.1928665510412158,
+      "max_drawdown": -1.0902808993713733,
+      "bars": 240,
+      "avg_volume": 98613.60416666667
+    },
+    {
+      "regime": "no_momentum",
+      "start": "2025-04-02 18:48:00",
+      "end": "2025-04-02 19:23:00",
+      "duration_hours": 0.5833333333333334,
+      "changes_within": 36,
+      "return_pct": -0.058608318829241515,
+      "volatility": 2.1237328979937775,
+      "high_low_range": 0.3960501545128438,
+      "max_drawdown": -0.39293585302229894,
+      "bars": 36,
+      "avg_volume": 72360.91666666667
+    }
+  ],
+  "summary": {
+    "total_regimes": 2,
+    "avg_duration_hours": 2.283333333333333,
+    "regime_distribution": {
+      "no_momentum": 2
+    }
+  }
+}

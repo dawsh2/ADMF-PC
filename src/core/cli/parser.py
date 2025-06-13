@@ -36,6 +36,17 @@ class CLIArgs:
     checkpoint: Optional[str] = None
     output_dir: Optional[str] = None
     
+    # Study and WFV arguments
+    results_dir: Optional[str] = None
+    wfv_windows: Optional[int] = None
+    wfv_window: Optional[int] = None
+    phase: Optional[str] = None
+    
+    # Strategy parameter arguments
+    strategies: Optional[List[str]] = None
+    classifiers: Optional[List[str]] = None
+    parameters: Optional[str] = None
+    
     # Logging arguments
     log_level: str = 'INFO'
     log_events: List[str] = None
@@ -190,6 +201,62 @@ def parse_arguments() -> CLIArgs:
         help='Enable verbose logging (equivalent to --log-level DEBUG)'
     )
     
+    # Study and WFV arguments
+    parser.add_argument(
+        '--results-dir',
+        type=str,
+        default=None,
+        help='Study-level directory name for organizing related WFV runs'
+    )
+    
+    parser.add_argument(
+        '--wfv-windows',
+        type=int,
+        default=None,
+        help='Total number of walk-forward validation windows'
+    )
+    
+    parser.add_argument(
+        '--wfv-window',
+        type=int,
+        default=None,
+        help='Execute specific WFV window (1-based index)'
+    )
+    
+    parser.add_argument(
+        '--phase',
+        type=str,
+        choices=['train', 'test'],
+        default=None,
+        help='Execution phase for walk-forward validation (train or test)'
+    )
+    
+    # Strategy parameter arguments for config-less operation
+    parser.add_argument(
+        '--strategies',
+        type=str,
+        nargs='+',
+        help='Strategy specifications: "type:param1=val1,val2;param2=val3" '
+             '(e.g., "momentum:lookback=10,20,30;threshold=0.01,0.02")',
+        default=None
+    )
+    
+    parser.add_argument(
+        '--classifiers',
+        type=str,
+        nargs='+',
+        help='Classifier specifications: "type:param1=val1,val2;param2=val3" '
+             '(e.g., "trend:fast_ma=10,20;slow_ma=30,50")',
+        default=None
+    )
+    
+    parser.add_argument(
+        '--parameters',
+        type=str,
+        help='Load parameters from analytics export (JSON file path)',
+        default=None
+    )
+    
     # Development arguments
     parser.add_argument(
         '--dry-run',
@@ -236,6 +303,15 @@ def parse_arguments() -> CLIArgs:
         log_file=getattr(args, 'log_file', None),
         log_json=getattr(args, 'log_json', False),
         verbose=args.verbose,
+        # Study and WFV arguments
+        results_dir=getattr(args, 'results_dir', None),
+        wfv_windows=getattr(args, 'wfv_windows', None),
+        wfv_window=getattr(args, 'wfv_window', None),
+        phase=getattr(args, 'phase', None),
+        # Strategy parameter arguments
+        strategies=getattr(args, 'strategies', None),
+        classifiers=getattr(args, 'classifiers', None),
+        parameters=getattr(args, 'parameters', None),
         # Development arguments
         dry_run=getattr(args, 'dry_run', False),
         profile=args.profile,

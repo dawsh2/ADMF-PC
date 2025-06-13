@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import logging
 
-from ..protocols import Strategy, SignalDirection
+from ...strategy.protocols import Strategy, SignalDirection
 from ..components.features import (
     FeatureHub,
     sma_feature,

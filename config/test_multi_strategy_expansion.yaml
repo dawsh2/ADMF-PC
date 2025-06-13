@@ -1,0 +1,70 @@
+# Test multiple strategies with parameter expansion
+name: "Multi-Strategy Parameter Expansion Test"
+
+data:
+  symbols: ['SPY', 'QQQ']  # Multiple symbols
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+symbols: ['SPY', 'QQQ']
+timeframes: ['1m', '5m']  # Multiple timeframes
+max_bars: 100
+
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+# Multiple strategies with different parameter expansions
+strategies:
+  # MA Crossover with parameter expansion
+  - name: 'ma_crossover'
+    type: 'ma_crossover'
+    params:
+      fast_period: [5, 10]
+      slow_period: [20, 30]
+  
+  # Momentum strategy with parameter expansion
+  - name: 'momentum'
+    type: 'momentum'
+    params:
+      lookback_period: [10, 20, 30]
+      rsi_period: [14, 21]
+      rsi_threshold: 70
+  
+  # Mean reversion with single parameter set (no expansion)
+  - name: 'mean_reversion_fixed'
+    type: 'mean_reversion'
+    params:
+      period: 20
+      num_std: 2.0
+      rsi_period: 14
+
+execution:
+  max_duration: 0.0
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'strategy*':
+        enabled: true
+      'data*':
+        enabled: false
+      'portfolio*':
+        enabled: false
+
+metadata:
+  workflow_id: 'multi_strategy_expansion_test'
+  experiment_type: 'signal_generation'
+  notes: |
+    Testing:
+    - Multiple strategy types (MA, momentum, mean reversion)
+    - Parameter expansion on 2 strategies
+    - Multiple symbols (SPY, QQQ)
+    - Multiple timeframes (1m, 5m)
+    - Auto feature inference
+    - Separate signal files per strategy
+
+topology: 'signal_generation'

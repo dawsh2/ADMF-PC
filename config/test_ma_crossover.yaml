@@ -1,0 +1,37 @@
+# Test configuration for MA crossover signals
+# Uses simple MA crossover which should generate frequent signals
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+start_date: "2024-03-26"
+end_date: "2024-03-26"  # Just one day
+max_bars: 100  # First 100 bars
+
+# MA crossover strategy
+strategies:
+  - name: ma_crossover
+    type: ma_crossover
+    params:
+      fast_period: 5
+      slow_period: 10
+
+# Enable hierarchical storage
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    storage_backend: hierarchical
+    batch_size: 50
+    auto_flush_on_cleanup: true
+    enable_console_output: true
+    console_filter: ["SIGNAL", "BAR", "FEATURES"]  # Show signals, bars and features in console
+
+# Store results
+results:
+  streaming_metrics: true
+  results_storage: disk

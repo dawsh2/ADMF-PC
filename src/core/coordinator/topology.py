@@ -124,18 +124,35 @@ class TopologyBuilder:
             for behavior_spec in pattern['behaviors']:
                 self._apply_behavior(behavior_spec, context, topology)
         
-        # Add metadata
+        # Add metadata including expanded parameter configurations
         topology['metadata'] = {
             'mode': mode,
             'pattern': pattern.get('name', mode),
             'created_at': str(datetime.now()),
             'config_hash': self._hash_config(config),
             'tracing_enabled': tracing_config.get('enabled', False),
+            
+            # Include expanded configurations for analytics
+            'expanded_strategies': config.get('strategies', []),
+            'expanded_classifiers': config.get('classifiers', []),
+            'original_config': {
+                'strategies': context.get('original_strategies', []),
+                'classifiers': context.get('original_classifiers', [])
+            },
+            
             **(metadata or {})
         }
         
         # 5. Set up event subscriptions based on mode
         self._setup_event_subscriptions(mode, topology, context)
+        
+        # 6. Set up unified signal tracing if enabled
+        execution_config = config.get('execution', {})
+        trace_enabled = execution_config.get('enable_event_tracing', False)
+        use_sparse = execution_config.get('trace_settings', {}).get('use_sparse_storage', False)
+        
+        if mode == 'signal_generation' and trace_enabled and use_sparse:
+            self._setup_multi_strategy_tracer(topology, context, tracing_config)
         
         self.logger.info(
             f"Built {mode} topology with {len(topology['containers'])} containers "
@@ -143,6 +160,136 @@ class TopologyBuilder:
         )
         
         return topology
+    
+    def _setup_multi_strategy_tracer(self, topology: Dict[str, Any], 
+                                    context: Dict[str, Any], 
+                                    tracing_config: Dict[str, Any]) -> None:
+        """Set up unified multi-strategy tracer on the root event bus."""
+        # Check if streaming tracer should be used for large runs
+        max_bars = context['config'].get('max_bars', 0)
+        use_streaming = max_bars > 2000 or context['config'].get('streaming_tracer', False)
+        
+        if use_streaming:
+            from ..events.observers.streaming_multi_strategy_tracer import StreamingMultiStrategyTracer
+            self.logger.info(f"Using StreamingMultiStrategyTracer for {max_bars} bars")
+        else:
+            from ..events.observers.multi_strategy_tracer import MultiStrategyTracer
+        from ..events.types import EventType
+        
+        # Get workspace path from trace settings
+        trace_settings = context['config'].get('execution', {}).get('trace_settings', {})
+        workspace_path = trace_settings.get('storage', {}).get('base_dir', './workspaces')
+        
+        # Get study configuration for organized workspace structure
+        results_dir = context['config'].get('results_dir')
+        wfv_window = context['config'].get('wfv_window')
+        phase = context['config'].get('phase')
+        
+        # Create workspace directory based on study organization
+        import os
+        import uuid
+        
+        if results_dir and wfv_window and phase:
+            # WFV execution: study_name/window_XX_phase/
+            workspace_name = f"window_{wfv_window:02d}_{phase}"
+            full_workspace_path = os.path.join(workspace_path, results_dir, workspace_name)
+            self.logger.info(f"WFV workspace: {results_dir}/window_{wfv_window:02d}_{phase}")
+        elif results_dir:
+            # Study execution without WFV: study_name/run_unique_id/
+            unique_run_id = str(uuid.uuid4())[:8]
+            workspace_name = f"run_{unique_run_id}"
+            full_workspace_path = os.path.join(workspace_path, results_dir, workspace_name)
+            self.logger.info(f"Study workspace: {results_dir}/{workspace_name}")
+        else:
+            # Fallback to legacy naming for backwards compatibility
+            config_name = context.get('metadata', {}).get('config_name', 'unknown_config')
+            if not config_name or config_name == 'unknown_config':
+                config_file = context.get('metadata', {}).get('config_file', '')
+                if config_file:
+                    config_name = Path(config_file).stem
+                else:
+                    config_name = 'signal_generation'
+            
+            unique_run_id = str(uuid.uuid4())[:8]
+            workspace_name = f"{config_name}_{unique_run_id}"
+            full_workspace_path = os.path.join(workspace_path, workspace_name)
+            self.logger.info(f"Legacy workspace: {workspace_name}")
+        
+        # Get all strategy and classifier IDs from expanded configurations
+        strategy_ids = []
+        classifier_ids = []
+        
+        # Extract strategy IDs from expanded strategies
+        for strategy in context['config'].get('strategies', []):
+            strategy_name = strategy.get('name', '')
+            if strategy_name:
+                # Add symbol prefix if we have symbols
+                symbols = context['config'].get('symbols', ['SPY'])
+                for symbol in symbols:
+                    strategy_ids.append(f"{symbol}_{strategy_name}")
+        
+        # Extract classifier IDs from expanded classifiers
+        for classifier in context['config'].get('classifiers', []):
+            classifier_name = classifier.get('name', '')
+            if classifier_name:
+                # Add symbol prefix if we have symbols
+                symbols = context['config'].get('symbols', ['SPY'])
+                for symbol in symbols:
+                    classifier_ids.append(f"{symbol}_{classifier_name}")
+        
+        # Extract data source configuration for source metadata
+        data_source_config = {
+            'data_dir': context['config'].get('data_dir', './data'),
+            'data_source': context['config'].get('data_source', 'csv'),
+            'symbols': context['config'].get('symbols', []),
+            'timeframes': context['config'].get('timeframes', ['1m'])
+        }
+        
+        # Create the multi-strategy tracer
+        if use_streaming:
+            # Get write settings from config or use defaults
+            write_interval = trace_settings.get('write_interval', 500)
+            write_on_changes = trace_settings.get('write_on_changes', 100)
+            
+            tracer = StreamingMultiStrategyTracer(
+                workspace_path=full_workspace_path,
+                workflow_id=config_name,
+                managed_strategies=strategy_ids if strategy_ids else None,
+                managed_classifiers=classifier_ids if classifier_ids else None,
+                data_source_config=data_source_config,
+                write_interval=write_interval,
+                write_on_changes=write_on_changes
+            )
+        else:
+            tracer = MultiStrategyTracer(
+                workspace_path=full_workspace_path,
+                workflow_id=config_name,
+                managed_strategies=strategy_ids if strategy_ids else None,
+                managed_classifiers=classifier_ids if classifier_ids else None,
+                data_source_config=data_source_config
+            )
+        
+        # Attach to root event bus - use the actual root container's bus if available
+        root_container = topology.get('containers', {}).get('root')
+        if root_container and hasattr(root_container, 'event_bus'):
+            # Use the actual root container's event bus
+            root_bus = root_container.event_bus
+            root_bus.attach_observer(tracer)
+        else:
+            # Fallback to context bus
+            root_bus = context.get('root_event_bus')
+            if root_bus:
+                root_bus.attach_observer(tracer)
+            else:
+                self.logger.warning("No event bus found for MultiStrategyTracer attachment")
+                return
+        
+        self.logger.info(f"MultiStrategyTracer attached as observer to root event bus")
+        self.logger.info(f"Tracing {len(strategy_ids)} strategies and {len(classifier_ids)} classifiers")
+        self.logger.info(f"Workspace: {full_workspace_path}")
+        
+        # Store tracer reference in topology for finalization
+        topology['multi_strategy_tracer'] = tracer
     
     def _initialize_factories(self):
         """Initialize container factory."""
@@ -161,6 +308,18 @@ class TopologyBuilder:
     def _build_context(self, pattern: Dict[str, Any], config: Dict[str, Any], 
                       tracing_config: Dict[str, Any], metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Build evaluation context for pattern interpretation."""
+        # Store original configurations before expansion for analytics
+        original_strategies = config.get('strategies', []).copy() if 'strategies' in config else []
+        original_classifiers = config.get('classifiers', []).copy() if 'classifiers' in config else []
+        
+        # Expand parameter lists in strategies before building context
+        if 'strategies' in config:
+            config['strategies'] = self._expand_strategy_parameters(config['strategies'])
+        
+        # Expand parameter lists in classifiers before building context
+        if 'classifiers' in config:
+            config['classifiers'] = self._expand_classifier_parameters(config['classifiers'])
+        
         context = {
             'config': config,
             'pattern': pattern,
@@ -168,11 +327,19 @@ class TopologyBuilder:
             'metadata': metadata,  # Include metadata for container configuration
             'generated': {},
             'root_event_bus': None,  # Still needed for stateless services
-            'use_hierarchical_events': True  # Encourage parent-child for containers
+            'use_hierarchical_events': True,  # Encourage parent-child for containers
+            
+            # Store original configs for analytics integration
+            'original_strategies': original_strategies,
+            'original_classifiers': original_classifiers
         }
         
         # Process tracing configuration with CORRECT structure
-        if tracing_config.get('enabled', False):
+        # Preserve original execution config if it exists
+        original_exec_config = config.get('execution', {})
+        original_trace_settings = original_exec_config.get('trace_settings', {})
+        
+        if tracing_config.get('enabled', False) or original_exec_config.get('enable_event_tracing', False):
             if 'execution' not in config:
                 config['execution'] = {}
             
@@ -181,13 +348,14 @@ class TopologyBuilder:
                 'trace_id': tracing_config.get('trace_id'),
                 'trace_dir': tracing_config.get('trace_dir', './traces'),
                 'max_events': tracing_config.get('max_events', 10000),
-                'storage_backend': tracing_config.get('storage_backend', 'memory'),  # Add storage backend support
-                'batch_size': tracing_config.get('batch_size', 1000),  # Add batch_size support
-                'auto_flush_on_cleanup': tracing_config.get('auto_flush_on_cleanup', True),  # Add auto_flush_on_cleanup support
+                'storage_backend': tracing_config.get('storage_backend', 'memory'),
+                'batch_size': tracing_config.get('batch_size', 1000),
+                'auto_flush_on_cleanup': tracing_config.get('auto_flush_on_cleanup', True),
                 'container_settings': tracing_config.get('container_settings', {}),
-                # Include console output settings
                 'enable_console_output': tracing_config.get('enable_console_output', False),
-                'console_filter': tracing_config.get('console_filter', [])
+                'console_filter': tracing_config.get('console_filter', []),
+                # Preserve all original trace settings including use_sparse_storage
+                **original_trace_settings
             }
         
         # Create root event bus for stateless services and cross-hierarchy routing
@@ -259,6 +427,7 @@ class TopologyBuilder:
     def _create_single_component(self, comp_type: str, config: Dict[str, Any]):
         """Find and return stateless function reference."""
         import importlib
+        import importlib.util
         import inspect
         
         try:
@@ -277,7 +446,22 @@ class TopologyBuilder:
                 module_path = f'src.strategy.strategies.{module_name}'
                 
                 try:
-                    module = importlib.import_module(module_path)
+                    # Try direct import without going through __init__.py
+                    import sys
+                    if module_path in sys.modules:
+                        module = sys.modules[module_path]
+                    else:
+                        # Import the specific module directly
+                        spec = importlib.util.spec_from_file_location(
+                            module_path,
+                            f"src/strategy/strategies/{module_name}.py"
+                        )
+                        if spec and spec.loader:
+                            module = importlib.util.module_from_spec(spec)
+                            sys.modules[module_path] = module
+                            spec.loader.exec_module(module)
+                        else:
+                            raise ImportError(f"Could not find module file for {module_name}")
                     
                     # Look for the function by name
                     for candidate in function_candidates:
@@ -292,6 +476,36 @@ class TopologyBuilder:
                     
                 except ImportError as e:
                     self.logger.warning(f"Could not import strategy module {module_path}: {e}")
+                    return None
+                    
+            elif comp_type == 'classifiers':
+                # Get classifier function reference
+                classifier_type = config.get('type', '')
+                
+                # Map classifier types to their function names
+                function_candidates = [
+                    classifier_type,  # momentum_regime_classifier -> momentum_regime_classifier
+                ]
+                
+                # Try importing from the classifiers module
+                module_path = 'src.strategy.classifiers.classifiers'
+                
+                try:
+                    module = importlib.import_module(module_path)
+                    
+                    # Look for the function by name
+                    for candidate in function_candidates:
+                        if hasattr(module, candidate):
+                            func = getattr(module, candidate)
+                            if callable(func):
+                                self.logger.info(f"Found classifier function: {candidate} in {module_path}")
+                                return func
+                    
+                    self.logger.warning(f"No classifier function found for type '{classifier_type}' in {module_path}")
+                    return None
+                    
+                except ImportError as e:
+                    self.logger.warning(f"Could not import classifier module {module_path}: {e}")
                     return None
                 
             else:
@@ -309,12 +523,12 @@ class TopologyBuilder:
         
         if 'foreach' in container_spec:
             # Create multiple containers using foreach
-            containers.update(self._expand_container_foreach(container_spec, context))
+            containers.update(self._expand_container_foreach(container_spec, context, None))
         else:
             # Create single container
             name = self._resolve_value(container_spec.get('name'), context)
             if name:
-                container = self._create_single_container(name, container_spec, context)
+                container = self._create_single_container(name, container_spec, context, None)
                 if container:
                     containers[name] = container
                     
@@ -334,7 +548,8 @@ class TopologyBuilder:
         return containers
     
     def _expand_container_foreach(self, spec: Dict[str, Any], 
-                                 context: Dict[str, Any]) -> Dict[str, Any]:
+                                 context: Dict[str, Any],
+                                 parent_container: Optional[Any] = None) -> Dict[str, Any]:
         """Expand container specification with foreach loops."""
         containers = {}
         foreach_spec = spec['foreach']
@@ -358,7 +573,7 @@ class TopologyBuilder:
                 # Create container
                 name_template = spec.get('name_template', '')
                 name = self._resolve_value(name_template, iter_context)
-                container = self._create_single_container(name, spec, iter_context)
+                container = self._create_single_container(name, spec, iter_context, parent_container)
                 if container:
                     containers[name] = container
         else:
@@ -377,14 +592,14 @@ class TopologyBuilder:
                 name = self._resolve_value(name_template, iter_context)
                 
                 # Create container
-                container = self._create_single_container(name, spec, iter_context)
+                container = self._create_single_container(name, spec, iter_context, parent_container)
                 if container:
                     containers[name] = container
         
         return containers
     
     def _create_single_container(self, name: str, spec: Dict[str, Any], 
-                                context: Dict[str, Any]) -> Optional[Any]:
+                                context: Dict[str, Any], parent_container: Optional[Any] = None) -> Optional[Any]:
         """Create a single container."""
         # Build container config
         config = {
@@ -404,8 +619,16 @@ class TopologyBuilder:
         if 'components' in context:
             config['stateless_components'] = context['components']
         
-        # Containers are isolated - no automatic root_event_bus access
-        # All cross-container communication goes through parent or routes
+        # Determine parent event bus for child containers
+        parent_event_bus = None
+        if parent_container:
+            parent_event_bus = parent_container.event_bus
+        elif name == 'root':
+            # Root container creates its own bus
+            parent_event_bus = None
+        else:
+            # Non-root containers without parent should use root bus from context
+            parent_event_bus = context.get('root_event_bus')
         
         # Add combo-specific values
         if 'combo' in context:
@@ -434,7 +657,8 @@ class TopologyBuilder:
                 name=name,
                 components=components,
                 config=clean_config,
-                container_type=container_type
+                container_type=container_type,
+                parent_event_bus=parent_event_bus
             )
             
             # Create child containers if specified inline
@@ -457,7 +681,7 @@ class TopologyBuilder:
         for child_spec in children_specs:
             # Handle foreach in child containers too
             if 'foreach' in child_spec:
-                children = self._expand_container_foreach(child_spec, context)
+                children = self._expand_container_foreach(child_spec, context, parent_container)
                 for name, child in children.items():
                     if child:
                         parent_container.add_child_container(child)
@@ -468,8 +692,8 @@ class TopologyBuilder:
                 if not child_name:
                     child_name = f"{parent_container.name}_{child_spec.get('type', 'child')}"
                 
-                # Create child with same context
-                child_container = self._create_single_container(child_name, child_spec, context)
+                # Create child with same context and parent container
+                child_container = self._create_single_container(child_name, child_spec, context, parent_container)
                 
                 if child_container:
                     # Establish parent-child relationship
@@ -782,6 +1006,243 @@ class TopologyBuilder:
         
         return combinations
     
+    def _expand_strategy_parameters(self, strategies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Expand strategies with list parameters into individual strategy configurations.
+        
+        For example:
+        [{
+            'name': 'ma_crossover',
+            'type': 'ma_crossover',
+            'params': {
+                'fast_period': [5, 10],
+                'slow_period': [20, 30]
+            }
+        }]
+        
+        Becomes:
+        [
+            {'name': 'ma_5_20', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 20}},
+            {'name': 'ma_5_30', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 30}},
+            {'name': 'ma_10_20', 'type': 'ma_crossover', 'params': {'fast_period': 10, 'slow_period': 20}},
+            {'name': 'ma_10_30', 'type': 'ma_crossover', 'params': {'fast_period': 10, 'slow_period': 30}}
+        ]
+        """
+        expanded_strategies = []
+        
+        for strategy_config in strategies:
+            strategy_type = strategy_config.get('type', 'unknown')
+            base_name = strategy_config.get('name', strategy_type)
+            params = strategy_config.get('params', {})
+            
+            # Find parameters that are lists (to be expanded)
+            list_params = {}
+            scalar_params = {}
+            
+            for param_name, param_value in params.items():
+                if isinstance(param_value, list):
+                    list_params[param_name] = param_value
+                else:
+                    scalar_params[param_name] = param_value
+            
+            if not list_params:
+                # No expansion needed, use as-is
+                expanded_strategies.append(strategy_config)
+            else:
+                # Generate all combinations
+                param_names = list(list_params.keys())
+                param_values = [list_params[name] for name in param_names]
+                
+                # Use itertools.product to generate all combinations
+                for combination in itertools.product(*param_values):
+                    # Create a new strategy config for this combination
+                    new_params = scalar_params.copy()
+                    
+                    # Add the specific values from this combination
+                    for i, param_name in enumerate(param_names):
+                        new_params[param_name] = combination[i]
+                    
+                    # Validate parameter combinations for known strategy types
+                    if not self._validate_strategy_parameters(strategy_type, new_params):
+                        self.logger.warning(f"Skipping invalid parameter combination for {strategy_type}: {new_params}")
+                        continue
+                    
+                    # Generate a descriptive name if using parameter expansion
+                    if len(list_params) > 0 and base_name == strategy_type:
+                        # Auto-generate name from parameters (e.g., ma_5_20)
+                        param_parts = []
+                        if 'fast_period' in new_params and 'slow_period' in new_params:
+                            param_parts = [str(new_params['fast_period']), str(new_params['slow_period'])]
+                        else:
+                            # Generic parameter naming
+                            param_parts = [str(v) for v in combination]
+                        
+                        expanded_name = f"{strategy_type}_{'_'.join(param_parts)}"
+                    else:
+                        # Keep original name with parameter suffix
+                        param_suffix = '_'.join(str(v) for v in combination)
+                        expanded_name = f"{base_name}_{param_suffix}"
+                    
+                    expanded_strategy = {
+                        'name': expanded_name,
+                        'type': strategy_type,
+                        'params': new_params
+                    }
+                    
+                    # Copy any other fields from original config
+                    for key, value in strategy_config.items():
+                        if key not in ['name', 'type', 'params']:
+                            expanded_strategy[key] = value
+                    
+                    expanded_strategies.append(expanded_strategy)
+                    
+        self.logger.info(f"Expanded {len(strategies)} strategies to {len(expanded_strategies)} configurations")
+        
+        return expanded_strategies
+    
+    def _validate_strategy_parameters(self, strategy_type: str, params: Dict[str, Any]) -> bool:
+        """
+        Validate strategy parameters to ensure they make sense.
+        
+        Returns:
+            True if parameters are valid, False otherwise
+        """
+        # MA crossover strategies need fast < slow
+        if strategy_type in ['ma_crossover', 'moving_average_crossover']:
+            fast_period = params.get('fast_period')
+            slow_period = params.get('slow_period')
+            
+            if fast_period is not None and slow_period is not None:
+                if fast_period >= slow_period:
+                    self.logger.debug(
+                        f"Invalid MA crossover: fast_period ({fast_period}) >= slow_period ({slow_period})"
+                    )
+                    return False
+        
+        # Bollinger bands need reasonable parameters
+        elif strategy_type in ['bollinger_bands', 'mean_reversion']:
+            period = params.get('period', params.get('bb_period'))
+            std_dev = params.get('std_dev', params.get('num_std'))
+            
+            if period is not None and period < 2:
+                self.logger.debug(f"Invalid Bollinger period: {period} < 2")
+                return False
+                
+            if std_dev is not None and (std_dev <= 0 or std_dev > 5):
+                self.logger.debug(f"Invalid Bollinger std_dev: {std_dev}")
+                return False
+        
+        # RSI needs reasonable periods
+        elif strategy_type in ['rsi_strategy', 'momentum']:
+            rsi_period = params.get('rsi_period', params.get('period'))
+            
+            if rsi_period is not None and (rsi_period < 2 or rsi_period > 100):
+                self.logger.debug(f"Invalid RSI period: {rsi_period}")
+                return False
+        
+        # MACD parameters
+        elif strategy_type in ['macd', 'macd_strategy']:
+            fast = params.get('fast_period', params.get('fast_ema'))
+            slow = params.get('slow_period', params.get('slow_ema'))
+            signal = params.get('signal_period', params.get('signal_ema'))
+            
+            if fast is not None and slow is not None:
+                if fast >= slow:
+                    self.logger.debug(f"Invalid MACD: fast ({fast}) >= slow ({slow})")
+                    return False
+                    
+            if signal is not None and signal < 1:
+                self.logger.debug(f"Invalid MACD signal period: {signal} < 1")
+                return False
+        
+        # If we don't have specific validation rules, assume it's valid
+        return True
+    
+    def _expand_classifier_parameters(self, classifiers: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Expand classifiers with list parameters into individual classifier configurations.
+        
+        Similar to _expand_strategy_parameters but for classifiers.
+        
+        For example:
+        [{
+            'name': 'trend_grid',
+            'type': 'trend_classifier',
+            'params': {
+                'trend_threshold': [0.01, 0.02],
+                'fast_ma': [10, 20]
+            }
+        }]
+        
+        Becomes:
+        [
+            {'name': 'trend_0.01_10', 'type': 'trend_classifier', 'params': {'trend_threshold': 0.01, 'fast_ma': 10}},
+            {'name': 'trend_0.01_20', 'type': 'trend_classifier', 'params': {'trend_threshold': 0.01, 'fast_ma': 20}},
+            {'name': 'trend_0.02_10', 'type': 'trend_classifier', 'params': {'trend_threshold': 0.02, 'fast_ma': 10}},
+            {'name': 'trend_0.02_20', 'type': 'trend_classifier', 'params': {'trend_threshold': 0.02, 'fast_ma': 20}}
+        ]
+        """
+        expanded_classifiers = []
+        
+        for classifier_config in classifiers:
+            classifier_type = classifier_config.get('type', 'unknown')
+            base_name = classifier_config.get('name', classifier_type)
+            params = classifier_config.get('params', {})
+            
+            # Find parameters that are lists (to be expanded)
+            list_params = {}
+            scalar_params = {}
+            
+            for param_name, param_value in params.items():
+                if isinstance(param_value, list):
+                    list_params[param_name] = param_value
+                else:
+                    scalar_params[param_name] = param_value
+            
+            if not list_params:
+                # No expansion needed, use as-is
+                expanded_classifiers.append(classifier_config)
+            else:
+                # Generate all combinations
+                param_names = list(list_params.keys())
+                param_values = [list_params[name] for name in param_names]
+                
+                # Use itertools.product to generate all combinations
+                for combination in itertools.product(*param_values):
+                    # Create a new classifier config for this combination
+                    new_params = scalar_params.copy()
+                    
+                    # Add the specific values from this combination
+                    for i, param_name in enumerate(param_names):
+                        new_params[param_name] = combination[i]
+                    
+                    # Generate a descriptive name if using parameter expansion
+                    if len(list_params) > 0 and base_name == classifier_type:
+                        # Auto-generate name from parameters
+                        param_parts = [str(v).replace('.', '') for v in combination]
+                        expanded_name = f"{classifier_type}_{'_'.join(param_parts)}"
+                    else:
+                        # Keep original name with parameter suffix
+                        param_suffix = '_'.join(str(v).replace('.', '') for v in combination)
+                        expanded_name = f"{base_name}_{param_suffix}"
+                    
+                    expanded_classifier = {
+                        'name': expanded_name,
+                        'type': classifier_type,
+                        'params': new_params
+                    }
+                    
+                    # Copy any other fields from original config
+                    for key, value in classifier_config.items():
+                        if key not in ['name', 'type', 'params']:
+                            expanded_classifier[key] = value
+                    
+                    expanded_classifiers.append(expanded_classifier)
+                    
+        self.logger.info(f"Expanded {len(classifiers)} classifiers to {len(expanded_classifiers)} configurations")
+        
+        return expanded_classifiers
+    
     def _hash_config(self, config: Dict[str, Any]) -> str:
         """Generate a hash of the configuration."""
         config_copy = config.copy()
@@ -1003,15 +1464,21 @@ class TopologyBuilder:
         """
         # Look for strategies in the user config
         strategies = context.get('config', {}).get('strategies', [])
-        if not strategies:
-            self.logger.info("No strategies found in config, skipping feature inference")
+        classifiers = context.get('config', {}).get('classifiers', [])
+        
+        if not strategies and not classifiers:
+            self.logger.info("No strategies or classifiers found in config, skipping feature inference")
             return
         
-        self.logger.info(f"Inferring features from {len(strategies)} strategies")
+        self.logger.info(f"Inferring features from {len(strategies)} strategies and {len(classifiers)} classifiers")
         
         # Call the feature inference logic
         try:
             required_features = self._infer_features_from_strategies(strategies)
+            
+            # Also infer features from classifiers
+            classifier_features = self._infer_features_from_classifiers(classifiers)
+            required_features = required_features.union(classifier_features)
             
             if required_features:
                 self.logger.info(f"Inferred features: {sorted(required_features)}")
@@ -1028,40 +1495,68 @@ class TopologyBuilder:
                     
                 # Convert inferred features to proper feature configs for StrategyState
                 feature_configs = {}
-                from ..components.discovery import get_component_registry
-                registry = get_component_registry()
                 
-                for strategy_config in strategies:
-                    strategy_type = strategy_config.get('type', strategy_config.get('class'))
-                    strategy_params = strategy_config.get('params', strategy_config.get('parameters', {}))
+                # Create feature configs for all inferred features
+                for feature_id in required_features:
+                    # Parse feature_id like 'sma_5' or 'rsi_14'
+                    parts = feature_id.split('_')
                     
-                    # Get strategy metadata from registry to build feature configs
-                    strategy_info = None
-                    for name_variant in [strategy_type, f'{strategy_type}_strategy', strategy_type.replace('_strategy', '')]:
-                        strategy_info = registry.get_component(name_variant)
-                        if strategy_info:
-                            break
-                    
-                    if strategy_info:
-                        feature_config = strategy_info.metadata.get('feature_config', {})
-                        for feature_name, feature_meta in feature_config.items():
-                            param_names = feature_meta.get('params', [])
-                            default_value = feature_meta.get('default')
-                            
-                            if param_names:
-                                # Use first parameter to construct feature config
-                                param_name = param_names[0]  # e.g., 'sma_period'
-                                param_value = strategy_params.get(param_name, default_value)
-                                if param_value is not None:
-                                    # Create feature config: sma_5: {feature: sma, period: 5}
-                                    feature_key = f'{feature_name}_{param_value}'
-                                    feature_configs[feature_key] = {
-                                        'feature': feature_name,
-                                        param_name.replace(f'{feature_name}_', ''): param_value
-                                    }
+                    # Handle special compound features
+                    if feature_id.startswith('atr_sma_'):
+                        # Pattern: atr_sma_14_20 -> atr_sma with atr_period=14, sma_period=20
+                        parts = feature_id.split('_')
+                        if len(parts) >= 4:
+                            feature_configs[feature_id] = {
+                                'feature': 'atr_sma',
+                                'atr_period': int(parts[2]),
+                                'sma_period': int(parts[3])
+                            }
+                        else:
+                            feature_configs[feature_id] = {'feature': 'atr_sma'}
+                    elif feature_id.startswith('volatility_sma_'):
+                        # Pattern: volatility_sma_20_20 -> volatility_sma with vol_period=20, sma_period=20
+                        parts = feature_id.split('_')
+                        if len(parts) >= 4:
+                            feature_configs[feature_id] = {
+                                'feature': 'volatility_sma',
+                                'vol_period': int(parts[2]),
+                                'sma_period': int(parts[3])
+                            }
+                        else:
+                            feature_configs[feature_id] = {'feature': 'volatility_sma'}
+                    elif len(parts) >= 2:
+                        feature_type = parts[0]  # 'sma', 'rsi', etc.
+                        try:
+                            period_value = int(parts[1])
+                            # Special handling for features with non-standard parameters
+                            if feature_type == 'macd':
+                                # MACD doesn't use 'period', it uses fast/slow/signal
+                                # Use the period_value as the signal line period, with defaults for fast/slow
+                                feature_configs[feature_id] = {
+                                    'feature': 'macd',
+                                    'fast': 12,
+                                    'slow': 26,
+                                    'signal': period_value
+                                }
                             else:
-                                # Feature without parameters
-                                feature_configs[feature_name] = {'feature': feature_name}
+                                # Create feature config with 'period' parameter for most features
+                                feature_configs[feature_id] = {
+                                    'feature': feature_type,
+                                    'period': period_value
+                                }
+                        except ValueError:
+                            # Not a numeric period, might be a different feature type
+                            if feature_type == 'macd':
+                                feature_configs[feature_id] = {'feature': 'macd'}
+                            elif feature_type == 'rsi':
+                                feature_configs[feature_id] = {'feature': 'rsi'}
+                            elif feature_type == 'momentum':
+                                feature_configs[feature_id] = {'feature': 'momentum'}
+                            else:
+                                feature_configs[feature_id] = {'feature': feature_type}
+                    else:
+                        # Simple feature without parameters
+                        feature_configs[feature_id] = {'feature': parts[0] if parts else feature_id}
                 
                 # Add feature configs to context config for strategy containers  
                 if "feature_configs" not in context['config']:
@@ -1156,11 +1651,11 @@ class TopologyBuilder:
                         # Feature with no params, just add it
                         required_features.add(feature_name)
                 
-                self.logger.info(f"Strategy '{strategy_type}' requires features: {sorted(required_features)}")
+                self.logger.debug(f"Strategy '{strategy_type}' requires features: {sorted(required_features)}")
                 
             else:
                 # Fallback for strategies not in registry
-                self.logger.warning(f"Strategy '{strategy_type}' not found in registry, using hardcoded inference")
+                self.logger.debug(f"Strategy '{strategy_type}' not found in registry, using hardcoded inference")
                 
                 # Legacy hardcoded logic as fallback
                 if strategy_type in ['MomentumStrategy', 'momentum']:
@@ -1172,6 +1667,14 @@ class TopologyBuilder:
                     period = strategy_params.get('period', 20)
                     required_features.add(f'bollinger_{period}')
                     required_features.add('rsi_14')
+                elif strategy_type in ['breakout_strategy', 'breakout']:
+                    # Breakout strategies need high/low/volume features
+                    lookback_period = strategy_params.get('lookback_period', 20)
+                    atr_period = strategy_params.get('atr_period', 14)
+                    required_features.add(f'high_{lookback_period}')
+                    required_features.add(f'low_{lookback_period}')
+                    required_features.add(f'volume_{lookback_period}')  # This will create volume_X_volume_ma
+                    required_features.add(f'atr_{atr_period}')
                 else:
                     # Default features
                     required_features.update(['sma_20', 'rsi_14'])
@@ -1181,6 +1684,92 @@ class TopologyBuilder:
             self.logger.warning("No strategies found, using default features")
             required_features.update(['sma_20', 'rsi_14'])
             
+        return required_features
+    
+    def _infer_features_from_classifiers(self, classifiers: List[Dict[str, Any]]) -> Set[str]:
+        """Infer required features from classifier configurations.
+        
+        Args:
+            classifiers: List of classifier configuration dictionaries
+            
+        Returns:
+            Set of required feature identifiers
+        """
+        from ..components.discovery import get_component_registry
+        import importlib
+        
+        required_features = set()
+        registry = get_component_registry()
+        
+        # Import classifier module to ensure decorators run
+        try:
+            importlib.import_module('src.strategy.classifiers.classifiers')
+        except ImportError:
+            self.logger.debug("Could not import classifiers module")
+        
+        for classifier_config in classifiers:
+            classifier_type = classifier_config.get('type', classifier_config.get('name'))
+            classifier_params = classifier_config.get('params', classifier_config.get('parameters', {}))
+            
+            # Get classifier metadata from registry
+            classifier_info = registry.get_component(classifier_type)
+            
+            if classifier_info:
+                # Get feature requirements from metadata
+                features = classifier_info.metadata.get('features', [])
+                
+                # Add basic features that classifiers need
+                for feature in features:
+                    if feature == 'sma_fast' or feature == 'sma_slow':
+                        # Add common SMA periods
+                        fast_period = classifier_params.get('fast_period', 10)
+                        slow_period = classifier_params.get('slow_period', 20)
+                        required_features.add(f'sma_{fast_period}')
+                        required_features.add(f'sma_{slow_period}')
+                    elif feature == 'atr':
+                        atr_period = classifier_params.get('atr_period', 14)
+                        required_features.add(f'atr_{atr_period}')
+                    elif feature == 'atr_sma':
+                        atr_period = classifier_params.get('atr_period', 14)
+                        sma_period = classifier_params.get('sma_period', 20)
+                        required_features.add(f'atr_{atr_period}')
+                        required_features.add(f'atr_sma_{atr_period}_{sma_period}')
+                    elif feature == 'rsi':
+                        rsi_period = classifier_params.get('rsi_period', 14)
+                        required_features.add(f'rsi_{rsi_period}')
+                    elif feature in ['macd_macd', 'macd']:
+                        required_features.add('macd')
+                    elif feature.startswith('momentum'):
+                        momentum_period = classifier_params.get('momentum_period', 10)
+                        required_features.add(f'momentum_{momentum_period}')
+                    elif feature == 'volatility':
+                        vol_period = classifier_params.get('vol_period', 20)
+                        required_features.add(f'volatility_{vol_period}')
+                    elif feature == 'volatility_sma':
+                        vol_period = classifier_params.get('vol_period', 20)
+                        sma_period = classifier_params.get('sma_period', 20)
+                        required_features.add(f'volatility_{vol_period}')
+                        required_features.add(f'volatility_sma_{vol_period}_{sma_period}')
+                    else:
+                        # Add the feature as-is
+                        required_features.add(feature)
+                
+                self.logger.debug(f"Classifier '{classifier_type}' requires features: {sorted(features)}")
+            else:
+                # Fallback for classifiers not in registry
+                self.logger.debug(f"Classifier '{classifier_type}' not found in registry, using defaults")
+                
+                # Add common features that classifiers might need
+                if 'momentum' in classifier_type:
+                    required_features.update(['rsi_14', 'macd', 'momentum_10'])
+                elif 'volatility' in classifier_type:
+                    required_features.update(['atr_14', 'volatility_20', 'atr_sma_14_20', 'volatility_sma_20_20'])
+                elif 'trend' in classifier_type:
+                    required_features.update(['sma_10', 'sma_20', 'sma_50'])
+                else:
+                    # Default classifier features
+                    required_features.update(['sma_20', 'rsi_14', 'atr_14'])
+        
         return required_features
     
     def _get_strategy_requirements(self, strategy_config: Dict[str, Any]) -> Dict[str, Any]:

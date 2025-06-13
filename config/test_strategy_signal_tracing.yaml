@@ -1,0 +1,59 @@
+# Test configuration for strategy-level signal tracing
+name: "Strategy Signal Tracing Test"
+
+data:
+  symbols: ['SPY']
+  source: 'csv'
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+portfolio:
+  initial_capital: 100000
+  position_sizing: 'fixed'
+  max_positions: 1
+
+symbols: ['SPY']
+timeframes: ['1m']
+max_bars: 50
+
+# Define features for strategies
+features:
+  fast_ma:
+    feature: 'sma'
+    period: 5
+  slow_ma:
+    feature: 'sma'
+    period: 20
+
+# Define strategies
+strategies:
+  - name: 'ma_crossover_5_20'
+    type: 'ma_crossover'
+    params:
+      fast_period: 5
+      slow_period: 20
+  
+  - name: 'ma_crossover_10_30'
+    type: 'ma_crossover'
+    params:
+      fast_period: 10
+      slow_period: 30
+
+execution:
+  max_duration: 0.0  # No wait needed for synchronous processing
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    enable_console_output: false
+    container_settings:
+      'strategy*':
+        enabled: true
+      'portfolio*':
+        enabled: false  # Only trace strategies, not portfolios
+
+metadata:
+  workflow_id: 'strategy_signal_test'
+  experiment_type: 'signal_generation'
+
+# Specify the topology to use
+topology: 'signal_generation_strategy_trace'
