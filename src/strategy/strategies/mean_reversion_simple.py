@@ -335,9 +335,14 @@ def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], param
     Returns:
         Signal dict or None
     """
-    # Extract parameters
-    entry_threshold = params.get('entry_threshold', 2.0)
+    # Extract parameters - support both new grid search names and legacy names
+    entry_threshold = params.get('entry_threshold') or params.get('bb_std', 2.0)
     exit_threshold = params.get('exit_threshold', 0.5)
+    
+    # Grid search parameters (bb_std is used as entry_threshold for Bollinger Band strategies)
+    bb_period = params.get('bb_period', 20)
+    rsi_oversold = params.get('rsi_oversold', 30)
+    rsi_overbought = params.get('rsi_overbought', 70)
     
     # Get current price
     price = bar.get('close', 0)
@@ -440,3 +445,7 @@ def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], param
         }
     
     return signal
+
+
+# Alias for topology builder compatibility
+mean_reversion_simple = mean_reversion_strategy

@@ -1,0 +1,10 @@
+{
+  "workflow_id": "test_rsi_oos",
+  "workspace_path": "workspaces/test_rsi_oos_7f999af6",
+  "total_bars": 10,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {}
+}

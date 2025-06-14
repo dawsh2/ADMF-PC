@@ -1,0 +1,47 @@
+# Test configuration for RSI strategy on out-of-sample data
+# Uses last 20,000 bars from SPY_1m.csv dataset
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+# Use the test dataset (last 20k bars) 
+dataset: test
+split_ratio: 0.8  # 80% train, 20% test (~20k bars for test)
+
+# RSI composite strategy configuration (uses fast RSI for entry, slow RSI for exit)
+strategies:
+  - name: rsi_test
+    type: rsi_strategy
+    params:
+      rsi_period: 7
+      oversold_threshold: 30
+      overbought_threshold: 75
+
+# Execution settings
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL"]
+    storage_backend: memory
+    use_sparse_storage: true
+    enable_console_output: true
+    console_filter: ["SIGNAL"]
+
+# Store results
+results:
+  streaming_metrics: true
+  results_storage: disk
+  output_dir: ./results/rsi_oos_test
+
+# Risk management settings
+risk:
+  max_position_size: 0.1  # 10% per position
+  max_portfolio_risk: 0.02  # 2% portfolio risk
+  stop_loss: 0.02  # 2% stop loss
+  take_profit: 0.04  # 4% take profit

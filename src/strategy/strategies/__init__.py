@@ -23,6 +23,8 @@ from .rsi_strategy import rsi_strategy
 from .macd_strategy import macd_strategy
 from .breakout_strategy import breakout_strategy
 from .ma_crossover import ma_crossover_strategy
+from .rsi_composite import rsi_composite_strategy
+from .rsi_tuned import rsi_tuned_strategy
 
 # Import null strategy for testing
 # from .core.null_strategy import NullStrategy  # Commented out due to import error
@@ -94,6 +96,8 @@ __all__ = [
     "macd_strategy",
     "breakout_strategy",
     "ma_crossover_strategy",
+    "rsi_composite_strategy",
+    "rsi_tuned_strategy",
     
     # Lazy imports
     "_import_mean_reversion",

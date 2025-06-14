@@ -1,0 +1,20 @@
+{
+  "correct": {
+    "total_return": -0.9090796577884617,
+    "avg_return": -0.024165237607269498,
+    "num_trades": 98,
+    "win_rate": 0.01020408163265306
+  },
+  "incorrect": {
+    "total_return": -0.7627069308998918,
+    "avg_return": -0.0144193070760093,
+    "num_trades": 99,
+    "win_rate": 0.010101010101010102
+  },
+  "perfect_foresight": {
+    "total_return": 74.75586795665505,
+    "avg_return": 0.04422667595925712,
+    "num_trades": 100,
+    "win_rate": 1.0
+  }
+}

@@ -129,3 +129,44 @@ def cci_feature(high: pd.Series, low: pd.Series, close: pd.Series, period: int =
     
     cci = (typical_price - sma_tp) / (0.015 * mean_deviation)
     return cci
+
+
+@feature(
+    name='stochastic_rsi',
+    params=['rsi_period', 'stoch_period'],
+    min_history='rsi_period + stoch_period'
+)
+def stochastic_rsi_feature(prices: pd.Series, rsi_period: int = 14, stoch_period: int = 14) -> Dict[str, pd.Series]:
+    """
+    Calculate Stochastic RSI feature.
+    
+    Applies stochastic calculation to RSI values.
+    
+    Args:
+        prices: Price series
+        rsi_period: Period for RSI calculation
+        stoch_period: Period for stochastic calculation
+        
+    Returns:
+        Dict with 'k' and 'd' series (0-100)
+    """
+    # First calculate RSI
+    delta = prices.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=rsi_period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=rsi_period).mean()
+    
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    
+    # Then apply stochastic to RSI
+    lowest_rsi = rsi.rolling(window=stoch_period).min()
+    highest_rsi = rsi.rolling(window=stoch_period).max()
+    
+    # Calculate Stochastic RSI
+    stoch_rsi_k = 100 * (rsi - lowest_rsi) / (highest_rsi - lowest_rsi)
+    stoch_rsi_d = stoch_rsi_k.rolling(window=3).mean()  # 3-period SMA of %K
+    
+    return {
+        "k": stoch_rsi_k,
+        "d": stoch_rsi_d
+    }

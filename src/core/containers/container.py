@@ -247,8 +247,9 @@ class Container:
         }
         
         # Setup event bus tracing if enabled
+        # Only root container should set up tracing on the shared bus
         # Portfolio containers use their own tracing mechanism
-        if self.container_type != 'portfolio' and self._should_enable_tracing():
+        if self._is_root_container and self.container_type != 'portfolio' and self._should_enable_tracing():
             self._setup_tracing()
         
         # Streaming metrics support (optional)

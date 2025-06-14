@@ -1,0 +1,57 @@
+# Test configuration for RSI Tuned strategy on out-of-sample data
+# Uses last 20,000 bars from SPY_1m.csv dataset
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+# Use the test dataset (last 20k bars) 
+dataset: test
+split_ratio: 0.8  # 80% train, 20% test (~20k bars for test)
+
+# RSI tuned strategy configuration (self-contained, stateless)
+strategies:
+  - name: rsi_tuned_test
+    type: rsi_tuned
+    params:
+      # RSI parameters  
+      rsi_period: 14
+      
+      # Trend filter parameters
+      trend_period: 20
+      
+      # More conservative thresholds (as designed)
+      oversold_entry: 25      # More extreme than 30
+      overbought_entry: 75    # More extreme than 70
+      oversold_exit: 35       # Earlier exit than entry
+      overbought_exit: 65     # Earlier exit than entry
+      
+      # Momentum parameters
+      rsi_momentum_lookback: 3
+      min_momentum_strength: 2.0
+
+# Execution settings with sparse storage for signal replay
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL"]
+    storage_backend: memory
+    use_sparse_storage: true
+    enable_console_output: true
+    console_filter: ["SIGNAL"]
+
+# Store results for analysis
+results:
+  streaming_metrics: true
+  results_storage: disk
+  output_dir: ./results/rsi_tuned_oos_test
+
+# Risk management settings
+risk:
+  max_position_size: 0.1  # 10% per position
+  max_portfolio_risk: 0.02  # 2% portfolio risk

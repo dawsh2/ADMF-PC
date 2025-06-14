@@ -112,7 +112,12 @@ class AnalyticsIntegrator:
         if not tracer_results:
             return None
             
-        # Check if we have signal trace components with file paths
+        # Check if workspace path is directly provided by MultiStrategyTracer
+        workspace_path = tracer_results.get('workspace_path')
+        if workspace_path:
+            return Path(workspace_path)
+            
+        # Fallback: Check if we have signal trace components with file paths
         components = tracer_results.get('components', {})
         if not components:
             return None

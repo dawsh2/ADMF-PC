@@ -45,11 +45,21 @@ def main():
     
     if args.command == 'filter':
         print(f"Analyzing workspace: {args.workspace}")
-        results = analyze_grid_search(
-            workspace_path=args.workspace,
-            data_path=args.data_path,
-            classifier_path=args.classifier
-        )
+        # Import and use StrategyFilter directly with CLI args
+        from src.analytics.strategy_filter import StrategyFilter
+        
+        filter = StrategyFilter(args.workspace)
+        try:
+            results = filter.comprehensive_filter(
+                data_path=args.data_path,
+                classifier_path=args.classifier,
+                min_trades=args.min_trades,
+                min_sharpe=args.min_sharpe,
+                commission_pct=0.01,
+                slippage_pct=0.01
+            )
+        finally:
+            filter.close()
         print("\n=== Analysis Summary ===")
         for name, df in results.items():
             print(f"{name}: {len(df)} entries")

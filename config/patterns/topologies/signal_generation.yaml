@@ -48,6 +48,10 @@ containers:
             from_config: end_date
           max_bars:
             from_config: max_bars
+          dataset:
+            from_config: dataset
+          split_ratio:
+            from_config: split_ratio
 
       # Single strategy container that processes all symbols/timeframes
       - name: "strategy"

@@ -133,7 +133,7 @@ class ContainerFactory:
                 
                 # Configure train/test split if specified
                 if config.get('split_ratio'):
-                    handler.setup_split(ratio=config['split_ratio'])
+                    handler.setup_split(train_ratio=config['split_ratio'])
                     if config.get('dataset'):
                         handler.set_active_split(config['dataset'])
                 

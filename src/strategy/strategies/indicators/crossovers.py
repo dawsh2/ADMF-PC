@@ -47,7 +47,7 @@ def sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -105,7 +105,7 @@ def ema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -158,7 +158,7 @@ def ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -215,7 +215,7 @@ def dema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -268,7 +268,7 @@ def dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -325,7 +325,7 @@ def tema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -378,7 +378,7 @@ def stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: 
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -430,7 +430,7 @@ def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,
@@ -440,6 +440,61 @@ def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
         'metadata': {
             'vi_plus': vi_plus,
             'vi_minus': vi_minus,
+            'price': bar.get('close', 0)
+        }
+    }
+
+
+@strategy(
+    name='macd_crossover',
+    feature_config={
+        'macd': {
+            'params': ['fast_ema', 'slow_ema', 'signal_ema'],
+            'defaults': {'fast_ema': 12, 'slow_ema': 26, 'signal_ema': 9}
+        }
+    }
+)
+def macd_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    MACD signal line crossover strategy.
+    
+    Returns sustained signal based on MACD vs signal line:
+    - 1: MACD > Signal (bullish)
+    - -1: MACD < Signal (bearish)
+    - 0: Equal
+    """
+    fast_ema = params.get('fast_ema', 12)
+    slow_ema = params.get('slow_ema', 26)
+    signal_ema = params.get('signal_ema', 9)
+    
+    # Get features
+    macd_line = features.get(f'macd_{fast_ema}_{slow_ema}_{signal_ema}_macd')
+    signal_line = features.get(f'macd_{fast_ema}_{slow_ema}_{signal_ema}_signal')
+    
+    if macd_line is None or signal_line is None:
+        return None
+    
+    # Determine signal
+    if macd_line > signal_line:
+        signal_value = 1
+    elif macd_line < signal_line:
+        signal_value = -1
+    else:
+        signal_value = 0
+    
+    # Always return current signal state (sustained while conditions hold)
+    symbol = bar.get('symbol', 'UNKNOWN')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
+    
+    return {
+        'signal_value': signal_value,
+        'timestamp': bar.get('timestamp'),
+        'strategy_id': 'macd_crossover',
+        'symbol_timeframe': f"{symbol}_{timeframe}",
+        'metadata': {
+            'macd': macd_line,
+            'signal': signal_line,
+            'histogram': macd_line - signal_line,
             'price': bar.get('close', 0)
         }
     }
@@ -488,7 +543,7 @@ def ichimoku_cloud_position(features: Dict[str, Any], bar: Dict[str, Any], param
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
-    timeframe = bar.get('timeframe', '5m')
+    timeframe = bar.get('timeframe', '1m')  # Default to 1m to match config
     
     return {
         'signal_value': signal_value,

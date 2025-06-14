@@ -46,95 +46,65 @@ def simple_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], para
     price = bar.get('close', 0)
     symbol = bar.get('symbol', 'UNKNOWN')
     
-    # Track position state in features
-    position_state = features.get('position_state', 'flat')
-    entry_bar = features.get('entry_bar', -999)
-    current_bar = features.get('bar_count', 0)
-    
-    logger.debug(f"Simple momentum: price={price}, sma={sma}, rsi={rsi}, position={position_state}")
+    logger.debug(f"Simple momentum: price={price}, sma={sma}, rsi={rsi}")
     
     # Check if we have required features
     if sma is None or rsi is None:
         logger.debug(f"Missing features for {symbol}: sma={sma}, rsi={rsi}")
         return None
     
-    # Generate signal
+    # Pure stateless momentum signal generation
+    # Generate signal based on current market conditions only
     signal = None
     
-    if position_state == 'flat':
-        # Look for entry signals
-        # Long signal: Price above SMA and RSI oversold
-        if price > sma and rsi < rsi_threshold_long:
-            signal = {
-                'symbol': symbol,
-                'direction': 'long',
-                'signal_type': 'entry',
-                'strength': min(1.0, (rsi_threshold_long - rsi) / rsi_threshold_long),
+    # Long signal: Price above SMA and RSI oversold (momentum building up)
+    if price > sma and rsi < rsi_threshold_long:
+        signal = {
+            'symbol': symbol,
+            'direction': 'long',
+            'signal_type': 'entry',
+            'strength': min(1.0, (rsi_threshold_long - rsi) / rsi_threshold_long),
+            'price': price,
+            'reason': f'Momentum long: price > SMA{sma_period} and RSI < {rsi_threshold_long}',
+            'indicators': {
                 'price': price,
-                'reason': f'Momentum long: price > SMA{sma_period} and RSI < {rsi_threshold_long}',
-                'indicators': {
-                    'price': price,
-                    'sma': sma,
-                    'rsi': rsi
-                }
+                'sma': sma,
+                'rsi': rsi
             }
-            logger.info(f"Generated LONG entry signal for {symbol}: price={price}, sma={sma}, rsi={rsi}")
-        
-        # Short signal: Price below SMA and RSI overbought
-        elif price < sma and rsi > rsi_threshold_short:
-            signal = {
-                'symbol': symbol,
-                'direction': 'short',
-                'signal_type': 'entry',
-                'strength': min(1.0, (rsi - rsi_threshold_short) / (100 - rsi_threshold_short)),
-                'price': price,
-                'reason': f'Momentum short: price < SMA{sma_period} and RSI > {rsi_threshold_short}',
-                'indicators': {
-                    'price': price,
-                    'sma': sma,
-                    'rsi': rsi
-                }
-            }
-            logger.info(f"Generated SHORT entry signal for {symbol}: price={price}, sma={sma}, rsi={rsi}")
+        }
+        logger.info(f"Generated LONG signal: price={price}, sma={sma}, rsi={rsi}")
     
-    else:  # We have a position
-        # Exit after holding period or on reverse signal
-        bars_held = current_bar - entry_bar
-        
-        # Check exit conditions
-        should_exit = False
-        exit_reason = ""
-        
-        # Time-based exit
-        if bars_held >= exit_bars:
-            should_exit = True
-            exit_reason = f"Exit after {bars_held} bars"
-        
-        # Condition-based exit for longs
-        elif position_state == 'long' and (price < sma or rsi > 80):
-            should_exit = True
-            exit_reason = f"Exit long: {'Price < SMA' if price < sma else f'RSI overbought ({rsi:.1f})'}"
-        
-        # Condition-based exit for shorts
-        elif position_state == 'short' and (price > sma or rsi < 20):
-            should_exit = True
-            exit_reason = f"Exit short: {'Price > SMA' if price > sma else f'RSI oversold ({rsi:.1f})'}"
-        
-        if should_exit:
-            signal = {
-                'symbol': symbol,
-                'direction': position_state,  # Direction of position we're closing
-                'signal_type': 'exit',
-                'strength': 1.0,
+    # Short signal: Price below SMA and RSI overbought (momentum building down)
+    elif price < sma and rsi > rsi_threshold_short:
+        signal = {
+            'symbol': symbol,
+            'direction': 'short',
+            'signal_type': 'entry',
+            'strength': min(1.0, (rsi - rsi_threshold_short) / (100 - rsi_threshold_short)),
+            'price': price,
+            'reason': f'Momentum short: price < SMA{sma_period} and RSI > {rsi_threshold_short}',
+            'indicators': {
                 'price': price,
-                'reason': exit_reason,
-                'indicators': {
-                    'price': price,
-                    'sma': sma,
-                    'rsi': rsi,
-                    'bars_held': bars_held
-                }
+                'sma': sma,
+                'rsi': rsi
             }
-            logger.info(f"Generated exit signal for {symbol} {position_state} position: {exit_reason}")
+        }
+        logger.info(f"Generated SHORT signal: price={price}, sma={sma}, rsi={rsi}")
+    
+    # If no strong signal, return flat (no momentum detected)
+    if signal is None:
+        signal = {
+            'symbol': symbol,
+            'direction': 'flat',
+            'signal_type': 'entry',
+            'strength': 0.0,
+            'price': price,
+            'reason': f'No momentum: price/SMA trend not confirmed by RSI',
+            'indicators': {
+                'price': price,
+                'sma': sma,
+                'rsi': rsi
+            }
+        }
     
     return signal

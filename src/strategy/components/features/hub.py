@@ -14,12 +14,21 @@ import logging
 
 # Import all feature functions for computation
 from .trend import sma_feature, ema_feature, dema_feature, tema_feature
-from .oscillators import rsi_feature, stochastic_feature, williams_r_feature, cci_feature
+from .oscillators import rsi_feature, stochastic_feature, stochastic_rsi_feature, williams_r_feature, cci_feature
 from .momentum import macd_feature, adx_feature, momentum_feature, vortex_feature
 from .volatility import atr_feature, bollinger_bands_feature, keltner_channel_feature, donchian_channel_feature, volatility_feature
 from .volume import volume_feature, volume_sma_feature, volume_ratio_feature
 from .complex import ichimoku_feature
 from .price import high_feature, low_feature, atr_sma_feature, volatility_sma_feature
+from .advanced import (
+    ultimate_oscillator_feature, mfi_feature, obv_feature, roc_feature,
+    cmf_feature, ad_feature, aroon_feature, vwap_feature
+)
+from .trend_advanced import (
+    supertrend_feature, psar_feature, linear_regression_feature,
+    pivot_points_feature, fibonacci_retracement_feature,
+    support_resistance_feature, swing_points_feature
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +44,14 @@ FEATURE_REGISTRY = {
     # Oscillator features
     "rsi": rsi_feature,
     "stochastic": stochastic_feature,
+    "stochastic_rsi": stochastic_rsi_feature,
     "williams_r": williams_r_feature,
     "cci": cci_feature,
     
     # Momentum features
     "macd": macd_feature,
     "adx": adx_feature,
+    "di": adx_feature,  # Alias for ADX (returns di_plus, di_minus)
     "momentum": momentum_feature,
     "vortex": vortex_feature,
     
@@ -64,7 +75,29 @@ FEATURE_REGISTRY = {
     "volatility_sma": volatility_sma_feature,
     
     # Complex features
-    "ichimoku": ichimoku_feature
+    "ichimoku": ichimoku_feature,
+    
+    # Advanced features
+    "ultimate": ultimate_oscillator_feature,
+    "ultimate_oscillator": ultimate_oscillator_feature,
+    "mfi": mfi_feature,
+    "obv": obv_feature,
+    "roc": roc_feature,
+    "cmf": cmf_feature,
+    "ad": ad_feature,
+    "aroon": aroon_feature,
+    "vwap": vwap_feature,
+    
+    # Trend advanced features
+    "supertrend": supertrend_feature,
+    "psar": psar_feature,
+    "linear_regression": linear_regression_feature,
+    "pivot_points": pivot_points_feature,
+    "fibonacci_retracement": fibonacci_retracement_feature,
+    "fibonacci": fibonacci_retracement_feature,  # Alias for fibonacci_retracement
+    "support_resistance": support_resistance_feature,
+    "swing_points": swing_points_feature,
+    "swing": swing_points_feature  # Alias for swing_points
 }
 
 
@@ -90,12 +123,20 @@ def compute_feature(feature_name: str, data: Union[pd.DataFrame, pd.Series], **k
     # Handle different data input types
     if isinstance(data, pd.DataFrame):
         # Extract common price series from DataFrame
-        if feature_name in ["sma", "ema", "dema", "tema", "rsi", "momentum", "volatility"]:
+        if feature_name in ["sma", "ema", "dema", "tema", "rsi", "momentum", "volatility", "stochastic_rsi", "roc", "linear_regression"]:
             return feature_func(data["close"], **kwargs)
         elif feature_name in ["macd", "bollinger_bands", "bollinger"]:
             return feature_func(data["close"], **kwargs)
-        elif feature_name in ["atr", "stochastic", "adx", "williams_r", "cci", "vortex", "keltner_channel", "donchian_channel", "ichimoku"]:
+        elif feature_name in ["atr", "stochastic", "adx", "di", "williams_r", "cci", "vortex", "keltner_channel", "donchian_channel", "ichimoku", "ultimate", "ultimate_oscillator", "supertrend", "psar", "pivot_points", "support_resistance", "swing_points", "swing"]:
             return feature_func(data["high"], data["low"], data["close"], **kwargs)
+        elif feature_name in ["aroon", "fibonacci_retracement", "fibonacci"]:
+            return feature_func(data["high"], data["low"], **kwargs)
+        elif feature_name in ["obv"]:
+            return feature_func(data["close"], data["volume"], **kwargs)
+        elif feature_name in ["mfi", "cmf", "ad"]:
+            return feature_func(data["high"], data["low"], data["close"], data["volume"], **kwargs)
+        elif feature_name in ["vwap"]:
+            return feature_func(data["high"], data["low"], data["close"], data["volume"], **kwargs)
         elif feature_name in ["volume", "volume_sma"]:
             if feature_name == "volume":
                 return feature_func(data["volume"], data["close"], **kwargs)
@@ -109,7 +150,7 @@ def compute_feature(feature_name: str, data: Union[pd.DataFrame, pd.Series], **k
             return feature_func(data, **kwargs)
     else:
         # Single series input
-        if feature_name in ["sma", "ema", "dema", "tema", "rsi", "momentum", "volatility"]:
+        if feature_name in ["sma", "ema", "dema", "tema", "rsi", "momentum", "volatility", "stochastic_rsi", "roc", "linear_regression"]:
             return feature_func(data, **kwargs)
         else:
             raise ValueError(f"Feature {feature_name} requires OHLC data, not single series")

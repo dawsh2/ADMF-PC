@@ -25,6 +25,7 @@ from .trend import (
 from .oscillators import (
     rsi_feature,
     stochastic_feature,
+    stochastic_rsi_feature,
     williams_r_feature,
     cci_feature
 )
@@ -52,6 +53,27 @@ from .volume import (
 
 from .complex import (
     ichimoku_feature
+)
+
+from .advanced import (
+    ultimate_oscillator_feature,
+    mfi_feature,
+    obv_feature,
+    roc_feature,
+    cmf_feature,
+    ad_feature,
+    aroon_feature,
+    vwap_feature
+)
+
+from .trend_advanced import (
+    supertrend_feature,
+    psar_feature,
+    linear_regression_feature,
+    pivot_points_feature,
+    fibonacci_retracement_feature,
+    support_resistance_feature,
+    swing_points_feature
 )
 
 from .price import (
@@ -84,6 +106,7 @@ __all__ = [
     # Oscillator features
     'rsi_feature',
     'stochastic_feature',
+    'stochastic_rsi_feature',
     'williams_r_feature',
     'cci_feature',
     
@@ -107,6 +130,25 @@ __all__ = [
     
     # Complex features
     'ichimoku_feature',
+    
+    # Advanced features
+    'ultimate_oscillator_feature',
+    'mfi_feature',
+    'obv_feature', 
+    'roc_feature',
+    'cmf_feature',
+    'ad_feature',
+    'aroon_feature',
+    'vwap_feature',
+    
+    # Trend advanced features
+    'supertrend_feature',
+    'psar_feature',
+    'linear_regression_feature',
+    'pivot_points_feature',
+    'fibonacci_retracement_feature',
+    'support_resistance_feature',
+    'swing_points_feature',
     
     # Price features
     'high_feature',

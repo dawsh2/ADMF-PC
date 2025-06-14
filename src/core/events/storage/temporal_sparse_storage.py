@@ -95,8 +95,10 @@ class TemporalSparseStorage:
         # Track current state per strategy
         self._current_state: Dict[str, Dict[str, Any]] = {}
         
-        # Buffer for changes
+        # Buffer for changes - limit to prevent memory issues
+        # For large runs, we should write incrementally, not accumulate everything
         self._changes: List[SignalChange] = []
+        self._max_buffer_size = 10000  # Write to disk if buffer exceeds this
         
         # Bar counter
         self._bar_index = 0
@@ -166,6 +168,12 @@ class TemporalSparseStorage:
                 data_source_type=self.data_source_type
             )
             self._changes.append(change)
+            
+            # Check if we should write to prevent memory issues
+            if len(self._changes) >= self._max_buffer_size:
+                logger.warning(f"Signal buffer at {len(self._changes)} changes, "
+                              f"consider using streaming storage for large runs")
+                # For now, just log warning. Could auto-save here if needed.
             
             # Update current state
             self._current_state[state_key] = {

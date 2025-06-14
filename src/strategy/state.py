@@ -147,7 +147,12 @@ class ComponentState:
     
     def get_features(self, symbol: str) -> Dict[str, Any]:
         """Get current features for symbol."""
-        return self._features.get(symbol, {})
+        features = self._features.get(symbol, {}).copy()
+        
+        # Add state features that strategies may need
+        features['bar_count'] = self._bar_count.get(symbol, 0)
+        
+        return features
     
     def configure_features(self, feature_configs: Dict[str, Dict[str, Any]]) -> None:
         """Configure which features to calculate."""
@@ -238,12 +243,22 @@ class ComponentState:
         for feature_name, config in self._feature_configs.items():
             try:
                 feature_type = config.get('feature')
+                
+                # Check if this is a raw data feature that doesn't need calculation
+                if config.get('is_raw_data', False) or feature_type in ['volume', 'close', 'open', 'high', 'low']:
+                    # Raw data features come directly from price data
+                    if feature_type in self._price_data[symbol]:
+                        raw_data = self._price_data[symbol][feature_type]
+                        if len(raw_data) > 0:
+                            symbol_features[feature_name] = float(raw_data[-1])
+                    continue
+                
                 if feature_type not in FEATURE_REGISTRY:
                     logger.warning("Unknown feature type: %s", feature_type)
                     continue
                 
                 # Create config copy without 'feature' key
-                feature_params = {k: v for k, v in config.items() if k != 'feature'}
+                feature_params = {k: v for k, v in config.items() if k != 'feature' and k != 'is_raw_data'}
                 
                 # Compute feature using stateless function
                 result = compute_feature(feature_type, df, **feature_params)
@@ -261,6 +276,12 @@ class ComponentState:
                         
             except Exception as e:
                 logger.error("Error computing feature %s for %s: %s", feature_name, symbol, e)
+        
+        # Also ensure close price is always available as a feature
+        if 'close' not in symbol_features:
+            close_data = self._price_data[symbol].get('close')
+            if close_data and len(close_data) > 0:
+                symbol_features['close'] = float(close_data[-1])
         
         # Add feature aliases for classifiers that expect generic names
         # Map specific feature names to generic ones
@@ -448,25 +469,57 @@ class ComponentState:
         """Load strategies (backwards compatibility)."""
         strategy_components = stateless_components.get('strategies', {})
         
+        logger.info(f"STRATEGY LOADING: Found {len(strategies)} strategy configs")
+        logger.info(f"STRATEGY LOADING: Found {len(strategy_components)} strategy functions from topology")
+        
         if strategy_components:
             logger.info(f"Using {len(strategy_components)} strategies from topology")
             for strategy_name, strategy_func in strategy_components.items():
+                logger.info(f"Processing strategy component: {strategy_name}")
                 # Find matching config by name or type
-                strategy_config = next(
-                    (s for s in strategies if s.get('name') == strategy_name or s.get('type') == strategy_name),
-                    {}
-                )
+                # For grid search, strategy_name might be expanded (e.g., 'sma_crossover_grid_3_15')
+                # but we need to match against the config with the same name
+                strategy_config = None
+                for s in strategies:
+                    if s.get('name') == strategy_name:
+                        strategy_config = s
+                        break
+                    # Also check if this is a base strategy type match
+                    if s.get('type') == strategy_name:
+                        strategy_config = s
+                        break
+                
+                if not strategy_config:
+                    # For grid search: the strategy name in components matches the expanded name
+                    # but we need the config which has the same expanded name
+                    logger.warning(f"No config found for strategy {strategy_name}. Available configs: {[s.get('name', s.get('type')) for s in strategies][:5]}...")
+                    # Try to find by partial match - grid search names include parameters
+                    for s in strategies:
+                        config_name = s.get('name', '')
+                        if strategy_name == config_name:
+                            strategy_config = s
+                            logger.info(f"Found config by exact name match: {config_name}")
+                            break
+                    if not strategy_config:
+                        strategy_config = {}
                 
                 # Create component_id with symbol pattern for proper filtering
                 symbols = container.config.config.get('symbols', ['unknown'])
                 symbol = symbols[0] if symbols else 'unknown'
                 component_id = f"{symbol}_{strategy_name}"
                 
+                # Add strategy type to parameters for better feature resolution
+                params_with_type = strategy_config.get('params', {}).copy()
+                params_with_type['_strategy_type'] = strategy_config.get('type', strategy_name)
+                
+                logger.info(f"Loading strategy {strategy_name} with params: {params_with_type}")
+                logger.info(f"Strategy function metadata: {getattr(strategy_func, '_strategy_metadata', 'No metadata')}")
+                
                 self.add_component(
                     component_id=component_id,
                     component_func=strategy_func,
                     component_type="strategy",
-                    parameters=strategy_config.get('params', {})
+                    parameters=params_with_type
                 )
                 logger.info(f"Loaded strategy: {strategy_name} from topology")
         else:
@@ -619,8 +672,15 @@ class ComponentState:
         ready_classifiers = []
         ready_strategies = []
         
+        if current_bars == 1 or current_bars % 20 == 0:  # Log occasionally for debugging
+            logger.info(f"Bar {current_bars}: Checking {len(components_snapshot)} components for readiness. Available features: {list(features.keys())}")
+        
         for component_id, component_info in components_snapshot:
             component_type = component_info['component_type']
+            
+            # Log component checks at first bar
+            if current_bars == 1:
+                logger.info(f"Checking component: {component_id} (type: {component_type})")
             
             # Check if this specific component has the features it needs
             if self._is_component_ready(component_id, component_info, features, current_bars):
@@ -628,15 +688,19 @@ class ComponentState:
                     ready_classifiers.append((component_id, component_info))
                 else:
                     ready_strategies.append((component_id, component_info))
+                    if current_bars == 20:  # Log when strategies become ready
+                        logger.info(f"Strategy {component_id} is READY at bar {current_bars}")
             else:
                 # Log why this component isn't ready yet
                 required_features = self._get_component_required_features(component_id, component_info)
                 missing_features = [f for f in required_features if f not in features or features[f] is None]
+                if current_bars == 1 or (missing_features and current_bars % 20 == 0):  # Log occasionally
+                    logger.info(f"Bar {current_bars}: Component {component_id} waiting for features: {missing_features[:3]}")
                 if missing_features and current_bars % 10 == 1:  # Log every 10 bars
                     logger.debug(f"Component {component_id} waiting for features: {missing_features[:3]}...")
         
         if ready_classifiers or ready_strategies:
-            logger.debug(f"Executing {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies at bar {current_bars}")
+            logger.info(f"Bar {current_bars}: Executing {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
         
         # Execute ready classifiers first
         current_classifications = {}
@@ -695,7 +759,7 @@ class ComponentState:
                     )
                     
             except Exception as e:
-                logger.error(f"Error executing strategy {component_id}: {e}")
+                logger.error(f"Error executing strategy {component_id}: {e}", exc_info=True)
         
         # Update all outputs after iteration is complete
         for component_id, result in outputs_to_update.items():
@@ -711,7 +775,7 @@ class ComponentState:
         if component_type == 'classifier':
             # Classifiers typically need basic features, ready quickly
             required_features = self._get_classifier_required_features(component_id, params)
-            min_bars_needed = 20  # Classifiers need less warmup
+            min_bars_needed = self._get_classifier_min_bars(component_id, params, required_features)
         else:
             # Strategies need specific features based on their parameters
             required_features = self._get_strategy_required_features(component_id, params)
@@ -722,44 +786,147 @@ class ComponentState:
             return False
         
         # Check if all required features are available and not None
+        missing_features = []
         for feature_name in required_features:
-            if feature_name not in features or features[feature_name] is None:
-                return False
+            if feature_name not in features:
+                missing_features.append(f"{feature_name} (not in dict)")
+            elif features[feature_name] is None:
+                missing_features.append(f"{feature_name} (is None)")
+        
+        if missing_features and current_bars == 20:  # Log at bar 20 for debugging
+            logger.info(f"Component {component_id} at bar 20 - Required: {required_features}, Missing: {missing_features}, Available: {list(features.keys())[:10]}...")
+        
+        return len(missing_features) == 0
         
         return True
     
     def _get_strategy_required_features(self, component_id: str, params: Dict[str, Any]) -> List[str]:
-        """Get the specific features this strategy needs."""
-        # Extract strategy type from component_id (e.g., 'SPY_ma_crossover_grid_10_20_1.0' -> 'ma_crossover')
-        # Also handle simple names like 'SPY_ma_5_20' for ma_crossover
-        if 'ma_crossover' in component_id or (component_id.startswith('SPY_ma_') and '_' in component_id[7:]):
+        """Get the specific features this strategy needs by extracting from function metadata."""
+        logger.debug(f"Getting required features for {component_id} with params: {params}")
+        
+        # First, try to get the strategy function and extract its feature config
+        component_info = self._components.get(component_id)
+        if component_info and 'function' in component_info:
+            strategy_func = component_info['function']
+            
+            # Extract feature config from the strategy function's metadata
+            if hasattr(strategy_func, '_strategy_metadata'):
+                feature_config = strategy_func._strategy_metadata.get('feature_config', {})
+                logger.debug(f"Found strategy metadata for {component_id}: {feature_config}")
+                
+                required_features = []
+                for feature_base, config in feature_config.items():
+                    param_names = config.get('params', [])
+                    defaults = config.get('defaults', {})
+                    
+                    if param_names:
+                        # For MA crossover: sma with ['fast_period', 'slow_period'] should generate sma_5 and sma_100 
+                        if feature_base == 'sma' and len(param_names) == 2 and 'fast_period' in param_names and 'slow_period' in param_names:
+                            # Special case for MA crossover - create separate SMA features
+                            fast_period = params.get('fast_period') or defaults.get('fast_period')
+                            slow_period = params.get('slow_period') or defaults.get('slow_period')
+                            if fast_period is not None:
+                                required_features.append(f"{feature_base}_{fast_period}")
+                            if slow_period is not None:
+                                required_features.append(f"{feature_base}_{slow_period}")
+                        else:
+                            # Standard case: create separate features for each parameter
+                            # For example, EMA crossover with fast/slow should create ema_3 and ema_15, not ema_3_15
+                            for param_name in param_names:
+                                param_value = params.get(param_name) or defaults.get(param_name) or config.get('default')
+                                if param_value is not None:
+                                    # Create individual feature for this parameter
+                                    required_features.append(f'{feature_base}_{param_value}')
+                    else:
+                        # Simple feature without parameters
+                        required_features.append(feature_base)
+                
+                if required_features:
+                    logger.debug(f"Extracted features from {component_id} metadata: {required_features}")
+                    return required_features
+            else:
+                logger.debug(f"No _strategy_metadata found for {component_id}")
+        
+        # Fallback: try to infer from parameters and component type
+        strategy_type = params.get('_strategy_type', '')
+        logger.info(f"FALLBACK: Using fallback for {component_id}, strategy_type: {strategy_type}, params: {params}")
+        
+        # Handle specific strategy types
+        if 'momentum' in component_id.lower() or strategy_type == 'simple_momentum':
+            # Momentum strategies need SMA and RSI
+            sma_period = params.get('sma_period', 20)
+            rsi_period = params.get('rsi_period', 14)
+            result = [f"sma_{sma_period}", f"rsi_{rsi_period}"]
+            logger.info(f"FALLBACK: Momentum strategy {component_id} requires: {result}")
+            return result
+        elif 'ma_crossover' in component_id.lower() or strategy_type == 'ma_crossover':
+            # MA crossover needs fast and slow SMAs - use actual parameters
             fast_period = params.get('fast_period', 10)
             slow_period = params.get('slow_period', 20)
-            return [f'sma_{fast_period}', f'sma_{slow_period}']
-        elif 'rsi_strategy' in component_id or 'rsi_grid' in component_id:
-            rsi_period = params.get('rsi_period', 14)
-            return [f'rsi_{rsi_period}']
-        elif 'macd_strategy' in component_id or 'macd_grid' in component_id:
-            return ['macd_macd', 'macd_signal']
-        elif 'breakout_strategy' in component_id or 'breakout_grid' in component_id:
+            result = [f"sma_{fast_period}", f"sma_{slow_period}"]
+            logger.info(f"FALLBACK: MA crossover strategy {component_id} using periods: fast={fast_period}, slow={slow_period} from params: {params}")
+            logger.info(f"FALLBACK: MA crossover strategy {component_id} requires: {result}")
+            return result
+        elif 'breakout' in component_id.lower() or strategy_type in ['breakout', 'breakout_strategy']:
+            # Breakout strategies need high/low/volume/atr
             lookback_period = params.get('lookback_period', 20)
             atr_period = params.get('atr_period', 14)
-            # Breakout strategies need computed rolling features, not raw OHLCV (which comes from bar)
-            return [f'high_{lookback_period}', f'low_{lookback_period}', f'volume_{lookback_period}_volume_ma', f'atr_{atr_period}']
+            return [f"high_{lookback_period}", f"low_{lookback_period}", f"volume_{lookback_period}_volume_ma", f"atr_{atr_period}"]
+        elif 'mean_reversion' in component_id.lower() or strategy_type in ['mean_reversion', 'mean_reversion_simple']:
+            # Mean reversion needs RSI and Bollinger Bands
+            rsi_period = params.get('rsi_period', 14)
+            bb_period = params.get('bb_period', 20)
+            return [f"rsi_{rsi_period}", f"bollinger_{bb_period}_upper", f"bollinger_{bb_period}_lower"]
+        
+        # Basic parameter-based inference for common patterns
+        if 'rsi_period' in params:
+            return [f"rsi_{params['rsi_period']}"]
+        elif 'entry_rsi_period' in params:
+            return [f"rsi_{params['entry_rsi_period']}"]
+        elif 'fast_period' in params and 'slow_period' in params:
+            return [f"sma_{params['fast_period']}", f"sma_{params['slow_period']}"]
         else:
-            # Default features for unknown strategies
-            return ['sma_20', 'rsi_14']
+            # Last resort - minimal default features
+            logger.warning(f"Could not determine required features for {component_id} (type: {strategy_type}), using minimal defaults")
+            return ['rsi_14']
     
     def _get_classifier_required_features(self, component_id: str, params: Dict[str, Any]) -> List[str]:
         """Get the specific features this classifier needs."""
-        if 'momentum' in component_id:
-            return ['rsi_14', 'macd_macd']
+        # Extract classifier type from component_id
+        if 'enhanced_trend' in component_id:
+            return ['sma_10', 'sma_20', 'sma_50']
+        elif 'market_regime' in component_id:
+            return ['sma_10', 'sma_50', 'atr_20', 'rsi_14']
+        elif 'hidden_markov' in component_id:
+            return ['volume', 'rsi_14', 'sma_20', 'sma_50', 'atr_14']
+        elif 'volatility_momentum' in component_id:
+            return ['atr_14', 'rsi_14', 'sma_20']
+        elif 'microstructure' in component_id:
+            return ['sma_5', 'sma_20', 'atr_10', 'rsi_7']
+        elif 'momentum' in component_id:
+            return ['rsi_14', 'macd', 'momentum_10']
         elif 'volatility' in component_id:
             return ['atr_14', 'volatility_20']
         elif 'trend' in component_id:
-            return ['sma_10', 'sma_20']
+            return ['sma_10', 'sma_20', 'sma_50']
         else:
             return ['sma_20', 'rsi_14']  # Basic features
+    
+    def _get_classifier_min_bars(self, component_id: str, params: Dict[str, Any], required_features: List[str]) -> int:
+        """Get minimum bars needed for this classifier based on its features."""
+        min_bars = 20  # Default for basic classifiers
+        
+        # Extract maximum period from required features
+        for feature in required_features:
+            parts = feature.split('_')
+            if len(parts) >= 2:
+                try:
+                    period = int(parts[1])
+                    min_bars = max(min_bars, period + 5)  # Feature period + buffer
+                except ValueError:
+                    continue
+        
+        return min_bars
     
     def _get_strategy_min_bars(self, component_id: str, params: Dict[str, Any]) -> int:
         """Get minimum bars needed for this specific strategy."""
@@ -895,8 +1062,9 @@ class ComponentState:
         
         # Convert component output to SIGNAL event format
         if component_type == "strategy":
-            # Strategy outputs - existing format
+            # Handle both signal_type format and signal_value format
             if result.get('signal_type'):
+                # Original format with signal_type
                 signal = Signal(
                     symbol=symbol,
                     direction=result.get('direction', SignalDirection.FLAT),
@@ -910,6 +1078,44 @@ class ComponentState:
                     }
                 )
                 self._publish_signal(signal)
+            elif 'signal_value' in result:
+                # Indicator strategy format with signal_value (-1, 0, 1)
+                signal_value = result.get('signal_value', 0)
+                
+                # Convert signal_value to direction
+                if signal_value > 0:
+                    direction = SignalDirection.LONG
+                elif signal_value < 0:
+                    direction = SignalDirection.SHORT
+                else:
+                    direction = SignalDirection.FLAT
+                
+                # Only publish non-flat signals
+                if direction != SignalDirection.FLAT:
+                    
+                    # Handle timestamp - strategy returns None, use the bar timestamp
+                    signal_timestamp = result.get('timestamp')
+                    if signal_timestamp is None:
+                        signal_timestamp = timestamp
+                    
+                    signal = Signal(
+                        symbol=symbol,
+                        direction=direction,
+                        strength=abs(signal_value),  # Use absolute value as strength
+                        timestamp=signal_timestamp,
+                        strategy_id=component_id,  # Use component_id which includes the full expanded name
+                        signal_type=SignalType.ENTRY,  # Indicator signals are continuous entry signals
+                        metadata={
+                            **result.get('metadata', {}),
+                            'component_type': component_type,
+                            'signal_value': signal_value,
+                            'symbol_timeframe': result.get('symbol_timeframe', f"{symbol}_1m"),
+                            'base_strategy_id': result.get('strategy_id', '')  # Keep original strategy type for reference
+                        }
+                    )
+                    self._publish_signal(signal)
+                else:
+                    logger.debug(f"Not publishing flat signal for {component_id}: signal_value={signal_value}")
                 
         elif component_type == "classifier":
             # Classifier outputs - only publish on classification change

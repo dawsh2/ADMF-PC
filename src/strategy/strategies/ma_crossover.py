@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @strategy(
+    name='ma_crossover',
     feature_config={
         'sma': {'params': ['fast_period', 'slow_period'], 'defaults': {'fast_period': 5, 'slow_period': 20}}
     },

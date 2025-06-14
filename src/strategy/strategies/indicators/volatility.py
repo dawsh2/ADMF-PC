@@ -23,8 +23,8 @@ def keltner_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
     Keltner Channel breakout strategy.
     
     Returns sustained signal based on price vs Keltner Channel:
-    - 1: Price > upper band (breakout above channel)
-    - -1: Price < lower band (breakout below channel)
+    - -1: Price > upper band (mean reversion short signal)
+    - 1: Price < lower band (mean reversion long signal)
     - 0: Price within channel
     """
     period = params.get('period', 20)
@@ -39,13 +39,13 @@ def keltner_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
     if upper_band is None or lower_band is None:
         return None
     
-    # Determine signal based on channel position
+    # Determine signal based on channel position (mean reversion logic)
     if price > upper_band:
-        signal_value = 1  # Breakout above channel
+        signal_value = -1  # Mean reversion short
     elif price < lower_band:
-        signal_value = -1  # Breakout below channel
+        signal_value = 1   # Mean reversion long
     else:
-        signal_value = 0  # Within channel
+        signal_value = 0   # Within channel
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -79,8 +79,8 @@ def donchian_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
     Donchian Channel breakout strategy.
     
     Returns sustained signal based on price vs Donchian Channel:
-    - 1: Price > upper band (new high breakout)
-    - -1: Price < lower band (new low breakout)
+    - -1: Price > upper band (mean reversion short signal)
+    - 1: Price < lower band (mean reversion long signal)
     - 0: Price within channel
     """
     period = params.get('period', 20)
@@ -94,13 +94,13 @@ def donchian_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
     if upper_band is None or lower_band is None:
         return None
     
-    # Determine signal based on channel position
+    # Determine signal based on channel position (mean reversion logic)
     if price > upper_band:
-        signal_value = 1  # New high breakout
+        signal_value = -1  # Mean reversion short
     elif price < lower_band:
-        signal_value = -1  # New low breakout
+        signal_value = 1   # Mean reversion long
     else:
-        signal_value = 0  # Within channel
+        signal_value = 0   # Within channel
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -138,8 +138,6 @@ def bollinger_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     """
     period = params.get('period', 20)
     std_dev = params.get('std_dev', 2.0)
-    strategy_mode = params.get('mode', 'mean_reversion')  # 'breakout' or 'mean_reversion'
-    
     # Get features
     upper_band = features.get(f'bollinger_bands_{period}_{std_dev}_upper')
     lower_band = features.get(f'bollinger_bands_{period}_{std_dev}_lower')
@@ -149,23 +147,13 @@ def bollinger_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     if upper_band is None or lower_band is None:
         return None
     
-    # Determine signal based on mode
-    if strategy_mode == 'breakout':
-        # Breakout mode: trade with the break
-        if price > upper_band:
-            signal_value = 1  # Continue upward momentum
-        elif price < lower_band:
-            signal_value = -1  # Continue downward momentum
-        else:
-            signal_value = 0  # Within bands
+    # Mean reversion logic (matching reference implementation)
+    if price > upper_band:
+        signal_value = -1  # Mean reversion short
+    elif price < lower_band:
+        signal_value = 1   # Mean reversion long
     else:
-        # Mean reversion mode: trade against the break
-        if price > upper_band:
-            signal_value = -1  # Expect reversion from overbought
-        elif price < lower_band:
-            signal_value = 1   # Expect reversion from oversold
-        else:
-            signal_value = 0   # Within bands
+        signal_value = 0   # Within bands
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -181,7 +169,6 @@ def bollinger_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Di
             'upper_band': upper_band,
             'lower_band': lower_band,
             'middle_band': middle_band,
-            'band_width': upper_band - lower_band,
-            'mode': strategy_mode
+            'band_width': upper_band - lower_band
         }
     }

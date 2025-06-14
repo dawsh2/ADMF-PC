@@ -34,8 +34,8 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
                  managed_strategies: Optional[List[str]] = None,
                  managed_classifiers: Optional[List[str]] = None,
                  data_source_config: Optional[Dict[str, Any]] = None,
-                 write_interval: int = 500,
-                 write_on_changes: int = 100):
+                 write_interval: int = 0,
+                 write_on_changes: int = 0):
         """
         Initialize streaming multi-strategy tracer.
         
@@ -45,8 +45,8 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
             managed_strategies: Strategies to trace
             managed_classifiers: Classifiers to trace
             data_source_config: Data source configuration
-            write_interval: Write to disk every N bars
-            write_on_changes: Write to disk every M changes
+            write_interval: Write to disk every N bars (0 = only at end)
+            write_on_changes: Write to disk every M changes (0 = only at end)
         """
         self._workspace_path = Path(workspace_path)
         self._workflow_id = workflow_id
@@ -77,12 +77,20 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
         self._traces_dir.mkdir(parents=True, exist_ok=True)
         
         logger.info(f"StreamingMultiStrategyTracer initialized for workspace: {workspace_path}")
-        logger.info(f"Write settings: every {write_interval} bars or {write_on_changes} changes")
+        if write_interval > 0 or write_on_changes > 0:
+            logger.info(f"Write settings: every {write_interval} bars or {write_on_changes} changes")
+        else:
+            logger.info("Write settings: only at end (no periodic writes)")
     
     def on_event(self, event: Event) -> None:
         """Process events from the root event bus."""
         if event.event_type == EventType.BAR.value:
-            self._current_bar_count += 1
+            # Use original bar index from event payload for consistent sparse storage
+            if hasattr(event, 'payload') and 'original_bar_index' in event.payload:
+                self._current_bar_count = event.payload['original_bar_index'] + 1  # Convert to 1-based
+            else:
+                # Fallback to incrementing for backward compatibility
+                self._current_bar_count += 1
             
             # Log progress periodically
             if self._current_bar_count % 100 == 0:
@@ -175,24 +183,27 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
         # Extract strategy/classifier type for directory organization
         component_parts = component_id.split('_')
         if 'grid' in component_id:
+            # Find the grid pattern (e.g., ma_crossover_grid, rsi_grid)
             grid_idx = component_parts.index('grid')
             start_idx = 1 if component_parts[0] == symbol else 0
-            strategy_type = '_'.join(component_parts[start_idx:start_idx + grid_idx])
+            strategy_type = '_'.join(component_parts[start_idx:grid_idx + 1])  # Include 'grid'
         else:
             start_idx = 1 if component_parts[0] == symbol else 0
             strategy_type = component_parts[start_idx] if start_idx < len(component_parts) else 'unknown'
         
-        # Create subdirectory structure
+        # Create subdirectory structure: traces/SYMBOL_TIMEFRAME/signals|classifiers/STRATEGY_TYPE/
+        symbol_timeframe_dir = self._traces_dir / f"{symbol}_{timeframe}"
         if component_type == 'strategy':
-            component_dir = self._traces_dir / 'signals' / strategy_type / component_id
+            component_dir = symbol_timeframe_dir / 'signals' / strategy_type
         else:
-            component_dir = self._traces_dir / 'classifiers' / strategy_type / component_id
+            component_dir = symbol_timeframe_dir / 'classifiers' / strategy_type
         
-        # Create streaming storage
+        # Create streaming storage with component_id for filename
         storage = StreamingSparseStorage(
             base_dir=str(component_dir),
             write_interval=self._write_interval,
-            write_on_changes=self._write_on_changes
+            write_on_changes=self._write_on_changes,
+            component_id=component_id
         )
         
         self._storages[component_id] = storage

@@ -151,7 +151,9 @@ class TopologyBuilder:
         trace_enabled = execution_config.get('enable_event_tracing', False)
         use_sparse = execution_config.get('trace_settings', {}).get('use_sparse_storage', False)
         
-        if mode == 'signal_generation' and trace_enabled and use_sparse:
+        # For signal generation, always set up MultiStrategyTracer regardless of container tracing
+        # MultiStrategyTracer handles signal storage independently from event tracing
+        if mode == 'signal_generation' and use_sparse:
             self._setup_multi_strategy_tracer(topology, context, tracing_config)
         
         self.logger.info(
@@ -247,9 +249,9 @@ class TopologyBuilder:
         
         # Create the multi-strategy tracer
         if use_streaming:
-            # Get write settings from config or use defaults
-            write_interval = trace_settings.get('write_interval', 500)
-            write_on_changes = trace_settings.get('write_on_changes', 100)
+            # Get write settings from config (default to no periodic writes)
+            write_interval = trace_settings.get('write_interval', 0)
+            write_on_changes = trace_settings.get('write_on_changes', 0)
             
             tracer = StreamingMultiStrategyTracer(
                 workspace_path=full_workspace_path,
@@ -439,18 +441,70 @@ class TopologyBuilder:
                 function_candidates = [
                     f'{strategy_type}_strategy',  # momentum -> momentum_strategy
                     strategy_type,                # momentum -> momentum
+                    f'{strategy_type.replace("_strategy", "")}_strategy',  # momentum_strategy -> momentum_strategy
                 ]
                 
                 # Try importing from the appropriate module
                 module_name = strategy_type.replace('_strategy', '')  # Remove _strategy suffix if present
                 module_path = f'src.strategy.strategies.{module_name}'
                 
+                # Try multiple import strategies
+                module = None
+                import_errors = []
+                
+                # Strategy 1: Try direct module import
                 try:
-                    # Try direct import without going through __init__.py
-                    import sys
-                    if module_path in sys.modules:
-                        module = sys.modules[module_path]
-                    else:
+                    module = importlib.import_module(module_path)
+                except ImportError as e:
+                    import_errors.append(f"Direct import failed: {e}")
+                    
+                # Strategy 2: Try importing from indicators submodules
+                if not module:
+                    indicator_modules = {
+                        # Crossover strategies
+                        'sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'ema_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'ema_sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'dema_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'dema_sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'tema_sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'stochastic_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'vortex_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'macd_crossover': 'src.strategy.strategies.indicators.crossovers',
+                        'ichimoku_cloud_position': 'src.strategy.strategies.indicators.crossovers',
+                        # Oscillator strategies
+                        'rsi_threshold': 'src.strategy.strategies.indicators.oscillators',
+                        'rsi_bands': 'src.strategy.strategies.indicators.oscillators',
+                        'cci_threshold': 'src.strategy.strategies.indicators.oscillators',
+                        'cci_bands': 'src.strategy.strategies.indicators.oscillators',
+                        'stochastic_rsi': 'src.strategy.strategies.indicators.oscillators',
+                        'williams_r': 'src.strategy.strategies.indicators.oscillators',
+                        'roc_threshold': 'src.strategy.strategies.indicators.oscillators',
+                        'ultimate_oscillator': 'src.strategy.strategies.indicators.oscillators',
+                        # Volatility strategies
+                        'keltner_breakout': 'src.strategy.strategies.indicators.volatility',
+                        'donchian_breakout': 'src.strategy.strategies.indicators.volatility',
+                        'bollinger_breakout': 'src.strategy.strategies.indicators.volatility',
+                        # Volume strategies
+                        'obv_trend': 'src.strategy.strategies.indicators.volume',
+                        'mfi_bands': 'src.strategy.strategies.indicators.volume',
+                        'vwap_deviation': 'src.strategy.strategies.indicators.volume',
+                        'chaikin_money_flow': 'src.strategy.strategies.indicators.volume',
+                        'accumulation_distribution': 'src.strategy.strategies.indicators.volume',
+                    }
+                    
+                    if strategy_type in indicator_modules:
+                        try:
+                            module = importlib.import_module(indicator_modules[strategy_type])
+                            module_path = indicator_modules[strategy_type]
+                        except ImportError as e:
+                            import_errors.append(f"Indicator module import failed: {e}")
+                
+                # Strategy 3: Try file-based import as last resort
+                if not module:
+                    try:
+                        import sys
+                        import os
                         # Import the specific module directly
                         spec = importlib.util.spec_from_file_location(
                             module_path,
@@ -462,21 +516,23 @@ class TopologyBuilder:
                             spec.loader.exec_module(module)
                         else:
                             raise ImportError(f"Could not find module file for {module_name}")
-                    
-                    # Look for the function by name
-                    for candidate in function_candidates:
-                        if hasattr(module, candidate):
-                            func = getattr(module, candidate)
-                            if callable(func):
-                                self.logger.info(f"Found strategy function: {candidate} in {module_path}")
-                                return func
-                    
-                    self.logger.warning(f"No strategy function found for type '{strategy_type}' in {module_path}")
-                    return None
-                    
-                except ImportError as e:
-                    self.logger.warning(f"Could not import strategy module {module_path}: {e}")
-                    return None
+                    except Exception as e:
+                        import_errors.append(f"File-based import failed: {e}")
+                
+                if not module:
+                    self.logger.error(f"Failed to import strategy module. Errors: {import_errors}")
+                    raise ImportError(f"Could not import strategy module {module_path}")
+                
+                # Look for the function by name
+                for candidate in function_candidates:
+                    if hasattr(module, candidate):
+                        func = getattr(module, candidate)
+                        if callable(func):
+                            self.logger.info(f"Found strategy function: {candidate} in {module_path}")
+                            return func
+                
+                self.logger.warning(f"No strategy function found for type '{strategy_type}' in {module_path}")
+                return None
                     
             elif comp_type == 'classifiers':
                 # Get classifier function reference
@@ -487,26 +543,30 @@ class TopologyBuilder:
                     classifier_type,  # momentum_regime_classifier -> momentum_regime_classifier
                 ]
                 
-                # Try importing from the classifiers module
-                module_path = 'src.strategy.classifiers.classifiers'
+                # Try importing from multiple classifier modules
+                module_paths = [
+                    'src.strategy.classifiers.classifiers',
+                    'src.strategy.classifiers.enhanced_multi_state_classifiers'
+                ]
                 
-                try:
-                    module = importlib.import_module(module_path)
-                    
-                    # Look for the function by name
-                    for candidate in function_candidates:
-                        if hasattr(module, candidate):
-                            func = getattr(module, candidate)
-                            if callable(func):
-                                self.logger.info(f"Found classifier function: {candidate} in {module_path}")
-                                return func
-                    
-                    self.logger.warning(f"No classifier function found for type '{classifier_type}' in {module_path}")
-                    return None
-                    
-                except ImportError as e:
-                    self.logger.warning(f"Could not import classifier module {module_path}: {e}")
-                    return None
+                for module_path in module_paths:
+                    try:
+                        module = importlib.import_module(module_path)
+                        
+                        # Look for the function by name
+                        for candidate in function_candidates:
+                            if hasattr(module, candidate):
+                                func = getattr(module, candidate)
+                                if callable(func):
+                                    self.logger.info(f"Found classifier function: {candidate} in {module_path}")
+                                    return func
+                        
+                    except ImportError as e:
+                        self.logger.debug(f"Could not import classifier module {module_path}: {e}")
+                        continue
+                
+                self.logger.warning(f"No classifier function found for type '{classifier_type}' in any module")
+                return None
                 
             else:
                 # Other component types not implemented yet
@@ -1538,6 +1598,46 @@ class TopologyBuilder:
                                     'slow': 26,
                                     'signal': period_value
                                 }
+                            elif feature_type == 'stochastic':
+                                # Stochastic uses k_period and d_period
+                                feature_configs[feature_id] = {
+                                    'feature': 'stochastic',
+                                    'k_period': period_value,
+                                    'd_period': 3  # Default d_period
+                                }
+                            elif feature_type == 'stochastic_rsi':
+                                # Handle stochastic_rsi features with two periods
+                                # Pattern: stochastic_rsi_14_14 -> rsi_period=14, stoch_period=14
+                                if len(parts) >= 3:
+                                    try:
+                                        rsi_period = int(parts[1])
+                                        stoch_period = int(parts[2])
+                                        feature_configs[feature_id] = {
+                                            'feature': 'stochastic_rsi',
+                                            'rsi_period': rsi_period,
+                                            'stoch_period': stoch_period
+                                        }
+                                    except ValueError:
+                                        # Fallback to defaults
+                                        feature_configs[feature_id] = {
+                                            'feature': 'stochastic_rsi',
+                                            'rsi_period': 14,
+                                            'stoch_period': 14
+                                        }
+                                else:
+                                    feature_configs[feature_id] = {
+                                        'feature': 'stochastic_rsi',
+                                        'rsi_period': 14,
+                                        'stoch_period': period_value
+                                    }
+                            elif feature_type == 'ichimoku':
+                                # Ichimoku uses multiple periods
+                                feature_configs[feature_id] = {
+                                    'feature': 'ichimoku',
+                                    'conversion_period': 9,
+                                    'base_period': 26,
+                                    'lead_span_b_period': period_value or 52
+                                }
                             else:
                                 # Create feature config with 'period' parameter for most features
                                 feature_configs[feature_id] = {
@@ -1552,11 +1652,57 @@ class TopologyBuilder:
                                 feature_configs[feature_id] = {'feature': 'rsi'}
                             elif feature_type == 'momentum':
                                 feature_configs[feature_id] = {'feature': 'momentum'}
+                            elif feature_type == 'keltner':
+                                feature_configs[feature_id] = {'feature': 'keltner_channel'}
+                            elif feature_type == 'donchian':
+                                feature_configs[feature_id] = {'feature': 'donchian_channel'}
+                            elif feature_type == 'williams':
+                                feature_configs[feature_id] = {'feature': 'williams_r'}
+                            elif feature_type == 'bollinger':
+                                feature_configs[feature_id] = {'feature': 'bollinger_bands'}
+                            elif feature_type == 'ultimate':
+                                feature_configs[feature_id] = {'feature': 'ultimate_oscillator'}
+                            elif feature_type == 'obv':
+                                feature_configs[feature_id] = {'feature': 'obv'}
+                            elif feature_type == 'roc':
+                                feature_configs[feature_id] = {'feature': 'roc'}
+                            elif feature_type == 'cmf':
+                                feature_configs[feature_id] = {'feature': 'cmf'}
+                            elif feature_type == 'ad':
+                                feature_configs[feature_id] = {'feature': 'ad'}
+                            elif feature_type == 'aroon':
+                                feature_configs[feature_id] = {'feature': 'aroon'}
+                            elif feature_type == 'vwap':
+                                feature_configs[feature_id] = {'feature': 'vwap'}
+                            elif feature_type == 'mfi':
+                                feature_configs[feature_id] = {'feature': 'mfi'}
+                            elif feature_type == 'supertrend':
+                                feature_configs[feature_id] = {'feature': 'supertrend'}
+                            elif feature_type == 'psar':
+                                feature_configs[feature_id] = {'feature': 'psar'}
+                            elif feature_type == 'linear':
+                                feature_configs[feature_id] = {'feature': 'linear_regression'}
+                            elif feature_type == 'pivot':
+                                feature_configs[feature_id] = {'feature': 'pivot_points'}
+                            elif feature_type == 'fibonacci':
+                                feature_configs[feature_id] = {'feature': 'fibonacci_retracement'}
+                            elif feature_type == 'support':
+                                feature_configs[feature_id] = {'feature': 'support_resistance'}
+                            elif feature_type == 'swing':
+                                feature_configs[feature_id] = {'feature': 'swing_points'}
+                            elif feature_type == 'di':
+                                # DI is part of ADX system, map to ADX
+                                feature_configs[feature_id] = {'feature': 'adx'}
                             else:
                                 feature_configs[feature_id] = {'feature': feature_type}
                     else:
                         # Simple feature without parameters
-                        feature_configs[feature_id] = {'feature': parts[0] if parts else feature_id}
+                        # Special handling for volume which is raw data, not a calculated feature
+                        if feature_id == 'volume':
+                            # Volume is provided directly from bar data, not calculated
+                            feature_configs[feature_id] = {'feature': 'volume', 'is_raw_data': True}
+                        else:
+                            feature_configs[feature_id] = {'feature': parts[0] if parts else feature_id}
                 
                 # Add feature configs to context config for strategy containers  
                 if "feature_configs" not in context['config']:
@@ -1600,17 +1746,84 @@ class TopologyBuilder:
         required_features = set()
         registry = get_component_registry()
         
+        # Import all indicator modules first to ensure decorators run
+        indicator_modules = {
+            # Crossover strategies
+            'sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'ema_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'ema_sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'dema_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'dema_sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'tema_sma_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'stochastic_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'vortex_crossover': 'src.strategy.strategies.indicators.crossovers',
+            'ichimoku_cloud_position': 'src.strategy.strategies.indicators.crossovers',
+            'macd_crossover': 'src.strategy.strategies.indicators.crossovers',
+            # Oscillator strategies
+            'rsi_threshold': 'src.strategy.strategies.indicators.oscillators',
+            'rsi_bands': 'src.strategy.strategies.indicators.oscillators',
+            'cci_threshold': 'src.strategy.strategies.indicators.oscillators',
+            'cci_bands': 'src.strategy.strategies.indicators.oscillators',
+            'stochastic_rsi': 'src.strategy.strategies.indicators.oscillators',
+            'williams_r': 'src.strategy.strategies.indicators.oscillators',
+            'roc_threshold': 'src.strategy.strategies.indicators.oscillators',
+            'ultimate_oscillator': 'src.strategy.strategies.indicators.oscillators',
+            # Volatility strategies
+            'keltner_breakout': 'src.strategy.strategies.indicators.volatility',
+            'donchian_breakout': 'src.strategy.strategies.indicators.volatility',
+            'bollinger_breakout': 'src.strategy.strategies.indicators.volatility',
+            # Volume strategies
+            'obv_trend': 'src.strategy.strategies.indicators.volume',
+            'mfi_bands': 'src.strategy.strategies.indicators.volume',
+            'vwap_deviation': 'src.strategy.strategies.indicators.volume',
+            'chaikin_money_flow': 'src.strategy.strategies.indicators.volume',
+            'accumulation_distribution': 'src.strategy.strategies.indicators.volume',
+            # Trend strategies
+            'adx_trend_strength': 'src.strategy.strategies.indicators.trend',
+            'parabolic_sar': 'src.strategy.strategies.indicators.trend',
+            'aroon_crossover': 'src.strategy.strategies.indicators.trend',
+            'supertrend': 'src.strategy.strategies.indicators.trend',
+            'linear_regression_slope': 'src.strategy.strategies.indicators.trend',
+            # Market structure strategies
+            'pivot_points': 'src.strategy.strategies.indicators.structure',
+            'fibonacci_retracement': 'src.strategy.strategies.indicators.structure',
+            'support_resistance_breakout': 'src.strategy.strategies.indicators.structure',
+            'atr_channel_breakout': 'src.strategy.strategies.indicators.structure',
+            'price_action_swing': 'src.strategy.strategies.indicators.structure',
+        }
+        
+        # Import all unique modules to ensure decorators run
+        imported_modules = set()
+        for module_path in indicator_modules.values():
+            if module_path not in imported_modules:
+                try:
+                    importlib.import_module(module_path)
+                    imported_modules.add(module_path)
+                    self.logger.debug(f"Imported module {module_path} for feature inference")
+                except ImportError as e:
+                    self.logger.debug(f"Could not import {module_path}: {e}")
+        
+        # Log all registered strategies for debugging
+        all_strategies = registry.get_components_by_type('strategy')
+        self.logger.info(f"Registry contains {len(all_strategies)} strategies: {[s.name for s in all_strategies]}")
+        
         for strategy_config in strategies:
             strategy_type = strategy_config.get('type', strategy_config.get('class'))
             strategy_params = strategy_config.get('params', strategy_config.get('parameters', {}))
             
+            self.logger.info(f"Processing strategy {strategy_type} with params: {strategy_params}")
+            
             # Import the strategy module to ensure decorator runs
             try:
+                # First try the standard location
                 module_name = strategy_type.replace('_strategy', '')  
                 module_path = f'src.strategy.strategies.{module_name}'
-                importlib.import_module(module_path)
+                if module_path not in imported_modules:
+                    importlib.import_module(module_path)
+                    imported_modules.add(module_path)
             except ImportError:
-                self.logger.debug(f"Could not import {module_path} for feature inference")
+                # Already imported indicator modules above
+                pass
             
             # Get strategy metadata from registry
             # Try different name variations
@@ -1618,6 +1831,7 @@ class TopologyBuilder:
             for name_variant in [strategy_type, f'{strategy_type}_strategy', strategy_type.replace('_strategy', '')]:
                 strategy_info = registry.get_component(name_variant)
                 if strategy_info:
+                    self.logger.info(f"Found strategy {name_variant} in registry with metadata: {strategy_info.metadata}")
                     break
             
             if strategy_info:
@@ -1632,21 +1846,37 @@ class TopologyBuilder:
                     
                     # Handle parameter lists (for grid search)
                     if param_names:
-                        for param_name in param_names:
-                            if param_name in strategy_params:
-                                param_values = strategy_params[param_name]
-                                # Handle both single values and lists
-                                if isinstance(param_values, list):
-                                    for value in param_values:
-                                        required_features.add(f'{feature_name}_{value}')
-                                else:
-                                    required_features.add(f'{feature_name}_{param_values}')
-                            elif param_name in defaults:
-                                # Use specific default for this param
-                                required_features.add(f'{feature_name}_{defaults[param_name]}')
-                            elif default_value is not None:
-                                # Use general default
-                                required_features.add(f'{feature_name}_{default_value}')
+                        # Special handling for MA crossover strategies
+                        if feature_name == 'sma' and len(param_names) == 2 and 'fast_period' in param_names and 'slow_period' in param_names:
+                            # MA crossover needs separate SMA features for fast and slow
+                            for param_name in param_names:
+                                if param_name in strategy_params:
+                                    param_values = strategy_params[param_name]
+                                    # Handle both single values and lists
+                                    if isinstance(param_values, list):
+                                        for value in param_values:
+                                            required_features.add(f'{feature_name}_{value}')
+                                    else:
+                                        required_features.add(f'{feature_name}_{param_values}')
+                                elif param_name in defaults:
+                                    required_features.add(f'{feature_name}_{defaults[param_name]}')
+                        else:
+                            # Standard parameter handling
+                            for param_name in param_names:
+                                if param_name in strategy_params:
+                                    param_values = strategy_params[param_name]
+                                    # Handle both single values and lists
+                                    if isinstance(param_values, list):
+                                        for value in param_values:
+                                            required_features.add(f'{feature_name}_{value}')
+                                    else:
+                                        required_features.add(f'{feature_name}_{param_values}')
+                                elif param_name in defaults:
+                                    # Use specific default for this param
+                                    required_features.add(f'{feature_name}_{defaults[param_name]}')
+                                elif default_value is not None:
+                                    # Use general default
+                                    required_features.add(f'{feature_name}_{default_value}')
                     else:
                         # Feature with no params, just add it
                         required_features.add(feature_name)
@@ -1657,27 +1887,113 @@ class TopologyBuilder:
                 # Fallback for strategies not in registry
                 self.logger.debug(f"Strategy '{strategy_type}' not found in registry, using hardcoded inference")
                 
-                # Legacy hardcoded logic as fallback
-                if strategy_type in ['MomentumStrategy', 'momentum']:
+                # Comprehensive fallback logic for all indicator strategies
+                if strategy_type == 'sma_crossover':
+                    # SMA crossover needs fast and slow SMAs
+                    fast_periods = strategy_params.get('fast_period', [10])
+                    slow_periods = strategy_params.get('slow_period', [20])
+                    if not isinstance(fast_periods, list):
+                        fast_periods = [fast_periods]
+                    if not isinstance(slow_periods, list):
+                        slow_periods = [slow_periods]
+                    for fast in fast_periods:
+                        required_features.add(f'sma_{fast}')
+                    for slow in slow_periods:
+                        required_features.add(f'sma_{slow}')
+                
+                elif strategy_type == 'ema_crossover':
+                    fast_periods = strategy_params.get('fast_ema_period', [10])
+                    slow_periods = strategy_params.get('slow_ema_period', [20])
+                    if not isinstance(fast_periods, list):
+                        fast_periods = [fast_periods]
+                    if not isinstance(slow_periods, list):
+                        slow_periods = [slow_periods]
+                    for fast in fast_periods:
+                        required_features.add(f'ema_{fast}')
+                    for slow in slow_periods:
+                        required_features.add(f'ema_{slow}')
+                
+                elif strategy_type == 'rsi_threshold' or strategy_type == 'rsi_bands':
+                    rsi_periods = strategy_params.get('rsi_period', [14])
+                    if not isinstance(rsi_periods, list):
+                        rsi_periods = [rsi_periods]
+                    for period in rsi_periods:
+                        required_features.add(f'rsi_{period}')
+                
+                elif strategy_type == 'macd_crossover':
+                    # MACD needs specific fast/slow/signal parameters
+                    fast_ema = strategy_params.get('fast_ema', 12)
+                    slow_ema = strategy_params.get('slow_ema', 26)
+                    signal_ema = strategy_params.get('signal_ema', 9)
+                    # MACD feature is named by its parameters
+                    required_features.add(f'macd_{fast_ema}_{slow_ema}_{signal_ema}')
+                
+                elif strategy_type == 'bollinger_breakout':
+                    periods = strategy_params.get('period', [20])
+                    if not isinstance(periods, list):
+                        periods = [periods]
+                    for period in periods:
+                        required_features.add(f'bollinger_{period}')
+                
+                elif strategy_type == 'keltner_breakout':
+                    periods = strategy_params.get('period', [20])
+                    if not isinstance(periods, list):
+                        periods = [periods]
+                    for period in periods:
+                        required_features.add(f'keltner_{period}')
+                        required_features.add(f'atr_{period}')
+                
+                elif strategy_type in ['MomentumStrategy', 'momentum']:
                     lookback_period = strategy_params.get('lookback_period', 20)
                     rsi_period = strategy_params.get('rsi_period', 14)
                     required_features.add(f'sma_{lookback_period}')
                     required_features.add(f'rsi_{rsi_period}')
+                
                 elif strategy_type in ['MeanReversionStrategy', 'mean_reversion']:
                     period = strategy_params.get('period', 20)
                     required_features.add(f'bollinger_{period}')
                     required_features.add('rsi_14')
+                
                 elif strategy_type in ['breakout_strategy', 'breakout']:
-                    # Breakout strategies need high/low/volume features
                     lookback_period = strategy_params.get('lookback_period', 20)
                     atr_period = strategy_params.get('atr_period', 14)
                     required_features.add(f'high_{lookback_period}')
                     required_features.add(f'low_{lookback_period}')
-                    required_features.add(f'volume_{lookback_period}')  # This will create volume_X_volume_ma
+                    required_features.add(f'volume_{lookback_period}')
                     required_features.add(f'atr_{atr_period}')
+                
                 else:
-                    # Default features
-                    required_features.update(['sma_20', 'rsi_14'])
+                    # Try to infer from parameters for unknown strategies
+                    param_based_features = set()
+                    
+                    # Check for common parameter patterns
+                    for param_name, param_value in strategy_params.items():
+                        if 'period' in param_name.lower():
+                            # Extract feature type from parameter name
+                            if 'rsi' in param_name:
+                                if isinstance(param_value, list):
+                                    for v in param_value:
+                                        param_based_features.add(f'rsi_{v}')
+                                else:
+                                    param_based_features.add(f'rsi_{param_value}')
+                            elif 'sma' in param_name or 'fast' in param_name or 'slow' in param_name:
+                                if isinstance(param_value, list):
+                                    for v in param_value:
+                                        param_based_features.add(f'sma_{v}')
+                                else:
+                                    param_based_features.add(f'sma_{param_value}')
+                            elif 'ema' in param_name:
+                                if isinstance(param_value, list):
+                                    for v in param_value:
+                                        param_based_features.add(f'ema_{v}')
+                                else:
+                                    param_based_features.add(f'ema_{param_value}')
+                    
+                    if param_based_features:
+                        required_features.update(param_based_features)
+                    else:
+                        # Absolute default
+                        required_features.update(['sma_20', 'rsi_14'])
         
         # If no strategies found, add default features
         if not required_features:
@@ -1701,11 +2017,16 @@ class TopologyBuilder:
         required_features = set()
         registry = get_component_registry()
         
-        # Import classifier module to ensure decorators run
+        # Import classifier modules to ensure decorators run
         try:
             importlib.import_module('src.strategy.classifiers.classifiers')
         except ImportError:
             self.logger.debug("Could not import classifiers module")
+        
+        try:
+            importlib.import_module('src.strategy.classifiers.enhanced_multi_state_classifiers')
+        except ImportError:
+            self.logger.debug("Could not import enhanced classifiers module")
         
         for classifier_config in classifiers:
             classifier_type = classifier_config.get('type', classifier_config.get('name'))
@@ -1759,8 +2080,18 @@ class TopologyBuilder:
                 # Fallback for classifiers not in registry
                 self.logger.debug(f"Classifier '{classifier_type}' not found in registry, using defaults")
                 
-                # Add common features that classifiers might need
-                if 'momentum' in classifier_type:
+                # Add specific features for known classifiers
+                if classifier_type == 'volatility_momentum_classifier':
+                    required_features.update(['atr_14', 'rsi_14', 'sma_20'])
+                elif classifier_type == 'microstructure_classifier':
+                    required_features.update(['sma_5', 'sma_20', 'atr_10', 'rsi_7'])
+                elif classifier_type == 'hidden_markov_classifier':
+                    required_features.update(['volume', 'rsi_14', 'sma_20', 'sma_50', 'atr_14'])
+                elif classifier_type == 'enhanced_trend_classifier':
+                    required_features.update(['sma_10', 'sma_20', 'sma_50'])
+                elif classifier_type == 'market_regime_classifier':
+                    required_features.update(['sma_10', 'sma_50', 'atr_20', 'rsi_14'])
+                elif 'momentum' in classifier_type:
                     required_features.update(['rsi_14', 'macd', 'momentum_10'])
                 elif 'volatility' in classifier_type:
                     required_features.update(['atr_14', 'volatility_20', 'atr_sma_14_20', 'volatility_sma_20_20'])

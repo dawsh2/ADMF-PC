@@ -1,0 +1,1678 @@
+2025-06-13 19:46:33,002 - __main__ - INFO - Configuration loaded successfully from config/test_ma_crossover_momentum.yaml
+2025-06-13 19:46:33,002 - __main__ - INFO - Limiting data to 500 bars
+2025-06-13 19:46:33,002 - __main__ - INFO - Using dataset: test
+2025-06-13 19:46:33,002 - src.core.components.discovery - WARNING - Could not import module src.core.coordinator.workflows: No module named 'src.core.coordinator.workflows'
+2025-06-13 19:46:33,002 - src.core.components.discovery - WARNING - Could not import module src.core.coordinator.sequences: No module named 'src.core.coordinator.sequences'
+2025-06-13 19:46:33,005 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation
+2025-06-13 19:46:33,008 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: modern_backtest
+2025-06-13 19:46:33,010 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest_with_strategy
+2025-06-13 19:46:33,012 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest
+2025-06-13 19:46:33,015 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_replay
+2025-06-13 19:46:33,017 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation_strategy_trace
+2025-06-13 19:46:33,020 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: backtest
+2025-06-13 19:46:33,020 - src.core.coordinator.config.pattern_loader - INFO - Loaded 7 topologies patterns
+2025-06-13 19:46:33,022 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: composed_walk_forward
+2025-06-13 19:46:33,023 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: train_test
+2025-06-13 19:46:33,025 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: walk_forward_composed
+2025-06-13 19:46:33,027 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: parameter_sweep
+2025-06-13 19:46:33,029 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: walk_forward
+2025-06-13 19:46:33,029 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: single_pass
+2025-06-13 19:46:33,031 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: k_fold
+2025-06-13 19:46:33,032 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: nested_monte_carlo
+2025-06-13 19:46:33,033 - src.core.coordinator.config.pattern_loader - INFO - Loaded sequences pattern: monte_carlo
+2025-06-13 19:46:33,033 - src.core.coordinator.config.pattern_loader - INFO - Loaded 9 sequences patterns
+2025-06-13 19:46:33,038 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: adaptive_ensemble
+2025-06-13 19:46:33,039 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: simple_backtest
+2025-06-13 19:46:33,042 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: signal_generate_and_replay
+2025-06-13 19:46:33,044 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: modular_workflow
+2025-06-13 19:46:33,048 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: research_pipeline
+2025-06-13 19:46:33,053 - src.core.coordinator.config.pattern_loader - INFO - Loaded workflows pattern: composable_research
+2025-06-13 19:46:33,053 - src.core.coordinator.config.pattern_loader - INFO - Loaded 6 workflows patterns
+2025-06-13 19:46:33,053 - src.core.coordinator.coordinator - INFO - Coordinator 2b1d6761-9846-4c6f-8069-5d280bd71a3f initialized with 0 discovered workflows, 0 discovered sequences, and 6 workflow patterns
+2025-06-13 19:46:33,053 - __main__ - INFO - 🚀 Starting workflow execution...
+2025-06-13 19:46:33,053 - __main__ - INFO - 🎯 Executing signal_generation topology
+2025-06-13 19:46:33,055 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation
+2025-06-13 19:46:33,058 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: modern_backtest
+2025-06-13 19:46:33,060 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest_with_strategy
+2025-06-13 19:46:33,062 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: root_backtest
+2025-06-13 19:46:33,064 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_replay
+2025-06-13 19:46:33,066 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: signal_generation_strategy_trace
+2025-06-13 19:46:33,069 - src.core.coordinator.config.pattern_loader - INFO - Loaded topologies pattern: backtest
+2025-06-13 19:46:33,069 - src.core.coordinator.config.pattern_loader - INFO - Loaded 7 topologies patterns
+2025-06-13 19:46:33,069 - src.core.coordinator.coordinator - INFO - Executing topology 'signal_generation' directly
+2025-06-13 19:46:33,069 - src.core.coordinator.topology_runner - INFO - Executing topology 'signal_generation' (ID: 6b89ad0a-60d6-43c0-a0a8-812ead456494)
+2025-06-13 19:46:33,069 - src.core.coordinator.topology - INFO - Building signal_generation topology
+2025-06-13 19:46:33,069 - src.core.coordinator.topology - INFO - Expanded 1 strategies to 1 configurations
+2025-06-13 19:46:33,069 - src.core.coordinator.topology - INFO - Inferring features from 1 strategies and 0 classifiers
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Inferred features: ['sma_100', 'sma_5']
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Generated feature configs: {'sma_100': {'feature': 'sma', 'period': 100}, 'sma_5': {'feature': 'sma', 'period': 5}}
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Injected 2 features into context
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Extracted strategy names from strategies list: ['ma_crossover_momentum_test']
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Injected strategy_names into config: ['ma_crossover_momentum_test']
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Creating stateless components
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Resolved strategies to: [{'name': 'ma_crossover_momentum_test', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 100, 'signal_threshold': 2.0}}]
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Processing strategies item: {'name': 'ma_crossover_momentum_test', 'type': 'ma_crossover', 'params': {'fast_period': 5, 'slow_period': 100, 'signal_threshold': 2.0}}
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Found strategy function: ma_crossover_strategy in src.strategy.strategies.ma_crossover
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Added strategies component: ma_crossover_momentum_test
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Resolved classifiers to: []
+2025-06-13 19:46:33,086 - src.core.coordinator.topology - INFO - Creating containers
+2025-06-13 19:46:33,086 - src.core.containers.container - INFO - Created container: root (root_4fd41ffa) with event_bus: 4676514704
+2025-06-13 19:46:33,087 - src.core.containers.container - INFO - Created container: SPY_1m_data (data_1f799a05) with event_bus: 4676514704
+2025-06-13 19:46:33,694 - src.core.containers.container - INFO - Added child container data_1f799a05 to root_4fd41ffa
+2025-06-13 19:46:33,694 - src.core.coordinator.topology - INFO - Created child: root -> SPY_1m_data
+2025-06-13 19:46:33,694 - src.core.containers.container - INFO - Created container: strategy (strategy_6922bac9) with event_bus: 4676514704
+2025-06-13 19:46:33,703 - src.strategy.state - INFO - ComponentState configured with max_lookback=110 based on features
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - ComponentState subscribing to event_bus: <src.core.events.bus.EventBus object at 0x116bdf390>
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - ComponentState subscribed to BAR events in container strategy
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - ComponentState received features config: {'sma_100': {'feature': 'sma', 'period': 100}, 'sma_5': {'feature': 'sma', 'period': 5}}
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - Configured 2 features
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - Configured 2 features from container config
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - ComponentState config sections: strategies=1, classifiers=0, components=0
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - ComponentState received stateless_components: ['strategies', 'classifiers']
+2025-06-13 19:46:33,704 - src.strategy.state - INFO -   strategies: ['ma_crossover_momentum_test']
+2025-06-13 19:46:33,704 - src.strategy.state - INFO -   classifiers: []
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - Using 1 strategies from topology
+2025-06-13 19:46:33,704 - src.strategy.state - INFO - Loaded strategy: ma_crossover_momentum_test from topology
+2025-06-13 19:46:33,704 - src.core.containers.container - INFO - Added child container strategy_6922bac9 to root_4fd41ffa
+2025-06-13 19:46:33,704 - src.core.coordinator.topology - INFO - Created child: root -> strategy
+2025-06-13 19:46:33,704 - src.core.coordinator.topology - INFO - Creating routes
+2025-06-13 19:46:33,704 - src.core.coordinator.topology - INFO - Applying behaviors
+2025-06-13 19:46:33,704 - src.core.coordinator.topology - INFO - Skipping feature dispatcher - not implemented yet
+2025-06-13 19:46:33,704 - src.core.coordinator.topology - INFO - Setting up event subscriptions for signal_generation topology
+2025-06-13 19:46:33,707 - src.core.coordinator.topology - INFO - Legacy workspace: test_ma_crossover_momentum_8f4c932d
+2025-06-13 19:46:33,708 - src.core.events.observers.multi_strategy_tracer - INFO - MultiStrategyTracer initialized for workspace: ./workspaces/test_ma_crossover_momentum_8f4c932d
+2025-06-13 19:46:33,708 - src.core.events.observers.multi_strategy_tracer - INFO - Tracing strategies: ['SPY_ma_crossover_momentum_test']
+2025-06-13 19:46:33,708 - src.core.coordinator.topology - INFO - MultiStrategyTracer attached as observer to root event bus
+2025-06-13 19:46:33,708 - src.core.coordinator.topology - INFO - Tracing 1 strategies and 0 classifiers
+2025-06-13 19:46:33,708 - src.core.coordinator.topology - INFO - Workspace: ./workspaces/test_ma_crossover_momentum_8f4c932d
+2025-06-13 19:46:33,708 - src.core.coordinator.topology - INFO - Built signal_generation topology with 3 containers and 0 routes
+2025-06-13 19:46:33,708 - src.core.coordinator.topology_runner - INFO - Initializing 3 containers
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container root initialized successfully
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container SPY_1m_data initialized successfully
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container strategy initialized successfully
+2025-06-13 19:46:33,708 - src.core.coordinator.topology_runner - INFO - Starting containers
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container root started successfully
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container SPY_1m_data started successfully
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container strategy started successfully
+2025-06-13 19:46:33,708 - src.core.coordinator.topology_runner - INFO - Executing containers
+2025-06-13 19:46:33,708 - src.core.coordinator.topology_runner - INFO - Executing container: data_1f799a05
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Container data_1f799a05 entering execution phase with 1 components
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Checking component data_streamer: SimpleHistoricalDataHandler, has_execute: True
+2025-06-13 19:46:33,708 - src.core.containers.container - INFO - Executing component data_streamer in data_1f799a05
+2025-06-13 19:46:33,708 - src.data.handlers - INFO - Data handler execute() called for symbols: ['SPY']
+2025-06-13 19:46:33,708 - src.data.handlers - INFO - Starting to stream bars, max_bars: 500, has_data: True
+2025-06-13 19:46:33,720 - src.data.handlers - INFO - 📊 Publishing BAR event #1 for SPY at 2025-01-27 18:06:00+00:00
+2025-06-13 19:46:33,720 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,720 - src.strategy.state - INFO - Processing BAR for SPY: close=596.4, bar_count=1
+2025-06-13 19:46:33,720 - src.strategy.state - INFO - Bar 1: Checking 1 components for readiness. Available features: ['bar_count']
+2025-06-13 19:46:33,720 - src.strategy.state - INFO - Bar 1: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:33,729 - src.data.handlers - INFO - 📊 Publishing BAR event #2 for SPY at 2025-01-27 18:07:00+00:00
+2025-06-13 19:46:33,729 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,729 - src.strategy.state - INFO - Processing BAR for SPY: close=596.37, bar_count=2
+2025-06-13 19:46:33,740 - src.data.handlers - INFO - 📊 Publishing BAR event #3 for SPY at 2025-01-27 18:08:00+00:00
+2025-06-13 19:46:33,740 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,740 - src.strategy.state - INFO - Processing BAR for SPY: close=596.31, bar_count=3
+2025-06-13 19:46:33,749 - src.data.handlers - INFO - 📊 Publishing BAR event #4 for SPY at 2025-01-27 18:09:00+00:00
+2025-06-13 19:46:33,749 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,749 - src.strategy.state - INFO - Processing BAR for SPY: close=596.37, bar_count=4
+2025-06-13 19:46:33,758 - src.data.handlers - INFO - 📊 Publishing BAR event #5 for SPY at 2025-01-27 18:10:00+00:00
+2025-06-13 19:46:33,758 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,758 - src.strategy.state - INFO - Processing BAR for SPY: close=596.415, bar_count=5
+2025-06-13 19:46:33,766 - src.data.handlers - INFO - 📊 Publishing BAR event #6 for SPY at 2025-01-27 18:11:00+00:00
+2025-06-13 19:46:33,766 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,766 - src.strategy.state - INFO - Processing BAR for SPY: close=596.525, bar_count=6
+2025-06-13 19:46:33,774 - src.data.handlers - INFO - 📊 Publishing BAR event #7 for SPY at 2025-01-27 18:12:00+00:00
+2025-06-13 19:46:33,774 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,775 - src.strategy.state - INFO - Processing BAR for SPY: close=596.34, bar_count=7
+2025-06-13 19:46:33,783 - src.data.handlers - INFO - 📊 Publishing BAR event #8 for SPY at 2025-01-27 18:13:00+00:00
+2025-06-13 19:46:33,783 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,783 - src.strategy.state - INFO - Processing BAR for SPY: close=596.32, bar_count=8
+2025-06-13 19:46:33,821 - src.data.handlers - INFO - 📊 Publishing BAR event #9 for SPY at 2025-01-27 18:14:00+00:00
+2025-06-13 19:46:33,821 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,821 - src.strategy.state - INFO - Processing BAR for SPY: close=596.4, bar_count=9
+2025-06-13 19:46:33,831 - src.data.handlers - INFO - 📊 Publishing BAR event #10 for SPY at 2025-01-27 18:15:00+00:00
+2025-06-13 19:46:33,831 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,831 - src.strategy.state - INFO - Processing BAR for SPY: close=596.5, bar_count=10
+2025-06-13 19:46:33,840 - src.data.handlers - INFO - 📊 Publishing BAR event #11 for SPY at 2025-01-27 18:16:00+00:00
+2025-06-13 19:46:33,840 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,840 - src.strategy.state - INFO - Processing BAR for SPY: close=596.57, bar_count=11
+2025-06-13 19:46:33,848 - src.data.handlers - INFO - 📊 Publishing BAR event #12 for SPY at 2025-01-27 18:17:00+00:00
+2025-06-13 19:46:33,848 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,848 - src.strategy.state - INFO - Processing BAR for SPY: close=596.5, bar_count=12
+2025-06-13 19:46:33,856 - src.data.handlers - INFO - 📊 Publishing BAR event #13 for SPY at 2025-01-27 18:18:00+00:00
+2025-06-13 19:46:33,856 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,856 - src.strategy.state - INFO - Processing BAR for SPY: close=596.245, bar_count=13
+2025-06-13 19:46:33,864 - src.data.handlers - INFO - 📊 Publishing BAR event #14 for SPY at 2025-01-27 18:19:00+00:00
+2025-06-13 19:46:33,864 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,864 - src.strategy.state - INFO - Processing BAR for SPY: close=596.34, bar_count=14
+2025-06-13 19:46:33,873 - src.data.handlers - INFO - 📊 Publishing BAR event #15 for SPY at 2025-01-27 18:20:00+00:00
+2025-06-13 19:46:33,873 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,873 - src.strategy.state - INFO - Processing BAR for SPY: close=596.44, bar_count=15
+2025-06-13 19:46:33,882 - src.data.handlers - INFO - 📊 Publishing BAR event #16 for SPY at 2025-01-27 18:21:00+00:00
+2025-06-13 19:46:33,882 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,882 - src.strategy.state - INFO - Processing BAR for SPY: close=596.24, bar_count=16
+2025-06-13 19:46:33,891 - src.data.handlers - INFO - 📊 Publishing BAR event #17 for SPY at 2025-01-27 18:22:00+00:00
+2025-06-13 19:46:33,891 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,891 - src.strategy.state - INFO - Processing BAR for SPY: close=596.3, bar_count=17
+2025-06-13 19:46:33,899 - src.data.handlers - INFO - 📊 Publishing BAR event #18 for SPY at 2025-01-27 18:23:00+00:00
+2025-06-13 19:46:33,899 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,899 - src.strategy.state - INFO - Processing BAR for SPY: close=596.4, bar_count=18
+2025-06-13 19:46:33,907 - src.data.handlers - INFO - 📊 Publishing BAR event #19 for SPY at 2025-01-27 18:24:00+00:00
+2025-06-13 19:46:33,907 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,907 - src.strategy.state - INFO - Processing BAR for SPY: close=596.23, bar_count=19
+2025-06-13 19:46:33,915 - src.data.handlers - INFO - 📊 Publishing BAR event #20 for SPY at 2025-01-27 18:25:00+00:00
+2025-06-13 19:46:33,915 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,915 - src.strategy.state - INFO - Processing BAR for SPY: close=596.34, bar_count=20
+2025-06-13 19:46:33,915 - src.strategy.state - INFO - Bar 20: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'bar_count']
+2025-06-13 19:46:33,915 - src.strategy.state - INFO - Bar 20: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:33,924 - src.data.handlers - INFO - 📊 Publishing BAR event #21 for SPY at 2025-01-27 18:26:00+00:00
+2025-06-13 19:46:33,924 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,924 - src.strategy.state - INFO - Processing BAR for SPY: close=596.2501, bar_count=21
+2025-06-13 19:46:33,955 - src.data.handlers - INFO - 📊 Publishing BAR event #22 for SPY at 2025-01-27 18:27:00+00:00
+2025-06-13 19:46:33,955 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,955 - src.strategy.state - INFO - Processing BAR for SPY: close=596.13, bar_count=22
+2025-06-13 19:46:33,963 - src.data.handlers - INFO - 📊 Publishing BAR event #23 for SPY at 2025-01-27 18:28:00+00:00
+2025-06-13 19:46:33,963 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,963 - src.strategy.state - INFO - Processing BAR for SPY: close=596.16, bar_count=23
+2025-06-13 19:46:33,971 - src.data.handlers - INFO - 📊 Publishing BAR event #24 for SPY at 2025-01-27 18:29:00+00:00
+2025-06-13 19:46:33,971 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,971 - src.strategy.state - INFO - Processing BAR for SPY: close=596.125, bar_count=24
+2025-06-13 19:46:33,980 - src.data.handlers - INFO - 📊 Publishing BAR event #25 for SPY at 2025-01-27 18:30:00+00:00
+2025-06-13 19:46:33,980 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,980 - src.strategy.state - INFO - Processing BAR for SPY: close=596.305, bar_count=25
+2025-06-13 19:46:33,988 - src.data.handlers - INFO - 📊 Publishing BAR event #26 for SPY at 2025-01-27 18:31:00+00:00
+2025-06-13 19:46:33,988 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,988 - src.strategy.state - INFO - Processing BAR for SPY: close=596.74, bar_count=26
+2025-06-13 19:46:33,997 - src.data.handlers - INFO - 📊 Publishing BAR event #27 for SPY at 2025-01-27 18:32:00+00:00
+2025-06-13 19:46:33,997 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:33,997 - src.strategy.state - INFO - Processing BAR for SPY: close=596.72, bar_count=27
+2025-06-13 19:46:34,006 - src.data.handlers - INFO - 📊 Publishing BAR event #28 for SPY at 2025-01-27 18:33:00+00:00
+2025-06-13 19:46:34,006 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,006 - src.strategy.state - INFO - Processing BAR for SPY: close=597.03, bar_count=28
+2025-06-13 19:46:34,013 - src.data.handlers - INFO - 📊 Publishing BAR event #29 for SPY at 2025-01-27 18:34:00+00:00
+2025-06-13 19:46:34,013 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,013 - src.strategy.state - INFO - Processing BAR for SPY: close=596.8, bar_count=29
+2025-06-13 19:46:34,021 - src.data.handlers - INFO - 📊 Publishing BAR event #30 for SPY at 2025-01-27 18:35:00+00:00
+2025-06-13 19:46:34,021 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,021 - src.strategy.state - INFO - Processing BAR for SPY: close=597.23, bar_count=30
+2025-06-13 19:46:34,029 - src.data.handlers - INFO - 📊 Publishing BAR event #31 for SPY at 2025-01-27 18:36:00+00:00
+2025-06-13 19:46:34,029 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,029 - src.strategy.state - INFO - Processing BAR for SPY: close=596.99, bar_count=31
+2025-06-13 19:46:34,038 - src.data.handlers - INFO - 📊 Publishing BAR event #32 for SPY at 2025-01-27 18:37:00+00:00
+2025-06-13 19:46:34,038 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,038 - src.strategy.state - INFO - Processing BAR for SPY: close=597.04, bar_count=32
+2025-06-13 19:46:34,046 - src.data.handlers - INFO - 📊 Publishing BAR event #33 for SPY at 2025-01-27 18:38:00+00:00
+2025-06-13 19:46:34,046 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,046 - src.strategy.state - INFO - Processing BAR for SPY: close=596.5494, bar_count=33
+2025-06-13 19:46:34,055 - src.data.handlers - INFO - 📊 Publishing BAR event #34 for SPY at 2025-01-27 18:39:00+00:00
+2025-06-13 19:46:34,055 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,055 - src.strategy.state - INFO - Processing BAR for SPY: close=596.531, bar_count=34
+2025-06-13 19:46:34,062 - src.data.handlers - INFO - 📊 Publishing BAR event #35 for SPY at 2025-01-27 18:40:00+00:00
+2025-06-13 19:46:34,062 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,062 - src.strategy.state - INFO - Processing BAR for SPY: close=597.045, bar_count=35
+2025-06-13 19:46:34,092 - src.data.handlers - INFO - 📊 Publishing BAR event #36 for SPY at 2025-01-27 18:41:00+00:00
+2025-06-13 19:46:34,092 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,092 - src.strategy.state - INFO - Processing BAR for SPY: close=597.03, bar_count=36
+2025-06-13 19:46:34,100 - src.data.handlers - INFO - 📊 Publishing BAR event #37 for SPY at 2025-01-27 18:42:00+00:00
+2025-06-13 19:46:34,100 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,100 - src.strategy.state - INFO - Processing BAR for SPY: close=597.3, bar_count=37
+2025-06-13 19:46:34,109 - src.data.handlers - INFO - 📊 Publishing BAR event #38 for SPY at 2025-01-27 18:43:00+00:00
+2025-06-13 19:46:34,109 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,109 - src.strategy.state - INFO - Processing BAR for SPY: close=597.27, bar_count=38
+2025-06-13 19:46:34,117 - src.data.handlers - INFO - 📊 Publishing BAR event #39 for SPY at 2025-01-27 18:44:00+00:00
+2025-06-13 19:46:34,117 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,117 - src.strategy.state - INFO - Processing BAR for SPY: close=597.21, bar_count=39
+2025-06-13 19:46:34,126 - src.data.handlers - INFO - 📊 Publishing BAR event #40 for SPY at 2025-01-27 18:45:00+00:00
+2025-06-13 19:46:34,126 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,126 - src.strategy.state - INFO - Processing BAR for SPY: close=596.97, bar_count=40
+2025-06-13 19:46:34,126 - src.strategy.state - INFO - Bar 40: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'bar_count']
+2025-06-13 19:46:34,126 - src.strategy.state - INFO - Bar 40: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:34,133 - src.data.handlers - INFO - 📊 Publishing BAR event #41 for SPY at 2025-01-27 18:46:00+00:00
+2025-06-13 19:46:34,133 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,133 - src.strategy.state - INFO - Processing BAR for SPY: close=597.0, bar_count=41
+2025-06-13 19:46:34,141 - src.data.handlers - INFO - 📊 Publishing BAR event #42 for SPY at 2025-01-27 18:47:00+00:00
+2025-06-13 19:46:34,141 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,141 - src.strategy.state - INFO - Processing BAR for SPY: close=597.2598, bar_count=42
+2025-06-13 19:46:34,150 - src.data.handlers - INFO - 📊 Publishing BAR event #43 for SPY at 2025-01-27 18:48:00+00:00
+2025-06-13 19:46:34,150 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,150 - src.strategy.state - INFO - Processing BAR for SPY: close=596.84, bar_count=43
+2025-06-13 19:46:34,158 - src.data.handlers - INFO - 📊 Publishing BAR event #44 for SPY at 2025-01-27 18:49:00+00:00
+2025-06-13 19:46:34,158 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,158 - src.strategy.state - INFO - Processing BAR for SPY: close=596.76, bar_count=44
+2025-06-13 19:46:34,166 - src.data.handlers - INFO - 📊 Publishing BAR event #45 for SPY at 2025-01-27 18:50:00+00:00
+2025-06-13 19:46:34,166 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,166 - src.strategy.state - INFO - Processing BAR for SPY: close=596.86, bar_count=45
+2025-06-13 19:46:34,175 - src.data.handlers - INFO - 📊 Publishing BAR event #46 for SPY at 2025-01-27 18:51:00+00:00
+2025-06-13 19:46:34,175 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,175 - src.strategy.state - INFO - Processing BAR for SPY: close=596.85, bar_count=46
+2025-06-13 19:46:34,182 - src.data.handlers - INFO - 📊 Publishing BAR event #47 for SPY at 2025-01-27 18:52:00+00:00
+2025-06-13 19:46:34,182 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,183 - src.strategy.state - INFO - Processing BAR for SPY: close=597.13, bar_count=47
+2025-06-13 19:46:34,190 - src.data.handlers - INFO - 📊 Publishing BAR event #48 for SPY at 2025-01-27 18:53:00+00:00
+2025-06-13 19:46:34,190 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,190 - src.strategy.state - INFO - Processing BAR for SPY: close=597.01, bar_count=48
+2025-06-13 19:46:34,219 - src.data.handlers - INFO - 📊 Publishing BAR event #49 for SPY at 2025-01-27 18:54:00+00:00
+2025-06-13 19:46:34,219 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,220 - src.strategy.state - INFO - Processing BAR for SPY: close=596.995, bar_count=49
+2025-06-13 19:46:34,228 - src.data.handlers - INFO - 📊 Publishing BAR event #50 for SPY at 2025-01-27 18:55:00+00:00
+2025-06-13 19:46:34,228 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,228 - src.strategy.state - INFO - Processing BAR for SPY: close=596.7724, bar_count=50
+2025-06-13 19:46:34,237 - src.data.handlers - INFO - 📊 Publishing BAR event #51 for SPY at 2025-01-27 18:56:00+00:00
+2025-06-13 19:46:34,237 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,237 - src.strategy.state - INFO - Processing BAR for SPY: close=596.67, bar_count=51
+2025-06-13 19:46:34,245 - src.data.handlers - INFO - 📊 Publishing BAR event #52 for SPY at 2025-01-27 18:57:00+00:00
+2025-06-13 19:46:34,245 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,245 - src.strategy.state - INFO - Processing BAR for SPY: close=596.65, bar_count=52
+2025-06-13 19:46:34,253 - src.data.handlers - INFO - 📊 Publishing BAR event #53 for SPY at 2025-01-27 18:58:00+00:00
+2025-06-13 19:46:34,253 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,253 - src.strategy.state - INFO - Processing BAR for SPY: close=596.632, bar_count=53
+2025-06-13 19:46:34,261 - src.data.handlers - INFO - 📊 Publishing BAR event #54 for SPY at 2025-01-27 18:59:00+00:00
+2025-06-13 19:46:34,261 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,261 - src.strategy.state - INFO - Processing BAR for SPY: close=596.58, bar_count=54
+2025-06-13 19:46:34,269 - src.data.handlers - INFO - 📊 Publishing BAR event #55 for SPY at 2025-01-27 19:00:00+00:00
+2025-06-13 19:46:34,269 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,269 - src.strategy.state - INFO - Processing BAR for SPY: close=596.74, bar_count=55
+2025-06-13 19:46:34,278 - src.data.handlers - INFO - 📊 Publishing BAR event #56 for SPY at 2025-01-27 19:01:00+00:00
+2025-06-13 19:46:34,278 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,278 - src.strategy.state - INFO - Processing BAR for SPY: close=597.0099, bar_count=56
+2025-06-13 19:46:34,286 - src.data.handlers - INFO - 📊 Publishing BAR event #57 for SPY at 2025-01-27 19:02:00+00:00
+2025-06-13 19:46:34,286 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,286 - src.strategy.state - INFO - Processing BAR for SPY: close=597.06, bar_count=57
+2025-06-13 19:46:34,294 - src.data.handlers - INFO - 📊 Publishing BAR event #58 for SPY at 2025-01-27 19:03:00+00:00
+2025-06-13 19:46:34,294 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,294 - src.strategy.state - INFO - Processing BAR for SPY: close=597.2787, bar_count=58
+2025-06-13 19:46:34,302 - src.data.handlers - INFO - 📊 Publishing BAR event #59 for SPY at 2025-01-27 19:04:00+00:00
+2025-06-13 19:46:34,302 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,302 - src.strategy.state - INFO - Processing BAR for SPY: close=597.15, bar_count=59
+2025-06-13 19:46:34,310 - src.data.handlers - INFO - 📊 Publishing BAR event #60 for SPY at 2025-01-27 19:05:00+00:00
+2025-06-13 19:46:34,310 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,310 - src.strategy.state - INFO - Processing BAR for SPY: close=596.87, bar_count=60
+2025-06-13 19:46:34,311 - src.strategy.state - INFO - Bar 60: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'bar_count']
+2025-06-13 19:46:34,311 - src.strategy.state - INFO - Bar 60: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:34,319 - src.data.handlers - INFO - 📊 Publishing BAR event #61 for SPY at 2025-01-27 19:06:00+00:00
+2025-06-13 19:46:34,319 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,319 - src.strategy.state - INFO - Processing BAR for SPY: close=596.845, bar_count=61
+2025-06-13 19:46:34,349 - src.data.handlers - INFO - 📊 Publishing BAR event #62 for SPY at 2025-01-27 19:07:00+00:00
+2025-06-13 19:46:34,349 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,349 - src.strategy.state - INFO - Processing BAR for SPY: close=596.95, bar_count=62
+2025-06-13 19:46:34,358 - src.data.handlers - INFO - 📊 Publishing BAR event #63 for SPY at 2025-01-27 19:08:00+00:00
+2025-06-13 19:46:34,358 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,358 - src.strategy.state - INFO - Processing BAR for SPY: close=597.01, bar_count=63
+2025-06-13 19:46:34,366 - src.data.handlers - INFO - 📊 Publishing BAR event #64 for SPY at 2025-01-27 19:09:00+00:00
+2025-06-13 19:46:34,366 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,366 - src.strategy.state - INFO - Processing BAR for SPY: close=596.84, bar_count=64
+2025-06-13 19:46:34,374 - src.data.handlers - INFO - 📊 Publishing BAR event #65 for SPY at 2025-01-27 19:10:00+00:00
+2025-06-13 19:46:34,374 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,374 - src.strategy.state - INFO - Processing BAR for SPY: close=597.21, bar_count=65
+2025-06-13 19:46:34,383 - src.data.handlers - INFO - 📊 Publishing BAR event #66 for SPY at 2025-01-27 19:11:00+00:00
+2025-06-13 19:46:34,383 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,383 - src.strategy.state - INFO - Processing BAR for SPY: close=597.2, bar_count=66
+2025-06-13 19:46:34,391 - src.data.handlers - INFO - 📊 Publishing BAR event #67 for SPY at 2025-01-27 19:12:00+00:00
+2025-06-13 19:46:34,391 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,391 - src.strategy.state - INFO - Processing BAR for SPY: close=597.07, bar_count=67
+2025-06-13 19:46:34,400 - src.data.handlers - INFO - 📊 Publishing BAR event #68 for SPY at 2025-01-27 19:13:00+00:00
+2025-06-13 19:46:34,400 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,400 - src.strategy.state - INFO - Processing BAR for SPY: close=597.1899, bar_count=68
+2025-06-13 19:46:34,409 - src.data.handlers - INFO - 📊 Publishing BAR event #69 for SPY at 2025-01-27 19:14:00+00:00
+2025-06-13 19:46:34,409 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,409 - src.strategy.state - INFO - Processing BAR for SPY: close=597.01, bar_count=69
+2025-06-13 19:46:34,417 - src.data.handlers - INFO - 📊 Publishing BAR event #70 for SPY at 2025-01-27 19:15:00+00:00
+2025-06-13 19:46:34,417 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,417 - src.strategy.state - INFO - Processing BAR for SPY: close=597.41, bar_count=70
+2025-06-13 19:46:34,425 - src.data.handlers - INFO - 📊 Publishing BAR event #71 for SPY at 2025-01-27 19:16:00+00:00
+2025-06-13 19:46:34,425 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,425 - src.strategy.state - INFO - Processing BAR for SPY: close=597.5, bar_count=71
+2025-06-13 19:46:34,433 - src.data.handlers - INFO - 📊 Publishing BAR event #72 for SPY at 2025-01-27 19:17:00+00:00
+2025-06-13 19:46:34,433 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,433 - src.strategy.state - INFO - Processing BAR for SPY: close=597.49, bar_count=72
+2025-06-13 19:46:34,441 - src.data.handlers - INFO - 📊 Publishing BAR event #73 for SPY at 2025-01-27 19:18:00+00:00
+2025-06-13 19:46:34,441 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,441 - src.strategy.state - INFO - Processing BAR for SPY: close=597.44, bar_count=73
+2025-06-13 19:46:34,450 - src.data.handlers - INFO - 📊 Publishing BAR event #74 for SPY at 2025-01-27 19:19:00+00:00
+2025-06-13 19:46:34,450 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,450 - src.strategy.state - INFO - Processing BAR for SPY: close=597.85, bar_count=74
+2025-06-13 19:46:34,459 - src.data.handlers - INFO - 📊 Publishing BAR event #75 for SPY at 2025-01-27 19:20:00+00:00
+2025-06-13 19:46:34,459 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,459 - src.strategy.state - INFO - Processing BAR for SPY: close=597.9099, bar_count=75
+2025-06-13 19:46:34,487 - src.data.handlers - INFO - 📊 Publishing BAR event #76 for SPY at 2025-01-27 19:21:00+00:00
+2025-06-13 19:46:34,487 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,487 - src.strategy.state - INFO - Processing BAR for SPY: close=597.74, bar_count=76
+2025-06-13 19:46:34,495 - src.data.handlers - INFO - 📊 Publishing BAR event #77 for SPY at 2025-01-27 19:22:00+00:00
+2025-06-13 19:46:34,496 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,496 - src.strategy.state - INFO - Processing BAR for SPY: close=597.82, bar_count=77
+2025-06-13 19:46:34,504 - src.data.handlers - INFO - 📊 Publishing BAR event #78 for SPY at 2025-01-27 19:23:00+00:00
+2025-06-13 19:46:34,504 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,504 - src.strategy.state - INFO - Processing BAR for SPY: close=597.86, bar_count=78
+2025-06-13 19:46:34,513 - src.data.handlers - INFO - 📊 Publishing BAR event #79 for SPY at 2025-01-27 19:24:00+00:00
+2025-06-13 19:46:34,513 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,513 - src.strategy.state - INFO - Processing BAR for SPY: close=597.97, bar_count=79
+2025-06-13 19:46:34,521 - src.data.handlers - INFO - 📊 Publishing BAR event #80 for SPY at 2025-01-27 19:25:00+00:00
+2025-06-13 19:46:34,521 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,521 - src.strategy.state - INFO - Processing BAR for SPY: close=598.3801, bar_count=80
+2025-06-13 19:46:34,521 - src.strategy.state - INFO - Bar 80: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'bar_count']
+2025-06-13 19:46:34,521 - src.strategy.state - INFO - Bar 80: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:34,530 - src.data.handlers - INFO - 📊 Publishing BAR event #81 for SPY at 2025-01-27 19:26:00+00:00
+2025-06-13 19:46:34,530 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,530 - src.strategy.state - INFO - Processing BAR for SPY: close=598.59, bar_count=81
+2025-06-13 19:46:34,538 - src.data.handlers - INFO - 📊 Publishing BAR event #82 for SPY at 2025-01-27 19:27:00+00:00
+2025-06-13 19:46:34,538 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,538 - src.strategy.state - INFO - Processing BAR for SPY: close=598.73, bar_count=82
+2025-06-13 19:46:34,546 - src.data.handlers - INFO - 📊 Publishing BAR event #83 for SPY at 2025-01-27 19:28:00+00:00
+2025-06-13 19:46:34,546 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,546 - src.strategy.state - INFO - Processing BAR for SPY: close=598.95, bar_count=83
+2025-06-13 19:46:34,554 - src.data.handlers - INFO - 📊 Publishing BAR event #84 for SPY at 2025-01-27 19:29:00+00:00
+2025-06-13 19:46:34,554 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,554 - src.strategy.state - INFO - Processing BAR for SPY: close=599.01, bar_count=84
+2025-06-13 19:46:34,563 - src.data.handlers - INFO - 📊 Publishing BAR event #85 for SPY at 2025-01-27 19:30:00+00:00
+2025-06-13 19:46:34,563 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,563 - src.strategy.state - INFO - Processing BAR for SPY: close=598.55, bar_count=85
+2025-06-13 19:46:34,571 - src.data.handlers - INFO - 📊 Publishing BAR event #86 for SPY at 2025-01-27 19:31:00+00:00
+2025-06-13 19:46:34,571 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,571 - src.strategy.state - INFO - Processing BAR for SPY: close=598.4001, bar_count=86
+2025-06-13 19:46:34,580 - src.data.handlers - INFO - 📊 Publishing BAR event #87 for SPY at 2025-01-27 19:32:00+00:00
+2025-06-13 19:46:34,580 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,580 - src.strategy.state - INFO - Processing BAR for SPY: close=598.67, bar_count=87
+2025-06-13 19:46:34,588 - src.data.handlers - INFO - 📊 Publishing BAR event #88 for SPY at 2025-01-27 19:33:00+00:00
+2025-06-13 19:46:34,588 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,588 - src.strategy.state - INFO - Processing BAR for SPY: close=598.52, bar_count=88
+2025-06-13 19:46:34,617 - src.data.handlers - INFO - 📊 Publishing BAR event #89 for SPY at 2025-01-27 19:34:00+00:00
+2025-06-13 19:46:34,617 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,617 - src.strategy.state - INFO - Processing BAR for SPY: close=598.59, bar_count=89
+2025-06-13 19:46:34,626 - src.data.handlers - INFO - 📊 Publishing BAR event #90 for SPY at 2025-01-27 19:35:00+00:00
+2025-06-13 19:46:34,626 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,626 - src.strategy.state - INFO - Processing BAR for SPY: close=598.52, bar_count=90
+2025-06-13 19:46:34,634 - src.data.handlers - INFO - 📊 Publishing BAR event #91 for SPY at 2025-01-27 19:36:00+00:00
+2025-06-13 19:46:34,634 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,634 - src.strategy.state - INFO - Processing BAR for SPY: close=598.5, bar_count=91
+2025-06-13 19:46:34,643 - src.data.handlers - INFO - 📊 Publishing BAR event #92 for SPY at 2025-01-27 19:37:00+00:00
+2025-06-13 19:46:34,643 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,643 - src.strategy.state - INFO - Processing BAR for SPY: close=598.29, bar_count=92
+2025-06-13 19:46:34,651 - src.data.handlers - INFO - 📊 Publishing BAR event #93 for SPY at 2025-01-27 19:38:00+00:00
+2025-06-13 19:46:34,651 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,651 - src.strategy.state - INFO - Processing BAR for SPY: close=598.06, bar_count=93
+2025-06-13 19:46:34,659 - src.data.handlers - INFO - 📊 Publishing BAR event #94 for SPY at 2025-01-27 19:39:00+00:00
+2025-06-13 19:46:34,659 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,659 - src.strategy.state - INFO - Processing BAR for SPY: close=598.425, bar_count=94
+2025-06-13 19:46:34,667 - src.data.handlers - INFO - 📊 Publishing BAR event #95 for SPY at 2025-01-27 19:40:00+00:00
+2025-06-13 19:46:34,667 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,667 - src.strategy.state - INFO - Processing BAR for SPY: close=598.32, bar_count=95
+2025-06-13 19:46:34,675 - src.data.handlers - INFO - 📊 Publishing BAR event #96 for SPY at 2025-01-27 19:41:00+00:00
+2025-06-13 19:46:34,675 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,675 - src.strategy.state - INFO - Processing BAR for SPY: close=598.09, bar_count=96
+2025-06-13 19:46:34,684 - src.data.handlers - INFO - 📊 Publishing BAR event #97 for SPY at 2025-01-27 19:42:00+00:00
+2025-06-13 19:46:34,684 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,684 - src.strategy.state - INFO - Processing BAR for SPY: close=597.96, bar_count=97
+2025-06-13 19:46:34,692 - src.data.handlers - INFO - 📊 Publishing BAR event #98 for SPY at 2025-01-27 19:43:00+00:00
+2025-06-13 19:46:34,692 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,692 - src.strategy.state - INFO - Processing BAR for SPY: close=597.71, bar_count=98
+2025-06-13 19:46:34,700 - src.data.handlers - INFO - 📊 Publishing BAR event #99 for SPY at 2025-01-27 19:44:00+00:00
+2025-06-13 19:46:34,700 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,700 - src.strategy.state - INFO - Processing BAR for SPY: close=597.64, bar_count=99
+2025-06-13 19:46:34,708 - src.data.handlers - INFO - 📊 Publishing BAR event #100 for SPY at 2025-01-27 19:45:00+00:00
+2025-06-13 19:46:34,708 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,708 - src.strategy.state - INFO - Processing BAR for SPY: close=597.51, bar_count=100
+2025-06-13 19:46:34,708 - src.strategy.state - INFO - Bar 100: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:34,708 - src.strategy.state - INFO - Bar 100: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:34,716 - src.data.handlers - INFO - 📊 Publishing BAR event #101 for SPY at 2025-01-27 19:46:00+00:00
+2025-06-13 19:46:34,716 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,717 - src.strategy.state - INFO - Processing BAR for SPY: close=597.24, bar_count=101
+2025-06-13 19:46:34,746 - src.data.handlers - INFO - 📊 Publishing BAR event #102 for SPY at 2025-01-27 19:47:00+00:00
+2025-06-13 19:46:34,746 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,746 - src.strategy.state - INFO - Processing BAR for SPY: close=597.21, bar_count=102
+2025-06-13 19:46:34,755 - src.data.handlers - INFO - 📊 Publishing BAR event #103 for SPY at 2025-01-27 19:48:00+00:00
+2025-06-13 19:46:34,755 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,755 - src.strategy.state - INFO - Processing BAR for SPY: close=596.93, bar_count=103
+2025-06-13 19:46:34,764 - src.data.handlers - INFO - 📊 Publishing BAR event #104 for SPY at 2025-01-27 19:49:00+00:00
+2025-06-13 19:46:34,764 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,764 - src.strategy.state - INFO - Processing BAR for SPY: close=596.75, bar_count=104
+2025-06-13 19:46:34,772 - src.data.handlers - INFO - 📊 Publishing BAR event #105 for SPY at 2025-01-27 19:50:00+00:00
+2025-06-13 19:46:34,772 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,772 - src.strategy.state - INFO - Processing BAR for SPY: close=596.4, bar_count=105
+2025-06-13 19:46:34,780 - src.data.handlers - INFO - 📊 Publishing BAR event #106 for SPY at 2025-01-27 19:51:00+00:00
+2025-06-13 19:46:34,780 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,780 - src.strategy.state - INFO - Processing BAR for SPY: close=596.59, bar_count=106
+2025-06-13 19:46:34,788 - src.data.handlers - INFO - 📊 Publishing BAR event #107 for SPY at 2025-01-27 19:52:00+00:00
+2025-06-13 19:46:34,788 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,788 - src.strategy.state - INFO - Processing BAR for SPY: close=596.88, bar_count=107
+2025-06-13 19:46:34,797 - src.data.handlers - INFO - 📊 Publishing BAR event #108 for SPY at 2025-01-27 19:53:00+00:00
+2025-06-13 19:46:34,797 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,797 - src.strategy.state - INFO - Processing BAR for SPY: close=596.66, bar_count=108
+2025-06-13 19:46:34,805 - src.data.handlers - INFO - 📊 Publishing BAR event #109 for SPY at 2025-01-27 19:54:00+00:00
+2025-06-13 19:46:34,805 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,805 - src.strategy.state - INFO - Processing BAR for SPY: close=596.82, bar_count=109
+2025-06-13 19:46:34,814 - src.data.handlers - INFO - 📊 Publishing BAR event #110 for SPY at 2025-01-27 19:55:00+00:00
+2025-06-13 19:46:34,814 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,814 - src.strategy.state - INFO - Processing BAR for SPY: close=596.72, bar_count=110
+2025-06-13 19:46:34,822 - src.data.handlers - INFO - 📊 Publishing BAR event #111 for SPY at 2025-01-27 19:56:00+00:00
+2025-06-13 19:46:34,822 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,822 - src.strategy.state - INFO - Processing BAR for SPY: close=596.81, bar_count=111
+2025-06-13 19:46:34,830 - src.data.handlers - INFO - 📊 Publishing BAR event #112 for SPY at 2025-01-27 19:57:00+00:00
+2025-06-13 19:46:34,830 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,830 - src.strategy.state - INFO - Processing BAR for SPY: close=597.15, bar_count=112
+2025-06-13 19:46:34,838 - src.data.handlers - INFO - 📊 Publishing BAR event #113 for SPY at 2025-01-27 19:58:00+00:00
+2025-06-13 19:46:34,838 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,838 - src.strategy.state - INFO - Processing BAR for SPY: close=597.01, bar_count=113
+2025-06-13 19:46:34,847 - src.data.handlers - INFO - 📊 Publishing BAR event #114 for SPY at 2025-01-27 19:59:00+00:00
+2025-06-13 19:46:34,847 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,847 - src.strategy.state - INFO - Processing BAR for SPY: close=596.94, bar_count=114
+2025-06-13 19:46:34,877 - src.data.handlers - INFO - 📊 Publishing BAR event #115 for SPY at 2025-01-27 20:00:00+00:00
+2025-06-13 19:46:34,877 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,877 - src.strategy.state - INFO - Processing BAR for SPY: close=597.06, bar_count=115
+2025-06-13 19:46:34,885 - src.data.handlers - INFO - 📊 Publishing BAR event #116 for SPY at 2025-01-27 20:01:00+00:00
+2025-06-13 19:46:34,885 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,885 - src.strategy.state - INFO - Processing BAR for SPY: close=597.1, bar_count=116
+2025-06-13 19:46:34,893 - src.data.handlers - INFO - 📊 Publishing BAR event #117 for SPY at 2025-01-27 20:02:00+00:00
+2025-06-13 19:46:34,893 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,894 - src.strategy.state - INFO - Processing BAR for SPY: close=597.39, bar_count=117
+2025-06-13 19:46:34,902 - src.data.handlers - INFO - 📊 Publishing BAR event #118 for SPY at 2025-01-27 20:03:00+00:00
+2025-06-13 19:46:34,902 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,902 - src.strategy.state - INFO - Processing BAR for SPY: close=597.335, bar_count=118
+2025-06-13 19:46:34,910 - src.data.handlers - INFO - 📊 Publishing BAR event #119 for SPY at 2025-01-27 20:04:00+00:00
+2025-06-13 19:46:34,910 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,910 - src.strategy.state - INFO - Processing BAR for SPY: close=597.2, bar_count=119
+2025-06-13 19:46:34,919 - src.data.handlers - INFO - 📊 Publishing BAR event #120 for SPY at 2025-01-27 20:05:00+00:00
+2025-06-13 19:46:34,919 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,919 - src.strategy.state - INFO - Processing BAR for SPY: close=596.76, bar_count=120
+2025-06-13 19:46:34,919 - src.strategy.state - INFO - Bar 120: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:34,919 - src.strategy.state - INFO - Bar 120: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:34,927 - src.data.handlers - INFO - 📊 Publishing BAR event #121 for SPY at 2025-01-27 20:06:00+00:00
+2025-06-13 19:46:34,927 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,927 - src.strategy.state - INFO - Processing BAR for SPY: close=596.62, bar_count=121
+2025-06-13 19:46:34,935 - src.data.handlers - INFO - 📊 Publishing BAR event #122 for SPY at 2025-01-27 20:07:00+00:00
+2025-06-13 19:46:34,935 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,935 - src.strategy.state - INFO - Processing BAR for SPY: close=596.54, bar_count=122
+2025-06-13 19:46:34,943 - src.data.handlers - INFO - 📊 Publishing BAR event #123 for SPY at 2025-01-27 20:08:00+00:00
+2025-06-13 19:46:34,943 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,943 - src.strategy.state - INFO - Processing BAR for SPY: close=597.14, bar_count=123
+2025-06-13 19:46:34,951 - src.data.handlers - INFO - 📊 Publishing BAR event #124 for SPY at 2025-01-27 20:09:00+00:00
+2025-06-13 19:46:34,951 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,951 - src.strategy.state - INFO - Processing BAR for SPY: close=597.23, bar_count=124
+2025-06-13 19:46:34,959 - src.data.handlers - INFO - 📊 Publishing BAR event #125 for SPY at 2025-01-27 20:10:00+00:00
+2025-06-13 19:46:34,959 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,959 - src.strategy.state - INFO - Processing BAR for SPY: close=597.28, bar_count=125
+2025-06-13 19:46:34,968 - src.data.handlers - INFO - 📊 Publishing BAR event #126 for SPY at 2025-01-27 20:11:00+00:00
+2025-06-13 19:46:34,968 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,968 - src.strategy.state - INFO - Processing BAR for SPY: close=597.16, bar_count=126
+2025-06-13 19:46:34,976 - src.data.handlers - INFO - 📊 Publishing BAR event #127 for SPY at 2025-01-27 20:12:00+00:00
+2025-06-13 19:46:34,976 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,976 - src.strategy.state - INFO - Processing BAR for SPY: close=597.5, bar_count=127
+2025-06-13 19:46:34,984 - src.data.handlers - INFO - 📊 Publishing BAR event #128 for SPY at 2025-01-27 20:13:00+00:00
+2025-06-13 19:46:34,984 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:34,984 - src.strategy.state - INFO - Processing BAR for SPY: close=596.99, bar_count=128
+2025-06-13 19:46:35,013 - src.data.handlers - INFO - 📊 Publishing BAR event #129 for SPY at 2025-01-27 20:14:00+00:00
+2025-06-13 19:46:35,013 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,013 - src.strategy.state - INFO - Processing BAR for SPY: close=596.96, bar_count=129
+2025-06-13 19:46:35,021 - src.data.handlers - INFO - 📊 Publishing BAR event #130 for SPY at 2025-01-27 20:15:00+00:00
+2025-06-13 19:46:35,021 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,021 - src.strategy.state - INFO - Processing BAR for SPY: close=596.82, bar_count=130
+2025-06-13 19:46:35,030 - src.data.handlers - INFO - 📊 Publishing BAR event #131 for SPY at 2025-01-27 20:16:00+00:00
+2025-06-13 19:46:35,030 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,030 - src.strategy.state - INFO - Processing BAR for SPY: close=597.21, bar_count=131
+2025-06-13 19:46:35,038 - src.data.handlers - INFO - 📊 Publishing BAR event #132 for SPY at 2025-01-27 20:17:00+00:00
+2025-06-13 19:46:35,038 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,038 - src.strategy.state - INFO - Processing BAR for SPY: close=596.91, bar_count=132
+2025-06-13 19:46:35,047 - src.data.handlers - INFO - 📊 Publishing BAR event #133 for SPY at 2025-01-27 20:18:00+00:00
+2025-06-13 19:46:35,047 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,047 - src.strategy.state - INFO - Processing BAR for SPY: close=597.3317, bar_count=133
+2025-06-13 19:46:35,055 - src.data.handlers - INFO - 📊 Publishing BAR event #134 for SPY at 2025-01-27 20:19:00+00:00
+2025-06-13 19:46:35,055 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,055 - src.strategy.state - INFO - Processing BAR for SPY: close=597.41, bar_count=134
+2025-06-13 19:46:35,063 - src.data.handlers - INFO - 📊 Publishing BAR event #135 for SPY at 2025-01-27 20:20:00+00:00
+2025-06-13 19:46:35,063 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,063 - src.strategy.state - INFO - Processing BAR for SPY: close=597.64, bar_count=135
+2025-06-13 19:46:35,072 - src.data.handlers - INFO - 📊 Publishing BAR event #136 for SPY at 2025-01-27 20:21:00+00:00
+2025-06-13 19:46:35,072 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,072 - src.strategy.state - INFO - Processing BAR for SPY: close=597.57, bar_count=136
+2025-06-13 19:46:35,081 - src.data.handlers - INFO - 📊 Publishing BAR event #137 for SPY at 2025-01-27 20:22:00+00:00
+2025-06-13 19:46:35,081 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,081 - src.strategy.state - INFO - Processing BAR for SPY: close=597.68, bar_count=137
+2025-06-13 19:46:35,090 - src.data.handlers - INFO - 📊 Publishing BAR event #138 for SPY at 2025-01-27 20:23:00+00:00
+2025-06-13 19:46:35,090 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,090 - src.strategy.state - INFO - Processing BAR for SPY: close=597.62, bar_count=138
+2025-06-13 19:46:35,098 - src.data.handlers - INFO - 📊 Publishing BAR event #139 for SPY at 2025-01-27 20:24:00+00:00
+2025-06-13 19:46:35,098 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,098 - src.strategy.state - INFO - Processing BAR for SPY: close=597.84, bar_count=139
+2025-06-13 19:46:35,106 - src.data.handlers - INFO - 📊 Publishing BAR event #140 for SPY at 2025-01-27 20:25:00+00:00
+2025-06-13 19:46:35,106 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,106 - src.strategy.state - INFO - Processing BAR for SPY: close=597.9, bar_count=140
+2025-06-13 19:46:35,106 - src.strategy.state - INFO - Bar 140: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:35,106 - src.strategy.state - INFO - Bar 140: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:35,114 - src.data.handlers - INFO - 📊 Publishing BAR event #141 for SPY at 2025-01-27 20:26:00+00:00
+2025-06-13 19:46:35,114 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,114 - src.strategy.state - INFO - Processing BAR for SPY: close=598.1, bar_count=141
+2025-06-13 19:46:35,144 - src.data.handlers - INFO - 📊 Publishing BAR event #142 for SPY at 2025-01-27 20:27:00+00:00
+2025-06-13 19:46:35,144 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,144 - src.strategy.state - INFO - Processing BAR for SPY: close=597.83, bar_count=142
+2025-06-13 19:46:35,153 - src.data.handlers - INFO - 📊 Publishing BAR event #143 for SPY at 2025-01-27 20:28:00+00:00
+2025-06-13 19:46:35,153 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,153 - src.strategy.state - INFO - Processing BAR for SPY: close=597.47, bar_count=143
+2025-06-13 19:46:35,162 - src.data.handlers - INFO - 📊 Publishing BAR event #144 for SPY at 2025-01-27 20:29:00+00:00
+2025-06-13 19:46:35,162 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,162 - src.strategy.state - INFO - Processing BAR for SPY: close=597.44, bar_count=144
+2025-06-13 19:46:35,170 - src.data.handlers - INFO - 📊 Publishing BAR event #145 for SPY at 2025-01-27 20:30:00+00:00
+2025-06-13 19:46:35,170 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,170 - src.strategy.state - INFO - Processing BAR for SPY: close=597.62, bar_count=145
+2025-06-13 19:46:35,178 - src.data.handlers - INFO - 📊 Publishing BAR event #146 for SPY at 2025-01-27 20:31:00+00:00
+2025-06-13 19:46:35,178 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,178 - src.strategy.state - INFO - Processing BAR for SPY: close=597.5, bar_count=146
+2025-06-13 19:46:35,186 - src.data.handlers - INFO - 📊 Publishing BAR event #147 for SPY at 2025-01-27 20:32:00+00:00
+2025-06-13 19:46:35,186 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,186 - src.strategy.state - INFO - Processing BAR for SPY: close=597.44, bar_count=147
+2025-06-13 19:46:35,194 - src.data.handlers - INFO - 📊 Publishing BAR event #148 for SPY at 2025-01-27 20:33:00+00:00
+2025-06-13 19:46:35,194 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,194 - src.strategy.state - INFO - Processing BAR for SPY: close=597.27, bar_count=148
+2025-06-13 19:46:35,203 - src.data.handlers - INFO - 📊 Publishing BAR event #149 for SPY at 2025-01-27 20:34:00+00:00
+2025-06-13 19:46:35,203 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,203 - src.strategy.state - INFO - Processing BAR for SPY: close=597.37, bar_count=149
+2025-06-13 19:46:35,212 - src.data.handlers - INFO - 📊 Publishing BAR event #150 for SPY at 2025-01-27 20:35:00+00:00
+2025-06-13 19:46:35,212 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,212 - src.strategy.state - INFO - Processing BAR for SPY: close=597.43, bar_count=150
+2025-06-13 19:46:35,220 - src.data.handlers - INFO - 📊 Publishing BAR event #151 for SPY at 2025-01-27 20:36:00+00:00
+2025-06-13 19:46:35,220 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,220 - src.strategy.state - INFO - Processing BAR for SPY: close=597.81, bar_count=151
+2025-06-13 19:46:35,227 - src.data.handlers - INFO - 📊 Publishing BAR event #152 for SPY at 2025-01-27 20:37:00+00:00
+2025-06-13 19:46:35,228 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,228 - src.strategy.state - INFO - Processing BAR for SPY: close=597.64, bar_count=152
+2025-06-13 19:46:35,236 - src.data.handlers - INFO - 📊 Publishing BAR event #153 for SPY at 2025-01-27 20:38:00+00:00
+2025-06-13 19:46:35,236 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,236 - src.strategy.state - INFO - Processing BAR for SPY: close=597.79, bar_count=153
+2025-06-13 19:46:35,244 - src.data.handlers - INFO - 📊 Publishing BAR event #154 for SPY at 2025-01-27 20:39:00+00:00
+2025-06-13 19:46:35,244 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,244 - src.strategy.state - INFO - Processing BAR for SPY: close=597.77, bar_count=154
+2025-06-13 19:46:35,274 - src.data.handlers - INFO - 📊 Publishing BAR event #155 for SPY at 2025-01-27 20:40:00+00:00
+2025-06-13 19:46:35,274 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,274 - src.strategy.state - INFO - Processing BAR for SPY: close=597.7567, bar_count=155
+2025-06-13 19:46:35,283 - src.data.handlers - INFO - 📊 Publishing BAR event #156 for SPY at 2025-01-27 20:41:00+00:00
+2025-06-13 19:46:35,283 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,283 - src.strategy.state - INFO - Processing BAR for SPY: close=597.8, bar_count=156
+2025-06-13 19:46:35,291 - src.data.handlers - INFO - 📊 Publishing BAR event #157 for SPY at 2025-01-27 20:42:00+00:00
+2025-06-13 19:46:35,291 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,292 - src.strategy.state - INFO - Processing BAR for SPY: close=598.04, bar_count=157
+2025-06-13 19:46:35,300 - src.data.handlers - INFO - 📊 Publishing BAR event #158 for SPY at 2025-01-27 20:43:00+00:00
+2025-06-13 19:46:35,300 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,300 - src.strategy.state - INFO - Processing BAR for SPY: close=598.145, bar_count=158
+2025-06-13 19:46:35,308 - src.data.handlers - INFO - 📊 Publishing BAR event #159 for SPY at 2025-01-27 20:44:00+00:00
+2025-06-13 19:46:35,308 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,308 - src.strategy.state - INFO - Processing BAR for SPY: close=598.33, bar_count=159
+2025-06-13 19:46:35,317 - src.data.handlers - INFO - 📊 Publishing BAR event #160 for SPY at 2025-01-27 20:45:00+00:00
+2025-06-13 19:46:35,317 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,317 - src.strategy.state - INFO - Processing BAR for SPY: close=598.3001, bar_count=160
+2025-06-13 19:46:35,317 - src.strategy.state - INFO - Bar 160: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:35,317 - src.strategy.state - INFO - Bar 160: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:35,325 - src.data.handlers - INFO - 📊 Publishing BAR event #161 for SPY at 2025-01-27 20:46:00+00:00
+2025-06-13 19:46:35,325 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,325 - src.strategy.state - INFO - Processing BAR for SPY: close=598.4, bar_count=161
+2025-06-13 19:46:35,334 - src.data.handlers - INFO - 📊 Publishing BAR event #162 for SPY at 2025-01-27 20:47:00+00:00
+2025-06-13 19:46:35,334 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,334 - src.strategy.state - INFO - Processing BAR for SPY: close=598.29, bar_count=162
+2025-06-13 19:46:35,342 - src.data.handlers - INFO - 📊 Publishing BAR event #163 for SPY at 2025-01-27 20:48:00+00:00
+2025-06-13 19:46:35,342 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,342 - src.strategy.state - INFO - Processing BAR for SPY: close=598.02, bar_count=163
+2025-06-13 19:46:35,350 - src.data.handlers - INFO - 📊 Publishing BAR event #164 for SPY at 2025-01-27 20:49:00+00:00
+2025-06-13 19:46:35,350 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,350 - src.strategy.state - INFO - Processing BAR for SPY: close=598.1199, bar_count=164
+2025-06-13 19:46:35,359 - src.data.handlers - INFO - 📊 Publishing BAR event #165 for SPY at 2025-01-27 20:50:00+00:00
+2025-06-13 19:46:35,359 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,359 - src.strategy.state - INFO - Processing BAR for SPY: close=598.25, bar_count=165
+2025-06-13 19:46:35,367 - src.data.handlers - INFO - 📊 Publishing BAR event #166 for SPY at 2025-01-27 20:51:00+00:00
+2025-06-13 19:46:35,367 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,367 - src.strategy.state - INFO - Processing BAR for SPY: close=597.92, bar_count=166
+2025-06-13 19:46:35,376 - src.data.handlers - INFO - 📊 Publishing BAR event #167 for SPY at 2025-01-27 20:52:00+00:00
+2025-06-13 19:46:35,376 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,376 - src.strategy.state - INFO - Processing BAR for SPY: close=597.73, bar_count=167
+2025-06-13 19:46:35,385 - src.data.handlers - INFO - 📊 Publishing BAR event #168 for SPY at 2025-01-27 20:53:00+00:00
+2025-06-13 19:46:35,385 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,385 - src.strategy.state - INFO - Processing BAR for SPY: close=597.4, bar_count=168
+2025-06-13 19:46:35,412 - src.data.handlers - INFO - 📊 Publishing BAR event #169 for SPY at 2025-01-27 20:54:00+00:00
+2025-06-13 19:46:35,412 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,412 - src.strategy.state - INFO - Processing BAR for SPY: close=597.98, bar_count=169
+2025-06-13 19:46:35,421 - src.data.handlers - INFO - 📊 Publishing BAR event #170 for SPY at 2025-01-27 20:55:00+00:00
+2025-06-13 19:46:35,421 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,421 - src.strategy.state - INFO - Processing BAR for SPY: close=598.47, bar_count=170
+2025-06-13 19:46:35,429 - src.data.handlers - INFO - 📊 Publishing BAR event #171 for SPY at 2025-01-27 20:56:00+00:00
+2025-06-13 19:46:35,429 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,429 - src.strategy.state - INFO - Processing BAR for SPY: close=598.66, bar_count=171
+2025-06-13 19:46:35,438 - src.data.handlers - INFO - 📊 Publishing BAR event #172 for SPY at 2025-01-27 20:57:00+00:00
+2025-06-13 19:46:35,438 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,438 - src.strategy.state - INFO - Processing BAR for SPY: close=598.9302, bar_count=172
+2025-06-13 19:46:35,446 - src.data.handlers - INFO - 📊 Publishing BAR event #173 for SPY at 2025-01-27 20:58:00+00:00
+2025-06-13 19:46:35,446 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,446 - src.strategy.state - INFO - Processing BAR for SPY: close=599.12, bar_count=173
+2025-06-13 19:46:35,455 - src.data.handlers - INFO - 📊 Publishing BAR event #174 for SPY at 2025-01-27 20:59:00+00:00
+2025-06-13 19:46:35,455 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,455 - src.strategy.state - INFO - Processing BAR for SPY: close=599.41, bar_count=174
+2025-06-13 19:46:35,463 - src.data.handlers - INFO - 📊 Publishing BAR event #175 for SPY at 2025-01-27 21:00:00+00:00
+2025-06-13 19:46:35,463 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,463 - src.strategy.state - INFO - Processing BAR for SPY: close=599.33, bar_count=175
+2025-06-13 19:46:35,471 - src.data.handlers - INFO - 📊 Publishing BAR event #176 for SPY at 2025-01-28 14:30:00+00:00
+2025-06-13 19:46:35,471 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,471 - src.strategy.state - INFO - Processing BAR for SPY: close=600.39, bar_count=176
+2025-06-13 19:46:35,479 - src.data.handlers - INFO - 📊 Publishing BAR event #177 for SPY at 2025-01-28 14:31:00+00:00
+2025-06-13 19:46:35,479 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,479 - src.strategy.state - INFO - Processing BAR for SPY: close=599.61, bar_count=177
+2025-06-13 19:46:35,488 - src.data.handlers - INFO - 📊 Publishing BAR event #178 for SPY at 2025-01-28 14:32:00+00:00
+2025-06-13 19:46:35,488 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,488 - src.strategy.state - INFO - Processing BAR for SPY: close=599.57, bar_count=178
+2025-06-13 19:46:35,497 - src.data.handlers - INFO - 📊 Publishing BAR event #179 for SPY at 2025-01-28 14:33:00+00:00
+2025-06-13 19:46:35,497 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,497 - src.strategy.state - INFO - Processing BAR for SPY: close=599.83, bar_count=179
+2025-06-13 19:46:35,505 - src.data.handlers - INFO - 📊 Publishing BAR event #180 for SPY at 2025-01-28 14:34:00+00:00
+2025-06-13 19:46:35,505 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,505 - src.strategy.state - INFO - Processing BAR for SPY: close=599.59, bar_count=180
+2025-06-13 19:46:35,506 - src.strategy.state - INFO - Bar 180: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:35,506 - src.strategy.state - INFO - Bar 180: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:35,513 - src.data.handlers - INFO - 📊 Publishing BAR event #181 for SPY at 2025-01-28 14:35:00+00:00
+2025-06-13 19:46:35,513 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,513 - src.strategy.state - INFO - Processing BAR for SPY: close=599.13, bar_count=181
+2025-06-13 19:46:35,541 - src.data.handlers - INFO - 📊 Publishing BAR event #182 for SPY at 2025-01-28 14:36:00+00:00
+2025-06-13 19:46:35,541 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,541 - src.strategy.state - INFO - Processing BAR for SPY: close=598.97, bar_count=182
+2025-06-13 19:46:35,550 - src.data.handlers - INFO - 📊 Publishing BAR event #183 for SPY at 2025-01-28 14:37:00+00:00
+2025-06-13 19:46:35,550 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,550 - src.strategy.state - INFO - Processing BAR for SPY: close=598.88, bar_count=183
+2025-06-13 19:46:35,559 - src.data.handlers - INFO - 📊 Publishing BAR event #184 for SPY at 2025-01-28 14:38:00+00:00
+2025-06-13 19:46:35,559 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,559 - src.strategy.state - INFO - Processing BAR for SPY: close=598.9605, bar_count=184
+2025-06-13 19:46:35,567 - src.data.handlers - INFO - 📊 Publishing BAR event #185 for SPY at 2025-01-28 14:39:00+00:00
+2025-06-13 19:46:35,568 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,568 - src.strategy.state - INFO - Processing BAR for SPY: close=599.11, bar_count=185
+2025-06-13 19:46:35,575 - src.data.handlers - INFO - 📊 Publishing BAR event #186 for SPY at 2025-01-28 14:40:00+00:00
+2025-06-13 19:46:35,575 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,575 - src.strategy.state - INFO - Processing BAR for SPY: close=599.19, bar_count=186
+2025-06-13 19:46:35,584 - src.data.handlers - INFO - 📊 Publishing BAR event #187 for SPY at 2025-01-28 14:41:00+00:00
+2025-06-13 19:46:35,584 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,584 - src.strategy.state - INFO - Processing BAR for SPY: close=598.74, bar_count=187
+2025-06-13 19:46:35,592 - src.data.handlers - INFO - 📊 Publishing BAR event #188 for SPY at 2025-01-28 14:42:00+00:00
+2025-06-13 19:46:35,592 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,592 - src.strategy.state - INFO - Processing BAR for SPY: close=598.71, bar_count=188
+2025-06-13 19:46:35,600 - src.data.handlers - INFO - 📊 Publishing BAR event #189 for SPY at 2025-01-28 14:43:00+00:00
+2025-06-13 19:46:35,600 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,600 - src.strategy.state - INFO - Processing BAR for SPY: close=598.615, bar_count=189
+2025-06-13 19:46:35,609 - src.data.handlers - INFO - 📊 Publishing BAR event #190 for SPY at 2025-01-28 14:44:00+00:00
+2025-06-13 19:46:35,609 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,609 - src.strategy.state - INFO - Processing BAR for SPY: close=598.39, bar_count=190
+2025-06-13 19:46:35,617 - src.data.handlers - INFO - 📊 Publishing BAR event #191 for SPY at 2025-01-28 14:45:00+00:00
+2025-06-13 19:46:35,617 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,617 - src.strategy.state - INFO - Processing BAR for SPY: close=598.59, bar_count=191
+2025-06-13 19:46:35,625 - src.data.handlers - INFO - 📊 Publishing BAR event #192 for SPY at 2025-01-28 14:46:00+00:00
+2025-06-13 19:46:35,625 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,625 - src.strategy.state - INFO - Processing BAR for SPY: close=597.81, bar_count=192
+2025-06-13 19:46:35,633 - src.data.handlers - INFO - 📊 Publishing BAR event #193 for SPY at 2025-01-28 14:47:00+00:00
+2025-06-13 19:46:35,633 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,633 - src.strategy.state - INFO - Processing BAR for SPY: close=597.35, bar_count=193
+2025-06-13 19:46:35,641 - src.data.handlers - INFO - 📊 Publishing BAR event #194 for SPY at 2025-01-28 14:48:00+00:00
+2025-06-13 19:46:35,641 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,641 - src.strategy.state - INFO - Processing BAR for SPY: close=597.54, bar_count=194
+2025-06-13 19:46:35,671 - src.data.handlers - INFO - 📊 Publishing BAR event #195 for SPY at 2025-01-28 14:49:00+00:00
+2025-06-13 19:46:35,671 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,671 - src.strategy.state - INFO - Processing BAR for SPY: close=597.84, bar_count=195
+2025-06-13 19:46:35,680 - src.data.handlers - INFO - 📊 Publishing BAR event #196 for SPY at 2025-01-28 14:50:00+00:00
+2025-06-13 19:46:35,680 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,680 - src.strategy.state - INFO - Processing BAR for SPY: close=597.65, bar_count=196
+2025-06-13 19:46:35,689 - src.data.handlers - INFO - 📊 Publishing BAR event #197 for SPY at 2025-01-28 14:51:00+00:00
+2025-06-13 19:46:35,689 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,689 - src.strategy.state - INFO - Processing BAR for SPY: close=598.18, bar_count=197
+2025-06-13 19:46:35,697 - src.data.handlers - INFO - 📊 Publishing BAR event #198 for SPY at 2025-01-28 14:52:00+00:00
+2025-06-13 19:46:35,697 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,697 - src.strategy.state - INFO - Processing BAR for SPY: close=598.38, bar_count=198
+2025-06-13 19:46:35,705 - src.data.handlers - INFO - 📊 Publishing BAR event #199 for SPY at 2025-01-28 14:53:00+00:00
+2025-06-13 19:46:35,705 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,705 - src.strategy.state - INFO - Processing BAR for SPY: close=598.235, bar_count=199
+2025-06-13 19:46:35,713 - src.data.handlers - INFO - 📊 Publishing BAR event #200 for SPY at 2025-01-28 14:54:00+00:00
+2025-06-13 19:46:35,713 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,713 - src.strategy.state - INFO - Processing BAR for SPY: close=598.72, bar_count=200
+2025-06-13 19:46:35,713 - src.strategy.state - INFO - Bar 200: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:35,713 - src.strategy.state - INFO - Bar 200: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:35,722 - src.data.handlers - INFO - 📊 Publishing BAR event #201 for SPY at 2025-01-28 14:55:00+00:00
+2025-06-13 19:46:35,722 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,722 - src.strategy.state - INFO - Processing BAR for SPY: close=598.52, bar_count=201
+2025-06-13 19:46:35,730 - src.data.handlers - INFO - 📊 Publishing BAR event #202 for SPY at 2025-01-28 14:56:00+00:00
+2025-06-13 19:46:35,730 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,730 - src.strategy.state - INFO - Processing BAR for SPY: close=598.83, bar_count=202
+2025-06-13 19:46:35,739 - src.data.handlers - INFO - 📊 Publishing BAR event #203 for SPY at 2025-01-28 14:57:00+00:00
+2025-06-13 19:46:35,739 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,739 - src.strategy.state - INFO - Processing BAR for SPY: close=598.735, bar_count=203
+2025-06-13 19:46:35,747 - src.data.handlers - INFO - 📊 Publishing BAR event #204 for SPY at 2025-01-28 14:58:00+00:00
+2025-06-13 19:46:35,747 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,747 - src.strategy.state - INFO - Processing BAR for SPY: close=598.58, bar_count=204
+2025-06-13 19:46:35,755 - src.data.handlers - INFO - 📊 Publishing BAR event #205 for SPY at 2025-01-28 14:59:00+00:00
+2025-06-13 19:46:35,755 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,755 - src.strategy.state - INFO - Processing BAR for SPY: close=598.9351, bar_count=205
+2025-06-13 19:46:35,763 - src.data.handlers - INFO - 📊 Publishing BAR event #206 for SPY at 2025-01-28 15:00:00+00:00
+2025-06-13 19:46:35,763 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,763 - src.strategy.state - INFO - Processing BAR for SPY: close=599.2, bar_count=206
+2025-06-13 19:46:35,772 - src.data.handlers - INFO - 📊 Publishing BAR event #207 for SPY at 2025-01-28 15:01:00+00:00
+2025-06-13 19:46:35,772 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,772 - src.strategy.state - INFO - Processing BAR for SPY: close=599.86, bar_count=207
+2025-06-13 19:46:35,803 - src.data.handlers - INFO - 📊 Publishing BAR event #208 for SPY at 2025-01-28 15:02:00+00:00
+2025-06-13 19:46:35,803 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,803 - src.strategy.state - INFO - Processing BAR for SPY: close=599.83, bar_count=208
+2025-06-13 19:46:35,811 - src.data.handlers - INFO - 📊 Publishing BAR event #209 for SPY at 2025-01-28 15:03:00+00:00
+2025-06-13 19:46:35,811 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,811 - src.strategy.state - INFO - Processing BAR for SPY: close=600.39, bar_count=209
+2025-06-13 19:46:35,819 - src.data.handlers - INFO - 📊 Publishing BAR event #210 for SPY at 2025-01-28 15:04:00+00:00
+2025-06-13 19:46:35,819 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,819 - src.strategy.state - INFO - Processing BAR for SPY: close=600.47, bar_count=210
+2025-06-13 19:46:35,827 - src.data.handlers - INFO - 📊 Publishing BAR event #211 for SPY at 2025-01-28 15:05:00+00:00
+2025-06-13 19:46:35,827 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,827 - src.strategy.state - INFO - Processing BAR for SPY: close=600.59, bar_count=211
+2025-06-13 19:46:35,835 - src.data.handlers - INFO - 📊 Publishing BAR event #212 for SPY at 2025-01-28 15:06:00+00:00
+2025-06-13 19:46:35,835 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,835 - src.strategy.state - INFO - Processing BAR for SPY: close=600.5, bar_count=212
+2025-06-13 19:46:35,844 - src.data.handlers - INFO - 📊 Publishing BAR event #213 for SPY at 2025-01-28 15:07:00+00:00
+2025-06-13 19:46:35,844 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,844 - src.strategy.state - INFO - Processing BAR for SPY: close=600.612, bar_count=213
+2025-06-13 19:46:35,853 - src.data.handlers - INFO - 📊 Publishing BAR event #214 for SPY at 2025-01-28 15:08:00+00:00
+2025-06-13 19:46:35,853 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,853 - src.strategy.state - INFO - Processing BAR for SPY: close=600.125, bar_count=214
+2025-06-13 19:46:35,860 - src.data.handlers - INFO - 📊 Publishing BAR event #215 for SPY at 2025-01-28 15:09:00+00:00
+2025-06-13 19:46:35,860 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,860 - src.strategy.state - INFO - Processing BAR for SPY: close=599.96, bar_count=215
+2025-06-13 19:46:35,868 - src.data.handlers - INFO - 📊 Publishing BAR event #216 for SPY at 2025-01-28 15:10:00+00:00
+2025-06-13 19:46:35,868 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,868 - src.strategy.state - INFO - Processing BAR for SPY: close=600.19, bar_count=216
+2025-06-13 19:46:35,876 - src.data.handlers - INFO - 📊 Publishing BAR event #217 for SPY at 2025-01-28 15:11:00+00:00
+2025-06-13 19:46:35,876 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,876 - src.strategy.state - INFO - Processing BAR for SPY: close=600.17, bar_count=217
+2025-06-13 19:46:35,885 - src.data.handlers - INFO - 📊 Publishing BAR event #218 for SPY at 2025-01-28 15:12:00+00:00
+2025-06-13 19:46:35,885 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,885 - src.strategy.state - INFO - Processing BAR for SPY: close=600.67, bar_count=218
+2025-06-13 19:46:35,893 - src.data.handlers - INFO - 📊 Publishing BAR event #219 for SPY at 2025-01-28 15:13:00+00:00
+2025-06-13 19:46:35,893 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,893 - src.strategy.state - INFO - Processing BAR for SPY: close=600.84, bar_count=219
+2025-06-13 19:46:35,902 - src.data.handlers - INFO - 📊 Publishing BAR event #220 for SPY at 2025-01-28 15:14:00+00:00
+2025-06-13 19:46:35,902 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,902 - src.strategy.state - INFO - Processing BAR for SPY: close=600.83, bar_count=220
+2025-06-13 19:46:35,902 - src.strategy.state - INFO - Bar 220: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:35,902 - src.strategy.state - INFO - Bar 220: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:35,910 - src.data.handlers - INFO - 📊 Publishing BAR event #221 for SPY at 2025-01-28 15:15:00+00:00
+2025-06-13 19:46:35,910 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,910 - src.strategy.state - INFO - Processing BAR for SPY: close=600.735, bar_count=221
+2025-06-13 19:46:35,938 - src.data.handlers - INFO - 📊 Publishing BAR event #222 for SPY at 2025-01-28 15:16:00+00:00
+2025-06-13 19:46:35,938 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,938 - src.strategy.state - INFO - Processing BAR for SPY: close=600.84, bar_count=222
+2025-06-13 19:46:35,946 - src.data.handlers - INFO - 📊 Publishing BAR event #223 for SPY at 2025-01-28 15:17:00+00:00
+2025-06-13 19:46:35,946 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,946 - src.strategy.state - INFO - Processing BAR for SPY: close=600.89, bar_count=223
+2025-06-13 19:46:35,955 - src.data.handlers - INFO - 📊 Publishing BAR event #224 for SPY at 2025-01-28 15:18:00+00:00
+2025-06-13 19:46:35,955 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,955 - src.strategy.state - INFO - Processing BAR for SPY: close=600.9644, bar_count=224
+2025-06-13 19:46:35,963 - src.data.handlers - INFO - 📊 Publishing BAR event #225 for SPY at 2025-01-28 15:19:00+00:00
+2025-06-13 19:46:35,963 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,963 - src.strategy.state - INFO - Processing BAR for SPY: close=601.02, bar_count=225
+2025-06-13 19:46:35,972 - src.data.handlers - INFO - 📊 Publishing BAR event #226 for SPY at 2025-01-28 15:20:00+00:00
+2025-06-13 19:46:35,972 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,972 - src.strategy.state - INFO - Processing BAR for SPY: close=601.05, bar_count=226
+2025-06-13 19:46:35,980 - src.data.handlers - INFO - 📊 Publishing BAR event #227 for SPY at 2025-01-28 15:21:00+00:00
+2025-06-13 19:46:35,980 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,980 - src.strategy.state - INFO - Processing BAR for SPY: close=601.1, bar_count=227
+2025-06-13 19:46:35,988 - src.data.handlers - INFO - 📊 Publishing BAR event #228 for SPY at 2025-01-28 15:22:00+00:00
+2025-06-13 19:46:35,988 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,988 - src.strategy.state - INFO - Processing BAR for SPY: close=601.52, bar_count=228
+2025-06-13 19:46:35,996 - src.data.handlers - INFO - 📊 Publishing BAR event #229 for SPY at 2025-01-28 15:23:00+00:00
+2025-06-13 19:46:35,996 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:35,996 - src.strategy.state - INFO - Processing BAR for SPY: close=601.91, bar_count=229
+2025-06-13 19:46:36,004 - src.data.handlers - INFO - 📊 Publishing BAR event #230 for SPY at 2025-01-28 15:24:00+00:00
+2025-06-13 19:46:36,004 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,004 - src.strategy.state - INFO - Processing BAR for SPY: close=601.995, bar_count=230
+2025-06-13 19:46:36,013 - src.data.handlers - INFO - 📊 Publishing BAR event #231 for SPY at 2025-01-28 15:25:00+00:00
+2025-06-13 19:46:36,013 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,013 - src.strategy.state - INFO - Processing BAR for SPY: close=601.94, bar_count=231
+2025-06-13 19:46:36,021 - src.data.handlers - INFO - 📊 Publishing BAR event #232 for SPY at 2025-01-28 15:26:00+00:00
+2025-06-13 19:46:36,021 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,021 - src.strategy.state - INFO - Processing BAR for SPY: close=602.33, bar_count=232
+2025-06-13 19:46:36,029 - src.data.handlers - INFO - 📊 Publishing BAR event #233 for SPY at 2025-01-28 15:27:00+00:00
+2025-06-13 19:46:36,029 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,029 - src.strategy.state - INFO - Processing BAR for SPY: close=602.5, bar_count=233
+2025-06-13 19:46:36,037 - src.data.handlers - INFO - 📊 Publishing BAR event #234 for SPY at 2025-01-28 15:28:00+00:00
+2025-06-13 19:46:36,037 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,037 - src.strategy.state - INFO - Processing BAR for SPY: close=602.69, bar_count=234
+2025-06-13 19:46:36,066 - src.data.handlers - INFO - 📊 Publishing BAR event #235 for SPY at 2025-01-28 15:29:00+00:00
+2025-06-13 19:46:36,066 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,066 - src.strategy.state - INFO - Processing BAR for SPY: close=602.46, bar_count=235
+2025-06-13 19:46:36,075 - src.data.handlers - INFO - 📊 Publishing BAR event #236 for SPY at 2025-01-28 15:30:00+00:00
+2025-06-13 19:46:36,075 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,075 - src.strategy.state - INFO - Processing BAR for SPY: close=602.42, bar_count=236
+2025-06-13 19:46:36,084 - src.data.handlers - INFO - 📊 Publishing BAR event #237 for SPY at 2025-01-28 15:31:00+00:00
+2025-06-13 19:46:36,084 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,084 - src.strategy.state - INFO - Processing BAR for SPY: close=602.31, bar_count=237
+2025-06-13 19:46:36,092 - src.data.handlers - INFO - 📊 Publishing BAR event #238 for SPY at 2025-01-28 15:32:00+00:00
+2025-06-13 19:46:36,092 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,092 - src.strategy.state - INFO - Processing BAR for SPY: close=602.3, bar_count=238
+2025-06-13 19:46:36,099 - src.data.handlers - INFO - 📊 Publishing BAR event #239 for SPY at 2025-01-28 15:33:00+00:00
+2025-06-13 19:46:36,099 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,099 - src.strategy.state - INFO - Processing BAR for SPY: close=602.16, bar_count=239
+2025-06-13 19:46:36,107 - src.data.handlers - INFO - 📊 Publishing BAR event #240 for SPY at 2025-01-28 15:34:00+00:00
+2025-06-13 19:46:36,107 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,107 - src.strategy.state - INFO - Processing BAR for SPY: close=601.94, bar_count=240
+2025-06-13 19:46:36,107 - src.strategy.state - INFO - Bar 240: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:36,107 - src.strategy.state - INFO - Bar 240: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:36,116 - src.data.handlers - INFO - 📊 Publishing BAR event #241 for SPY at 2025-01-28 15:35:00+00:00
+2025-06-13 19:46:36,116 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,116 - src.strategy.state - INFO - Processing BAR for SPY: close=601.86, bar_count=241
+2025-06-13 19:46:36,124 - src.data.handlers - INFO - 📊 Publishing BAR event #242 for SPY at 2025-01-28 15:36:00+00:00
+2025-06-13 19:46:36,124 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,124 - src.strategy.state - INFO - Processing BAR for SPY: close=602.055, bar_count=242
+2025-06-13 19:46:36,133 - src.data.handlers - INFO - 📊 Publishing BAR event #243 for SPY at 2025-01-28 15:37:00+00:00
+2025-06-13 19:46:36,133 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,133 - src.strategy.state - INFO - Processing BAR for SPY: close=602.43, bar_count=243
+2025-06-13 19:46:36,141 - src.data.handlers - INFO - 📊 Publishing BAR event #244 for SPY at 2025-01-28 15:38:00+00:00
+2025-06-13 19:46:36,141 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,141 - src.strategy.state - INFO - Processing BAR for SPY: close=602.4495, bar_count=244
+2025-06-13 19:46:36,149 - src.data.handlers - INFO - 📊 Publishing BAR event #245 for SPY at 2025-01-28 15:39:00+00:00
+2025-06-13 19:46:36,149 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,149 - src.strategy.state - INFO - Processing BAR for SPY: close=602.4, bar_count=245
+2025-06-13 19:46:36,157 - src.data.handlers - INFO - 📊 Publishing BAR event #246 for SPY at 2025-01-28 15:40:00+00:00
+2025-06-13 19:46:36,157 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,157 - src.strategy.state - INFO - Processing BAR for SPY: close=602.39, bar_count=246
+2025-06-13 19:46:36,165 - src.data.handlers - INFO - 📊 Publishing BAR event #247 for SPY at 2025-01-28 15:41:00+00:00
+2025-06-13 19:46:36,165 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,165 - src.strategy.state - INFO - Processing BAR for SPY: close=602.49, bar_count=247
+2025-06-13 19:46:36,196 - src.data.handlers - INFO - 📊 Publishing BAR event #248 for SPY at 2025-01-28 15:42:00+00:00
+2025-06-13 19:46:36,196 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,196 - src.strategy.state - INFO - Processing BAR for SPY: close=602.27, bar_count=248
+2025-06-13 19:46:36,205 - src.data.handlers - INFO - 📊 Publishing BAR event #249 for SPY at 2025-01-28 15:43:00+00:00
+2025-06-13 19:46:36,205 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,205 - src.strategy.state - INFO - Processing BAR for SPY: close=602.4, bar_count=249
+2025-06-13 19:46:36,213 - src.data.handlers - INFO - 📊 Publishing BAR event #250 for SPY at 2025-01-28 15:44:00+00:00
+2025-06-13 19:46:36,213 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,213 - src.strategy.state - INFO - Processing BAR for SPY: close=602.42, bar_count=250
+2025-06-13 19:46:36,221 - src.data.handlers - INFO - 📊 Publishing BAR event #251 for SPY at 2025-01-28 15:45:00+00:00
+2025-06-13 19:46:36,221 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,221 - src.strategy.state - INFO - Processing BAR for SPY: close=601.885, bar_count=251
+2025-06-13 19:46:36,229 - src.data.handlers - INFO - 📊 Publishing BAR event #252 for SPY at 2025-01-28 15:46:00+00:00
+2025-06-13 19:46:36,229 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,229 - src.strategy.state - INFO - Processing BAR for SPY: close=602.34, bar_count=252
+2025-06-13 19:46:36,237 - src.data.handlers - INFO - 📊 Publishing BAR event #253 for SPY at 2025-01-28 15:47:00+00:00
+2025-06-13 19:46:36,237 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,237 - src.strategy.state - INFO - Processing BAR for SPY: close=602.44, bar_count=253
+2025-06-13 19:46:36,246 - src.data.handlers - INFO - 📊 Publishing BAR event #254 for SPY at 2025-01-28 15:48:00+00:00
+2025-06-13 19:46:36,246 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,246 - src.strategy.state - INFO - Processing BAR for SPY: close=602.57, bar_count=254
+2025-06-13 19:46:36,255 - src.data.handlers - INFO - 📊 Publishing BAR event #255 for SPY at 2025-01-28 15:49:00+00:00
+2025-06-13 19:46:36,255 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,255 - src.strategy.state - INFO - Processing BAR for SPY: close=602.6267, bar_count=255
+2025-06-13 19:46:36,262 - src.data.handlers - INFO - 📊 Publishing BAR event #256 for SPY at 2025-01-28 15:50:00+00:00
+2025-06-13 19:46:36,262 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,262 - src.strategy.state - INFO - Processing BAR for SPY: close=602.63, bar_count=256
+2025-06-13 19:46:36,271 - src.data.handlers - INFO - 📊 Publishing BAR event #257 for SPY at 2025-01-28 15:51:00+00:00
+2025-06-13 19:46:36,271 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,271 - src.strategy.state - INFO - Processing BAR for SPY: close=602.7, bar_count=257
+2025-06-13 19:46:36,279 - src.data.handlers - INFO - 📊 Publishing BAR event #258 for SPY at 2025-01-28 15:52:00+00:00
+2025-06-13 19:46:36,279 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,279 - src.strategy.state - INFO - Processing BAR for SPY: close=602.61, bar_count=258
+2025-06-13 19:46:36,287 - src.data.handlers - INFO - 📊 Publishing BAR event #259 for SPY at 2025-01-28 15:53:00+00:00
+2025-06-13 19:46:36,287 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,287 - src.strategy.state - INFO - Processing BAR for SPY: close=602.53, bar_count=259
+2025-06-13 19:46:36,296 - src.data.handlers - INFO - 📊 Publishing BAR event #260 for SPY at 2025-01-28 15:54:00+00:00
+2025-06-13 19:46:36,296 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,296 - src.strategy.state - INFO - Processing BAR for SPY: close=602.42, bar_count=260
+2025-06-13 19:46:36,296 - src.strategy.state - INFO - Bar 260: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:36,296 - src.strategy.state - INFO - Bar 260: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:36,305 - src.data.handlers - INFO - 📊 Publishing BAR event #261 for SPY at 2025-01-28 15:55:00+00:00
+2025-06-13 19:46:36,305 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,305 - src.strategy.state - INFO - Processing BAR for SPY: close=602.6908, bar_count=261
+2025-06-13 19:46:36,333 - src.data.handlers - INFO - 📊 Publishing BAR event #262 for SPY at 2025-01-28 15:56:00+00:00
+2025-06-13 19:46:36,333 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,333 - src.strategy.state - INFO - Processing BAR for SPY: close=602.66, bar_count=262
+2025-06-13 19:46:36,342 - src.data.handlers - INFO - 📊 Publishing BAR event #263 for SPY at 2025-01-28 15:57:00+00:00
+2025-06-13 19:46:36,342 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,342 - src.strategy.state - INFO - Processing BAR for SPY: close=602.65, bar_count=263
+2025-06-13 19:46:36,350 - src.data.handlers - INFO - 📊 Publishing BAR event #264 for SPY at 2025-01-28 15:58:00+00:00
+2025-06-13 19:46:36,350 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,350 - src.strategy.state - INFO - Processing BAR for SPY: close=602.9401, bar_count=264
+2025-06-13 19:46:36,359 - src.data.handlers - INFO - 📊 Publishing BAR event #265 for SPY at 2025-01-28 15:59:00+00:00
+2025-06-13 19:46:36,359 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,359 - src.strategy.state - INFO - Processing BAR for SPY: close=603.06, bar_count=265
+2025-06-13 19:46:36,368 - src.data.handlers - INFO - 📊 Publishing BAR event #266 for SPY at 2025-01-28 16:00:00+00:00
+2025-06-13 19:46:36,368 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,368 - src.strategy.state - INFO - Processing BAR for SPY: close=603.28, bar_count=266
+2025-06-13 19:46:36,376 - src.data.handlers - INFO - 📊 Publishing BAR event #267 for SPY at 2025-01-28 16:01:00+00:00
+2025-06-13 19:46:36,376 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,376 - src.strategy.state - INFO - Processing BAR for SPY: close=602.94, bar_count=267
+2025-06-13 19:46:36,384 - src.data.handlers - INFO - 📊 Publishing BAR event #268 for SPY at 2025-01-28 16:02:00+00:00
+2025-06-13 19:46:36,384 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,384 - src.strategy.state - INFO - Processing BAR for SPY: close=602.92, bar_count=268
+2025-06-13 19:46:36,392 - src.data.handlers - INFO - 📊 Publishing BAR event #269 for SPY at 2025-01-28 16:03:00+00:00
+2025-06-13 19:46:36,392 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,392 - src.strategy.state - INFO - Processing BAR for SPY: close=602.8, bar_count=269
+2025-06-13 19:46:36,401 - src.data.handlers - INFO - 📊 Publishing BAR event #270 for SPY at 2025-01-28 16:04:00+00:00
+2025-06-13 19:46:36,401 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,401 - src.strategy.state - INFO - Processing BAR for SPY: close=603.05, bar_count=270
+2025-06-13 19:46:36,409 - src.data.handlers - INFO - 📊 Publishing BAR event #271 for SPY at 2025-01-28 16:05:00+00:00
+2025-06-13 19:46:36,409 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,409 - src.strategy.state - INFO - Processing BAR for SPY: close=603.17, bar_count=271
+2025-06-13 19:46:36,418 - src.data.handlers - INFO - 📊 Publishing BAR event #272 for SPY at 2025-01-28 16:06:00+00:00
+2025-06-13 19:46:36,418 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,418 - src.strategy.state - INFO - Processing BAR for SPY: close=603.18, bar_count=272
+2025-06-13 19:46:36,427 - src.data.handlers - INFO - 📊 Publishing BAR event #273 for SPY at 2025-01-28 16:07:00+00:00
+2025-06-13 19:46:36,427 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,427 - src.strategy.state - INFO - Processing BAR for SPY: close=603.2167, bar_count=273
+2025-06-13 19:46:36,435 - src.data.handlers - INFO - 📊 Publishing BAR event #274 for SPY at 2025-01-28 16:08:00+00:00
+2025-06-13 19:46:36,435 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,435 - src.strategy.state - INFO - Processing BAR for SPY: close=603.18, bar_count=274
+2025-06-13 19:46:36,463 - src.data.handlers - INFO - 📊 Publishing BAR event #275 for SPY at 2025-01-28 16:09:00+00:00
+2025-06-13 19:46:36,463 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,463 - src.strategy.state - INFO - Processing BAR for SPY: close=603.255, bar_count=275
+2025-06-13 19:46:36,472 - src.data.handlers - INFO - 📊 Publishing BAR event #276 for SPY at 2025-01-28 16:10:00+00:00
+2025-06-13 19:46:36,472 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,472 - src.strategy.state - INFO - Processing BAR for SPY: close=603.38, bar_count=276
+2025-06-13 19:46:36,481 - src.data.handlers - INFO - 📊 Publishing BAR event #277 for SPY at 2025-01-28 16:11:00+00:00
+2025-06-13 19:46:36,481 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,481 - src.strategy.state - INFO - Processing BAR for SPY: close=603.37, bar_count=277
+2025-06-13 19:46:36,489 - src.data.handlers - INFO - 📊 Publishing BAR event #278 for SPY at 2025-01-28 16:12:00+00:00
+2025-06-13 19:46:36,489 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,489 - src.strategy.state - INFO - Processing BAR for SPY: close=603.42, bar_count=278
+2025-06-13 19:46:36,497 - src.data.handlers - INFO - 📊 Publishing BAR event #279 for SPY at 2025-01-28 16:13:00+00:00
+2025-06-13 19:46:36,498 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,498 - src.strategy.state - INFO - Processing BAR for SPY: close=603.1, bar_count=279
+2025-06-13 19:46:36,506 - src.data.handlers - INFO - 📊 Publishing BAR event #280 for SPY at 2025-01-28 16:14:00+00:00
+2025-06-13 19:46:36,506 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,506 - src.strategy.state - INFO - Processing BAR for SPY: close=602.98, bar_count=280
+2025-06-13 19:46:36,506 - src.strategy.state - INFO - Bar 280: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:36,506 - src.strategy.state - INFO - Bar 280: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:36,514 - src.data.handlers - INFO - 📊 Publishing BAR event #281 for SPY at 2025-01-28 16:15:00+00:00
+2025-06-13 19:46:36,514 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,514 - src.strategy.state - INFO - Processing BAR for SPY: close=603.1451, bar_count=281
+2025-06-13 19:46:36,523 - src.data.handlers - INFO - 📊 Publishing BAR event #282 for SPY at 2025-01-28 16:16:00+00:00
+2025-06-13 19:46:36,523 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,523 - src.strategy.state - INFO - Processing BAR for SPY: close=602.97, bar_count=282
+2025-06-13 19:46:36,531 - src.data.handlers - INFO - 📊 Publishing BAR event #283 for SPY at 2025-01-28 16:17:00+00:00
+2025-06-13 19:46:36,531 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,531 - src.strategy.state - INFO - Processing BAR for SPY: close=602.76, bar_count=283
+2025-06-13 19:46:36,540 - src.data.handlers - INFO - 📊 Publishing BAR event #284 for SPY at 2025-01-28 16:18:00+00:00
+2025-06-13 19:46:36,540 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,540 - src.strategy.state - INFO - Processing BAR for SPY: close=602.9, bar_count=284
+2025-06-13 19:46:36,548 - src.data.handlers - INFO - 📊 Publishing BAR event #285 for SPY at 2025-01-28 16:19:00+00:00
+2025-06-13 19:46:36,548 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,548 - src.strategy.state - INFO - Processing BAR for SPY: close=602.67, bar_count=285
+2025-06-13 19:46:36,556 - src.data.handlers - INFO - 📊 Publishing BAR event #286 for SPY at 2025-01-28 16:20:00+00:00
+2025-06-13 19:46:36,556 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,556 - src.strategy.state - INFO - Processing BAR for SPY: close=602.71, bar_count=286
+2025-06-13 19:46:36,564 - src.data.handlers - INFO - 📊 Publishing BAR event #287 for SPY at 2025-01-28 16:21:00+00:00
+2025-06-13 19:46:36,565 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,565 - src.strategy.state - INFO - Processing BAR for SPY: close=602.59, bar_count=287
+2025-06-13 19:46:36,594 - src.data.handlers - INFO - 📊 Publishing BAR event #288 for SPY at 2025-01-28 16:22:00+00:00
+2025-06-13 19:46:36,594 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,594 - src.strategy.state - INFO - Processing BAR for SPY: close=602.495, bar_count=288
+2025-06-13 19:46:36,603 - src.data.handlers - INFO - 📊 Publishing BAR event #289 for SPY at 2025-01-28 16:23:00+00:00
+2025-06-13 19:46:36,603 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,603 - src.strategy.state - INFO - Processing BAR for SPY: close=602.44, bar_count=289
+2025-06-13 19:46:36,612 - src.data.handlers - INFO - 📊 Publishing BAR event #290 for SPY at 2025-01-28 16:24:00+00:00
+2025-06-13 19:46:36,612 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,612 - src.strategy.state - INFO - Processing BAR for SPY: close=602.02, bar_count=290
+2025-06-13 19:46:36,620 - src.data.handlers - INFO - 📊 Publishing BAR event #291 for SPY at 2025-01-28 16:25:00+00:00
+2025-06-13 19:46:36,620 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,620 - src.strategy.state - INFO - Processing BAR for SPY: close=601.7, bar_count=291
+2025-06-13 19:46:36,628 - src.data.handlers - INFO - 📊 Publishing BAR event #292 for SPY at 2025-01-28 16:26:00+00:00
+2025-06-13 19:46:36,628 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,628 - src.strategy.state - INFO - Processing BAR for SPY: close=601.83, bar_count=292
+2025-06-13 19:46:36,636 - src.data.handlers - INFO - 📊 Publishing BAR event #293 for SPY at 2025-01-28 16:27:00+00:00
+2025-06-13 19:46:36,636 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,636 - src.strategy.state - INFO - Processing BAR for SPY: close=601.7, bar_count=293
+2025-06-13 19:46:36,645 - src.data.handlers - INFO - 📊 Publishing BAR event #294 for SPY at 2025-01-28 16:28:00+00:00
+2025-06-13 19:46:36,645 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,645 - src.strategy.state - INFO - Processing BAR for SPY: close=601.44, bar_count=294
+2025-06-13 19:46:36,653 - src.data.handlers - INFO - 📊 Publishing BAR event #295 for SPY at 2025-01-28 16:29:00+00:00
+2025-06-13 19:46:36,653 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,653 - src.strategy.state - INFO - Processing BAR for SPY: close=601.42, bar_count=295
+2025-06-13 19:46:36,662 - src.data.handlers - INFO - 📊 Publishing BAR event #296 for SPY at 2025-01-28 16:30:00+00:00
+2025-06-13 19:46:36,662 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,662 - src.strategy.state - INFO - Processing BAR for SPY: close=601.47, bar_count=296
+2025-06-13 19:46:36,670 - src.data.handlers - INFO - 📊 Publishing BAR event #297 for SPY at 2025-01-28 16:31:00+00:00
+2025-06-13 19:46:36,670 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,670 - src.strategy.state - INFO - Processing BAR for SPY: close=601.48, bar_count=297
+2025-06-13 19:46:36,678 - src.data.handlers - INFO - 📊 Publishing BAR event #298 for SPY at 2025-01-28 16:32:00+00:00
+2025-06-13 19:46:36,678 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,678 - src.strategy.state - INFO - Processing BAR for SPY: close=601.67, bar_count=298
+2025-06-13 19:46:36,686 - src.data.handlers - INFO - 📊 Publishing BAR event #299 for SPY at 2025-01-28 16:33:00+00:00
+2025-06-13 19:46:36,686 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,686 - src.strategy.state - INFO - Processing BAR for SPY: close=601.5399, bar_count=299
+2025-06-13 19:46:36,695 - src.data.handlers - INFO - 📊 Publishing BAR event #300 for SPY at 2025-01-28 16:34:00+00:00
+2025-06-13 19:46:36,695 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,695 - src.strategy.state - INFO - Processing BAR for SPY: close=601.67, bar_count=300
+2025-06-13 19:46:36,695 - src.strategy.state - INFO - Bar 300: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:36,695 - src.strategy.state - INFO - Bar 300: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:36,724 - src.data.handlers - INFO - 📊 Publishing BAR event #301 for SPY at 2025-01-28 16:35:00+00:00
+2025-06-13 19:46:36,724 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,724 - src.strategy.state - INFO - Processing BAR for SPY: close=601.15, bar_count=301
+2025-06-13 19:46:36,732 - src.data.handlers - INFO - 📊 Publishing BAR event #302 for SPY at 2025-01-28 16:36:00+00:00
+2025-06-13 19:46:36,732 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,732 - src.strategy.state - INFO - Processing BAR for SPY: close=601.2758, bar_count=302
+2025-06-13 19:46:36,740 - src.data.handlers - INFO - 📊 Publishing BAR event #303 for SPY at 2025-01-28 16:37:00+00:00
+2025-06-13 19:46:36,740 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,740 - src.strategy.state - INFO - Processing BAR for SPY: close=601.3, bar_count=303
+2025-06-13 19:46:36,748 - src.data.handlers - INFO - 📊 Publishing BAR event #304 for SPY at 2025-01-28 16:38:00+00:00
+2025-06-13 19:46:36,748 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,749 - src.strategy.state - INFO - Processing BAR for SPY: close=601.72, bar_count=304
+2025-06-13 19:46:36,757 - src.data.handlers - INFO - 📊 Publishing BAR event #305 for SPY at 2025-01-28 16:39:00+00:00
+2025-06-13 19:46:36,757 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,757 - src.strategy.state - INFO - Processing BAR for SPY: close=601.87, bar_count=305
+2025-06-13 19:46:36,765 - src.data.handlers - INFO - 📊 Publishing BAR event #306 for SPY at 2025-01-28 16:40:00+00:00
+2025-06-13 19:46:36,765 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,765 - src.strategy.state - INFO - Processing BAR for SPY: close=601.485, bar_count=306
+2025-06-13 19:46:36,774 - src.data.handlers - INFO - 📊 Publishing BAR event #307 for SPY at 2025-01-28 16:41:00+00:00
+2025-06-13 19:46:36,774 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,774 - src.strategy.state - INFO - Processing BAR for SPY: close=601.02, bar_count=307
+2025-06-13 19:46:36,782 - src.data.handlers - INFO - 📊 Publishing BAR event #308 for SPY at 2025-01-28 16:42:00+00:00
+2025-06-13 19:46:36,782 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,782 - src.strategy.state - INFO - Processing BAR for SPY: close=601.2199, bar_count=308
+2025-06-13 19:46:36,790 - src.data.handlers - INFO - 📊 Publishing BAR event #309 for SPY at 2025-01-28 16:43:00+00:00
+2025-06-13 19:46:36,790 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,790 - src.strategy.state - INFO - Processing BAR for SPY: close=601.35, bar_count=309
+2025-06-13 19:46:36,798 - src.data.handlers - INFO - 📊 Publishing BAR event #310 for SPY at 2025-01-28 16:44:00+00:00
+2025-06-13 19:46:36,798 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,798 - src.strategy.state - INFO - Processing BAR for SPY: close=601.58, bar_count=310
+2025-06-13 19:46:36,807 - src.data.handlers - INFO - 📊 Publishing BAR event #311 for SPY at 2025-01-28 16:45:00+00:00
+2025-06-13 19:46:36,807 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,807 - src.strategy.state - INFO - Processing BAR for SPY: close=601.5885, bar_count=311
+2025-06-13 19:46:36,815 - src.data.handlers - INFO - 📊 Publishing BAR event #312 for SPY at 2025-01-28 16:46:00+00:00
+2025-06-13 19:46:36,815 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,815 - src.strategy.state - INFO - Processing BAR for SPY: close=601.9, bar_count=312
+2025-06-13 19:46:36,824 - src.data.handlers - INFO - 📊 Publishing BAR event #313 for SPY at 2025-01-28 16:47:00+00:00
+2025-06-13 19:46:36,824 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,824 - src.strategy.state - INFO - Processing BAR for SPY: close=601.945, bar_count=313
+2025-06-13 19:46:36,832 - src.data.handlers - INFO - 📊 Publishing BAR event #314 for SPY at 2025-01-28 16:48:00+00:00
+2025-06-13 19:46:36,832 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,832 - src.strategy.state - INFO - Processing BAR for SPY: close=602.0301, bar_count=314
+2025-06-13 19:46:36,860 - src.data.handlers - INFO - 📊 Publishing BAR event #315 for SPY at 2025-01-28 16:49:00+00:00
+2025-06-13 19:46:36,860 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,860 - src.strategy.state - INFO - Processing BAR for SPY: close=602.12, bar_count=315
+2025-06-13 19:46:36,868 - src.data.handlers - INFO - 📊 Publishing BAR event #316 for SPY at 2025-01-28 16:50:00+00:00
+2025-06-13 19:46:36,868 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,868 - src.strategy.state - INFO - Processing BAR for SPY: close=601.87, bar_count=316
+2025-06-13 19:46:36,877 - src.data.handlers - INFO - 📊 Publishing BAR event #317 for SPY at 2025-01-28 16:51:00+00:00
+2025-06-13 19:46:36,877 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,877 - src.strategy.state - INFO - Processing BAR for SPY: close=601.3099, bar_count=317
+2025-06-13 19:46:36,886 - src.data.handlers - INFO - 📊 Publishing BAR event #318 for SPY at 2025-01-28 16:52:00+00:00
+2025-06-13 19:46:36,886 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,886 - src.strategy.state - INFO - Processing BAR for SPY: close=601.6269, bar_count=318
+2025-06-13 19:46:36,895 - src.data.handlers - INFO - 📊 Publishing BAR event #319 for SPY at 2025-01-28 16:53:00+00:00
+2025-06-13 19:46:36,895 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,895 - src.strategy.state - INFO - Processing BAR for SPY: close=602.0, bar_count=319
+2025-06-13 19:46:36,903 - src.data.handlers - INFO - 📊 Publishing BAR event #320 for SPY at 2025-01-28 16:54:00+00:00
+2025-06-13 19:46:36,903 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,903 - src.strategy.state - INFO - Processing BAR for SPY: close=602.08, bar_count=320
+2025-06-13 19:46:36,903 - src.strategy.state - INFO - Bar 320: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:36,903 - src.strategy.state - INFO - Bar 320: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:36,911 - src.data.handlers - INFO - 📊 Publishing BAR event #321 for SPY at 2025-01-28 16:55:00+00:00
+2025-06-13 19:46:36,911 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,911 - src.strategy.state - INFO - Processing BAR for SPY: close=602.0399, bar_count=321
+2025-06-13 19:46:36,919 - src.data.handlers - INFO - 📊 Publishing BAR event #322 for SPY at 2025-01-28 16:56:00+00:00
+2025-06-13 19:46:36,919 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,919 - src.strategy.state - INFO - Processing BAR for SPY: close=602.33, bar_count=322
+2025-06-13 19:46:36,928 - src.data.handlers - INFO - 📊 Publishing BAR event #323 for SPY at 2025-01-28 16:57:00+00:00
+2025-06-13 19:46:36,928 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,928 - src.strategy.state - INFO - Processing BAR for SPY: close=602.35, bar_count=323
+2025-06-13 19:46:36,936 - src.data.handlers - INFO - 📊 Publishing BAR event #324 for SPY at 2025-01-28 16:58:00+00:00
+2025-06-13 19:46:36,936 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,936 - src.strategy.state - INFO - Processing BAR for SPY: close=602.42, bar_count=324
+2025-06-13 19:46:36,945 - src.data.handlers - INFO - 📊 Publishing BAR event #325 for SPY at 2025-01-28 16:59:00+00:00
+2025-06-13 19:46:36,945 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,945 - src.strategy.state - INFO - Processing BAR for SPY: close=602.57, bar_count=325
+2025-06-13 19:46:36,953 - src.data.handlers - INFO - 📊 Publishing BAR event #326 for SPY at 2025-01-28 17:00:00+00:00
+2025-06-13 19:46:36,953 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,953 - src.strategy.state - INFO - Processing BAR for SPY: close=602.73, bar_count=326
+2025-06-13 19:46:36,961 - src.data.handlers - INFO - 📊 Publishing BAR event #327 for SPY at 2025-01-28 17:01:00+00:00
+2025-06-13 19:46:36,961 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,961 - src.strategy.state - INFO - Processing BAR for SPY: close=602.73, bar_count=327
+2025-06-13 19:46:36,990 - src.data.handlers - INFO - 📊 Publishing BAR event #328 for SPY at 2025-01-28 17:02:00+00:00
+2025-06-13 19:46:36,990 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,990 - src.strategy.state - INFO - Processing BAR for SPY: close=602.51, bar_count=328
+2025-06-13 19:46:36,999 - src.data.handlers - INFO - 📊 Publishing BAR event #329 for SPY at 2025-01-28 17:03:00+00:00
+2025-06-13 19:46:36,999 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:36,999 - src.strategy.state - INFO - Processing BAR for SPY: close=602.66, bar_count=329
+2025-06-13 19:46:37,008 - src.data.handlers - INFO - 📊 Publishing BAR event #330 for SPY at 2025-01-28 17:04:00+00:00
+2025-06-13 19:46:37,008 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,008 - src.strategy.state - INFO - Processing BAR for SPY: close=602.76, bar_count=330
+2025-06-13 19:46:37,016 - src.data.handlers - INFO - 📊 Publishing BAR event #331 for SPY at 2025-01-28 17:05:00+00:00
+2025-06-13 19:46:37,016 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,016 - src.strategy.state - INFO - Processing BAR for SPY: close=602.97, bar_count=331
+2025-06-13 19:46:37,023 - src.data.handlers - INFO - 📊 Publishing BAR event #332 for SPY at 2025-01-28 17:06:00+00:00
+2025-06-13 19:46:37,023 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,023 - src.strategy.state - INFO - Processing BAR for SPY: close=602.98, bar_count=332
+2025-06-13 19:46:37,032 - src.data.handlers - INFO - 📊 Publishing BAR event #333 for SPY at 2025-01-28 17:07:00+00:00
+2025-06-13 19:46:37,032 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,032 - src.strategy.state - INFO - Processing BAR for SPY: close=602.96, bar_count=333
+2025-06-13 19:46:37,040 - src.data.handlers - INFO - 📊 Publishing BAR event #334 for SPY at 2025-01-28 17:08:00+00:00
+2025-06-13 19:46:37,040 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,040 - src.strategy.state - INFO - Processing BAR for SPY: close=603.22, bar_count=334
+2025-06-13 19:46:37,048 - src.data.handlers - INFO - 📊 Publishing BAR event #335 for SPY at 2025-01-28 17:09:00+00:00
+2025-06-13 19:46:37,048 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,048 - src.strategy.state - INFO - Processing BAR for SPY: close=603.47, bar_count=335
+2025-06-13 19:46:37,057 - src.data.handlers - INFO - 📊 Publishing BAR event #336 for SPY at 2025-01-28 17:10:00+00:00
+2025-06-13 19:46:37,057 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,057 - src.strategy.state - INFO - Processing BAR for SPY: close=603.58, bar_count=336
+2025-06-13 19:46:37,065 - src.data.handlers - INFO - 📊 Publishing BAR event #337 for SPY at 2025-01-28 17:11:00+00:00
+2025-06-13 19:46:37,065 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,065 - src.strategy.state - INFO - Processing BAR for SPY: close=603.55, bar_count=337
+2025-06-13 19:46:37,072 - src.data.handlers - INFO - 📊 Publishing BAR event #338 for SPY at 2025-01-28 17:12:00+00:00
+2025-06-13 19:46:37,072 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,072 - src.strategy.state - INFO - Processing BAR for SPY: close=603.54, bar_count=338
+2025-06-13 19:46:37,081 - src.data.handlers - INFO - 📊 Publishing BAR event #339 for SPY at 2025-01-28 17:13:00+00:00
+2025-06-13 19:46:37,081 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,081 - src.strategy.state - INFO - Processing BAR for SPY: close=603.55, bar_count=339
+2025-06-13 19:46:37,089 - src.data.handlers - INFO - 📊 Publishing BAR event #340 for SPY at 2025-01-28 17:14:00+00:00
+2025-06-13 19:46:37,089 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,089 - src.strategy.state - INFO - Processing BAR for SPY: close=603.54, bar_count=340
+2025-06-13 19:46:37,089 - src.strategy.state - INFO - Bar 340: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:37,089 - src.strategy.state - INFO - Bar 340: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:37,118 - src.data.handlers - INFO - 📊 Publishing BAR event #341 for SPY at 2025-01-28 17:15:00+00:00
+2025-06-13 19:46:37,118 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,118 - src.strategy.state - INFO - Processing BAR for SPY: close=603.6, bar_count=341
+2025-06-13 19:46:37,127 - src.data.handlers - INFO - 📊 Publishing BAR event #342 for SPY at 2025-01-28 17:16:00+00:00
+2025-06-13 19:46:37,127 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,127 - src.strategy.state - INFO - Processing BAR for SPY: close=603.71, bar_count=342
+2025-06-13 19:46:37,135 - src.data.handlers - INFO - 📊 Publishing BAR event #343 for SPY at 2025-01-28 17:17:00+00:00
+2025-06-13 19:46:37,135 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,135 - src.strategy.state - INFO - Processing BAR for SPY: close=603.77, bar_count=343
+2025-06-13 19:46:37,144 - src.data.handlers - INFO - 📊 Publishing BAR event #344 for SPY at 2025-01-28 17:18:00+00:00
+2025-06-13 19:46:37,144 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,144 - src.strategy.state - INFO - Processing BAR for SPY: close=603.66, bar_count=344
+2025-06-13 19:46:37,152 - src.data.handlers - INFO - 📊 Publishing BAR event #345 for SPY at 2025-01-28 17:19:00+00:00
+2025-06-13 19:46:37,152 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,152 - src.strategy.state - INFO - Processing BAR for SPY: close=603.73, bar_count=345
+2025-06-13 19:46:37,161 - src.data.handlers - INFO - 📊 Publishing BAR event #346 for SPY at 2025-01-28 17:20:00+00:00
+2025-06-13 19:46:37,161 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,161 - src.strategy.state - INFO - Processing BAR for SPY: close=603.75, bar_count=346
+2025-06-13 19:46:37,169 - src.data.handlers - INFO - 📊 Publishing BAR event #347 for SPY at 2025-01-28 17:21:00+00:00
+2025-06-13 19:46:37,169 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,169 - src.strategy.state - INFO - Processing BAR for SPY: close=603.85, bar_count=347
+2025-06-13 19:46:37,178 - src.data.handlers - INFO - 📊 Publishing BAR event #348 for SPY at 2025-01-28 17:22:00+00:00
+2025-06-13 19:46:37,178 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,178 - src.strategy.state - INFO - Processing BAR for SPY: close=603.905, bar_count=348
+2025-06-13 19:46:37,186 - src.data.handlers - INFO - 📊 Publishing BAR event #349 for SPY at 2025-01-28 17:23:00+00:00
+2025-06-13 19:46:37,186 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,186 - src.strategy.state - INFO - Processing BAR for SPY: close=603.5869, bar_count=349
+2025-06-13 19:46:37,194 - src.data.handlers - INFO - 📊 Publishing BAR event #350 for SPY at 2025-01-28 17:24:00+00:00
+2025-06-13 19:46:37,194 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,194 - src.strategy.state - INFO - Processing BAR for SPY: close=603.81, bar_count=350
+2025-06-13 19:46:37,202 - src.data.handlers - INFO - 📊 Publishing BAR event #351 for SPY at 2025-01-28 17:25:00+00:00
+2025-06-13 19:46:37,202 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,202 - src.strategy.state - INFO - Processing BAR for SPY: close=603.7705, bar_count=351
+2025-06-13 19:46:37,211 - src.data.handlers - INFO - 📊 Publishing BAR event #352 for SPY at 2025-01-28 17:26:00+00:00
+2025-06-13 19:46:37,211 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,211 - src.strategy.state - INFO - Processing BAR for SPY: close=603.67, bar_count=352
+2025-06-13 19:46:37,220 - src.data.handlers - INFO - 📊 Publishing BAR event #353 for SPY at 2025-01-28 17:27:00+00:00
+2025-06-13 19:46:37,220 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,220 - src.strategy.state - INFO - Processing BAR for SPY: close=603.71, bar_count=353
+2025-06-13 19:46:37,229 - src.data.handlers - INFO - 📊 Publishing BAR event #354 for SPY at 2025-01-28 17:28:00+00:00
+2025-06-13 19:46:37,229 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,229 - src.strategy.state - INFO - Processing BAR for SPY: close=603.68, bar_count=354
+2025-06-13 19:46:37,257 - src.data.handlers - INFO - 📊 Publishing BAR event #355 for SPY at 2025-01-28 17:29:00+00:00
+2025-06-13 19:46:37,257 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,257 - src.strategy.state - INFO - Processing BAR for SPY: close=603.7201, bar_count=355
+2025-06-13 19:46:37,265 - src.data.handlers - INFO - 📊 Publishing BAR event #356 for SPY at 2025-01-28 17:30:00+00:00
+2025-06-13 19:46:37,266 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,266 - src.strategy.state - INFO - Processing BAR for SPY: close=603.79, bar_count=356
+2025-06-13 19:46:37,274 - src.data.handlers - INFO - 📊 Publishing BAR event #357 for SPY at 2025-01-28 17:31:00+00:00
+2025-06-13 19:46:37,274 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,274 - src.strategy.state - INFO - Processing BAR for SPY: close=603.745, bar_count=357
+2025-06-13 19:46:37,283 - src.data.handlers - INFO - 📊 Publishing BAR event #358 for SPY at 2025-01-28 17:32:00+00:00
+2025-06-13 19:46:37,283 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,283 - src.strategy.state - INFO - Processing BAR for SPY: close=603.81, bar_count=358
+2025-06-13 19:46:37,291 - src.data.handlers - INFO - 📊 Publishing BAR event #359 for SPY at 2025-01-28 17:33:00+00:00
+2025-06-13 19:46:37,291 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,291 - src.strategy.state - INFO - Processing BAR for SPY: close=603.72, bar_count=359
+2025-06-13 19:46:37,300 - src.data.handlers - INFO - 📊 Publishing BAR event #360 for SPY at 2025-01-28 17:34:00+00:00
+2025-06-13 19:46:37,300 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,300 - src.strategy.state - INFO - Processing BAR for SPY: close=603.82, bar_count=360
+2025-06-13 19:46:37,300 - src.strategy.state - INFO - Bar 360: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:37,300 - src.strategy.state - INFO - Bar 360: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:37,308 - src.data.handlers - INFO - 📊 Publishing BAR event #361 for SPY at 2025-01-28 17:35:00+00:00
+2025-06-13 19:46:37,308 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,308 - src.strategy.state - INFO - Processing BAR for SPY: close=603.76, bar_count=361
+2025-06-13 19:46:37,316 - src.data.handlers - INFO - 📊 Publishing BAR event #362 for SPY at 2025-01-28 17:36:00+00:00
+2025-06-13 19:46:37,316 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,316 - src.strategy.state - INFO - Processing BAR for SPY: close=603.75, bar_count=362
+2025-06-13 19:46:37,325 - src.data.handlers - INFO - 📊 Publishing BAR event #363 for SPY at 2025-01-28 17:37:00+00:00
+2025-06-13 19:46:37,325 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,325 - src.strategy.state - INFO - Processing BAR for SPY: close=603.715, bar_count=363
+2025-06-13 19:46:37,333 - src.data.handlers - INFO - 📊 Publishing BAR event #364 for SPY at 2025-01-28 17:38:00+00:00
+2025-06-13 19:46:37,333 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,333 - src.strategy.state - INFO - Processing BAR for SPY: close=603.66, bar_count=364
+2025-06-13 19:46:37,342 - src.data.handlers - INFO - 📊 Publishing BAR event #365 for SPY at 2025-01-28 17:39:00+00:00
+2025-06-13 19:46:37,342 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,342 - src.strategy.state - INFO - Processing BAR for SPY: close=603.665, bar_count=365
+2025-06-13 19:46:37,351 - src.data.handlers - INFO - 📊 Publishing BAR event #366 for SPY at 2025-01-28 17:40:00+00:00
+2025-06-13 19:46:37,351 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,351 - src.strategy.state - INFO - Processing BAR for SPY: close=603.365, bar_count=366
+2025-06-13 19:46:37,358 - src.data.handlers - INFO - 📊 Publishing BAR event #367 for SPY at 2025-01-28 17:41:00+00:00
+2025-06-13 19:46:37,358 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,358 - src.strategy.state - INFO - Processing BAR for SPY: close=603.5, bar_count=367
+2025-06-13 19:46:37,386 - src.data.handlers - INFO - 📊 Publishing BAR event #368 for SPY at 2025-01-28 17:42:00+00:00
+2025-06-13 19:46:37,387 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,387 - src.strategy.state - INFO - Processing BAR for SPY: close=603.62, bar_count=368
+2025-06-13 19:46:37,395 - src.data.handlers - INFO - 📊 Publishing BAR event #369 for SPY at 2025-01-28 17:43:00+00:00
+2025-06-13 19:46:37,395 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,395 - src.strategy.state - INFO - Processing BAR for SPY: close=603.45, bar_count=369
+2025-06-13 19:46:37,404 - src.data.handlers - INFO - 📊 Publishing BAR event #370 for SPY at 2025-01-28 17:44:00+00:00
+2025-06-13 19:46:37,404 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,404 - src.strategy.state - INFO - Processing BAR for SPY: close=603.55, bar_count=370
+2025-06-13 19:46:37,412 - src.data.handlers - INFO - 📊 Publishing BAR event #371 for SPY at 2025-01-28 17:45:00+00:00
+2025-06-13 19:46:37,412 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,412 - src.strategy.state - INFO - Processing BAR for SPY: close=603.5, bar_count=371
+2025-06-13 19:46:37,420 - src.data.handlers - INFO - 📊 Publishing BAR event #372 for SPY at 2025-01-28 17:46:00+00:00
+2025-06-13 19:46:37,420 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,420 - src.strategy.state - INFO - Processing BAR for SPY: close=603.525, bar_count=372
+2025-06-13 19:46:37,428 - src.data.handlers - INFO - 📊 Publishing BAR event #373 for SPY at 2025-01-28 17:47:00+00:00
+2025-06-13 19:46:37,428 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,428 - src.strategy.state - INFO - Processing BAR for SPY: close=603.57, bar_count=373
+2025-06-13 19:46:37,436 - src.data.handlers - INFO - 📊 Publishing BAR event #374 for SPY at 2025-01-28 17:48:00+00:00
+2025-06-13 19:46:37,436 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,436 - src.strategy.state - INFO - Processing BAR for SPY: close=603.49, bar_count=374
+2025-06-13 19:46:37,445 - src.data.handlers - INFO - 📊 Publishing BAR event #375 for SPY at 2025-01-28 17:49:00+00:00
+2025-06-13 19:46:37,445 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,445 - src.strategy.state - INFO - Processing BAR for SPY: close=603.53, bar_count=375
+2025-06-13 19:46:37,453 - src.data.handlers - INFO - 📊 Publishing BAR event #376 for SPY at 2025-01-28 17:50:00+00:00
+2025-06-13 19:46:37,453 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,453 - src.strategy.state - INFO - Processing BAR for SPY: close=603.55, bar_count=376
+2025-06-13 19:46:37,462 - src.data.handlers - INFO - 📊 Publishing BAR event #377 for SPY at 2025-01-28 17:51:00+00:00
+2025-06-13 19:46:37,462 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,462 - src.strategy.state - INFO - Processing BAR for SPY: close=603.625, bar_count=377
+2025-06-13 19:46:37,470 - src.data.handlers - INFO - 📊 Publishing BAR event #378 for SPY at 2025-01-28 17:52:00+00:00
+2025-06-13 19:46:37,470 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,470 - src.strategy.state - INFO - Processing BAR for SPY: close=603.62, bar_count=378
+2025-06-13 19:46:37,478 - src.data.handlers - INFO - 📊 Publishing BAR event #379 for SPY at 2025-01-28 17:53:00+00:00
+2025-06-13 19:46:37,478 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,478 - src.strategy.state - INFO - Processing BAR for SPY: close=603.74, bar_count=379
+2025-06-13 19:46:37,486 - src.data.handlers - INFO - 📊 Publishing BAR event #380 for SPY at 2025-01-28 17:54:00+00:00
+2025-06-13 19:46:37,486 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,486 - src.strategy.state - INFO - Processing BAR for SPY: close=603.78, bar_count=380
+2025-06-13 19:46:37,486 - src.strategy.state - INFO - Bar 380: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:37,486 - src.strategy.state - INFO - Bar 380: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:37,516 - src.data.handlers - INFO - 📊 Publishing BAR event #381 for SPY at 2025-01-28 17:55:00+00:00
+2025-06-13 19:46:37,516 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,516 - src.strategy.state - INFO - Processing BAR for SPY: close=604.0, bar_count=381
+2025-06-13 19:46:37,525 - src.data.handlers - INFO - 📊 Publishing BAR event #382 for SPY at 2025-01-28 17:56:00+00:00
+2025-06-13 19:46:37,525 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,525 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8401, bar_count=382
+2025-06-13 19:46:37,534 - src.data.handlers - INFO - 📊 Publishing BAR event #383 for SPY at 2025-01-28 17:57:00+00:00
+2025-06-13 19:46:37,534 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,534 - src.strategy.state - INFO - Processing BAR for SPY: close=603.98, bar_count=383
+2025-06-13 19:46:37,542 - src.data.handlers - INFO - 📊 Publishing BAR event #384 for SPY at 2025-01-28 17:58:00+00:00
+2025-06-13 19:46:37,542 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,542 - src.strategy.state - INFO - Processing BAR for SPY: close=603.89, bar_count=384
+2025-06-13 19:46:37,550 - src.data.handlers - INFO - 📊 Publishing BAR event #385 for SPY at 2025-01-28 17:59:00+00:00
+2025-06-13 19:46:37,550 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,550 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8308, bar_count=385
+2025-06-13 19:46:37,559 - src.data.handlers - INFO - 📊 Publishing BAR event #386 for SPY at 2025-01-28 18:00:00+00:00
+2025-06-13 19:46:37,559 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,559 - src.strategy.state - INFO - Processing BAR for SPY: close=603.94, bar_count=386
+2025-06-13 19:46:37,567 - src.data.handlers - INFO - 📊 Publishing BAR event #387 for SPY at 2025-01-28 18:01:00+00:00
+2025-06-13 19:46:37,567 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,567 - src.strategy.state - INFO - Processing BAR for SPY: close=603.79, bar_count=387
+2025-06-13 19:46:37,576 - src.data.handlers - INFO - 📊 Publishing BAR event #388 for SPY at 2025-01-28 18:02:00+00:00
+2025-06-13 19:46:37,576 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,576 - src.strategy.state - INFO - Processing BAR for SPY: close=604.03, bar_count=388
+2025-06-13 19:46:37,585 - src.data.handlers - INFO - 📊 Publishing BAR event #389 for SPY at 2025-01-28 18:03:00+00:00
+2025-06-13 19:46:37,585 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,585 - src.strategy.state - INFO - Processing BAR for SPY: close=604.1099, bar_count=389
+2025-06-13 19:46:37,593 - src.data.handlers - INFO - 📊 Publishing BAR event #390 for SPY at 2025-01-28 18:04:00+00:00
+2025-06-13 19:46:37,593 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,593 - src.strategy.state - INFO - Processing BAR for SPY: close=604.25, bar_count=390
+2025-06-13 19:46:37,601 - src.data.handlers - INFO - 📊 Publishing BAR event #391 for SPY at 2025-01-28 18:05:00+00:00
+2025-06-13 19:46:37,601 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,601 - src.strategy.state - INFO - Processing BAR for SPY: close=604.28, bar_count=391
+2025-06-13 19:46:37,610 - src.data.handlers - INFO - 📊 Publishing BAR event #392 for SPY at 2025-01-28 18:06:00+00:00
+2025-06-13 19:46:37,610 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,610 - src.strategy.state - INFO - Processing BAR for SPY: close=604.44, bar_count=392
+2025-06-13 19:46:37,618 - src.data.handlers - INFO - 📊 Publishing BAR event #393 for SPY at 2025-01-28 18:07:00+00:00
+2025-06-13 19:46:37,618 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,618 - src.strategy.state - INFO - Processing BAR for SPY: close=604.4, bar_count=393
+2025-06-13 19:46:37,648 - src.data.handlers - INFO - 📊 Publishing BAR event #394 for SPY at 2025-01-28 18:08:00+00:00
+2025-06-13 19:46:37,649 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,649 - src.strategy.state - INFO - Processing BAR for SPY: close=604.41, bar_count=394
+2025-06-13 19:46:37,657 - src.data.handlers - INFO - 📊 Publishing BAR event #395 for SPY at 2025-01-28 18:09:00+00:00
+2025-06-13 19:46:37,657 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,657 - src.strategy.state - INFO - Processing BAR for SPY: close=604.3, bar_count=395
+2025-06-13 19:46:37,665 - src.data.handlers - INFO - 📊 Publishing BAR event #396 for SPY at 2025-01-28 18:10:00+00:00
+2025-06-13 19:46:37,665 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,665 - src.strategy.state - INFO - Processing BAR for SPY: close=604.4099, bar_count=396
+2025-06-13 19:46:37,673 - src.data.handlers - INFO - 📊 Publishing BAR event #397 for SPY at 2025-01-28 18:11:00+00:00
+2025-06-13 19:46:37,673 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,673 - src.strategy.state - INFO - Processing BAR for SPY: close=604.3705, bar_count=397
+2025-06-13 19:46:37,681 - src.data.handlers - INFO - 📊 Publishing BAR event #398 for SPY at 2025-01-28 18:12:00+00:00
+2025-06-13 19:46:37,681 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,681 - src.strategy.state - INFO - Processing BAR for SPY: close=604.42, bar_count=398
+2025-06-13 19:46:37,690 - src.data.handlers - INFO - 📊 Publishing BAR event #399 for SPY at 2025-01-28 18:13:00+00:00
+2025-06-13 19:46:37,690 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,690 - src.strategy.state - INFO - Processing BAR for SPY: close=604.3997, bar_count=399
+2025-06-13 19:46:37,699 - src.data.handlers - INFO - 📊 Publishing BAR event #400 for SPY at 2025-01-28 18:14:00+00:00
+2025-06-13 19:46:37,699 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,699 - src.strategy.state - INFO - Processing BAR for SPY: close=604.5398, bar_count=400
+2025-06-13 19:46:37,699 - src.strategy.state - INFO - Bar 400: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:37,699 - src.strategy.state - INFO - Bar 400: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:37,707 - src.data.handlers - INFO - 📊 Publishing BAR event #401 for SPY at 2025-01-28 18:15:00+00:00
+2025-06-13 19:46:37,707 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,707 - src.strategy.state - INFO - Processing BAR for SPY: close=604.7, bar_count=401
+2025-06-13 19:46:37,715 - src.data.handlers - INFO - 📊 Publishing BAR event #402 for SPY at 2025-01-28 18:16:00+00:00
+2025-06-13 19:46:37,715 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,715 - src.strategy.state - INFO - Processing BAR for SPY: close=604.69, bar_count=402
+2025-06-13 19:46:37,723 - src.data.handlers - INFO - 📊 Publishing BAR event #403 for SPY at 2025-01-28 18:17:00+00:00
+2025-06-13 19:46:37,723 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,723 - src.strategy.state - INFO - Processing BAR for SPY: close=604.6651, bar_count=403
+2025-06-13 19:46:37,731 - src.data.handlers - INFO - 📊 Publishing BAR event #404 for SPY at 2025-01-28 18:18:00+00:00
+2025-06-13 19:46:37,731 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,731 - src.strategy.state - INFO - Processing BAR for SPY: close=604.73, bar_count=404
+2025-06-13 19:46:37,740 - src.data.handlers - INFO - 📊 Publishing BAR event #405 for SPY at 2025-01-28 18:19:00+00:00
+2025-06-13 19:46:37,740 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,740 - src.strategy.state - INFO - Processing BAR for SPY: close=604.775, bar_count=405
+2025-06-13 19:46:37,749 - src.data.handlers - INFO - 📊 Publishing BAR event #406 for SPY at 2025-01-28 18:20:00+00:00
+2025-06-13 19:46:37,749 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,749 - src.strategy.state - INFO - Processing BAR for SPY: close=604.7, bar_count=406
+2025-06-13 19:46:37,757 - src.data.handlers - INFO - 📊 Publishing BAR event #407 for SPY at 2025-01-28 18:21:00+00:00
+2025-06-13 19:46:37,757 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,757 - src.strategy.state - INFO - Processing BAR for SPY: close=604.63, bar_count=407
+2025-06-13 19:46:37,785 - src.data.handlers - INFO - 📊 Publishing BAR event #408 for SPY at 2025-01-28 18:22:00+00:00
+2025-06-13 19:46:37,785 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,785 - src.strategy.state - INFO - Processing BAR for SPY: close=604.44, bar_count=408
+2025-06-13 19:46:37,793 - src.data.handlers - INFO - 📊 Publishing BAR event #409 for SPY at 2025-01-28 18:23:00+00:00
+2025-06-13 19:46:37,793 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,793 - src.strategy.state - INFO - Processing BAR for SPY: close=604.2587, bar_count=409
+2025-06-13 19:46:37,802 - src.data.handlers - INFO - 📊 Publishing BAR event #410 for SPY at 2025-01-28 18:24:00+00:00
+2025-06-13 19:46:37,802 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,802 - src.strategy.state - INFO - Processing BAR for SPY: close=604.4201, bar_count=410
+2025-06-13 19:46:37,810 - src.data.handlers - INFO - 📊 Publishing BAR event #411 for SPY at 2025-01-28 18:25:00+00:00
+2025-06-13 19:46:37,811 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,811 - src.strategy.state - INFO - Processing BAR for SPY: close=604.41, bar_count=411
+2025-06-13 19:46:37,820 - src.data.handlers - INFO - 📊 Publishing BAR event #412 for SPY at 2025-01-28 18:26:00+00:00
+2025-06-13 19:46:37,820 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,820 - src.strategy.state - INFO - Processing BAR for SPY: close=604.16, bar_count=412
+2025-06-13 19:46:37,827 - src.data.handlers - INFO - 📊 Publishing BAR event #413 for SPY at 2025-01-28 18:27:00+00:00
+2025-06-13 19:46:37,828 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,828 - src.strategy.state - INFO - Processing BAR for SPY: close=604.28, bar_count=413
+2025-06-13 19:46:37,836 - src.data.handlers - INFO - 📊 Publishing BAR event #414 for SPY at 2025-01-28 18:28:00+00:00
+2025-06-13 19:46:37,836 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,836 - src.strategy.state - INFO - Processing BAR for SPY: close=604.17, bar_count=414
+2025-06-13 19:46:37,844 - src.data.handlers - INFO - 📊 Publishing BAR event #415 for SPY at 2025-01-28 18:29:00+00:00
+2025-06-13 19:46:37,844 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,844 - src.strategy.state - INFO - Processing BAR for SPY: close=604.1799, bar_count=415
+2025-06-13 19:46:37,852 - src.data.handlers - INFO - 📊 Publishing BAR event #416 for SPY at 2025-01-28 18:30:00+00:00
+2025-06-13 19:46:37,852 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,852 - src.strategy.state - INFO - Processing BAR for SPY: close=604.36, bar_count=416
+2025-06-13 19:46:37,861 - src.data.handlers - INFO - 📊 Publishing BAR event #417 for SPY at 2025-01-28 18:31:00+00:00
+2025-06-13 19:46:37,861 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,861 - src.strategy.state - INFO - Processing BAR for SPY: close=604.35, bar_count=417
+2025-06-13 19:46:37,870 - src.data.handlers - INFO - 📊 Publishing BAR event #418 for SPY at 2025-01-28 18:32:00+00:00
+2025-06-13 19:46:37,870 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,870 - src.strategy.state - INFO - Processing BAR for SPY: close=604.375, bar_count=418
+2025-06-13 19:46:37,878 - src.data.handlers - INFO - 📊 Publishing BAR event #419 for SPY at 2025-01-28 18:33:00+00:00
+2025-06-13 19:46:37,878 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,878 - src.strategy.state - INFO - Processing BAR for SPY: close=604.35, bar_count=419
+2025-06-13 19:46:37,886 - src.data.handlers - INFO - 📊 Publishing BAR event #420 for SPY at 2025-01-28 18:34:00+00:00
+2025-06-13 19:46:37,886 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,886 - src.strategy.state - INFO - Processing BAR for SPY: close=604.4068, bar_count=420
+2025-06-13 19:46:37,886 - src.strategy.state - INFO - Bar 420: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:37,886 - src.strategy.state - INFO - Bar 420: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:37,915 - src.data.handlers - INFO - 📊 Publishing BAR event #421 for SPY at 2025-01-28 18:35:00+00:00
+2025-06-13 19:46:37,915 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,915 - src.strategy.state - INFO - Processing BAR for SPY: close=604.355, bar_count=421
+2025-06-13 19:46:37,924 - src.data.handlers - INFO - 📊 Publishing BAR event #422 for SPY at 2025-01-28 18:36:00+00:00
+2025-06-13 19:46:37,924 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,924 - src.strategy.state - INFO - Processing BAR for SPY: close=604.255, bar_count=422
+2025-06-13 19:46:37,932 - src.data.handlers - INFO - 📊 Publishing BAR event #423 for SPY at 2025-01-28 18:37:00+00:00
+2025-06-13 19:46:37,932 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,932 - src.strategy.state - INFO - Processing BAR for SPY: close=604.33, bar_count=423
+2025-06-13 19:46:37,940 - src.data.handlers - INFO - 📊 Publishing BAR event #424 for SPY at 2025-01-28 18:38:00+00:00
+2025-06-13 19:46:37,940 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,940 - src.strategy.state - INFO - Processing BAR for SPY: close=604.125, bar_count=424
+2025-06-13 19:46:37,948 - src.data.handlers - INFO - 📊 Publishing BAR event #425 for SPY at 2025-01-28 18:39:00+00:00
+2025-06-13 19:46:37,948 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,948 - src.strategy.state - INFO - Processing BAR for SPY: close=603.97, bar_count=425
+2025-06-13 19:46:37,956 - src.data.handlers - INFO - 📊 Publishing BAR event #426 for SPY at 2025-01-28 18:40:00+00:00
+2025-06-13 19:46:37,956 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,956 - src.strategy.state - INFO - Processing BAR for SPY: close=603.69, bar_count=426
+2025-06-13 19:46:37,965 - src.data.handlers - INFO - 📊 Publishing BAR event #427 for SPY at 2025-01-28 18:41:00+00:00
+2025-06-13 19:46:37,965 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,965 - src.strategy.state - INFO - Processing BAR for SPY: close=603.6775, bar_count=427
+2025-06-13 19:46:37,973 - src.data.handlers - INFO - 📊 Publishing BAR event #428 for SPY at 2025-01-28 18:42:00+00:00
+2025-06-13 19:46:37,973 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,973 - src.strategy.state - INFO - Processing BAR for SPY: close=603.86, bar_count=428
+2025-06-13 19:46:37,982 - src.data.handlers - INFO - 📊 Publishing BAR event #429 for SPY at 2025-01-28 18:43:00+00:00
+2025-06-13 19:46:37,982 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,982 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8652, bar_count=429
+2025-06-13 19:46:37,990 - src.data.handlers - INFO - 📊 Publishing BAR event #430 for SPY at 2025-01-28 18:44:00+00:00
+2025-06-13 19:46:37,990 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,990 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8745, bar_count=430
+2025-06-13 19:46:37,998 - src.data.handlers - INFO - 📊 Publishing BAR event #431 for SPY at 2025-01-28 18:45:00+00:00
+2025-06-13 19:46:37,998 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:37,998 - src.strategy.state - INFO - Processing BAR for SPY: close=603.74, bar_count=431
+2025-06-13 19:46:38,006 - src.data.handlers - INFO - 📊 Publishing BAR event #432 for SPY at 2025-01-28 18:46:00+00:00
+2025-06-13 19:46:38,006 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,006 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8099, bar_count=432
+2025-06-13 19:46:38,014 - src.data.handlers - INFO - 📊 Publishing BAR event #433 for SPY at 2025-01-28 18:47:00+00:00
+2025-06-13 19:46:38,014 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,014 - src.strategy.state - INFO - Processing BAR for SPY: close=603.91, bar_count=433
+2025-06-13 19:46:38,044 - src.data.handlers - INFO - 📊 Publishing BAR event #434 for SPY at 2025-01-28 18:48:00+00:00
+2025-06-13 19:46:38,044 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,044 - src.strategy.state - INFO - Processing BAR for SPY: close=603.93, bar_count=434
+2025-06-13 19:46:38,053 - src.data.handlers - INFO - 📊 Publishing BAR event #435 for SPY at 2025-01-28 18:49:00+00:00
+2025-06-13 19:46:38,053 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,053 - src.strategy.state - INFO - Processing BAR for SPY: close=603.98, bar_count=435
+2025-06-13 19:46:38,061 - src.data.handlers - INFO - 📊 Publishing BAR event #436 for SPY at 2025-01-28 18:50:00+00:00
+2025-06-13 19:46:38,061 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,061 - src.strategy.state - INFO - Processing BAR for SPY: close=604.02, bar_count=436
+2025-06-13 19:46:38,069 - src.data.handlers - INFO - 📊 Publishing BAR event #437 for SPY at 2025-01-28 18:51:00+00:00
+2025-06-13 19:46:38,069 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,069 - src.strategy.state - INFO - Processing BAR for SPY: close=604.04, bar_count=437
+2025-06-13 19:46:38,077 - src.data.handlers - INFO - 📊 Publishing BAR event #438 for SPY at 2025-01-28 18:52:00+00:00
+2025-06-13 19:46:38,077 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,077 - src.strategy.state - INFO - Processing BAR for SPY: close=604.03, bar_count=438
+2025-06-13 19:46:38,086 - src.data.handlers - INFO - 📊 Publishing BAR event #439 for SPY at 2025-01-28 18:53:00+00:00
+2025-06-13 19:46:38,086 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,086 - src.strategy.state - INFO - Processing BAR for SPY: close=604.08, bar_count=439
+2025-06-13 19:46:38,095 - src.data.handlers - INFO - 📊 Publishing BAR event #440 for SPY at 2025-01-28 18:54:00+00:00
+2025-06-13 19:46:38,095 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,095 - src.strategy.state - INFO - Processing BAR for SPY: close=603.97, bar_count=440
+2025-06-13 19:46:38,095 - src.strategy.state - INFO - Bar 440: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:38,095 - src.strategy.state - INFO - Bar 440: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:38,103 - src.data.handlers - INFO - 📊 Publishing BAR event #441 for SPY at 2025-01-28 18:55:00+00:00
+2025-06-13 19:46:38,103 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,103 - src.strategy.state - INFO - Processing BAR for SPY: close=603.68, bar_count=441
+2025-06-13 19:46:38,111 - src.data.handlers - INFO - 📊 Publishing BAR event #442 for SPY at 2025-01-28 18:56:00+00:00
+2025-06-13 19:46:38,111 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,111 - src.strategy.state - INFO - Processing BAR for SPY: close=603.91, bar_count=442
+2025-06-13 19:46:38,119 - src.data.handlers - INFO - 📊 Publishing BAR event #443 for SPY at 2025-01-28 18:57:00+00:00
+2025-06-13 19:46:38,120 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,120 - src.strategy.state - INFO - Processing BAR for SPY: close=603.86, bar_count=443
+2025-06-13 19:46:38,128 - src.data.handlers - INFO - 📊 Publishing BAR event #444 for SPY at 2025-01-28 18:58:00+00:00
+2025-06-13 19:46:38,128 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,128 - src.strategy.state - INFO - Processing BAR for SPY: close=603.84, bar_count=444
+2025-06-13 19:46:38,136 - src.data.handlers - INFO - 📊 Publishing BAR event #445 for SPY at 2025-01-28 18:59:00+00:00
+2025-06-13 19:46:38,136 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,136 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8002, bar_count=445
+2025-06-13 19:46:38,145 - src.data.handlers - INFO - 📊 Publishing BAR event #446 for SPY at 2025-01-28 19:00:00+00:00
+2025-06-13 19:46:38,145 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,145 - src.strategy.state - INFO - Processing BAR for SPY: close=603.86, bar_count=446
+2025-06-13 19:46:38,154 - src.data.handlers - INFO - 📊 Publishing BAR event #447 for SPY at 2025-01-28 19:01:00+00:00
+2025-06-13 19:46:38,154 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,154 - src.strategy.state - INFO - Processing BAR for SPY: close=603.87, bar_count=447
+2025-06-13 19:46:38,182 - src.data.handlers - INFO - 📊 Publishing BAR event #448 for SPY at 2025-01-28 19:02:00+00:00
+2025-06-13 19:46:38,182 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,182 - src.strategy.state - INFO - Processing BAR for SPY: close=603.81, bar_count=448
+2025-06-13 19:46:38,190 - src.data.handlers - INFO - 📊 Publishing BAR event #449 for SPY at 2025-01-28 19:03:00+00:00
+2025-06-13 19:46:38,190 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,190 - src.strategy.state - INFO - Processing BAR for SPY: close=603.73, bar_count=449
+2025-06-13 19:46:38,198 - src.data.handlers - INFO - 📊 Publishing BAR event #450 for SPY at 2025-01-28 19:04:00+00:00
+2025-06-13 19:46:38,198 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,198 - src.strategy.state - INFO - Processing BAR for SPY: close=603.4701, bar_count=450
+2025-06-13 19:46:38,207 - src.data.handlers - INFO - 📊 Publishing BAR event #451 for SPY at 2025-01-28 19:05:00+00:00
+2025-06-13 19:46:38,207 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,207 - src.strategy.state - INFO - Processing BAR for SPY: close=603.43, bar_count=451
+2025-06-13 19:46:38,216 - src.data.handlers - INFO - 📊 Publishing BAR event #452 for SPY at 2025-01-28 19:06:00+00:00
+2025-06-13 19:46:38,216 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,216 - src.strategy.state - INFO - Processing BAR for SPY: close=603.5745, bar_count=452
+2025-06-13 19:46:38,225 - src.data.handlers - INFO - 📊 Publishing BAR event #453 for SPY at 2025-01-28 19:07:00+00:00
+2025-06-13 19:46:38,225 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,225 - src.strategy.state - INFO - Processing BAR for SPY: close=603.52, bar_count=453
+2025-06-13 19:46:38,233 - src.data.handlers - INFO - 📊 Publishing BAR event #454 for SPY at 2025-01-28 19:08:00+00:00
+2025-06-13 19:46:38,233 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,233 - src.strategy.state - INFO - Processing BAR for SPY: close=603.475, bar_count=454
+2025-06-13 19:46:38,241 - src.data.handlers - INFO - 📊 Publishing BAR event #455 for SPY at 2025-01-28 19:09:00+00:00
+2025-06-13 19:46:38,241 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,241 - src.strategy.state - INFO - Processing BAR for SPY: close=603.38, bar_count=455
+2025-06-13 19:46:38,249 - src.data.handlers - INFO - 📊 Publishing BAR event #456 for SPY at 2025-01-28 19:10:00+00:00
+2025-06-13 19:46:38,249 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,249 - src.strategy.state - INFO - Processing BAR for SPY: close=603.28, bar_count=456
+2025-06-13 19:46:38,257 - src.data.handlers - INFO - 📊 Publishing BAR event #457 for SPY at 2025-01-28 19:11:00+00:00
+2025-06-13 19:46:38,258 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,258 - src.strategy.state - INFO - Processing BAR for SPY: close=603.27, bar_count=457
+2025-06-13 19:46:38,266 - src.data.handlers - INFO - 📊 Publishing BAR event #458 for SPY at 2025-01-28 19:12:00+00:00
+2025-06-13 19:46:38,266 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,266 - src.strategy.state - INFO - Processing BAR for SPY: close=603.395, bar_count=458
+2025-06-13 19:46:38,275 - src.data.handlers - INFO - 📊 Publishing BAR event #459 for SPY at 2025-01-28 19:13:00+00:00
+2025-06-13 19:46:38,275 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,275 - src.strategy.state - INFO - Processing BAR for SPY: close=603.335, bar_count=459
+2025-06-13 19:46:38,283 - src.data.handlers - INFO - 📊 Publishing BAR event #460 for SPY at 2025-01-28 19:14:00+00:00
+2025-06-13 19:46:38,283 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,283 - src.strategy.state - INFO - Processing BAR for SPY: close=603.42, bar_count=460
+2025-06-13 19:46:38,283 - src.strategy.state - INFO - Bar 460: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:38,283 - src.strategy.state - INFO - Bar 460: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:38,312 - src.data.handlers - INFO - 📊 Publishing BAR event #461 for SPY at 2025-01-28 19:15:00+00:00
+2025-06-13 19:46:38,312 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,312 - src.strategy.state - INFO - Processing BAR for SPY: close=603.58, bar_count=461
+2025-06-13 19:46:38,321 - src.data.handlers - INFO - 📊 Publishing BAR event #462 for SPY at 2025-01-28 19:16:00+00:00
+2025-06-13 19:46:38,321 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,321 - src.strategy.state - INFO - Processing BAR for SPY: close=603.47, bar_count=462
+2025-06-13 19:46:38,330 - src.data.handlers - INFO - 📊 Publishing BAR event #463 for SPY at 2025-01-28 19:17:00+00:00
+2025-06-13 19:46:38,330 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,330 - src.strategy.state - INFO - Processing BAR for SPY: close=603.66, bar_count=463
+2025-06-13 19:46:38,339 - src.data.handlers - INFO - 📊 Publishing BAR event #464 for SPY at 2025-01-28 19:18:00+00:00
+2025-06-13 19:46:38,339 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,339 - src.strategy.state - INFO - Processing BAR for SPY: close=603.74, bar_count=464
+2025-06-13 19:46:38,347 - src.data.handlers - INFO - 📊 Publishing BAR event #465 for SPY at 2025-01-28 19:19:00+00:00
+2025-06-13 19:46:38,347 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,347 - src.strategy.state - INFO - Processing BAR for SPY: close=603.8, bar_count=465
+2025-06-13 19:46:38,355 - src.data.handlers - INFO - 📊 Publishing BAR event #466 for SPY at 2025-01-28 19:20:00+00:00
+2025-06-13 19:46:38,355 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,355 - src.strategy.state - INFO - Processing BAR for SPY: close=603.83, bar_count=466
+2025-06-13 19:46:38,363 - src.data.handlers - INFO - 📊 Publishing BAR event #467 for SPY at 2025-01-28 19:21:00+00:00
+2025-06-13 19:46:38,363 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,363 - src.strategy.state - INFO - Processing BAR for SPY: close=603.88, bar_count=467
+2025-06-13 19:46:38,371 - src.data.handlers - INFO - 📊 Publishing BAR event #468 for SPY at 2025-01-28 19:22:00+00:00
+2025-06-13 19:46:38,371 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,371 - src.strategy.state - INFO - Processing BAR for SPY: close=603.92, bar_count=468
+2025-06-13 19:46:38,380 - src.data.handlers - INFO - 📊 Publishing BAR event #469 for SPY at 2025-01-28 19:23:00+00:00
+2025-06-13 19:46:38,380 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,380 - src.strategy.state - INFO - Processing BAR for SPY: close=603.94, bar_count=469
+2025-06-13 19:46:38,389 - src.data.handlers - INFO - 📊 Publishing BAR event #470 for SPY at 2025-01-28 19:24:00+00:00
+2025-06-13 19:46:38,389 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,389 - src.strategy.state - INFO - Processing BAR for SPY: close=603.95, bar_count=470
+2025-06-13 19:46:38,397 - src.data.handlers - INFO - 📊 Publishing BAR event #471 for SPY at 2025-01-28 19:25:00+00:00
+2025-06-13 19:46:38,397 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,397 - src.strategy.state - INFO - Processing BAR for SPY: close=603.99, bar_count=471
+2025-06-13 19:46:38,405 - src.data.handlers - INFO - 📊 Publishing BAR event #472 for SPY at 2025-01-28 19:26:00+00:00
+2025-06-13 19:46:38,405 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,405 - src.strategy.state - INFO - Processing BAR for SPY: close=604.1, bar_count=472
+2025-06-13 19:46:38,413 - src.data.handlers - INFO - 📊 Publishing BAR event #473 for SPY at 2025-01-28 19:27:00+00:00
+2025-06-13 19:46:38,413 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,413 - src.strategy.state - INFO - Processing BAR for SPY: close=604.025, bar_count=473
+2025-06-13 19:46:38,442 - src.data.handlers - INFO - 📊 Publishing BAR event #474 for SPY at 2025-01-28 19:28:00+00:00
+2025-06-13 19:46:38,442 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,442 - src.strategy.state - INFO - Processing BAR for SPY: close=604.1, bar_count=474
+2025-06-13 19:46:38,451 - src.data.handlers - INFO - 📊 Publishing BAR event #475 for SPY at 2025-01-28 19:29:00+00:00
+2025-06-13 19:46:38,451 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,451 - src.strategy.state - INFO - Processing BAR for SPY: close=604.04, bar_count=475
+2025-06-13 19:46:38,460 - src.data.handlers - INFO - 📊 Publishing BAR event #476 for SPY at 2025-01-28 19:30:00+00:00
+2025-06-13 19:46:38,460 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,460 - src.strategy.state - INFO - Processing BAR for SPY: close=604.22, bar_count=476
+2025-06-13 19:46:38,468 - src.data.handlers - INFO - 📊 Publishing BAR event #477 for SPY at 2025-01-28 19:31:00+00:00
+2025-06-13 19:46:38,468 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,468 - src.strategy.state - INFO - Processing BAR for SPY: close=604.3, bar_count=477
+2025-06-13 19:46:38,477 - src.data.handlers - INFO - 📊 Publishing BAR event #478 for SPY at 2025-01-28 19:32:00+00:00
+2025-06-13 19:46:38,477 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,477 - src.strategy.state - INFO - Processing BAR for SPY: close=604.38, bar_count=478
+2025-06-13 19:46:38,485 - src.data.handlers - INFO - 📊 Publishing BAR event #479 for SPY at 2025-01-28 19:33:00+00:00
+2025-06-13 19:46:38,485 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,485 - src.strategy.state - INFO - Processing BAR for SPY: close=604.35, bar_count=479
+2025-06-13 19:46:38,493 - src.data.handlers - INFO - 📊 Publishing BAR event #480 for SPY at 2025-01-28 19:34:00+00:00
+2025-06-13 19:46:38,493 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,493 - src.strategy.state - INFO - Processing BAR for SPY: close=604.39, bar_count=480
+2025-06-13 19:46:38,494 - src.strategy.state - INFO - Bar 480: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:38,494 - src.strategy.state - INFO - Bar 480: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:38,502 - src.data.handlers - INFO - 📊 Publishing BAR event #481 for SPY at 2025-01-28 19:35:00+00:00
+2025-06-13 19:46:38,502 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,502 - src.strategy.state - INFO - Processing BAR for SPY: close=604.42, bar_count=481
+2025-06-13 19:46:38,511 - src.data.handlers - INFO - 📊 Publishing BAR event #482 for SPY at 2025-01-28 19:36:00+00:00
+2025-06-13 19:46:38,511 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,511 - src.strategy.state - INFO - Processing BAR for SPY: close=604.52, bar_count=482
+2025-06-13 19:46:38,519 - src.data.handlers - INFO - 📊 Publishing BAR event #483 for SPY at 2025-01-28 19:37:00+00:00
+2025-06-13 19:46:38,519 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,519 - src.strategy.state - INFO - Processing BAR for SPY: close=604.42, bar_count=483
+2025-06-13 19:46:38,527 - src.data.handlers - INFO - 📊 Publishing BAR event #484 for SPY at 2025-01-28 19:38:00+00:00
+2025-06-13 19:46:38,527 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,527 - src.strategy.state - INFO - Processing BAR for SPY: close=604.44, bar_count=484
+2025-06-13 19:46:38,535 - src.data.handlers - INFO - 📊 Publishing BAR event #485 for SPY at 2025-01-28 19:39:00+00:00
+2025-06-13 19:46:38,535 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,535 - src.strategy.state - INFO - Processing BAR for SPY: close=604.55, bar_count=485
+2025-06-13 19:46:38,544 - src.data.handlers - INFO - 📊 Publishing BAR event #486 for SPY at 2025-01-28 19:40:00+00:00
+2025-06-13 19:46:38,544 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,544 - src.strategy.state - INFO - Processing BAR for SPY: close=604.61, bar_count=486
+2025-06-13 19:46:38,574 - src.data.handlers - INFO - 📊 Publishing BAR event #487 for SPY at 2025-01-28 19:41:00+00:00
+2025-06-13 19:46:38,574 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,574 - src.strategy.state - INFO - Processing BAR for SPY: close=604.77, bar_count=487
+2025-06-13 19:46:38,582 - src.data.handlers - INFO - 📊 Publishing BAR event #488 for SPY at 2025-01-28 19:42:00+00:00
+2025-06-13 19:46:38,582 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,582 - src.strategy.state - INFO - Processing BAR for SPY: close=604.725, bar_count=488
+2025-06-13 19:46:38,590 - src.data.handlers - INFO - 📊 Publishing BAR event #489 for SPY at 2025-01-28 19:43:00+00:00
+2025-06-13 19:46:38,590 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,590 - src.strategy.state - INFO - Processing BAR for SPY: close=604.78, bar_count=489
+2025-06-13 19:46:38,598 - src.data.handlers - INFO - 📊 Publishing BAR event #490 for SPY at 2025-01-28 19:44:00+00:00
+2025-06-13 19:46:38,598 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,598 - src.strategy.state - INFO - Processing BAR for SPY: close=604.79, bar_count=490
+2025-06-13 19:46:38,607 - src.data.handlers - INFO - 📊 Publishing BAR event #491 for SPY at 2025-01-28 19:45:00+00:00
+2025-06-13 19:46:38,607 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,607 - src.strategy.state - INFO - Processing BAR for SPY: close=604.92, bar_count=491
+2025-06-13 19:46:38,615 - src.data.handlers - INFO - 📊 Publishing BAR event #492 for SPY at 2025-01-28 19:46:00+00:00
+2025-06-13 19:46:38,615 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,615 - src.strategy.state - INFO - Processing BAR for SPY: close=605.0, bar_count=492
+2025-06-13 19:46:38,624 - src.data.handlers - INFO - 📊 Publishing BAR event #493 for SPY at 2025-01-28 19:47:00+00:00
+2025-06-13 19:46:38,624 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,624 - src.strategy.state - INFO - Processing BAR for SPY: close=604.9299, bar_count=493
+2025-06-13 19:46:38,632 - src.data.handlers - INFO - 📊 Publishing BAR event #494 for SPY at 2025-01-28 19:48:00+00:00
+2025-06-13 19:46:38,632 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,632 - src.strategy.state - INFO - Processing BAR for SPY: close=604.9999, bar_count=494
+2025-06-13 19:46:38,640 - src.data.handlers - INFO - 📊 Publishing BAR event #495 for SPY at 2025-01-28 19:49:00+00:00
+2025-06-13 19:46:38,640 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,640 - src.strategy.state - INFO - Processing BAR for SPY: close=605.0402, bar_count=495
+2025-06-13 19:46:38,648 - src.data.handlers - INFO - 📊 Publishing BAR event #496 for SPY at 2025-01-28 19:50:00+00:00
+2025-06-13 19:46:38,648 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,648 - src.strategy.state - INFO - Processing BAR for SPY: close=605.02, bar_count=496
+2025-06-13 19:46:38,656 - src.data.handlers - INFO - 📊 Publishing BAR event #497 for SPY at 2025-01-28 19:51:00+00:00
+2025-06-13 19:46:38,656 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,656 - src.strategy.state - INFO - Processing BAR for SPY: close=604.9847, bar_count=497
+2025-06-13 19:46:38,665 - src.data.handlers - INFO - 📊 Publishing BAR event #498 for SPY at 2025-01-28 19:52:00+00:00
+2025-06-13 19:46:38,665 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,665 - src.strategy.state - INFO - Processing BAR for SPY: close=605.09, bar_count=498
+2025-06-13 19:46:38,674 - src.data.handlers - INFO - 📊 Publishing BAR event #499 for SPY at 2025-01-28 19:53:00+00:00
+2025-06-13 19:46:38,674 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,674 - src.strategy.state - INFO - Processing BAR for SPY: close=605.0301, bar_count=499
+2025-06-13 19:46:38,681 - src.data.handlers - INFO - 📊 Publishing BAR event #500 for SPY at 2025-01-28 19:54:00+00:00
+2025-06-13 19:46:38,681 - src.strategy.state - INFO - on_bar called with event type: BAR
+2025-06-13 19:46:38,681 - src.strategy.state - INFO - Processing BAR for SPY: close=605.1573, bar_count=500
+2025-06-13 19:46:38,682 - src.strategy.state - INFO - Bar 500: Checking 1 components for readiness. Available features: ['sma_5', 'sma_fast', 'sma_100', 'sma_slow', 'bar_count']
+2025-06-13 19:46:38,682 - src.strategy.state - INFO - Bar 500: Component SPY_ma_crossover_momentum_test waiting for features: ['sma_20', 'rsi_14']
+2025-06-13 19:46:38,682 - src.data.handlers - INFO - Data handler streamed 500 bars
+2025-06-13 19:46:38,682 - src.core.coordinator.topology_runner - INFO - Waiting 2.0s for event processing
+2025-06-13 19:46:40,687 - src.core.coordinator.topology_runner - INFO - Stopping containers
+2025-06-13 19:46:40,687 - src.core.containers.container - INFO - Container strategy stopped successfully
+2025-06-13 19:46:40,687 - src.core.containers.container - INFO - Container SPY_1m_data stopped successfully
+2025-06-13 19:46:40,687 - src.core.containers.container - INFO - Container root stopped successfully
+2025-06-13 19:46:40,687 - src.core.coordinator.topology_runner - INFO - Finalizing MultiStrategyTracer
+2025-06-13 19:46:40,687 - src.core.events.observers.multi_strategy_tracer - INFO - Finalizing MultiStrategyTracer...
+2025-06-13 19:46:40,688 - src.core.events.observers.multi_strategy_tracer - INFO - MultiStrategyTracer finalized. Metadata saved to workspaces/test_ma_crossover_momentum_8f4c932d/metadata.json
+2025-06-13 19:46:40,688 - src.core.events.observers.multi_strategy_tracer - INFO - Overall compression: 0.0%
+2025-06-13 19:46:40,688 - src.core.coordinator.topology_runner - INFO - MultiStrategyTracer finalized: 0.0% compression
+2025-06-13 19:46:40,688 - src.core.coordinator.topology_runner - INFO - Saved 0 component signal files
+2025-06-13 19:46:40,688 - src.core.coordinator.topology_runner - INFO - Cleaning up containers
+2025-06-13 19:46:40,688 - src.core.containers.container - INFO - Container strategy cleaned up
+2025-06-13 19:46:40,688 - src.core.containers.container - INFO - Container SPY_1m_data cleaned up
+2025-06-13 19:46:40,691 - src.core.containers.container - INFO - Container root cleaned up
+2025-06-13 19:46:40,750 - src.analytics.integration - INFO - Using existing signal workspace: workspaces/test_ma_crossover_momentum_8f4c932d
+2025-06-13 19:46:40,750 - src.analytics.integration - INFO - Setting up SQL analytics in: workspaces/test_ma_crossover_momentum_8f4c932d
+2025-06-13 19:46:40,807 - src.analytics.integration - INFO - Found 1 expanded strategies in topology metadata
+2025-06-13 19:46:40,808 - src.analytics.integration - INFO - Analytics database populated: 1 strategies, 0 classifiers stored in test_ma_crossover_momentum_8f4c932d
+2025-06-13 19:46:40,814 - src.core.coordinator.coordinator - INFO - 📊 SQL analytics workspace created: analytics.duckdb
+2025-06-13 19:46:40,814 - __main__ - INFO - ✅ Workflow execution completed in 7.76 seconds
+2025-06-13 19:46:40,814 - __main__ - INFO - Workflow completed successfully

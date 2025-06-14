@@ -50,7 +50,14 @@ def breakout_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
     current_price = bar.get('close', 0)
     symbol = bar.get('symbol', 'UNKNOWN')
     
+    # DEBUG: Log feature availability for breakout strategy
+    logger.info(f"BREAKOUT_DEBUG {symbol}: lookback_period={lookback_period}")
+    logger.info(f"BREAKOUT_DEBUG {symbol}: high_{lookback_period}={recent_high}, low_{lookback_period}={recent_low}")
+    logger.info(f"BREAKOUT_DEBUG {symbol}: volume_{lookback_period}_volume_ma={avg_volume}, atr={atr}")
+    logger.info(f"BREAKOUT_DEBUG {symbol}: Available features: {list(features.keys())[:10]}...")
+    
     if recent_high is None or recent_low is None or current_volume is None or avg_volume is None:
+        logger.warning(f"BREAKOUT_DEBUG {symbol}: Missing required features - returning None")
         return None
     
     # Calculate breakout thresholds

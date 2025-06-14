@@ -148,60 +148,48 @@ class StrategyFilter:
     
     def correlation_filter(self, data_path: str, max_correlation: float = 0.7) -> pd.DataFrame:
         """
-        Filter out highly correlated strategies within regimes.
-        Keeps the best performer from each correlation cluster.
+        Filter out highly correlated strategies using fast signal overlap method.
         """
-        # First get returns for all strategies
-        query = f"""
-        WITH strategy_returns AS (
+        # Get all strategies in workspace
+        all_strategies_query = f"""
+        SELECT DISTINCT strat 
+        FROM read_parquet('{self.workspace_path}/traces/*/signals/*/*.parquet')
+        WHERE val != 0
+        """
+        all_strategies = self.con.execute(all_strategies_query).df()['strat'].tolist()
+        
+        # Use fast correlation filter
+        from .fast_correlation_filter import ultra_fast_correlation_filter
+        
+        # Convert correlation threshold to overlap percentage
+        # 0.7 correlation ~ 30% signal overlap
+        max_overlap_pct = (1 - max_correlation) * 100
+        
+        selected = ultra_fast_correlation_filter(
+            str(self.workspace_path), 
+            all_strategies,
+            max_overlap_pct
+        )
+        
+        # Get returns for selected strategies only
+        if selected:
+            selected_list = "'" + "','".join(selected) + "'"
+            returns_query = f"""
             SELECT 
-                s.strat,
-                s.idx,
-                s.ts,
-                CASE 
-                    WHEN s.val = 1 THEN (m2.close - m1.close) / m1.close
-                    WHEN s.val = -1 THEN (m1.close - m2.close) / m1.close
-                    ELSE 0
-                END as return_pct
+                strat as strategy,
+                AVG(CASE 
+                    WHEN val = 1 THEN (m2.close - m1.close) / m1.close * 100
+                    WHEN val = -1 THEN (m1.close - m2.close) / m1.close * 100
+                END) as avg_return
             FROM read_parquet('{self.workspace_path}/traces/*/signals/*/*.parquet') s
             JOIN read_parquet('{data_path}') m1 ON s.idx = m1.bar_index
             JOIN read_parquet('{data_path}') m2 ON s.idx + 1 = m2.bar_index
-        )
-        SELECT * FROM strategy_returns
-        ORDER BY strat, idx
-        """
-        
-        returns_df = self.con.execute(query).df()
-        
-        # Pivot to get returns by strategy
-        returns_pivot = returns_df.pivot_table(
-            index='idx', 
-            columns='strat', 
-            values='return_pct',
-            fill_value=0
-        )
-        
-        # Calculate correlations
-        corr_matrix = returns_pivot.corr()
-        
-        # Find uncorrelated strategies
-        selected_strategies = []
-        remaining = set(corr_matrix.columns)
-        
-        while remaining:
-            # Get strategy with best average return
-            avg_returns = returns_pivot[list(remaining)].mean()
-            best_strat = avg_returns.idxmax()
-            selected_strategies.append(best_strat)
-            
-            # Remove correlated strategies
-            correlated = corr_matrix[best_strat][corr_matrix[best_strat] > max_correlation].index
-            remaining -= set(correlated)
-        
-        return pd.DataFrame({
-            'strategy': selected_strategies,
-            'avg_return': returns_pivot[selected_strategies].mean()
-        })
+            WHERE s.val != 0 AND s.strat IN ({selected_list})
+            GROUP BY s.strat
+            """
+            return self.con.execute(returns_query).df()
+        else:
+            return pd.DataFrame({'strategy': [], 'avg_return': []})
     
     def apply_execution_costs(self, data_path: str, 
                             commission_bps: float = 1.0,  # basis points
@@ -271,9 +259,32 @@ class StrategyFilter:
         results['after_costs'] = profitable
         print(f"   {len(profitable)} strategies profitable after costs")
         
-        # 3. Correlation filter
+        # 3. Correlation filter - only among profitable strategies
         print("\n3. Filtering correlated strategies...")
-        uncorrelated = self.correlation_filter(data_path, max_correlation)
+        if len(profitable) > 0:
+            from .correlation_filter import filter_correlated_strategies
+            
+            # Prepare data for correlation filter
+            strategies_to_filter = profitable[['strat', 'net_return_pct']].copy()
+            strategies_to_filter.rename(columns={'net_return_pct': 'avg_return'}, inplace=True)
+            
+            # Convert correlation threshold to overlap percentage
+            max_overlap_pct = (1 - max_correlation) * 100
+            
+            # Filter correlated strategies, keeping best performers
+            uncorrelated_df = filter_correlated_strategies(
+                workspace_path=str(self.workspace_path),
+                strategies_with_scores=strategies_to_filter,
+                max_overlap_pct=max_overlap_pct,
+                score_column='avg_return'
+            )
+            
+            # Convert to expected format
+            uncorrelated = uncorrelated_df[['strat', 'avg_return']].copy()
+            uncorrelated.columns = ['strategy', 'avg_return']
+        else:
+            uncorrelated = pd.DataFrame({'strategy': [], 'avg_return': []})
+            
         results['uncorrelated'] = uncorrelated
         print(f"   {len(uncorrelated)} uncorrelated strategies selected")
         
@@ -286,10 +297,10 @@ class StrategyFilter:
         
         # 5. Final selection
         print("\n5. Final selection...")
-        # Strategies that pass all filters
-        final_strategies = set(viable['strat']) & set(profitable['strat']) & set(uncorrelated['strategy'])
-        results['final_selection'] = pd.DataFrame({'strategy': list(final_strategies)})
-        print(f"   {len(final_strategies)} strategies selected")
+        # The uncorrelated strategies ARE the final selection
+        # They were already filtered from profitable strategies
+        results['final_selection'] = uncorrelated.copy()
+        print(f"   {len(uncorrelated)} strategies selected")
         
         return results
     

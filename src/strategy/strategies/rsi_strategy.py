@@ -29,6 +29,7 @@ def rsi_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str
     Exit:
     - When RSI crosses back above/below thresholds
     """
+    logger.info(f"RSI_STRATEGY CALLED: features={list(features.keys())}, bar_close={bar.get('close')}, params={params}")
     # Parameters
     rsi_period = params.get('rsi_period', 14)
     oversold_threshold = params.get('oversold_threshold', 30)

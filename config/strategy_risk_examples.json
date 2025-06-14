@@ -1,0 +1,246 @@
+{
+  "profiles": {
+    "momentum_aggressive": {
+      "strategy_id": "momentum_aggressive",
+      "strategy_type": "momentum",
+      "description": "Aggressive momentum strategy with larger positions and wider stops",
+      "position_sizing": {
+        "base_position_percent": 0.04,
+        "max_position_percent": 0.15,
+        "strategy_type_multiplier": 1.5,
+        "use_signal_strength": true,
+        "signal_strength_multiplier": 1.2,
+        "performance_adjustment_factor": 0.8,
+        "min_adjustment_factor": 0.3,
+        "max_adjustment_factor": 2.0,
+        "correlation_penalty": true,
+        "max_correlation_exposure": 0.25
+      },
+      "exit_rules": {
+        "max_holding_bars": 30,
+        "max_adverse_excursion_pct": 0.08,
+        "min_favorable_excursion_pct": 0.15,
+        "profit_take_at_mfe_pct": 0.12,
+        "min_exit_signal_strength": 0.6,
+        "require_exit_signal": false
+      },
+      "performance_tracking": {
+        "short_term_window": 10,
+        "medium_term_window": 50,
+        "long_term_window": 200,
+        "min_trades_for_adjustment": 10,
+        "performance_review_frequency": 15,
+        "poor_performance_threshold": -0.02,
+        "good_performance_threshold": 0.04,
+        "high_volatility_threshold": 0.35
+      },
+      "correlation_matrix": {
+        "momentum": 1.0,
+        "breakout": 0.7,
+        "trend_following": 0.8,
+        "mean_reversion": -0.2
+      }
+    },
+    "mean_reversion_conservative": {
+      "strategy_id": "mean_reversion_conservative",
+      "strategy_type": "mean_reversion",
+      "description": "Conservative mean reversion with tight stops and quick exits",
+      "position_sizing": {
+        "base_position_percent": 0.015,
+        "max_position_percent": 0.08,
+        "strategy_type_multiplier": 0.8,
+        "use_signal_strength": true,
+        "signal_strength_multiplier": 0.8,
+        "performance_adjustment_factor": 0.4,
+        "min_adjustment_factor": 0.4,
+        "max_adjustment_factor": 1.5,
+        "correlation_penalty": true,
+        "max_correlation_exposure": 0.20
+      },
+      "exit_rules": {
+        "max_holding_bars": 8,
+        "max_adverse_excursion_pct": 0.025,
+        "min_favorable_excursion_pct": 0.03,
+        "profit_take_at_mfe_pct": 0.025,
+        "min_exit_signal_strength": 0.4,
+        "require_exit_signal": false
+      },
+      "performance_tracking": {
+        "short_term_window": 15,
+        "medium_term_window": 75,
+        "long_term_window": 300,
+        "min_trades_for_adjustment": 15,
+        "performance_review_frequency": 25,
+        "poor_performance_threshold": -0.015,
+        "good_performance_threshold": 0.025,
+        "high_volatility_threshold": 0.25
+      },
+      "correlation_matrix": {
+        "mean_reversion": 1.0,
+        "rsi_strategy": 0.6,
+        "momentum": -0.2,
+        "breakout": -0.1
+      }
+    },
+    "scalping_breakout": {
+      "strategy_id": "scalping_breakout",
+      "strategy_type": "breakout",
+      "description": "Fast scalping on volume breakouts with quick exits",
+      "position_sizing": {
+        "base_position_percent": 0.01,
+        "max_position_percent": 0.05,
+        "strategy_type_multiplier": 2.0,
+        "use_signal_strength": true,
+        "signal_strength_multiplier": 1.8,
+        "performance_adjustment_factor": 1.0,
+        "min_adjustment_factor": 0.2,
+        "max_adjustment_factor": 3.0,
+        "correlation_penalty": true,
+        "max_correlation_exposure": 0.15
+      },
+      "exit_rules": {
+        "max_holding_bars": 5,
+        "max_adverse_excursion_pct": 0.015,
+        "min_favorable_excursion_pct": 0.02,
+        "profit_take_at_mfe_pct": 0.015,
+        "min_exit_signal_strength": 0.8,
+        "require_exit_signal": false
+      },
+      "performance_tracking": {
+        "short_term_window": 20,
+        "medium_term_window": 100,
+        "long_term_window": 500,
+        "min_trades_for_adjustment": 20,
+        "performance_review_frequency": 30,
+        "poor_performance_threshold": -0.01,
+        "good_performance_threshold": 0.015,
+        "high_volatility_threshold": 0.20
+      },
+      "correlation_matrix": {
+        "breakout": 1.0,
+        "momentum": 0.7,
+        "volatility_breakout": 0.8,
+        "mean_reversion": -0.3
+      }
+    },
+    "ma_crossover_balanced": {
+      "strategy_id": "ma_crossover_balanced",
+      "strategy_type": "ma_crossover",
+      "description": "Balanced MA crossover with medium-term holding",
+      "position_sizing": {
+        "base_position_percent": 0.025,
+        "max_position_percent": 0.10,
+        "strategy_type_multiplier": 1.0,
+        "use_signal_strength": true,
+        "signal_strength_multiplier": 1.0,
+        "performance_adjustment_factor": 0.6,
+        "min_adjustment_factor": 0.3,
+        "max_adjustment_factor": 1.8,
+        "correlation_penalty": true,
+        "max_correlation_exposure": 0.30
+      },
+      "exit_rules": {
+        "max_holding_bars": 20,
+        "max_adverse_excursion_pct": 0.05,
+        "min_favorable_excursion_pct": 0.08,
+        "profit_take_at_mfe_pct": 0.06,
+        "min_exit_signal_strength": 0.5,
+        "require_exit_signal": false
+      },
+      "performance_tracking": {
+        "short_term_window": 12,
+        "medium_term_window": 60,
+        "long_term_window": 240,
+        "min_trades_for_adjustment": 12,
+        "performance_review_frequency": 20,
+        "poor_performance_threshold": -0.02,
+        "good_performance_threshold": 0.03,
+        "high_volatility_threshold": 0.30
+      },
+      "correlation_matrix": {
+        "ma_crossover": 1.0,
+        "trend_following": 0.5,
+        "momentum": 0.3,
+        "mean_reversion": -0.1
+      }
+    },
+    "trend_following_patient": {
+      "strategy_id": "trend_following_patient",
+      "strategy_type": "trend_following",
+      "description": "Patient trend following with longer holds and wider stops",
+      "position_sizing": {
+        "base_position_percent": 0.03,
+        "max_position_percent": 0.12,
+        "strategy_type_multiplier": 1.2,
+        "use_signal_strength": true,
+        "signal_strength_multiplier": 1.1,
+        "performance_adjustment_factor": 0.5,
+        "min_adjustment_factor": 0.4,
+        "max_adjustment_factor": 1.6,
+        "correlation_penalty": true,
+        "max_correlation_exposure": 0.35
+      },
+      "exit_rules": {
+        "max_holding_bars": 60,
+        "max_adverse_excursion_pct": 0.10,
+        "min_favorable_excursion_pct": 0.20,
+        "profit_take_at_mfe_pct": 0.15,
+        "min_exit_signal_strength": 0.7,
+        "require_exit_signal": false
+      },
+      "performance_tracking": {
+        "short_term_window": 8,
+        "medium_term_window": 40,
+        "long_term_window": 160,
+        "min_trades_for_adjustment": 8,
+        "performance_review_frequency": 12,
+        "poor_performance_threshold": -0.03,
+        "good_performance_threshold": 0.05,
+        "high_volatility_threshold": 0.40
+      },
+      "correlation_matrix": {
+        "trend_following": 1.0,
+        "momentum": 0.8,
+        "ma_crossover": 0.5,
+        "mean_reversion": -0.4
+      }
+    }
+  },
+  "global_settings": {
+    "max_total_risk_exposure": 0.95,
+    "correlation_calculation_window": 100,
+    "performance_tracking_enabled": true,
+    "dynamic_adjustment_enabled": true,
+    "risk_override_conditions": {
+      "market_volatility_threshold": 0.30,
+      "portfolio_drawdown_threshold": 0.15,
+      "emergency_risk_reduction": 0.5
+    }
+  },
+  "strategy_type_defaults": {
+    "momentum": {
+      "base_position_percent": 0.02,
+      "strategy_type_multiplier": 1.2,
+      "max_holding_bars": 25,
+      "max_adverse_excursion_pct": 0.06
+    },
+    "mean_reversion": {
+      "base_position_percent": 0.018,
+      "strategy_type_multiplier": 0.9,
+      "max_holding_bars": 12,
+      "max_adverse_excursion_pct": 0.04
+    },
+    "breakout": {
+      "base_position_percent": 0.015,
+      "strategy_type_multiplier": 1.5,
+      "max_holding_bars": 35,
+      "max_adverse_excursion_pct": 0.08
+    },
+    "ma_crossover": {
+      "base_position_percent": 0.025,
+      "strategy_type_multiplier": 1.0,
+      "max_holding_bars": 20,
+      "max_adverse_excursion_pct": 0.05
+    }
+  }
+}

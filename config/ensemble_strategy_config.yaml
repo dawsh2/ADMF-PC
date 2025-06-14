@@ -1,0 +1,188 @@
+# Ensemble Strategy Configuration
+# Defines how to combine rules and regimes for optimal performance
+
+name: multi_level_ensemble
+description: Hybrid ensemble combining classifier-specific and consensus approaches
+
+# Level 1: Classifier-Specific Ensembles
+classifier_ensembles:
+  
+  # Enhanced Trend Classifier Ensemble
+  enhanced_trend:
+    strong_uptrend:
+      strategies: [sma_crossover, ema_crossover, macd_crossover, supertrend, parabolic_sar]
+      weights: [0.2, 0.15, 0.25, 0.2, 0.2]
+    weak_uptrend:
+      strategies: [ema_sma_crossover, adx_trend_strength, linear_regression_slope]
+      weights: [0.3, 0.4, 0.3]
+    sideways:
+      strategies: [rsi_bands, cci_bands, bollinger_breakout, pivot_points]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    weak_downtrend:
+      strategies: [ema_sma_crossover, adx_trend_strength, linear_regression_slope]
+      weights: [0.3, 0.4, 0.3]
+    strong_downtrend:
+      strategies: [sma_crossover, ema_crossover, macd_crossover, supertrend, parabolic_sar]
+      weights: [0.2, 0.15, 0.25, 0.2, 0.2]
+      
+  # Volatility Momentum Classifier Ensemble
+  volatility_momentum:
+    high_vol_bullish:
+      strategies: [keltner_breakout, atr_channel_breakout, vwap_deviation, roc_threshold]
+      weights: [0.3, 0.3, 0.2, 0.2]
+    high_vol_bearish:
+      strategies: [keltner_breakout, atr_channel_breakout, vwap_deviation, roc_threshold]
+      weights: [0.3, 0.3, 0.2, 0.2]
+    low_vol_bullish:
+      strategies: [donchian_breakout, support_resistance_breakout, fibonacci_retracement]
+      weights: [0.35, 0.35, 0.3]
+    low_vol_bearish:
+      strategies: [donchian_breakout, support_resistance_breakout, fibonacci_retracement]
+      weights: [0.35, 0.35, 0.3]
+    neutral:
+      strategies: [pivot_points, vwap_deviation, price_action_swing]
+      weights: [0.4, 0.3, 0.3]
+      
+  # Market Regime Classifier Ensemble
+  market_regime:
+    bull_trending:
+      strategies: [sma_crossover, macd_crossover, adx_trend_strength, obv_trend]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    bull_ranging:
+      strategies: [rsi_bands, stochastic_rsi, pivot_points, support_resistance_breakout]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    bear_trending:
+      strategies: [sma_crossover, macd_crossover, adx_trend_strength, obv_trend]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    bear_ranging:
+      strategies: [rsi_bands, stochastic_rsi, pivot_points, support_resistance_breakout]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    neutral:
+      strategies: [bollinger_breakout, vwap_deviation, fibonacci_retracement]
+      weights: [0.35, 0.35, 0.3]
+      
+  # Microstructure Classifier Ensemble
+  microstructure:
+    breakout_up:
+      strategies: [donchian_breakout, atr_channel_breakout, obv_trend, chaikin_money_flow]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    breakout_down:
+      strategies: [donchian_breakout, atr_channel_breakout, obv_trend, chaikin_money_flow]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    consolidation:
+      strategies: [pivot_points, bollinger_breakout, rsi_bands, price_action_swing]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    reversal_up:
+      strategies: [rsi_bands, stochastic_rsi, williams_r, ultimate_oscillator]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    reversal_down:
+      strategies: [rsi_bands, stochastic_rsi, williams_r, ultimate_oscillator]
+      weights: [0.25, 0.25, 0.25, 0.25]
+      
+  # Hidden Markov Classifier Ensemble
+  hidden_markov:
+    accumulation:
+      strategies: [obv_trend, accumulation_distribution, chaikin_money_flow, mfi_bands]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    markup:
+      strategies: [sma_crossover, supertrend, parabolic_sar, aroon_crossover]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    distribution:
+      strategies: [obv_trend, mfi_bands, chaikin_money_flow, rsi_bands]
+      weights: [0.2, 0.3, 0.3, 0.2]
+    markdown:
+      strategies: [sma_crossover, supertrend, parabolic_sar, aroon_crossover]
+      weights: [0.25, 0.25, 0.25, 0.25]
+    uncertainty:
+      strategies: [pivot_points, vwap_deviation, bollinger_breakout]
+      weights: [0.35, 0.35, 0.3]
+
+# Level 2: Meta-Ensemble Configuration
+meta_ensemble:
+  # Classifier weights (can be adaptive)
+  classifier_weights:
+    enhanced_trend: 0.25
+    volatility_momentum: 0.20
+    market_regime: 0.20
+    microstructure: 0.20
+    hidden_markov: 0.15
+    
+  # Signal aggregation method
+  aggregation_method: weighted_vote  # Options: weighted_vote, majority_vote, ranked_vote
+  
+  # Minimum agreement threshold
+  min_agreement: 0.3  # At least 30% of weighted votes must agree
+  
+  # Conflict resolution
+  conflict_resolution: confidence_weighted  # Use classifier confidence to break ties
+
+# Adaptive Learning Configuration
+adaptive_config:
+  enable_adaptive_weights: true
+  lookback_period: 500  # bars
+  update_frequency: 100  # bars
+  performance_metric: sharpe_ratio
+  
+  # Weight constraints
+  min_strategy_weight: 0.0
+  max_strategy_weight: 0.5
+  
+  # Regime-specific performance tracking
+  track_regime_performance: true
+  regime_lookback: 1000  # bars per regime
+  
+  # Decay factor for older performance
+  performance_decay: 0.98
+
+# Risk Management for Ensemble
+risk_config:
+  # Position sizing based on ensemble agreement
+  position_sizing:
+    full_agreement: 1.0      # 100% position when strong consensus
+    high_agreement: 0.75     # 75% position
+    medium_agreement: 0.5    # 50% position
+    low_agreement: 0.25      # 25% position
+    
+  # Stop loss based on regime
+  regime_stops:
+    trending: 0.02          # 2% stop in trending markets
+    ranging: 0.01           # 1% stop in ranging markets
+    volatile: 0.03          # 3% stop in volatile markets
+    
+  # Maximum strategies active
+  max_active_strategies: 10
+
+# Ensemble Selection Strategies
+selection_strategies:
+  
+  # Top-N selection per regime
+  top_n_per_regime:
+    enabled: true
+    n_strategies: 3
+    selection_metric: sharpe_ratio
+    
+  # Correlation-based diversification
+  diversification:
+    enabled: true
+    max_correlation: 0.7
+    correlation_window: 100
+    
+  # Performance-based filtering
+  performance_filter:
+    min_sharpe: 0.5
+    min_win_rate: 0.45
+    min_trades: 50
+
+# Output Configuration
+output:
+  # What signals to generate
+  signal_generation:
+    - ensemble_signal       # Aggregated signal
+    - component_signals     # Individual strategy signals
+    - classifier_states     # Current regime states
+    - ensemble_confidence   # Confidence in ensemble signal
+    
+  # Logging
+  log_level: INFO
+  log_performance: true
+  log_regime_transitions: true

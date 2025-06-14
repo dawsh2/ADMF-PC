@@ -37,13 +37,19 @@ class Signal:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for event payload."""
+        # Handle direction - could be enum or string
+        if hasattr(self.direction, 'value'):
+            direction_value = self.direction.value
+        else:
+            direction_value = str(self.direction)
+            
         result = {
             'symbol': self.symbol,
-            'direction': self.direction,
+            'direction': direction_value,
             'strength': self.strength,
-            'timestamp': self.timestamp.isoformat(),
+            'timestamp': self.timestamp.isoformat() if hasattr(self.timestamp, 'isoformat') else str(self.timestamp),
             'strategy_id': self.strategy_id,
-            'signal_type': self.signal_type.value,
+            'signal_type': self.signal_type.value if hasattr(self.signal_type, 'value') else str(self.signal_type),
             'metadata': self.metadata
         }
         if self.value is not None:

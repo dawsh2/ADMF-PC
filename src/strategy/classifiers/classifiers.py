@@ -118,10 +118,10 @@ def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> D
     Returns:
         Regime dict with classification and confidence
     """
-    # Extract parameters with defaults
+    # Extract parameters with defaults - support both atr_period and lookback_period
     high_vol_threshold = params.get('high_vol_threshold', 1.5)
     low_vol_threshold = params.get('low_vol_threshold', 0.5)
-    atr_period = params.get('atr_period', 14)
+    atr_period = params.get('atr_period') or params.get('lookback_period', 14)
     
     # Get volatility measure - try multiple naming patterns
     current_vol = features.get('atr') or features.get(f'atr_{atr_period}') or features.get('volatility')

@@ -83,8 +83,14 @@ class MultiStrategyTracer(EventObserverProtocol):
     def on_event(self, event: Event) -> None:
         """Process events from the root event bus."""
         if event.event_type == EventType.BAR.value:
-            self._current_bar_count += 1
-            logger.debug(f"Bar count: {self._current_bar_count}")
+            # Use original bar index from event payload for consistent sparse storage
+            if hasattr(event, 'payload') and 'original_bar_index' in event.payload:
+                self._current_bar_count = event.payload['original_bar_index'] + 1  # Convert to 1-based
+                logger.debug(f"Bar count (original): {self._current_bar_count}")
+            else:
+                # Fallback to incrementing for backward compatibility
+                self._current_bar_count += 1
+                logger.debug(f"Bar count (incremented): {self._current_bar_count}")
             
         elif event.event_type == EventType.SIGNAL.value:
             logger.debug(f"MultiStrategyTracer received SIGNAL event")
@@ -256,6 +262,7 @@ class MultiStrategyTracer(EventObserverProtocol):
         
         results = {
             'workflow_id': self._workflow_id,
+            'workspace_path': str(self._workspace_path),  # Add workspace path for analytics integration
             'total_bars': self._current_bar_count,
             'total_signals': self._total_signals,
             'total_classifications': self._total_classifications,

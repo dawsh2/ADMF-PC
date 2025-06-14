@@ -1,0 +1,10 @@
+{
+  "workflow_id": "test_ma_crossover_momentum",
+  "workspace_path": "workspaces/test_ma_crossover_momentum_8d6fbc94",
+  "total_bars": 89217,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {}
+}

@@ -112,6 +112,10 @@ class SimpleHistoricalDataHandler:
         bars_streamed = 0
         max_bars = getattr(self, 'max_bars', float('inf'))
         
+        # Handle None max_bars
+        if max_bars is None:
+            max_bars = float('inf')
+        
         logger.info(f"Starting to stream bars, max_bars: {max_bars}, has_data: {self.has_more_data()}")
         
         while self.has_more_data() and bars_streamed < max_bars:
@@ -162,6 +166,9 @@ class SimpleHistoricalDataHandler:
                 volume=row['volume']
             )
             
+            # Calculate original dataset bar index for consistent sparse storage
+            original_bar_index = self._get_original_bar_index(symbol, idx)
+            
             # Update index
             indices[symbol] = idx + 1
             
@@ -174,7 +181,9 @@ class SimpleHistoricalDataHandler:
                     payload={
                         'symbol': symbol,
                         'timestamp': timestamp,
-                        'bar': bar
+                        'bar': bar,
+                        'original_bar_index': original_bar_index,  # For consistent sparse storage
+                        'split_bar_index': idx + 1  # Current position within split
                     },
                     source_id=f"data_{symbol}",
                     container_id=self.container.container_id if self.container else None
@@ -190,7 +199,9 @@ class SimpleHistoricalDataHandler:
                     payload={
                         'symbol': symbol,
                         'timestamp': timestamp,
-                        'bar': bar
+                        'bar': bar,
+                        'original_bar_index': original_bar_index,  # For consistent sparse storage
+                        'split_bar_index': idx + 1  # Current position within split
                     },
                     source_id=self.handler_id
                 )
@@ -554,6 +565,44 @@ class SimpleHistoricalDataHandler:
         
         timeline.sort(key=lambda x: x[0])
         return timeline
+    
+    def _get_original_bar_index(self, symbol: str, split_index: int) -> int:
+        """
+        Get the original dataset bar index for a given split index.
+        
+        Args:
+            symbol: Trading symbol
+            split_index: Index within the current split (0-based)
+            
+        Returns:
+            Original dataset bar index (0-based)
+        """
+        if not self.active_split or self.active_split not in self.splits:
+            # No split active, use direct index
+            return split_index
+        
+        # Get the split data and original data
+        split_data = self.splits[self.active_split].data.get(symbol)
+        original_data = self.data.get(symbol)
+        
+        if split_data is None or original_data is None:
+            return split_index
+        
+        if split_index >= len(split_data):
+            return split_index
+        
+        # Get the timestamp at the split index
+        split_timestamp = split_data.index[split_index]
+        
+        # Find this timestamp in the original dataset
+        try:
+            # Use get_loc to find the position of this timestamp in original data
+            original_index = original_data.index.get_loc(split_timestamp)
+            return original_index
+        except KeyError:
+            # Timestamp not found (shouldn't happen), fall back to split index
+            logger.warning(f"Timestamp {split_timestamp} not found in original dataset for {symbol}")
+            return split_index
 
 
 class StreamingDataHandler:

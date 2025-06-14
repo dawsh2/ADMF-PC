@@ -148,6 +148,20 @@ def main():
             config_dict['data']['max_bars'] = args.bars
             logger.info(f"Limiting data to {args.bars} bars")
             
+        # Apply dataset CLI override
+        if args.dataset:
+            if 'data' not in config_dict:
+                config_dict['data'] = {}
+            config_dict['data']['dataset'] = args.dataset
+            logger.info(f"Using dataset: {args.dataset}")
+            
+        # Apply split_ratio CLI override
+        if args.split_ratio:
+            if 'data' not in config_dict:
+                config_dict['data'] = {}
+            config_dict['data']['split_ratio'] = args.split_ratio
+            logger.info(f"Using split ratio: {args.split_ratio}")
+            
         # Apply WFV and study configuration
         if args.results_dir:
             config_dict['results_dir'] = args.results_dir

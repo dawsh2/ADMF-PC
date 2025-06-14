@@ -1,0 +1,41 @@
+# Test configuration for tuned RSI strategy
+# Uses same dataset as original for direct comparison
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+dataset: test  # Use same out-of-sample test data
+split_ratio: 0.8
+
+# Tuned RSI strategy with improved parameters
+strategies:
+  - name: rsi_tuned_test
+    type: rsi_tuned
+    params:
+      rsi_period: 14           # Standard RSI period
+      trend_period: 20         # Trend filter SMA
+      oversold_entry: 30       # Optimal from grid search
+      overbought_entry: 70     # Optimal from grid search  
+      oversold_exit: 40        # Exit closer to neutral
+      overbought_exit: 60      # Exit closer to neutral
+      min_momentum_strength: 2.0  # Filter weak signals
+
+# Execution settings
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL"]
+    storage_backend: memory
+    use_sparse_storage: true
+    enable_console_output: false
+
+# Store results
+results:
+  streaming_metrics: true
+  results_storage: disk
+  output_dir: ./results/rsi_tuned_test

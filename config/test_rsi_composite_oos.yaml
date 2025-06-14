@@ -1,0 +1,54 @@
+# Test configuration for RSI Composite strategy on out-of-sample data
+# Uses last 20,000 bars from SPY_1m.csv dataset
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+# Use the test dataset (last 20k bars) 
+dataset: test
+split_ratio: 0.8  # 80% train, 20% test (~20k bars for test)
+
+# RSI composite strategy configuration with proven parameters
+strategies:
+  - name: rsi_composite_test
+    type: rsi_composite
+    params:
+      # Entry parameters (proven optimal from backtesting)
+      entry_rsi_period: 7
+      oversold_threshold: 30
+      overbought_threshold: 75
+      
+      # Exit framework parameters (backtested optimal)
+      profit_target_low: 0.20     # 2.4% of trades, 100% win rate
+      profit_target_high: 0.25    # 3.3% of trades, 100% win rate
+      stop_loss_pct: 0.15         # 20.3% of trades, risk control
+      max_holding_bars: 18        # 43.8% of trades, safety net
+
+# Execution settings with sparse storage for signal replay
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL"]
+    storage_backend: memory
+    use_sparse_storage: true
+    enable_console_output: true
+    console_filter: ["SIGNAL"]
+
+# Store results for analysis
+results:
+  streaming_metrics: true
+  results_storage: disk
+  output_dir: ./results/rsi_composite_oos_test
+
+# Risk management settings
+risk:
+  max_position_size: 0.1  # 10% per position
+  max_portfolio_risk: 0.02  # 2% portfolio risk
+  # Strategy handles its own stop losses (0.15%)
+  # Strategy handles its own profit targets (0.20%, 0.25%)

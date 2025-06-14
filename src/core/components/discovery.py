@@ -220,6 +220,13 @@ def strategy(
         # Add registry info for debugging
         if hasattr(func_or_class, '__dict__'):
             func_or_class._component_info = info
+            # Also add strategy-specific metadata for strategy state to use
+            func_or_class._strategy_metadata = {
+                'features': features_list,
+                'feature_config': features_meta,
+                'validate_features': validate_features,
+                **metadata
+            }
         
         # Ensure required_features is accessible
         if not hasattr(func_or_class, 'required_features'):

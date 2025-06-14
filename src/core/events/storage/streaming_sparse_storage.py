@@ -51,21 +51,24 @@ class StreamingSparseStorage:
     
     def __init__(self, 
                  base_dir: str,
-                 write_interval: int = 500,
-                 write_on_changes: int = 100):
+                 write_interval: int = 0,
+                 write_on_changes: int = 0,
+                 component_id: Optional[str] = None):
         """
         Initialize streaming storage.
         
         Args:
             base_dir: Directory for storage
-            write_interval: Write every N bars
-            write_on_changes: Write every M changes
+            write_interval: Write every N bars (0 = never)
+            write_on_changes: Write every M changes (0 = never)
+            component_id: Component ID for filename (e.g., SPY_rsi_grid_14_20_70)
         """
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
         
         self.write_interval = write_interval
         self.write_on_changes = write_on_changes
+        self.component_id = component_id
         
         # Minimal state tracking - only last signal
         self._last_signals: Dict[str, Any] = {}
@@ -79,8 +82,8 @@ class StreamingSparseStorage:
         self._last_write_bar = 0
         self._write_count = 0
         
-        # Output file parts
-        self._parts_written: List[str] = []
+        # Output file (single file, not parts)
+        self._output_file: Optional[Path] = None
         
     def process_signal(self, 
                       symbol: str,
@@ -133,12 +136,16 @@ class StreamingSparseStorage:
     
     def _check_write_conditions(self) -> None:
         """Check if we should write buffer to disk."""
+        # Skip if both intervals are 0 (write only at end)
+        if self.write_interval == 0 and self.write_on_changes == 0:
+            return
+            
         bars_since_write = self._bar_index - self._last_write_bar
         buffer_size = len(self._buffer)
         
         should_write = (
-            bars_since_write >= self.write_interval or
-            buffer_size >= self.write_on_changes
+            (self.write_interval > 0 and bars_since_write >= self.write_interval) or
+            (self.write_on_changes > 0 and buffer_size >= self.write_on_changes)
         )
         
         if should_write and buffer_size > 0:
@@ -149,20 +156,35 @@ class StreamingSparseStorage:
         if not self._buffer:
             return
             
-        # Create part filename
-        part_num = self._write_count
-        filename = f"signals_part_{part_num:04d}.parquet"
-        filepath = self.base_dir / filename
+        # Create filename from component_id if not already set
+        if not self._output_file:
+            if self.component_id:
+                filename = f"{self.component_id}.parquet"
+            else:
+                filename = "signals.parquet"
+            self._output_file = self.base_dir / filename
         
         # Convert to DataFrame
         data = [c.to_dict() for c in self._buffer]
         df = pd.DataFrame(data)
         
-        # Save as Parquet
-        df.to_parquet(filepath, engine='pyarrow', index=False)
+        # Write or append to Parquet file
+        if self._write_count == 0:
+            # First write - create new file
+            df.to_parquet(self._output_file, engine='pyarrow', index=False)
+        else:
+            # Subsequent writes - append (requires reading existing data)
+            try:
+                existing_df = pd.read_parquet(self._output_file)
+                combined_df = pd.concat([existing_df, df], ignore_index=True)
+                combined_df.to_parquet(self._output_file, engine='pyarrow', index=False)
+            except Exception as e:
+                logger.error(f"Failed to append to {self._output_file}: {e}")
+                # Fall back to writing separate file
+                alt_file = self.base_dir / f"{self.component_id}_part{self._write_count}.parquet"
+                df.to_parquet(alt_file, engine='pyarrow', index=False)
         
-        self._parts_written.append(str(filepath))
-        logger.debug(f"Wrote {len(self._buffer)} changes to {filename}")
+        logger.debug(f"Wrote {len(self._buffer)} changes to {self._output_file.name}")
         
         # Clear buffer and update tracking
         self._buffer.clear()
@@ -175,20 +197,14 @@ class StreamingSparseStorage:
         if self._buffer:
             self._write_buffer()
             
-        # Create summary
+        # Create summary for logging/return (but don't save to file)
         summary = {
             'total_bars': self._bar_index,
             'total_changes': self._total_changes,
             'compression_ratio': self._total_changes / self._bar_index if self._bar_index > 0 else 0,
-            'parts_written': self._parts_written,
-            'write_count': self._write_count
+            'output_file': str(self._output_file) if self._output_file else None
         }
         
-        # Save summary
-        summary_path = self.base_dir / 'summary.json'
-        with open(summary_path, 'w') as f:
-            json.dump(summary, f, indent=2)
-            
-        logger.info(f"Finalized storage: {self._total_changes} changes in {self._write_count} parts")
+        logger.info(f"Finalized storage: {self._total_changes} changes for {self.component_id}")
         
         return summary

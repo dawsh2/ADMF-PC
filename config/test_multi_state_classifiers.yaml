@@ -1,0 +1,106 @@
+# Test configuration for multi-state classifiers
+# Generates regime data with 3-5 states for better regime analysis
+
+symbols:
+  - SPY
+
+timeframes:
+  - 1m
+
+data_source: file
+data_dir: ./data
+dataset: train  # Use 80k bar dataset
+split_ratio: 0.8
+
+# Multi-state classifier configurations
+classifiers:
+  # 5-state trend classifier
+  - name: enhanced_trend_test
+    type: enhanced_trend_classifier
+    params:
+      strong_threshold: 0.015   # 1.5% for strong trend
+      weak_threshold: 0.005     # 0.5% for weak trend
+    features:
+      - name: sma_10
+        params: { period: 10 }
+      - name: sma_20
+        params: { period: 20 }
+      - name: sma_50
+        params: { period: 50 }
+
+  # 5-state volatility-momentum classifier
+  - name: vol_momentum_test
+    type: volatility_momentum_classifier
+    params:
+      vol_threshold: 1.2        # 1.2% ATR threshold
+      rsi_overbought: 65
+      rsi_oversold: 35
+    features:
+      - name: atr_14
+        params: { period: 14 }
+      - name: rsi_14
+        params: { period: 14 }
+      - name: sma_20
+        params: { period: 20 }
+
+  # 5-state market regime classifier
+  - name: market_regime_test
+    type: market_regime_classifier
+    params:
+      trend_threshold: 0.008    # 0.8% trend threshold
+      vol_threshold: 0.8        # 0.8% vol threshold
+    features:
+      - name: sma_10
+        params: { period: 10 }
+      - name: sma_50
+        params: { period: 50 }
+      - name: atr_20
+        params: { period: 20 }
+      - name: rsi_14
+        params: { period: 14 }
+
+  # 5-state microstructure classifier (for short-term patterns)
+  - name: microstructure_test
+    type: microstructure_classifier
+    params:
+      breakout_threshold: 0.004  # 0.4% breakout threshold
+      consolidation_threshold: 0.001  # 0.1% consolidation threshold
+    features:
+      - name: sma_5
+        params: { period: 5 }
+      - name: sma_20
+        params: { period: 20 }
+      - name: atr_10
+        params: { period: 10 }
+      - name: rsi_7
+        params: { period: 7 }
+
+# Also test a few strategies for later regime analysis
+strategies:
+  - name: rsi_test
+    type: rsi_strategy
+    params:
+      rsi_period: 14
+      oversold_threshold: 30
+      overbought_threshold: 70
+
+  - name: ma_crossover_test
+    type: ma_crossover_strategy
+    params:
+      fast_period: 10
+      slow_period: 50
+
+# Execution settings
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFIER"]
+    storage_backend: memory
+    use_sparse_storage: true
+    enable_console_output: false
+
+# Store results
+results:
+  streaming_metrics: true
+  results_storage: disk
+  output_dir: ./results/multi_state_test
