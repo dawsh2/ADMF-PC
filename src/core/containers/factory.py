@@ -45,6 +45,9 @@ class ContainerFactory:
             # Strategy components
             'strategy_state': ComponentSpec('strategy_state', 'strategy.state.StrategyState'),
             
+            # Feature Hub component
+            'feature_hub': ComponentSpec('feature_hub', 'core.containers.components.FeatureHubComponent'),
+            
             # Portfolio components
             'portfolio_manager': ComponentSpec('portfolio_manager', 'portfolio.PortfolioManager'),
             'position_manager': ComponentSpec('position_manager', 'portfolio.PositionManager'),
@@ -121,12 +124,12 @@ class ContainerFactory:
                     handler_id=f"data_{config.get('symbol', 'unknown')}",
                     data_dir=config.get('data_dir', './data')
                 )
-                # Load data if symbols are configured
+                # Configure data loading (don't load during creation)
                 symbols = config.get('symbol', [])
                 if isinstance(symbols, str):
                     symbols = [symbols]
-                if symbols:
-                    handler.load_data(symbols)
+                handler.symbols = symbols or []
+                
                 # Set max bars if configured
                 if 'max_bars' in config:
                     handler.max_bars = config['max_bars']
@@ -182,6 +185,9 @@ class ContainerFactory:
                     symbols=config.get('symbols', []),
                     feature_configs=config.get('features', {})
                 )
+            elif component_name == 'feature_hub':
+                from .components.feature_hub_component import create_feature_hub_component
+                return create_feature_hub_component(config)
             else:
                 logger.error(f"Unknown component: {component_name}")
                 raise ValueError(f"Unknown component: {component_name}")

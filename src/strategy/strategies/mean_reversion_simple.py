@@ -317,11 +317,7 @@ def create_mean_reversion_strategy(config: Dict[str, Any] = None) -> MeanReversi
 # Pure function version for EVENT_FLOW_ARCHITECTURE
 @strategy(
     name='mean_reversion',
-    feature_config={
-        'bollinger': {'params': ['period', 'num_std'], 'defaults': {'period': 20, 'num_std': 2}},
-        'rsi': {'params': ['rsi_period'], 'default': 14}
-    },
-    validate_features=False  # Disable validation since features are dynamically named
+    feature_config=['bollinger', 'rsi']  # Topology builder infers parameters from strategy logic
 )
 def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

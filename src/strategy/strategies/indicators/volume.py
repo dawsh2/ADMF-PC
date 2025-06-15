@@ -11,15 +11,9 @@ from ....core.components.discovery import strategy
 
 @strategy(
     name='obv_trend',
-    feature_config={
-        'obv': {
-            'params': [],
-            'defaults': {}
-        },
-        'sma': {
-            'params': ['obv_sma_period'],
-            'defaults': {'obv_sma_period': 20}
-        }
+    feature_config=['obv', 'sma'],  # Simple: declare we need OBV and SMA features
+    param_feature_mapping={
+        'obv_sma_period': 'sma_{obv_sma_period}'
     }
 )
 def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -58,7 +52,8 @@ def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
         'strategy_id': 'obv_trend',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'obv': obv,
+            'obv_sma_period': obv_sma_period,         # Parameters for sparse storage separation
+            'obv': obv,                               # Values for analysis
             'obv_sma': obv_sma,
             'divergence': (obv - obv_sma) / abs(obv_sma) * 100 if obv_sma != 0 else 0,
             'price': bar.get('close', 0)
@@ -68,11 +63,9 @@ def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='mfi_bands',
-    feature_config={
-        'mfi': {
-            'params': ['mfi_period'],
-            'defaults': {'mfi_period': 14}
-        }
+    feature_config=['mfi'],  # Simple: just declare we need MFI features
+    param_feature_mapping={
+        'mfi_period': 'mfi_{mfi_period}'
     }
 )
 def mfi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -112,9 +105,10 @@ def mfi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
         'strategy_id': 'mfi_bands',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'mfi': mfi,
+            'mfi_period': mfi_period,                 # Parameters for sparse storage separation
             'overbought': overbought,
             'oversold': oversold,
+            'mfi': mfi,                               # Values for analysis
             'price': bar.get('close', 0),
             'volume': bar.get('volume', 0)
         }
@@ -123,11 +117,9 @@ def mfi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='vwap_deviation',
-    feature_config={
-        'vwap': {
-            'params': [],
-            'defaults': {}
-        }
+    feature_config=['vwap'],  # Simple: just declare we need VWAP features
+    param_feature_mapping={
+        'std_multiplier': 'vwap_{std_multiplier}'
     }
 )
 def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -174,7 +166,8 @@ def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
         'strategy_id': 'vwap_deviation',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'price': price,
+            'std_multiplier': std_multiplier,         # Parameters for sparse storage separation
+            'price': price,                           # Values for analysis
             'vwap': vwap,
             'upper_band': vwap_upper,
             'lower_band': vwap_lower,
@@ -185,11 +178,9 @@ def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='chaikin_money_flow',
-    feature_config={
-        'cmf': {
-            'params': ['cmf_period'],
-            'defaults': {'cmf_period': 20}
-        }
+    feature_config=['cmf'],  # Simple: just declare we need CMF features
+    param_feature_mapping={
+        'period': 'cmf_{period}'
     }
 )
 def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -201,7 +192,7 @@ def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     - -1: CMF < -threshold (selling pressure)
     - 0: CMF neutral
     """
-    cmf_period = params.get('cmf_period', 20)
+    cmf_period = params.get('period', 20)
     threshold = params.get('threshold', 0.05)
     
     # Get features
@@ -228,8 +219,9 @@ def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Di
         'strategy_id': 'chaikin_money_flow',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'cmf': cmf,
+            'period': cmf_period,                     # Parameters for sparse storage separation
             'threshold': threshold,
+            'cmf': cmf,                               # Values for analysis
             'price': bar.get('close', 0),
             'volume': bar.get('volume', 0)
         }
@@ -238,15 +230,9 @@ def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='accumulation_distribution',
-    feature_config={
-        'ad': {
-            'params': [],
-            'defaults': {}
-        },
-        'ema': {
-            'params': ['ad_ema_period'],
-            'defaults': {'ad_ema_period': 20}
-        }
+    feature_config=['ad', 'ema'],  # Simple: declare we need A/D and EMA features
+    param_feature_mapping={
+        'ad_ema_period': 'ema_{ad_ema_period}'
     }
 )
 def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -262,7 +248,7 @@ def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], par
     
     # Get features
     ad_line = features.get('ad')
-    ad_ema = features.get(f'ad_ema_{ad_ema_period}')
+    ad_ema = features.get(f'ema_{ad_ema_period}')
     
     if ad_line is None or ad_ema is None:
         return None
@@ -285,7 +271,8 @@ def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], par
         'strategy_id': 'accumulation_distribution',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'ad_line': ad_line,
+            'ad_ema_period': ad_ema_period,           # Parameters for sparse storage separation
+            'ad_line': ad_line,                       # Values for analysis
             'ad_ema': ad_ema,
             'divergence': ad_line - ad_ema,
             'price': bar.get('close', 0),

@@ -1,0 +1,10 @@
+market_data:
+  symbols: ['SPY']
+  data_dir: 'data/1m'
+  
+strategies:
+  - type: stochastic_crossover
+    name: stochastic_test
+    params:
+      k_period: [5]
+      d_period: [3]

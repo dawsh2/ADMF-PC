@@ -92,10 +92,10 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
                 # Fallback to incrementing for backward compatibility
                 self._current_bar_count += 1
             
-            # Log progress periodically
-            if self._current_bar_count % 100 == 0:
-                logger.info(f"Processed {self._current_bar_count} bars, "
-                           f"{self._stored_changes} signal changes stored")
+            # Log progress periodically (reduced frequency for performance)
+            if self._current_bar_count % 1000 == 0:
+                logger.debug(f"Processed {self._current_bar_count} bars, "
+                            f"{self._stored_changes} signal changes stored")
             
         elif event.event_type == EventType.SIGNAL.value:
             self._process_signal_event(event)

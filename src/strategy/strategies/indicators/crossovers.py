@@ -11,11 +11,10 @@ from ....core.components.discovery import strategy
 
 @strategy(
     name='sma_crossover',
-    feature_config={
-        'sma': {
-            'params': ['fast_period', 'slow_period'],
-            'defaults': {'fast_period': 10, 'slow_period': 20}
-        }
+    feature_config=['sma'],  # Simple: just declare we need SMA features
+    param_feature_mapping={  # Map parameters to specific feature names
+        'fast_period': 'sma_{fast_period}',
+        'slow_period': 'sma_{slow_period}'
     }
 )
 def sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -55,7 +54,9 @@ def sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
         'strategy_id': 'sma_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'fast_sma': fast_sma,
+            'fast_period': fast_period,     # Parameters for sparse storage separation
+            'slow_period': slow_period,
+            'fast_sma': fast_sma,          # Values for analysis
             'slow_sma': slow_sma,
             'price': bar.get('close', 0),
             'separation_pct': abs(fast_sma - slow_sma) / slow_sma * 100 if slow_sma != 0 else 0
@@ -65,15 +66,10 @@ def sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='ema_sma_crossover',
-    feature_config={
-        'ema': {
-            'params': ['ema_period'],
-            'defaults': {'ema_period': 10}
-        },
-        'sma': {
-            'params': ['sma_period'],
-            'defaults': {'sma_period': 20}
-        }
+    feature_config=['ema', 'sma'],  # Simple: declare we need EMA and SMA features
+    param_feature_mapping={
+        'ema_period': 'ema_{ema_period}',
+        'sma_period': 'sma_{sma_period}'
     }
 )
 def ema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -113,7 +109,9 @@ def ema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
         'strategy_id': 'ema_sma_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'ema': ema,
+            'ema_period': ema_period,      # Parameters for sparse storage separation
+            'sma_period': sma_period,
+            'ema': ema,                    # Values for analysis
             'sma': sma,
             'price': bar.get('close', 0)
         }
@@ -122,11 +120,10 @@ def ema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
 
 @strategy(
     name='ema_crossover',
-    feature_config={
-        'ema': {
-            'params': ['fast_ema_period', 'slow_ema_period'],
-            'defaults': {'fast_ema_period': 10, 'slow_ema_period': 20}
-        }
+    feature_config=['ema'],  # Simple: just declare we need EMA features
+    param_feature_mapping={
+        'fast_ema_period': 'ema_{fast_ema_period}',
+        'slow_ema_period': 'ema_{slow_ema_period}'
     }
 )
 def ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -166,7 +163,9 @@ def ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
         'strategy_id': 'ema_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'fast_ema': fast_ema,
+            'fast_ema_period': fast_period,    # Parameters for sparse storage separation
+            'slow_ema_period': slow_period,
+            'fast_ema': fast_ema,              # Values for analysis
             'slow_ema': slow_ema,
             'price': bar.get('close', 0)
         }
@@ -175,15 +174,10 @@ def ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='dema_sma_crossover',
-    feature_config={
-        'dema': {
-            'params': ['dema_period'],
-            'defaults': {'dema_period': 10}
-        },
-        'sma': {
-            'params': ['sma_period'],
-            'defaults': {'sma_period': 20}
-        }
+    feature_config=['dema', 'sma'],  # Simple: declare we need DEMA and SMA features
+    param_feature_mapping={
+        'dema_period': 'dema_{dema_period}',
+        'sma_period': 'sma_{sma_period}'
     }
 )
 def dema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -223,7 +217,9 @@ def dema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
         'strategy_id': 'dema_sma_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'dema': dema,
+            'dema_period': dema_period,        # Parameters for sparse storage separation
+            'sma_period': sma_period,
+            'dema': dema,                      # Values for analysis
             'sma': sma,
             'price': bar.get('close', 0)
         }
@@ -232,11 +228,10 @@ def dema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='dema_crossover',
-    feature_config={
-        'dema': {
-            'params': ['fast_dema_period', 'slow_dema_period'],
-            'defaults': {'fast_dema_period': 10, 'slow_dema_period': 20}
-        }
+    feature_config=['dema'],  # Simple: just declare we need DEMA features
+    param_feature_mapping={
+        'fast_dema_period': 'dema_{fast_dema_period}',
+        'slow_dema_period': 'dema_{slow_dema_period}'
     }
 )
 def dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -276,7 +271,9 @@ def dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
         'strategy_id': 'dema_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'fast_dema': fast_dema,
+            'fast_dema_period': fast_period,   # Parameters for sparse storage separation
+            'slow_dema_period': slow_period,
+            'fast_dema': fast_dema,            # Values for analysis
             'slow_dema': slow_dema,
             'price': bar.get('close', 0)
         }
@@ -285,15 +282,10 @@ def dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='tema_sma_crossover',
-    feature_config={
-        'tema': {
-            'params': ['tema_period'],
-            'defaults': {'tema_period': 10}
-        },
-        'sma': {
-            'params': ['sma_period'],
-            'defaults': {'sma_period': 20}
-        }
+    feature_config=['tema', 'sma'],  # Simple: declare we need TEMA and SMA features
+    param_feature_mapping={
+        'tema_period': 'tema_{tema_period}',
+        'sma_period': 'sma_{sma_period}'
     }
 )
 def tema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -333,7 +325,9 @@ def tema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
         'strategy_id': 'tema_sma_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'tema': tema,
+            'tema_period': tema_period,        # Parameters for sparse storage separation
+            'sma_period': sma_period,
+            'tema': tema,                      # Values for analysis
             'sma': sma,
             'price': bar.get('close', 0)
         }
@@ -342,11 +336,10 @@ def tema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='stochastic_crossover',
-    feature_config={
-        'stochastic': {
-            'params': ['k_period', 'd_period'],
-            'defaults': {'k_period': 14, 'd_period': 3}
-        }
+    feature_config=['stochastic'],  # Simple: just declare we need stochastic features
+    param_feature_mapping={
+        'k_period': 'stochastic_{k_period}_{d_period}',
+        'd_period': 'stochastic_{k_period}_{d_period}'
     }
 )
 def stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -386,7 +379,9 @@ def stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: 
         'strategy_id': 'stochastic_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'stoch_k': stoch_k,
+            'k_period': k_period,              # Parameters for sparse storage separation
+            'd_period': d_period,
+            'stoch_k': stoch_k,                # Values for analysis
             'stoch_d': stoch_d,
             'price': bar.get('close', 0)
         }
@@ -395,11 +390,9 @@ def stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: 
 
 @strategy(
     name='vortex_crossover',
-    feature_config={
-        'vortex': {
-            'params': ['vortex_period'],
-            'defaults': {'vortex_period': 14}
-        }
+    feature_config=['vortex'],  # Simple: just declare we need vortex features
+    param_feature_mapping={
+        'vortex_period': 'vortex_{vortex_period}'
     }
 )
 def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -438,7 +431,8 @@ def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
         'strategy_id': 'vortex_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'vi_plus': vi_plus,
+            'vortex_period': vortex_period,    # Parameters for sparse storage separation
+            'vi_plus': vi_plus,                # Values for analysis
             'vi_minus': vi_minus,
             'price': bar.get('close', 0)
         }
@@ -447,11 +441,11 @@ def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
 
 @strategy(
     name='macd_crossover',
-    feature_config={
-        'macd': {
-            'params': ['fast_ema', 'slow_ema', 'signal_ema'],
-            'defaults': {'fast_ema': 12, 'slow_ema': 26, 'signal_ema': 9}
-        }
+    feature_config=['macd'],  # Simple: just declare we need MACD features
+    param_feature_mapping={
+        'fast_ema': 'macd_{fast_ema}_{slow_ema}_{signal_ema}',
+        'slow_ema': 'macd_{fast_ema}_{slow_ema}_{signal_ema}',
+        'signal_ema': 'macd_{fast_ema}_{slow_ema}_{signal_ema}'
     }
 )
 def macd_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -492,7 +486,10 @@ def macd_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
         'strategy_id': 'macd_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'macd': macd_line,
+            'fast_ema': fast_ema,              # Parameters for sparse storage separation
+            'slow_ema': slow_ema,
+            'signal_ema': signal_ema,
+            'macd': macd_line,                 # Values for analysis
             'signal': signal_line,
             'histogram': macd_line - signal_line,
             'price': bar.get('close', 0)
@@ -502,11 +499,10 @@ def macd_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='ichimoku_cloud_position',
-    feature_config={
-        'ichimoku': {
-            'params': ['conversion_period', 'base_period'],
-            'defaults': {'conversion_period': 9, 'base_period': 26}
-        }
+    feature_config=['ichimoku'],  # Simple: just declare we need ichimoku features
+    param_feature_mapping={
+        'conversion_period': 'ichimoku_{conversion_period}_{base_period}',
+        'base_period': 'ichimoku_{conversion_period}_{base_period}'
     }
 )
 def ichimoku_cloud_position(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -551,7 +547,9 @@ def ichimoku_cloud_position(features: Dict[str, Any], bar: Dict[str, Any], param
         'strategy_id': 'ichimoku_cloud_position',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'price': price,
+            'conversion_period': conversion_period,  # Parameters for sparse storage separation
+            'base_period': base_period,
+            'price': price,                          # Values for analysis
             'cloud_top': cloud_top,
             'cloud_bottom': cloud_bottom,
             'senkou_span_a': span_a,

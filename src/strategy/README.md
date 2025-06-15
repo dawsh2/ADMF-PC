@@ -228,16 +228,23 @@ All pure function strategies MUST use the `@strategy` decorator for automatic di
 ```python
 from ...core.components.discovery import strategy
 
+# RECOMMENDED: Simplified list format
 @strategy(
     name='my_strategy',
-    feature_config={
-        'sma': {'params': ['sma_period'], 'defaults': {'sma_period': 20}},
-        'rsi': {'params': [], 'default': 14}  # RSI with default period
-    }
+    feature_config=['sma', 'rsi', 'bollinger_bands']  # Simple list of features
 )
 def my_strategy_function(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Strategy implementation"""
     pass
+
+# LEGACY: Complex dict format (still supported but not recommended)
+@strategy(
+    name='my_strategy',
+    feature_config={
+        'sma': {'params': ['sma_period'], 'defaults': {'sma_period': 20}},
+        'rsi': {'params': [], 'default': 14}
+    }
+)
 ```
 
 ### Why the Decorator is Required
@@ -246,37 +253,368 @@ def my_strategy_function(features: Dict[str, Any], bar: Dict[str, Any], params: 
 2. **Feature Inference**: The decorator metadata enables automatic feature requirement detection
 3. **Parameter Expansion**: Grid search and parameter optimization rely on the metadata
 
-### Decorator Parameters
+Without this decorator, the strategy will NOT be discovered by the topology builder and feature inference will fail!
 
-- `name`: Strategy identifier used in configs and discovery
-- `feature_config`: Dictionary mapping feature/indicator names to their configuration:
-  - `params`: List of parameter names that map to strategy params
-  - `defaults`: Default values for specific parameters
-  - `default`: Single default value when no params are needed
+### Best Practices for Feature Declaration
 
-### Example: Complete Strategy with Discovery
+1. **Use Simple List Format**: Declare features as a simple list when possible
+2. **Let Inference Handle Parameters**: The topology builder will infer feature parameters from strategy parameters
+3. **Follow Naming Conventions**: Strategy parameters should follow patterns like `{feature}_period`, `fast_{feature}_period`, etc.
+
+## Complete Guide: Adding a New Strategy
+
+### Step 1: Define Your Strategy Function
+
+Create your strategy in the appropriate file under `strategies/` directory:
 
 ```python
+from typing import Dict, Any, Optional
+import logging
+from ...core.components.discovery import strategy
+
+logger = logging.getLogger(__name__)
+
 @strategy(
-    name='mean_reversion',
+    name='bollinger_mean_reversion',  # Unique name for discovery
     feature_config={
+        # Define required features with parameter mappings
         'bollinger': {
-            'params': ['period', 'num_std'], 
-            'defaults': {'period': 20, 'num_std': 2}
+            'params': ['bb_period', 'bb_std'],  # Maps to strategy params
+            'defaults': {'bb_period': 20, 'bb_std': 2.0}
         },
         'rsi': {
-            'params': ['rsi_period'], 
-            'default': 14
+            'params': ['rsi_period'],
+            'defaults': {'rsi_period': 14}
+        },
+        'volume_sma': {
+            'params': ['volume_period'],
+            'defaults': {'volume_period': 20}
         }
     }
 )
-def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Mean reversion strategy using Bollinger Bands."""
-    # Strategy implementation
+def bollinger_mean_reversion(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Bollinger Bands mean reversion strategy with RSI and volume filters.
+    
+    Args:
+        features: Pre-computed features from FeatureHub
+        bar: Current bar data with symbol, timestamp, OHLCV
+        params: Strategy parameters from configuration
+        
+    Returns:
+        Signal dict with signal_value (-1, 0, 1) or None if not ready
+    """
+    # Extract parameters with defaults
+    bb_period = params.get('bb_period', 20)
+    bb_std = params.get('bb_std', 2.0)
+    rsi_period = params.get('rsi_period', 14)
+    volume_period = params.get('volume_period', 20)
+    rsi_oversold = params.get('rsi_oversold', 30)
+    rsi_overbought = params.get('rsi_overbought', 70)
+    
+    # Get required features - use exact naming convention
+    upper_band = features.get(f'bollinger_{bb_period}_{bb_std}_upper')
+    lower_band = features.get(f'bollinger_{bb_period}_{bb_std}_lower')
+    middle_band = features.get(f'bollinger_{bb_period}_{bb_std}_middle')
+    rsi = features.get(f'rsi_{rsi_period}')
+    volume_ma = features.get(f'volume_sma_{volume_period}')
+    
+    # Check if all required features are available
+    if any(f is None for f in [upper_band, lower_band, middle_band, rsi, volume_ma]):
+        logger.debug(f"Bollinger mean reversion not ready. Features: upper={upper_band}, lower={lower_band}, rsi={rsi}")
+        return None
+    
+    current_price = bar.get('close', 0)
+    current_volume = bar.get('volume', 0)
+    
+    # Strategy logic
+    signal_value = 0
+    
+    # Buy signal: Price below lower band, RSI oversold, volume above average
+    if (current_price < lower_band and 
+        rsi < rsi_oversold and 
+        current_volume > volume_ma):
+        signal_value = 1
+        
+    # Sell signal: Price above upper band, RSI overbought, volume above average
+    elif (current_price > upper_band and 
+          rsi > rsi_overbought and 
+          current_volume > volume_ma):
+        signal_value = -1
+    
+    # Always return signal state (sparse storage handles unchanged signals)
+    symbol = bar.get('symbol', 'UNKNOWN')
+    timeframe = bar.get('timeframe', '1m')
+    
+    return {
+        'signal_value': signal_value,
+        'timestamp': bar.get('timestamp'),
+        'strategy_id': 'bollinger_mean_reversion',
+        'symbol_timeframe': f"{symbol}_{timeframe}",
+        'metadata': {
+            'price': current_price,
+            'upper_band': upper_band,
+            'lower_band': lower_band,
+            'middle_band': middle_band,
+            'rsi': rsi,
+            'volume': current_volume,
+            'volume_ma': volume_ma,
+            'band_position': (current_price - lower_band) / (upper_band - lower_band) if upper_band != lower_band else 0.5
+        }
+    }
+```
+
+### Step 2: Feature Naming Conventions
+
+Features are named based on their type and parameters. The incremental feature system generates names like:
+
+**Single-value features:**
+- `sma_{period}` → e.g., `sma_20`
+- `ema_{period}` → e.g., `ema_50`
+- `rsi_{period}` → e.g., `rsi_14`
+- `atr_{period}` → e.g., `atr_14`
+
+**Multi-value features (with suffixes):**
+- `bollinger_{period}_{std_dev}_upper/middle/lower` → e.g., `bollinger_20_2.0_upper`
+- `macd_{fast}_{slow}_{signal}_macd/signal/histogram` → e.g., `macd_12_26_9_macd`
+- `aroon_{period}_up/down/oscillator` → e.g., `aroon_25_up`
+- `supertrend_{period}_{multiplier}_supertrend/trend/upper/lower` → e.g., `supertrend_10_3.0_trend`
+- `stochastic_{k_period}_{d_period}_k/d` → e.g., `stochastic_14_3_k`
+
+### Step 3: Configuration File Entry
+
+Add your strategy to the configuration YAML:
+
+```yaml
+strategies:
+  - type: bollinger_mean_reversion
+    name: bb_mean_reversion_grid  # Name for grid expansion
+    params:
+      # Parameters for grid search
+      bb_period: [15, 20, 25]
+      bb_std: [1.5, 2.0, 2.5]
+      rsi_period: [10, 14, 21]
+      rsi_oversold: [25, 30]
+      rsi_overbought: [70, 75]
+      volume_period: [10, 20]
+      # Total combinations: 3 * 3 * 3 * 2 * 2 * 2 = 216
+```
+
+### Step 4: Common Pitfalls and Solutions
+
+#### 1. **Feature Not Found**
+```python
+# WRONG - Feature naming mismatch
+upper_band = features.get('bollinger_upper')  # Missing parameters in name
+
+# CORRECT - Include all parameters
+upper_band = features.get(f'bollinger_{bb_period}_{bb_std}_upper')
+```
+
+#### 2. **Missing Decorator**
+```python
+# WRONG - No decorator, won't be discovered
+def my_strategy(features, bar, params):
+    pass
+
+# CORRECT - With decorator
+@strategy(name='my_strategy', feature_config={...})
+def my_strategy(features, bar, params):
     pass
 ```
 
-Without this decorator, the strategy will NOT be discovered by the topology builder and feature inference will fail!
+#### 3. **Wrong Parameter Mapping**
+```python
+# WRONG - Parameter name doesn't match what strategy expects
+feature_config={
+    'sma': {'params': ['period']}  # Strategy expects 'sma_period'
+}
+
+# CORRECT - Parameter names match
+feature_config={
+    'sma': {'params': ['sma_period']}
+}
+```
+
+#### 4. **Not Handling None Features**
+```python
+# WRONG - Will crash if features not ready
+signal = 1 if features['rsi_14'] < 30 else 0
+
+# CORRECT - Check for None
+rsi = features.get('rsi_14')
+if rsi is None:
+    return None
+signal = 1 if rsi < 30 else 0
+```
+
+### Step 5: Testing Your Strategy
+
+Create a test to verify your strategy works:
+
+```python
+def test_bollinger_mean_reversion():
+    """Test bollinger mean reversion strategy."""
+    from src.strategy.strategies.indicators import bollinger_mean_reversion
+    
+    # Test oversold condition
+    features = {
+        'bollinger_20_2.0_upper': 105,
+        'bollinger_20_2.0_middle': 100,
+        'bollinger_20_2.0_lower': 95,
+        'rsi_14': 25,
+        'volume_sma_20': 1000
+    }
+    
+    bar = {
+        'symbol': 'SPY',
+        'close': 94,  # Below lower band
+        'volume': 1500,  # Above average
+        'timeframe': '1m',
+        'timestamp': '2024-01-01T10:00:00'
+    }
+    
+    params = {
+        'bb_period': 20,
+        'bb_std': 2.0,
+        'rsi_period': 14,
+        'rsi_oversold': 30,
+        'rsi_overbought': 70,
+        'volume_period': 20
+    }
+    
+    result = bollinger_mean_reversion(features, bar, params)
+    assert result is not None
+    assert result['signal_value'] == 1  # Buy signal
+```
+
+### Step 6: File Organization
+
+Place strategies in the appropriate category:
+
+```
+strategies/
+├── indicators/          # Technical indicator-based strategies
+│   ├── crossovers.py   # MA crossovers, MACD crossovers, etc.
+│   ├── oscillators.py  # RSI, Stochastic, Williams %R strategies
+│   ├── trend.py        # ADX, Aroon, Supertrend strategies
+│   ├── volatility.py   # Bollinger, Keltner, ATR strategies
+│   └── volume.py       # OBV, MFI, VWAP strategies
+├── patterns/           # Chart pattern strategies
+├── ml/                 # Machine learning strategies
+└── __init__.py         # Exports all strategies
+```
+
+### Complete Working Example
+
+Here's a complete example that follows all best practices:
+
+```python
+# File: strategies/indicators/volatility.py
+
+from typing import Dict, Any, Optional
+import logging
+from ...core.components.discovery import strategy
+
+logger = logging.getLogger(__name__)
+
+@strategy(
+    name='keltner_squeeze',
+    feature_config={
+        'keltner': {
+            'params': ['kc_period', 'kc_mult'],
+            'defaults': {'kc_period': 20, 'kc_mult': 2.0}
+        },
+        'bollinger': {
+            'params': ['bb_period', 'bb_std'],
+            'defaults': {'bb_period': 20, 'bb_std': 2.0}
+        },
+        'momentum': {
+            'params': ['mom_period'],
+            'defaults': {'mom_period': 12}
+        }
+    }
+)
+def keltner_squeeze(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Keltner Channel Squeeze strategy - detects volatility compression.
+    
+    Signals when Bollinger Bands are inside Keltner Channels (squeeze)
+    and trades on momentum direction when squeeze releases.
+    """
+    # Parameters
+    kc_period = params.get('kc_period', 20)
+    kc_mult = params.get('kc_mult', 2.0)
+    bb_period = params.get('bb_period', 20)
+    bb_std = params.get('bb_std', 2.0)
+    mom_period = params.get('mom_period', 12)
+    
+    # Get features - note the exact naming format
+    kc_upper = features.get(f'keltner_{kc_period}_{kc_mult}_upper')
+    kc_lower = features.get(f'keltner_{kc_period}_{kc_mult}_lower')
+    bb_upper = features.get(f'bollinger_{bb_period}_{bb_std}_upper')
+    bb_lower = features.get(f'bollinger_{bb_period}_{bb_std}_lower')
+    momentum = features.get(f'momentum_{mom_period}')
+    
+    # Readiness check
+    if any(f is None for f in [kc_upper, kc_lower, bb_upper, bb_lower, momentum]):
+        return None
+    
+    # Detect squeeze: BB inside KC
+    in_squeeze = bb_upper < kc_upper and bb_lower > kc_lower
+    
+    # Look for squeeze release with momentum
+    signal_value = 0
+    if not in_squeeze:  # Squeeze has released
+        if momentum > 0:
+            signal_value = 1   # Bullish breakout
+        elif momentum < 0:
+            signal_value = -1  # Bearish breakout
+    
+    # Return signal
+    symbol = bar.get('symbol', 'UNKNOWN')
+    timeframe = bar.get('timeframe', '1m')
+    
+    return {
+        'signal_value': signal_value,
+        'timestamp': bar.get('timestamp'),
+        'strategy_id': 'keltner_squeeze',
+        'symbol_timeframe': f"{symbol}_{timeframe}",
+        'metadata': {
+            'in_squeeze': in_squeeze,
+            'momentum': momentum,
+            'kc_width': kc_upper - kc_lower,
+            'bb_width': bb_upper - bb_lower,
+            'price': bar.get('close', 0)
+        }
+    }
+```
+
+### Debugging Tips
+
+1. **Enable debug logging** to see why strategies aren't generating signals:
+   ```python
+   import logging
+   logging.getLogger('src.strategy').setLevel(logging.DEBUG)
+   ```
+
+2. **Check feature availability** by printing available features:
+   ```python
+   logger.info(f"Available features: {list(features.keys())}")
+   ```
+
+3. **Verify strategy registration**:
+   ```python
+   from src.core.components.discovery import get_component_registry
+   strategies = get_component_registry().get('strategies', {})
+   print(f"Registered strategies: {list(strategies.keys())}")
+   ```
+
+4. **Test feature inference**:
+   ```python
+   # The topology builder will log inferred features
+   # Look for: "Inferred X unique features from Y strategies"
+   ```
 
 ## Configuration Patterns
 
@@ -450,3 +788,91 @@ Do not create `enhanced_momentum_strategy.py`, `improved_feature_hub.py`, etc. U
 - **Alternative Data**: News, sentiment, economic indicators
 - **Multi-Asset Strategies**: Cross-asset signal generation
 - **Dynamic Feature Selection**: Adaptive feature sets based on market conditions
+
+## Strategy-Feature Integration Best Practices
+
+### 1. Feature Configuration Format
+
+**Preferred**: Use the simplified list format for feature declarations
+```python
+@strategy(
+    name='momentum_breakout',
+    feature_config=['sma', 'rsi', 'atr']  # Simple and clear
+)
+```
+
+**Avoid**: Complex dictionary format unless you need special parameter mappings
+```python
+# Only use this format if you have non-standard parameter names
+@strategy(
+    feature_config={
+        'sma': {'params': ['custom_ma_period'], 'defaults': {'custom_ma_period': 20}}
+    }
+)
+```
+
+### 2. Parameter Naming Conventions
+
+Follow standard naming patterns for automatic feature inference:
+- `{feature}_period`: For single-period features (e.g., `sma_period`, `rsi_period`)
+- `fast_{feature}_period`, `slow_{feature}_period`: For dual-period features
+- `{feature}_{param}`: For other parameters (e.g., `bollinger_std_dev`)
+
+### 3. Feature Access Patterns
+
+Always use the exact feature naming convention when accessing features:
+```python
+# Correct - includes all parameters in the feature name
+rsi_value = features.get(f'rsi_{rsi_period}')
+bollinger_upper = features.get(f'bollinger_bands_{period}_{std_dev}_upper')
+
+# Wrong - missing parameters or wrong format
+rsi_value = features.get('rsi')  # Missing period
+bollinger_upper = features.get('bollinger_upper')  # Missing all parameters
+```
+
+### 4. Feature Readiness Checks
+
+Always check if features are available before using them:
+```python
+# Get all required features
+required_features = [
+    features.get(f'sma_{fast_period}'),
+    features.get(f'sma_{slow_period}'),
+    features.get(f'rsi_{rsi_period}')
+]
+
+# Check if any are None
+if any(f is None for f in required_features):
+    return None  # Not ready yet
+
+# Safe to use features
+fast_sma, slow_sma, rsi = required_features
+```
+
+### 5. Strategy Registration Patterns
+
+Ensure your strategy module is imported for registration:
+```python
+# In strategies/__init__.py or strategies/indicators/__init__.py
+from .crossovers import *  # Imports all @strategy decorated functions
+from .oscillators import *
+from .trend import *
+```
+
+### 6. Testing Feature Integration
+
+Test that your strategy correctly declares and uses features:
+```python
+def test_strategy_feature_requirements():
+    """Test that strategy declares correct features."""
+    from src.core.components.discovery import get_component_registry
+    
+    registry = get_component_registry()
+    strategy_info = registry.get_component('my_strategy')
+    
+    # Verify feature config
+    feature_config = strategy_info.metadata.get('feature_config', [])
+    assert 'sma' in feature_config
+    assert 'rsi' in feature_config
+```

@@ -21,16 +21,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rsi_tuned',
-    feature_config={
-        'rsi': {
-            'params': ['rsi_period'], 
-            'defaults': {'rsi_period': 14}
-        },
-        'sma': {
-            'params': ['trend_period'],
-            'defaults': {'trend_period': 20}
-        }
-    }
+    feature_config=['rsi', 'sma']  # Topology builder infers parameters from strategy logic
 )
 def rsi_tuned_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

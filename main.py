@@ -134,7 +134,7 @@ def main():
             logger.info(f"Configuration loaded successfully from {config_path}")
         else:
             # Build from CLI parameters (config-less operation)
-            from src.core.cli.parameter_parser import build_config_from_cli
+            from src.core.cli.parser import build_config_from_cli
             config_dict = build_config_from_cli(args)
             logger.info("Configuration built from CLI parameters (config-less mode)")
         

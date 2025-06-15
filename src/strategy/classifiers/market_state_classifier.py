@@ -7,15 +7,24 @@ Classifies market into different states based on volatility and trend.
 import logging
 from typing import Dict, Any, Optional
 import numpy as np
+from ...core.components.discovery import classifier
 
 logger = logging.getLogger(__name__)
 
 
+@classifier(
+    name='market_state_classifier',
+    regime_types=['trending_low_vol', 'trending_high_vol', 'ranging_low_vol', 'ranging_high_vol'],
+    feature_config=['atr', 'sma'],
+    param_feature_mapping={
+        'vol_lookback': 'atr_{vol_lookback}',
+        'trend_lookback': 'sma_{trend_lookback}'
+    }
+)
 def market_state_classifier(
-    symbol: str,
     features: Dict[str, float],
     params: Dict[str, Any]
-) -> Optional[str]:
+) -> Dict[str, Any]:
     """
     Classify market state based on volatility and trend.
     
@@ -40,7 +49,11 @@ def market_state_classifier(
     price = features.get('close', 0)
     
     if atr is None or price <= 0:
-        return None
+        return {
+            'regime': 'ranging_low_vol',
+            'confidence': 0.0,
+            'metadata': {'reason': 'Missing ATR or price data'}
+        }
     
     # Normalize volatility as percentage of price
     vol_pct = (atr / price) * 100
@@ -50,7 +63,11 @@ def market_state_classifier(
     slow_ma = features.get(f'sma_{trend_lookback}')
     
     if fast_ma is None or slow_ma is None:
-        return None
+        return {
+            'regime': 'ranging_low_vol',
+            'confidence': 0.0,
+            'metadata': {'reason': 'Missing moving average data'}
+        }
     
     # Calculate trend strength
     trend_strength = abs(fast_ma - slow_ma) / slow_ma * 100
@@ -65,14 +82,30 @@ def market_state_classifier(
     if is_trending:
         if is_high_vol:
             regime = "trending_high_vol"
+            confidence = min(trend_strength / (regime_threshold * 2) + vol_pct / (regime_threshold * 2), 1.0)
         else:
             regime = "trending_low_vol"
+            confidence = trend_strength / (regime_threshold * 2) * (1 - vol_pct / regime_threshold)
     else:
         if is_high_vol:
             regime = "ranging_high_vol"
+            confidence = vol_pct / (regime_threshold * 2) * (1 - trend_strength / regime_threshold)
         else:
             regime = "ranging_low_vol"
+            confidence = (1 - trend_strength / regime_threshold) * (1 - vol_pct / regime_threshold)
     
-    logger.debug(f"{symbol} market state: {regime} (vol={vol_pct:.2f}%, trend={trend_strength:.2f}%)")
+    confidence = max(0.0, min(confidence, 1.0))  # Clamp to [0, 1]
     
-    return regime
+    logger.debug(f"Market state: {regime} (vol={vol_pct:.2f}%, trend={trend_strength:.2f}%)")
+    
+    return {
+        'regime': regime,
+        'confidence': confidence,
+        'metadata': {
+            'vol_pct': vol_pct,
+            'trend_strength': trend_strength,
+            'is_high_vol': is_high_vol,
+            'is_trending': is_trending,
+            'reason': f'Vol: {vol_pct:.2f}%, Trend: {trend_strength:.2f}%'
+        }
+    }

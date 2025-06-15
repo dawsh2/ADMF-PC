@@ -1,0 +1,10 @@
+market_data:
+  symbols: ['SPY']
+  data_dir: 'data/1m'
+  
+strategies:
+  - type: roc_threshold
+    name: roc_test
+    params:
+      roc_period: [10]
+      threshold: [0.05]

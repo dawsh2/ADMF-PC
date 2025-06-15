@@ -24,6 +24,18 @@ from .classifiers import (
     momentum_regime_classifier
 )
 
+# Import additional classifiers
+from .market_state_classifier import market_state_classifier
+
+# Import multi-state classifiers (renamed from enhanced_multi_state_classifiers)
+from .multi_state_classifiers import (
+    multi_timeframe_trend_classifier,
+    volatility_momentum_classifier,
+    market_regime_classifier,
+    microstructure_classifier,
+    hidden_markov_classifier
+)
+
 # Old class-based classifiers moved to tmp/deprecated_classifiers/
 # Now using pure function classifiers with @classifier decorator
 
@@ -38,5 +50,13 @@ __all__ = [
     # Pure function classifiers (decorated with @classifier)
     'trend_classifier',
     'volatility_classifier',
-    'momentum_regime_classifier'
+    'momentum_regime_classifier',
+    'market_state_classifier',
+    
+    # Multi-state classifiers
+    'multi_timeframe_trend_classifier',
+    'volatility_momentum_classifier',
+    'market_regime_classifier',
+    'microstructure_classifier',
+    'hidden_markov_classifier'
 ]

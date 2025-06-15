@@ -7,38 +7,25 @@ without inheritance.
 """
 
 from .features import (
-    # Stateless feature functions - now organized by category
-    sma_feature,
-    ema_feature,
-    dema_feature,
-    tema_feature,
-    rsi_feature,
-    stochastic_feature,
-    williams_r_feature,
-    cci_feature,
-    macd_feature,
-    adx_feature,
-    momentum_feature,
-    vortex_feature,
-    atr_feature,
-    bollinger_bands_feature,
-    keltner_channel_feature,
-    donchian_channel_feature,
-    volatility_feature,
-    volume_feature,
-    volume_sma_feature,
-    volume_ratio_feature,
-    ichimoku_feature,
-    # Utilities
-    compute_feature,
-    compute_multiple_features,
-    FEATURE_REGISTRY,
-    # Stateful feature computation engine
+    # Stateful feature computation engine (canonical)
     FeatureHub,
     create_feature_hub,
+    FEATURE_REGISTRY,
     DEFAULT_MOMENTUM_FEATURES,
     DEFAULT_MEAN_REVERSION_FEATURES,
-    DEFAULT_VOLATILITY_FEATURES
+    DEFAULT_VOLATILITY_FEATURES,
+    DEFAULT_STRUCTURE_FEATURES,
+    DEFAULT_VOLUME_FEATURES,
+    # Protocol definitions
+    Feature,
+    FeatureState,
+    # Feature registries
+    TREND_FEATURES,
+    OSCILLATOR_FEATURES,
+    VOLATILITY_FEATURES,
+    VOLUME_FEATURES,
+    MOMENTUM_FEATURES,
+    STRUCTURE_FEATURES
 )
 
 # Classifiers moved to strategy.classifiers module
@@ -71,38 +58,27 @@ from .signal_aggregation import (
 
 
 __all__ = [
-    # Stateless feature functions - organized by category
-    "sma_feature",
-    "ema_feature",
-    "dema_feature",
-    "tema_feature",
-    "rsi_feature",
-    "stochastic_feature",
-    "williams_r_feature",
-    "cci_feature",
-    "macd_feature",
-    "adx_feature",
-    "momentum_feature",
-    "vortex_feature",
-    "atr_feature",
-    "bollinger_bands_feature",
-    "keltner_channel_feature",
-    "donchian_channel_feature",
-    "volatility_feature",
-    "volume_feature",
-    "volume_sma_feature",
-    "volume_ratio_feature",
-    "ichimoku_feature",
-    "compute_feature",
-    "compute_multiple_features",
-    "FEATURE_REGISTRY",
-    
-    # Stateful feature computation engine
+    # Stateful feature computation engine (canonical)
     "FeatureHub",
     "create_feature_hub",
+    "FEATURE_REGISTRY",
+    "Feature",
+    "FeatureState",
+    
+    # Feature registries
+    "TREND_FEATURES",
+    "OSCILLATOR_FEATURES",
+    "VOLATILITY_FEATURES", 
+    "VOLUME_FEATURES",
+    "MOMENTUM_FEATURES",
+    "STRUCTURE_FEATURES",
+    
+    # Default configurations
     "DEFAULT_MOMENTUM_FEATURES",
     "DEFAULT_MEAN_REVERSION_FEATURES",
     "DEFAULT_VOLATILITY_FEATURES",
+    "DEFAULT_STRUCTURE_FEATURES",
+    "DEFAULT_VOLUME_FEATURES",
     
     # Signal Aggregation
     "InternalSignal",

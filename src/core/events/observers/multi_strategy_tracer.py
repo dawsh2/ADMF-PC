@@ -74,11 +74,11 @@ class MultiStrategyTracer(EventObserverProtocol):
         self._traces_dir = self._workspace_path / "traces"
         self._traces_dir.mkdir(parents=True, exist_ok=True)
         
-        logger.info(f"MultiStrategyTracer initialized for workspace: {workspace_path}")
+        logger.debug(f"MultiStrategyTracer initialized for workspace: {workspace_path}")
         if managed_strategies:
-            logger.info(f"Tracing strategies: {managed_strategies}")
+            logger.debug(f"Tracing strategies: {managed_strategies}")
         if managed_classifiers:
-            logger.info(f"Tracing classifiers: {managed_classifiers}")
+            logger.debug(f"Tracing classifiers: {managed_classifiers}")
     
     def on_event(self, event: Event) -> None:
         """Process events from the root event bus."""
@@ -139,10 +139,10 @@ class MultiStrategyTracer(EventObserverProtocol):
             self._stored_changes += 1
             
         # Log compression ratio periodically
-        if self._total_signals % 100 == 0:
+        if self._total_signals % 1000 == 0:
             ratio = (self._stored_changes / self._total_signals * 100) if self._total_signals > 0 else 0
-            logger.info(f"MultiStrategyTracer: {self._stored_changes}/{self._total_signals} "
-                       f"signals stored ({ratio:.1f}% compression)")
+            logger.debug(f"MultiStrategyTracer: {self._stored_changes}/{self._total_signals} "
+                        f"signals stored ({ratio:.1f}% compression)")
     
     def _process_classification_event(self, event: Event) -> None:
         """Process CLASSIFICATION events from classifiers."""
@@ -248,7 +248,7 @@ class MultiStrategyTracer(EventObserverProtocol):
             'created_at': datetime.now().isoformat()
         }
         
-        logger.info(f"Created storage for {component_type} {component_id} in {base_dir}")
+        logger.debug(f"Created storage for {component_type} {component_id} in {base_dir}")
         
         return storage
     
@@ -258,7 +258,7 @@ class MultiStrategyTracer(EventObserverProtocol):
         
         Returns metadata about the traced components and their storage locations.
         """
-        logger.info("Finalizing MultiStrategyTracer...")
+        logger.debug("Finalizing MultiStrategyTracer...")
         
         results = {
             'workflow_id': self._workflow_id,
@@ -297,15 +297,15 @@ class MultiStrategyTracer(EventObserverProtocol):
                     'created_at': metadata.get('created_at')
                 }
                 
-                logger.info(f"Saved {component_id}: {len(storage._changes)} changes to {rel_path}")
+                logger.debug(f"Saved {component_id}: {len(storage._changes)} changes to {rel_path}")
         
         # Save metadata.json at workspace root for SQL catalog population
         metadata_path = self._workspace_path / 'metadata.json'
         with open(metadata_path, 'w') as f:
             json.dump(results, f, indent=2)
         
-        logger.info(f"MultiStrategyTracer finalized. Metadata saved to {metadata_path}")
-        logger.info(f"Overall compression: {results['compression_ratio']:.1f}%")
+        logger.debug(f"MultiStrategyTracer finalized. Metadata saved to {metadata_path}")
+        logger.debug(f"Overall compression: {results['compression_ratio']:.1f}%")
         
         return results
     

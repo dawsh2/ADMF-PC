@@ -301,7 +301,14 @@ class Sequencer:
     def _aggregate_results(self, results: List[Dict[str, Any]],
                           aggregation_config: Dict[str, Any],
                           context: Dict[str, Any]) -> Dict[str, Any]:
-        """Aggregate results based on pattern."""
+        """
+        Aggregate results based on pattern.
+        
+        TODO: Move to analytics module when available.
+        This is a temporary stub for basic statistical aggregation during sequence execution.
+        The analytics module should handle advanced aggregation strategies, optimization
+        objectives, and complex metric calculations.
+        """
         agg_type = aggregation_config.get('type', 'none')
         
         if agg_type == 'none':
@@ -702,7 +709,14 @@ class Sequencer:
         return results
     
     def _aggregate_portfolio_metrics(self, portfolio_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Aggregate metrics from multiple portfolios."""
+        """
+        Aggregate metrics from multiple portfolios.
+        
+        TODO: Move to analytics module when available.
+        This is a temporary stub for basic aggregation during sequencer execution.
+        The analytics module should handle parameter selection, optimization, and 
+        advanced metric aggregation.
+        """
         if not portfolio_results:
             return {}
         
@@ -863,7 +877,8 @@ class Sequencer:
                 if key in phase_results:
                     output[key] = phase_results[key]
                 elif key == 'best_parameters' and 'aggregate_metrics' in phase_results:
-                    # Extract best parameters from results
+                    # TODO: Move to analytics module when available.
+                    # Extract best parameters from results (temporary stub)
                     best_metrics = phase_results['aggregate_metrics'].get('best_portfolio_metrics', {})
                     if best_metrics:
                         output['best_parameters'] = best_metrics.get('parameters', {})
@@ -872,3 +887,58 @@ class Sequencer:
                     output['metrics'] = phase_results.get('aggregate_metrics', {})
         
         return output
+    
+    def run_topology(self, topology_name: str, config: Dict[str, Any],
+                    execution_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Execute a topology directly using existing composition pattern.
+        
+        This delegates to the existing _execute_single_topology method to avoid duplication.
+        Complex sequences should compose this simple execution, not reimplement it.
+        
+        Args:
+            topology_name: Name of topology pattern to execute
+            config: Configuration including data, strategies, etc.
+            execution_id: Optional execution ID for tracking
+            
+        Returns:
+            Execution results including metrics, outputs, etc.
+        """
+        import uuid
+        from datetime import datetime
+        
+        execution_id = execution_id or str(uuid.uuid4())
+        start_time = datetime.now()
+        
+        logger.info(f"Executing topology '{topology_name}' directly (ID: {execution_id})")
+        
+        # Create a minimal PhaseConfig for the existing execution path
+        from .protocols import PhaseConfig
+        phase_config = PhaseConfig(
+            name=f"direct_{topology_name}",
+            description=f"Direct execution of {topology_name} topology",
+            topology=topology_name,
+            sequence='single_pass',  # Simple, direct execution
+            config=config,
+            output={}
+        )
+        
+        # Create minimal context with execution metadata
+        context = {
+            'execution_id': execution_id,
+            'direct_execution': True,
+            'start_time': start_time,
+            'metadata': config.get('metadata', {})
+        }
+        
+        # Use existing single topology execution (composition, not duplication)
+        result = self._execute_single_topology(topology_name, config, phase_config, context)
+        
+        # Add top-level execution metadata expected by coordinator
+        result['execution_id'] = execution_id
+        result['topology'] = topology_name
+        result['start_time'] = start_time.isoformat()
+        result['end_time'] = datetime.now().isoformat()
+        result['duration_seconds'] = (datetime.now() - start_time).total_seconds()
+        
+        return result

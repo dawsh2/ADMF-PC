@@ -1,0 +1,3 @@
+- [ ] track real world slippage on alpaca 
+- [ ] options build out 
+- [ ] add strategy.extract() for composite strategies to keep rulewise ensemble optimization concise 

@@ -181,8 +181,13 @@ def strategy(
         # Auto-generate feature requirements from feature config
         if features_meta and not features:
             features_list = []
-            for feat_name, feat_config in features_meta.items():
-                features_list.append(feat_name)
+            if isinstance(features_meta, list):
+                # New simplified format: ['sma', 'rsi', 'bollinger_bands']
+                features_list = features_meta[:]
+            elif isinstance(features_meta, dict):
+                # Old complex format: {'sma': {'params': [...], 'defaults': {...}}}
+                for feat_name, feat_config in features_meta.items():
+                    features_list.append(feat_name)
         else:
             features_list = features or []
         
@@ -241,6 +246,8 @@ def classifier(
     name: Optional[str] = None,
     regime_types: Optional[List[str]] = None,
     features: Optional[List[str]] = None,
+    feature_config: Optional[List[str]] = None,
+    param_feature_mapping: Optional[Dict[str, str]] = None,
     validate_features: bool = True,
     **metadata
 ):
@@ -258,7 +265,8 @@ def classifier(
     def decorator(func_or_class):
         component_name = name or getattr(func_or_class, '__name__', str(func_or_class))
         
-        features_list = features or []
+        # Support both legacy 'features' and new 'feature_config' parameters
+        features_list = feature_config or features or []
         
         # Apply feature validation if enabled
         original_func = func_or_class
@@ -284,6 +292,8 @@ def classifier(
             metadata={
                 'regime_types': regime_types or [],
                 'features': features_list,
+                'feature_config': feature_config,
+                'param_feature_mapping': param_feature_mapping,
                 'validate_features': validate_features,
                 **metadata
             }

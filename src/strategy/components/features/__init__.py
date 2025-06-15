@@ -1,172 +1,98 @@
 """
 Feature calculation and management for ADMF-PC.
 
-This module contains both:
-1. Stateless feature calculation functions (Tier 1) - pure functions for parallelization
-2. FeatureHub stateful component (Tier 2) - manages incremental feature computation
+This module contains the organized incremental feature system:
+- Protocol + Composition architecture for O(1) features
+- FeatureHub as the canonical stateful component (Tier 2)
+- All features organized by type for maintainability
 
-Following Protocol + Composition architecture:
-- Pure functions for batch computation
-- Stateful hub for streaming/incremental updates
-- No inheritance, just composition
-- Maximum parallelization potential for stateless functions
-
-Now organized into logical groups for better maintainability.
+No inheritance - pure protocol + composition architecture.
 """
 
-# Import all feature functions for discovery
-from .trend import (
-    sma_feature,
-    ema_feature,
-    dema_feature,
-    tema_feature
-)
-
-from .oscillators import (
-    rsi_feature,
-    stochastic_feature,
-    stochastic_rsi_feature,
-    williams_r_feature,
-    cci_feature
-)
-
-from .momentum import (
-    macd_feature,
-    adx_feature,
-    momentum_feature,
-    vortex_feature
-)
-
-from .volatility import (
-    atr_feature,
-    bollinger_bands_feature,
-    keltner_channel_feature,
-    donchian_channel_feature,
-    volatility_feature
-)
-
-from .volume import (
-    volume_feature,
-    volume_sma_feature,
-    volume_ratio_feature
-)
-
-from .complex import (
-    ichimoku_feature
-)
-
-from .advanced import (
-    ultimate_oscillator_feature,
-    mfi_feature,
-    obv_feature,
-    roc_feature,
-    cmf_feature,
-    ad_feature,
-    aroon_feature,
-    vwap_feature
-)
-
-from .trend_advanced import (
-    supertrend_feature,
-    psar_feature,
-    linear_regression_feature,
-    pivot_points_feature,
-    fibonacci_retracement_feature,
-    support_resistance_feature,
-    swing_points_feature
-)
-
-from .price import (
-    high_feature,
-    low_feature,
-    atr_sma_feature,
-    volatility_sma_feature
-)
-
-# Import stateful components and utilities
+# Import canonical FeatureHub and factory
 from .hub import (
     FeatureHub,
     create_feature_hub,
-    compute_feature,
-    compute_multiple_features,
     FEATURE_REGISTRY,
     DEFAULT_MOMENTUM_FEATURES,
     DEFAULT_MEAN_REVERSION_FEATURES,
-    DEFAULT_VOLATILITY_FEATURES
+    DEFAULT_VOLATILITY_FEATURES,
+    DEFAULT_STRUCTURE_FEATURES,
+    DEFAULT_VOLUME_FEATURES,
 )
 
-# Export everything
+# Import protocols for type hints
+from .protocols import Feature, FeatureState
+
+# Import all indicators from organized subdirectory
+from .indicators import (
+    # Feature registries
+    TREND_FEATURES,
+    OSCILLATOR_FEATURES,
+    VOLATILITY_FEATURES,
+    VOLUME_FEATURES,
+    MOMENTUM_FEATURES,
+    STRUCTURE_FEATURES,
+    ALL_INDICATOR_FEATURES,
+    
+    # Trend indicators
+    SMA, EMA, DEMA, TEMA, WMA, HMA, VWMA,
+    
+    # Oscillator indicators
+    RSI, StochasticOscillator, WilliamsR, CCI, StochasticRSI, MFI,
+    
+    # Volatility indicators
+    ATR, BollingerBands, KeltnerChannel, DonchianChannel, Volatility, SuperTrend, VWAP,
+    
+    # Volume indicators
+    VolumeSMA, VolumeRatio, OBV, VPT, ChaikinMoneyFlow, AccDistLine, VROC, VolumeMomentum,
+    
+    # Momentum indicators
+    MACD, Momentum, ROC, ADX, Aroon, Vortex,
+    
+    # Structure indicators
+    PivotPoints, SupportResistance, SwingPoints, LinearRegression, FibonacciRetracement, TrendLines,
+)
+
+# Export everything needed
 __all__ = [
-    # Trend features
-    'sma_feature',
-    'ema_feature', 
-    'dema_feature',
-    'tema_feature',
-    
-    # Oscillator features
-    'rsi_feature',
-    'stochastic_feature',
-    'stochastic_rsi_feature',
-    'williams_r_feature',
-    'cci_feature',
-    
-    # Momentum features
-    'macd_feature',
-    'adx_feature',
-    'momentum_feature',
-    'vortex_feature',
-    
-    # Volatility features
-    'atr_feature',
-    'bollinger_bands_feature',
-    'keltner_channel_feature',
-    'donchian_channel_feature',
-    'volatility_feature',
-    
-    # Volume features
-    'volume_feature',
-    'volume_sma_feature',
-    'volume_ratio_feature',
-    
-    # Complex features
-    'ichimoku_feature',
-    
-    # Advanced features
-    'ultimate_oscillator_feature',
-    'mfi_feature',
-    'obv_feature', 
-    'roc_feature',
-    'cmf_feature',
-    'ad_feature',
-    'aroon_feature',
-    'vwap_feature',
-    
-    # Trend advanced features
-    'supertrend_feature',
-    'psar_feature',
-    'linear_regression_feature',
-    'pivot_points_feature',
-    'fibonacci_retracement_feature',
-    'support_resistance_feature',
-    'swing_points_feature',
-    
-    # Price features
-    'high_feature',
-    'low_feature',
-    'atr_sma_feature',
-    'volatility_sma_feature',
-    
-    # Stateful components
+    # Core components
     'FeatureHub',
     'create_feature_hub',
-    
-    # Utilities
-    'compute_feature',
-    'compute_multiple_features',
+    'Feature',
+    'FeatureState',
     'FEATURE_REGISTRY',
+    
+    # Feature registries
+    'TREND_FEATURES',
+    'OSCILLATOR_FEATURES', 
+    'VOLATILITY_FEATURES',
+    'VOLUME_FEATURES',
+    'MOMENTUM_FEATURES',
+    'STRUCTURE_FEATURES',
+    
+    # Trend features
+    'SMA', 'EMA', 'DEMA', 'TEMA', 'WMA', 'HMA', 'VWMA',
+    
+    # Oscillator features
+    'RSI', 'StochasticOscillator', 'WilliamsR', 'CCI', 'StochasticRSI', 'MFI',
+    
+    # Volatility features
+    'ATR', 'BollingerBands', 'KeltnerChannel', 'DonchianChannel', 'Volatility', 'SuperTrend', 'VWAP',
+    
+    # Volume features
+    'VolumeSMA', 'VolumeRatio', 'OBV', 'VPT', 'ChaikinMoneyFlow', 'AccDistLine', 'VROC', 'VolumeMomentum',
+    
+    # Momentum features
+    'MACD', 'Momentum', 'ROC', 'ADX', 'Aroon', 'Vortex',
+    
+    # Structure features
+    'PivotPoints', 'SupportResistance', 'SwingPoints', 'LinearRegression', 'FibonacciRetracement', 'TrendLines',
     
     # Default configurations
     'DEFAULT_MOMENTUM_FEATURES',
     'DEFAULT_MEAN_REVERSION_FEATURES',
-    'DEFAULT_VOLATILITY_FEATURES'
+    'DEFAULT_VOLATILITY_FEATURES',
+    'DEFAULT_STRUCTURE_FEATURES',
+    'DEFAULT_VOLUME_FEATURES',
 ]

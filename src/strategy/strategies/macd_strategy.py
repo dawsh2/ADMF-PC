@@ -14,10 +14,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='macd_strategy',
-    feature_config={
-        'macd': {'params': ['fast_ema', 'slow_ema', 'signal_ema'], 
-                 'defaults': {'fast_ema': 12, 'slow_ema': 26, 'signal_ema': 9}}
-    }
+    feature_config=['macd']  # Topology builder infers parameters from strategy logic
 )
 def macd_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

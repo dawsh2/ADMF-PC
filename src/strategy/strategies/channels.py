@@ -15,12 +15,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rule14_keltner_channel',
-    feature_config={
-        'keltner': {
-            'params': ['period'],
-            'defaults': {'period': 20}
-        }
-    }
+    feature_config=['keltner']  # Topology builder infers parameters from strategy logic
 )
 def rule14_keltner_channel(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -120,12 +115,7 @@ def rule14_keltner_channel(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='rule15_donchian_channel',
-    feature_config={
-        'donchian': {
-            'params': ['period'],
-            'defaults': {'period': 20}
-        }
-    }
+    feature_config=['donchian']  # Topology builder infers parameters from strategy logic
 )
 def rule15_donchian_channel(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -225,12 +215,7 @@ def rule15_donchian_channel(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule16_bollinger_bands',
-    feature_config={
-        'bollinger_bands': {
-            'params': ['period', 'std_dev'],
-            'defaults': {'period': 20, 'std_dev': 2.0}
-        }
-    }
+    feature_config=['bollinger']  # Topology builder infers parameters from strategy logic
 )
 def rule16_bollinger_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -251,9 +236,9 @@ def rule16_bollinger_bands(features: Dict[str, Any], bar: Dict[str, Any], params
     std_dev = params.get('std_dev', 2.0)
     
     # Get features - bollinger_bands returns dict with 'upper', 'middle', 'lower'
-    upper_band = features.get(f'bollinger_bands_{period}_{std_dev}_upper')
-    lower_band = features.get(f'bollinger_bands_{period}_{std_dev}_lower')
-    middle_band = features.get(f'bollinger_bands_{period}_{std_dev}_middle')
+    upper_band = features.get(f'bollinger_{period}_{std_dev}_upper')
+    lower_band = features.get(f'bollinger_{period}_{std_dev}_lower')
+    middle_band = features.get(f'bollinger_{period}_{std_dev}_middle')
     price = bar.get('close', 0)
     symbol = bar.get('symbol', 'UNKNOWN')
     

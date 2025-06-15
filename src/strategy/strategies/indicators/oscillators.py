@@ -11,11 +11,9 @@ from ....core.components.discovery import strategy
 
 @strategy(
     name='rsi_threshold',
-    feature_config={
-        'rsi': {
-            'params': ['rsi_period'],
-            'defaults': {'rsi_period': 14}
-        }
+    feature_config=['rsi'],  # Simple: just declare we need RSI features
+    param_feature_mapping={
+        'rsi_period': 'rsi_{rsi_period}'
     }
 )
 def rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -54,8 +52,9 @@ def rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
         'strategy_id': 'rsi_threshold',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'rsi': rsi,
+            'rsi_period': rsi_period,          # Parameters for sparse storage separation
             'threshold': threshold,
+            'rsi': rsi,                        # Values for analysis
             'price': bar.get('close', 0)
         }
     }
@@ -63,11 +62,9 @@ def rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='rsi_bands',
-    feature_config={
-        'rsi': {
-            'params': ['rsi_period'],
-            'defaults': {'rsi_period': 14}
-        }
+    feature_config=['rsi'],  # Simple: just declare we need RSI features
+    param_feature_mapping={
+        'rsi_period': 'rsi_{rsi_period}'
     }
 )
 def rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -107,9 +104,10 @@ def rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
         'strategy_id': 'rsi_bands',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'rsi': rsi,
+            'rsi_period': rsi_period,          # Parameters for sparse storage separation
             'overbought': overbought,
             'oversold': oversold,
+            'rsi': rsi,                        # Values for analysis
             'price': bar.get('close', 0)
         }
     }
@@ -117,11 +115,9 @@ def rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='cci_threshold',
-    feature_config={
-        'cci': {
-            'params': ['cci_period'],
-            'defaults': {'cci_period': 20}
-        }
+    feature_config=['cci'],  # Simple: just declare we need CCI features
+    param_feature_mapping={
+        'cci_period': 'cci_{cci_period}'
     }
 )
 def cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -160,8 +156,9 @@ def cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
         'strategy_id': 'cci_threshold',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'cci': cci,
+            'cci_period': cci_period,          # Parameters for sparse storage separation
             'threshold': threshold,
+            'cci': cci,                        # Values for analysis
             'price': bar.get('close', 0)
         }
     }
@@ -169,11 +166,9 @@ def cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='cci_bands',
-    feature_config={
-        'cci': {
-            'params': ['cci_period'],
-            'defaults': {'cci_period': 20}
-        }
+    feature_config=['cci'],  # Simple: just declare we need CCI features
+    param_feature_mapping={
+        'cci_period': 'cci_{cci_period}'
     }
 )
 def cci_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -213,9 +208,10 @@ def cci_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
         'strategy_id': 'cci_bands',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'cci': cci,
+            'cci_period': cci_period,          # Parameters for sparse storage separation
             'overbought': overbought,
             'oversold': oversold,
+            'cci': cci,                        # Values for analysis
             'price': bar.get('close', 0)
         }
     }
@@ -223,11 +219,10 @@ def cci_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='stochastic_rsi',
-    feature_config={
-        'stochastic_rsi': {
-            'params': ['rsi_period', 'stoch_period'],
-            'defaults': {'rsi_period': 14, 'stoch_period': 14}
-        }
+    feature_config=['stochastic_rsi'],  # Simple: just declare we need stochastic RSI features
+    param_feature_mapping={
+        'rsi_period': 'stochastic_rsi_{rsi_period}_{stoch_period}',
+        'stoch_period': 'stochastic_rsi_{rsi_period}_{stoch_period}'
     }
 )
 def stochastic_rsi(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -245,8 +240,8 @@ def stochastic_rsi(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
     oversold = params.get('oversold', 20)
     
     # Get features
-    stoch_rsi_k = features.get(f'stoch_rsi_{rsi_period}_{stoch_period}_k')
-    stoch_rsi_d = features.get(f'stoch_rsi_{rsi_period}_{stoch_period}_d')
+    stoch_rsi_k = features.get(f'stochastic_rsi_{rsi_period}_{stoch_period}_k')
+    stoch_rsi_d = features.get(f'stochastic_rsi_{rsi_period}_{stoch_period}_d')
     
     # Use K line for signal, D line for smoothing
     stoch_rsi = stoch_rsi_k if stoch_rsi_k is not None else stoch_rsi_d
@@ -272,10 +267,12 @@ def stochastic_rsi(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
         'strategy_id': 'stochastic_rsi',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'stoch_rsi_k': stoch_rsi_k if stoch_rsi_k is not None else stoch_rsi,
-            'stoch_rsi_d': stoch_rsi_d if stoch_rsi_d is not None else stoch_rsi,
+            'rsi_period': rsi_period,          # Parameters for sparse storage separation
+            'stoch_period': stoch_period,
             'overbought': overbought,
             'oversold': oversold,
+            'stoch_rsi_k': stoch_rsi_k if stoch_rsi_k is not None else stoch_rsi,  # Values for analysis
+            'stoch_rsi_d': stoch_rsi_d if stoch_rsi_d is not None else stoch_rsi,
             'price': bar.get('close', 0)
         }
     }
@@ -283,11 +280,9 @@ def stochastic_rsi(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='williams_r',
-    feature_config={
-        'williams_r': {
-            'params': ['williams_period'],
-            'defaults': {'williams_period': 14}
-        }
+    feature_config=['williams_r'],  # Simple: just declare we need Williams %R features
+    param_feature_mapping={
+        'williams_period': 'williams_r_{williams_period}'
     }
 )
 def williams_r(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -329,9 +324,10 @@ def williams_r(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
         'strategy_id': 'williams_r',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'williams_r': williams,
+            'williams_period': williams_period,  # Parameters for sparse storage separation
             'overbought': overbought,
             'oversold': oversold,
+            'williams_r': williams,              # Values for analysis
             'price': bar.get('close', 0)
         }
     }
@@ -339,11 +335,9 @@ def williams_r(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
 
 @strategy(
     name='roc_threshold',
-    feature_config={
-        'roc': {
-            'params': ['roc_period'],
-            'defaults': {'roc_period': 10}
-        }
+    feature_config=['roc'],  # Simple: just declare we need ROC features
+    param_feature_mapping={
+        'roc_period': 'roc_{roc_period}'
     }
 )
 def roc_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -382,8 +376,9 @@ def roc_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
         'strategy_id': 'roc_threshold',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'roc': roc,
+            'roc_period': roc_period,          # Parameters for sparse storage separation
             'threshold': threshold,
+            'roc': roc,                        # Values for analysis
             'price': bar.get('close', 0),
             'momentum': 'bullish' if roc > threshold else 'bearish' if roc < -threshold else 'neutral'
         }
@@ -392,11 +387,11 @@ def roc_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='ultimate_oscillator',
-    feature_config={
-        'ultimate_oscillator': {
-            'params': ['uo_period1', 'uo_period2', 'uo_period3'],
-            'defaults': {'uo_period1': 7, 'uo_period2': 14, 'uo_period3': 28}
-        }
+    feature_config=['ultimate_oscillator'],  # Simple: just declare we need Ultimate Oscillator features
+    param_feature_mapping={
+        'period1': 'ultimate_oscillator_{period1}_{period2}_{period3}',
+        'period2': 'ultimate_oscillator_{period1}_{period2}_{period3}',
+        'period3': 'ultimate_oscillator_{period1}_{period2}_{period3}'
     }
 )
 def ultimate_oscillator(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -408,14 +403,14 @@ def ultimate_oscillator(features: Dict[str, Any], bar: Dict[str, Any], params: D
     - 1: UO < oversold (mean reversion long)
     - 0: UO in neutral zone
     """
-    uo_period1 = params.get('uo_period1', 7)
-    uo_period2 = params.get('uo_period2', 14)
-    uo_period3 = params.get('uo_period3', 28)
+    uo_period1 = params.get('period1', 7)
+    uo_period2 = params.get('period2', 14)
+    uo_period3 = params.get('period3', 28)
     overbought = params.get('overbought', 70)
     oversold = params.get('oversold', 30)
     
     # Get features
-    uo = features.get(f'uo_{uo_period1}_{uo_period2}_{uo_period3}')
+    uo = features.get(f'ultimate_oscillator_{uo_period1}_{uo_period2}_{uo_period3}')
     
     if uo is None:
         return None
@@ -438,9 +433,12 @@ def ultimate_oscillator(features: Dict[str, Any], bar: Dict[str, Any], params: D
         'strategy_id': 'ultimate_oscillator',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'ultimate_oscillator': uo,
+            'period1': uo_period1,             # Parameters for sparse storage separation
+            'period2': uo_period2,
+            'period3': uo_period3,
             'overbought': overbought,
             'oversold': oversold,
+            'ultimate_oscillator': uo,         # Values for analysis
             'price': bar.get('close', 0)
         }
     }

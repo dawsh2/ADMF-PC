@@ -10,16 +10,7 @@ from datetime import datetime
 import logging
 
 from ...strategy.protocols import Strategy, SignalDirection
-from ..components.features import (
-    FeatureHub,
-    sma_feature,
-    ema_feature,
-    atr_feature,
-    adx_feature
-)
-from ..features import TechnicalFeatureExtractor, PricePatternExtractor
-from ..rules import CrossoverRule, ThresholdRule, CompositeRule
-from ..rules import TrailingStopRule, VolatilityBasedRule
+from ..components.features import FeatureHub
 from ...core.components.discovery import strategy
 
 
@@ -396,12 +387,7 @@ def create_trend_following_strategy(config: Dict[str, Any] = None) -> Any:
 # Pure function version for EVENT_FLOW_ARCHITECTURE
 @strategy(
     name='trend_following',
-    indicators={
-        'sma': {'params': ['fast_ma_period', 'slow_ma_period', 'trend_ma_period'], 
-                'defaults': {'fast_ma_period': 20, 'slow_ma_period': 50, 'trend_ma_period': 200}},
-        'adx': {'params': ['adx_period'], 'default': 14},
-        'atr': {'params': ['atr_period'], 'default': 14}
-    }
+    feature_config=['sma', 'adx', 'atr']  # Topology builder infers parameters from strategy logic
 )
 def trend_following_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

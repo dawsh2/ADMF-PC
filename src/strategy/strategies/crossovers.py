@@ -16,12 +16,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rule1_ma_crossover',
-    feature_config={
-        'sma': {
-            'params': ['fast_period', 'slow_period'],
-            'defaults': {'fast_period': 10, 'slow_period': 20}
-        }
-    }
+    feature_config=['sma']  # Topology builder infers parameters from strategy logic
 )
 def rule1_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -78,16 +73,7 @@ def rule1_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='rule2_ema_ma_crossover',
-    feature_config={
-        'ema': {
-            'params': ['ema_period'],
-            'defaults': {'ema_period': 10}
-        },
-        'sma': {
-            'params': ['ma_period'],
-            'defaults': {'ma_period': 20}
-        }
-    }
+    feature_config=['ema', 'sma']  # Topology builder infers parameters from strategy logic
 )
 def rule2_ema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -135,12 +121,7 @@ def rule2_ema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='rule3_ema_ema_crossover',
-    feature_config={
-        'ema': {
-            'params': ['fast_ema_period', 'slow_ema_period'],
-            'defaults': {'fast_ema_period': 10, 'slow_ema_period': 20}
-        }
-    }
+    feature_config=['ema']  # Topology builder infers parameters from strategy logic
 )
 def rule3_ema_ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -182,16 +163,7 @@ def rule3_ema_ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule4_dema_ma_crossover',
-    feature_config={
-        'dema': {
-            'params': ['dema_period'],
-            'defaults': {'dema_period': 10}
-        },
-        'sma': {
-            'params': ['ma_period'],
-            'defaults': {'ma_period': 20}
-        }
-    }
+    feature_config=['dema', 'sma']  # Topology builder infers parameters from strategy logic
 )
 def rule4_dema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -233,12 +205,7 @@ def rule4_dema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule5_dema_dema_crossover',
-    feature_config={
-        'dema': {
-            'params': ['fast_dema_period', 'slow_dema_period'],
-            'defaults': {'fast_dema_period': 10, 'slow_dema_period': 20}
-        }
-    }
+    feature_config=['dema']  # Topology builder infers parameters from strategy logic
 )
 def rule5_dema_dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -280,16 +247,7 @@ def rule5_dema_dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], par
 
 @strategy(
     name='rule6_tema_ma_crossover',
-    feature_config={
-        'tema': {
-            'params': ['tema_period'],
-            'defaults': {'tema_period': 10}
-        },
-        'sma': {
-            'params': ['ma_period'],
-            'defaults': {'ma_period': 20}
-        }
-    }
+    feature_config=['tema', 'sma']  # Topology builder infers parameters from strategy logic
 )
 def rule6_tema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -331,12 +289,7 @@ def rule6_tema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule7_stochastic_crossover',
-    feature_config={
-        'stochastic': {
-            'params': ['k_period', 'd_period'],
-            'defaults': {'k_period': 14, 'd_period': 3}
-        }
-    }
+    feature_config=['stochastic']  # Topology builder infers parameters from strategy logic
 )
 def rule7_stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -380,12 +333,7 @@ def rule7_stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], pa
 
 @strategy(
     name='rule8_vortex_crossover',
-    feature_config={
-        'vortex': {
-            'params': ['vortex_period'],
-            'defaults': {'vortex_period': 14}
-        }
-    }
+    feature_config=['vortex']  # Topology builder infers parameters from strategy logic
 )
 def rule8_vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -426,12 +374,7 @@ def rule8_vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='rule9_ichimoku_crossover',
-    feature_config={
-        'ichimoku': {
-            'params': ['conversion_period', 'base_period'],
-            'defaults': {'conversion_period': 9, 'base_period': 26}
-        }
-    }
+    feature_config=['ichimoku']  # Topology builder infers parameters from strategy logic
 )
 def rule9_ichimoku_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

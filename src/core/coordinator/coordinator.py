@@ -57,17 +57,14 @@ class Coordinator:
         self.pattern_loader = pattern_loader or PatternLoader()
         self.config_resolver = config_resolver or ConfigResolver()
         
-        # Component discovery
-        self.discovered_workflows = self._discover_workflows()
-        self.discovered_sequences = self._discover_sequences()
+        # All workflows and sequences are pattern-based, no discovery needed
         
         # Core components  
         self.topology_builder = topology_builder or TopologyBuilder(self.pattern_loader, self.config_resolver)
         self.sequencer = sequencer or Sequencer(self.topology_builder, self.pattern_loader, self.config_resolver)
         
         # Add topology runner for direct topology execution
-        from .topology_runner import TopologyRunner
-        self.topology_runner = TopologyRunner(self.topology_builder)
+        # topology_runner functionality is now integrated into TopologyBuilder
         
         # Pattern loading
         self.workflow_patterns = self.pattern_loader.load_patterns('workflows')
@@ -78,30 +75,8 @@ class Coordinator:
         self._setup_event_tracing()
         
         logger.info(f"Coordinator {self.coordinator_id} initialized with "
-                   f"{len(self.discovered_workflows)} discovered workflows, "
-                   f"{len(self.discovered_sequences)} discovered sequences, "
-                   f"and {len(self.workflow_patterns)} workflow patterns")
+                   f"{len(self.workflow_patterns)} workflow patterns")
         
-    
-    def _discover_workflows(self) -> Dict[str, WorkflowProtocol]:
-        """Discover all available workflows."""
-        try:
-            # Simple discovery for now - workflows are pattern-based
-            discover_components_in_module("src.core.coordinator.workflows")
-            return {}  # Return empty dict since workflows are pattern-based
-        except Exception as e:
-            logger.warning(f"Failed to discover workflows: {e}")
-            return {}
-    
-    def _discover_sequences(self) -> Dict[str, SequenceProtocol]:
-        """Discover all available sequences."""
-        try:
-            # Simple discovery for now - sequences are pattern-based
-            discover_components_in_module("src.core.coordinator.sequences")
-            return {}  # Return empty dict since sequences are pattern-based
-        except Exception as e:
-            logger.warning(f"Failed to discover sequences: {e}")
-            return {}
     
     def _setup_event_tracing(self):
         """Setup event tracing if enabled."""
@@ -147,8 +122,8 @@ class Coordinator:
         # Configure WFV if specified
         config = self._configure_wfv_if_needed(config)
         
-        # Delegate to topology runner
-        result = self.topology_runner.run_topology(
+        # Delegate to sequencer for topology execution
+        result = self.sequencer.run_topology(
             topology_name=topology_name,
             config=config,
             execution_id=execution_id
@@ -237,9 +212,6 @@ class Coordinator:
         if isinstance(workflow_spec, str):
             pattern_name = workflow_spec
             
-            # Check discovered workflows first (for composable support)
-            if pattern_name in self.discovered_workflows:
-                return self._execute_discovered_workflow(pattern_name, config, workflow_id)
             
             # Then check workflow patterns
             pattern = self.workflow_patterns.get(pattern_name)

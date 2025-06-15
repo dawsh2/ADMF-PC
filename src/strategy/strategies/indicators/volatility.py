@@ -11,11 +11,10 @@ from ....core.components.discovery import strategy
 
 @strategy(
     name='keltner_breakout',
-    feature_config={
-        'keltner_channel': {
-            'params': ['period', 'multiplier'],
-            'defaults': {'period': 20, 'multiplier': 2.0}
-        }
+    feature_config=['keltner_channel'],  # Simple: just declare we need Keltner Channel features
+    param_feature_mapping={
+        'period': 'keltner_channel_{period}_{multiplier}',
+        'multiplier': 'keltner_channel_{period}_{multiplier}'
     }
 )
 def keltner_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -67,11 +66,9 @@ def keltner_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
 
 @strategy(
     name='donchian_breakout',
-    feature_config={
-        'donchian_channel': {
-            'params': ['period'],
-            'defaults': {'period': 20}
-        }
+    feature_config=['donchian_channel'],  # Simple: just declare we need Donchian Channel features
+    param_feature_mapping={
+        'period': 'donchian_channel_{period}'
     }
 )
 def donchian_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -122,11 +119,10 @@ def donchian_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
 
 @strategy(
     name='bollinger_breakout',
-    feature_config={
-        'bollinger_bands': {
-            'params': ['period', 'std_dev'],
-            'defaults': {'period': 20, 'std_dev': 2.0}
-        }
+    feature_config=['bollinger_bands'],  # Simple: just declare we need Bollinger Bands features
+    param_feature_mapping={
+        'period': 'bollinger_bands_{period}_{std_dev}',
+        'std_dev': 'bollinger_bands_{period}_{std_dev}'
     }
 )
 def bollinger_breakout(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:

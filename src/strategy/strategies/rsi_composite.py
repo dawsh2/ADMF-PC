@@ -30,44 +30,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rsi_composite',
-    feature_config={
-        'rsi': {
-            'params': ['entry_rsi_period'], 
-            'defaults': {'entry_rsi_period': 7}
-        },
-        # Exit signal features for sophisticated exit framework
-        'mean_reversion_exit': {
-            'params': [],
-            'defaults': {},
-            'description': 'Mean reversion exit signals (17.4% of trades, 0.096% avg return)'
-        },
-        'slow_rsi_exit': {
-            'params': [],
-            'defaults': {},
-            'description': 'Slow RSI exit signals (12.8% of trades, 0.088% avg return)'
-        },
-        'other_strategy_exit': {
-            'params': [],
-            'defaults': {},
-            'description': 'Other strategy exit signals'
-        },
-        # Position tracking features for exit framework
-        'position': {
-            'params': [],
-            'defaults': {},
-            'description': 'Current position state (flat/long/short)'
-        },
-        'bars_in_position': {
-            'params': [],
-            'defaults': {},
-            'description': 'Number of bars held in current position'
-        },
-        'unrealized_pnl_pct': {
-            'params': [],
-            'defaults': {},
-            'description': 'Unrealized P&L percentage for current position'
-        }
-    }
+    feature_config=['rsi', 'mean_reversion_exit', 'slow_rsi_exit', 'other_strategy_exit', 'position', 'bars_in_position', 'unrealized_pnl_pct']  # Topology builder infers parameters from strategy logic
 )
 def rsi_composite_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

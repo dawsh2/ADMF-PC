@@ -16,10 +16,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='ma_crossover',
-    feature_config={
-        'sma': {'params': ['fast_period', 'slow_period'], 'defaults': {'fast_period': 5, 'slow_period': 20}}
-    },
-    validate_features=False
+    feature_config=['sma']  # Simple list format - topology builder infers fast_period and slow_period
 )
 def ma_crossover_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

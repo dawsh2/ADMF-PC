@@ -1,0 +1,42 @@
+{
+  "workflow_id": "expansive_grid_search_debug",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "file",
+    "symbols": [
+      "SPY"
+    ],
+    "timeframes": [
+      "1m"
+    ]
+  },
+  "total_bars": 10000,
+  "total_signals": 49,
+  "total_classifications": 0,
+  "stored_changes": 3,
+  "compression_ratio": 0.061224489795918366,
+  "components": {
+    "SPY_roc_threshold_grid_5_1.0": {
+      "type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_roc_threshold_grid_10_1.0": {
+      "type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_roc_threshold_grid_20_1.0": {
+      "type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    }
+  },
+  "timestamp": "2025-06-15T10:37:56.453436"
+}

@@ -24,7 +24,11 @@ class MarketRegime(Enum):
 @classifier(
     name='trend_classifier',
     regime_types=['trending_up', 'trending_down', 'ranging'],
-    features=['sma_fast', 'sma_slow']
+    feature_config=['sma'],
+    param_feature_mapping={
+        'fast_period': 'sma_{fast_period}',
+        'slow_period': 'sma_{slow_period}'
+    }
 )
 def trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -105,7 +109,11 @@ def trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[s
 @classifier(
     name='volatility_classifier',
     regime_types=['high_volatility', 'low_volatility', 'normal_volatility'],
-    features=['atr', 'atr_sma', 'volatility', 'volatility_sma']
+    feature_config=['atr'],
+    param_feature_mapping={
+        'atr_period': 'atr_{atr_period}',
+        'lookback_period': 'atr_{lookback_period}'
+    }
 )
 def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -186,7 +194,14 @@ def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> D
 @classifier(
     name='momentum_regime_classifier',
     regime_types=['strong_momentum', 'weak_momentum', 'no_momentum'],
-    features=['rsi', 'macd_macd', 'momentum_momentum_10']
+    feature_config=['rsi', 'momentum', 'macd'],
+    param_feature_mapping={
+        'rsi_period': 'rsi_{rsi_period}',
+        'momentum_period': 'momentum_{momentum_period}',
+        'macd_fast': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
+        'macd_slow': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
+        'macd_signal': 'macd_{macd_fast}_{macd_slow}_{macd_signal}'
+    }
 )
 def momentum_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -277,103 +292,3 @@ def momentum_regime_classifier(features: Dict[str, Any], params: Dict[str, Any])
         }
 
 
-@classifier(
-    name='market_state_classifier',
-    regime_types=['trending_low_vol', 'trending_high_vol', 'ranging_low_vol', 'ranging_high_vol'],
-    features=['atr', 'sma_fast', 'sma_slow']
-)
-def market_state_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Pure function market state classifier based on volatility and trend.
-    
-    Args:
-        features: Calculated indicators (atr, moving averages)
-        params: Classifier parameters (vol_lookback, trend_lookback, regime_threshold)
-        
-    Returns:
-        Regime dict with classification and confidence
-    """
-    # Extract parameters
-    vol_lookback = params.get('vol_lookback', 20)
-    trend_lookback = params.get('trend_lookback', 50)
-    regime_threshold = params.get('regime_threshold', 0.5)
-    
-    # Get features - be flexible with naming
-    atr = features.get(f'atr_{vol_lookback}') or features.get('atr')
-    price = features.get('close', 0)
-    
-    # Try to find appropriate MAs based on available features
-    fast_ma = features.get(f'sma_{trend_lookback//2}') or features.get('sma_fast')
-    slow_ma = features.get(f'sma_{trend_lookback}') or features.get('sma_slow')
-    
-    # If specific MAs not found, look for any available SMAs
-    if fast_ma is None or slow_ma is None:
-        sma_features = {k: v for k, v in features.items() if k.startswith('sma_') and '_' in k}
-        if sma_features:
-            # Extract periods and sort
-            sma_list = []
-            for k, v in sma_features.items():
-                try:
-                    period = int(k.split('_')[1])
-                    sma_list.append((period, v))
-                except (ValueError, IndexError):
-                    continue
-            
-            if len(sma_list) >= 2:
-                sma_list.sort(key=lambda x: x[0])
-                # Use shorter period as fast, longer as slow
-                fast_ma = fast_ma or sma_list[0][1]
-                slow_ma = slow_ma or sma_list[-1][1]
-    
-    # Compute simple volatility if ATR not available
-    if atr is None and price > 0:
-        # Use price movement as volatility proxy
-        high = features.get('high', price)
-        low = features.get('low', price)
-        atr = (high - low) / price * 100  # As percentage
-    
-    if atr is None or price <= 0 or fast_ma is None or slow_ma is None:
-        return {
-            'regime': 'ranging_low_vol',
-            'confidence': 0.0,
-            'metadata': {'reason': 'Missing required features'}
-        }
-    
-    # Normalize volatility as percentage of price
-    vol_pct = (atr / price) * 100
-    
-    # Calculate trend strength
-    trend_strength = abs(fast_ma - slow_ma) / slow_ma * 100
-    
-    # Classify volatility
-    is_high_vol = vol_pct > regime_threshold
-    
-    # Classify trend
-    is_trending = trend_strength > regime_threshold
-    
-    # Determine market state
-    if is_trending:
-        if is_high_vol:
-            regime = "trending_high_vol"
-        else:
-            regime = "trending_low_vol"
-    else:
-        if is_high_vol:
-            regime = "ranging_high_vol"
-        else:
-            regime = "ranging_low_vol"
-    
-    confidence = (vol_pct + trend_strength) / (regime_threshold * 4)
-    confidence = min(confidence, 1.0)
-    
-    return {
-        'regime': regime,
-        'confidence': confidence,
-        'metadata': {
-            'vol_pct': vol_pct,
-            'trend_strength': trend_strength,
-            'is_trending': is_trending,
-            'is_high_vol': is_high_vol,
-            'reason': f'Vol: {vol_pct:.2f}%, Trend: {trend_strength:.2f}%'
-        }
-    }

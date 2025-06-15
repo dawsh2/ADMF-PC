@@ -17,7 +17,7 @@ import uuid
 import logging
 
 from ...data.models import Bar
-from ..components.features import FeatureHub, sma_feature
+from ..components.features import FeatureHub
 from ...risk.protocols import Signal, SignalType, OrderSide
 from decimal import Decimal
 from ...core.components.discovery import strategy
@@ -246,10 +246,7 @@ class SimpleTrendStrategy:
 # Pure function version for EVENT_FLOW_ARCHITECTURE
 @strategy(
     name='simple_trend',
-    indicators={
-        'sma': {'params': ['fast_period', 'slow_period'], 
-                'defaults': {'fast_period': 10, 'slow_period': 20}}
-    }
+    feature_config=['sma']  # Topology builder infers parameters from strategy logic
 )
 def simple_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

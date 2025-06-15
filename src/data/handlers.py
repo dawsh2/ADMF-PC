@@ -44,6 +44,12 @@ class SimpleHistoricalDataHandler:
         # State
         self._running = False
         
+        # Progress tracking
+        self._total_bars = 0
+        self._bars_processed = 0
+        self._last_progress_report = 0
+        self._progress_interval_pct = 1  # Report every 1% of progress
+        
         # Data loader
         self.loader = SimpleCSVLoader(data_dir)
         
@@ -70,9 +76,18 @@ class SimpleHistoricalDataHandler:
         self.symbols = symbols
         
         try:
+            max_bars_limit = getattr(self, 'max_bars', None)
+            
             for symbol in symbols:
                 # Load data using loader
                 df = self.loader.load(symbol)
+                
+                # Truncate data if max_bars is set
+                if max_bars_limit and max_bars_limit < len(df):
+                    df = df.head(max_bars_limit)
+                    logger.info(f"📊 Loaded {len(df):,} bars for {symbol} (limited by max_bars={max_bars_limit:,})")
+                else:
+                    logger.info(f"📊 Loaded {len(df):,} bars for {symbol}")
                 
                 # Store data
                 self.data[symbol] = df
@@ -80,6 +95,13 @@ class SimpleHistoricalDataHandler:
             
             # Build synchronized timeline
             self._build_timeline()
+            
+            # Calculate total bars for progress tracking
+            self._total_bars = len(self._timeline)
+            self._bars_processed = 0
+            
+            logger.info(f"✅ Total timeline: {self._total_bars:,} bars across {len(symbols)} symbols")
+            
             return True
             
         except Exception as e:
@@ -105,6 +127,11 @@ class SimpleHistoricalDataHandler:
         """
         logger.info(f"Data handler execute() called for symbols: {self.symbols}")
         
+        # Load data if not already loaded
+        if not self.data and self.symbols:
+            logger.info(f"📊 Loading data for {len(self.symbols)} symbols...")
+            self.load_data(self.symbols)
+        
         if not self._running:
             self.start()
         
@@ -116,15 +143,21 @@ class SimpleHistoricalDataHandler:
         if max_bars is None:
             max_bars = float('inf')
         
-        logger.info(f"Starting to stream bars, max_bars: {max_bars}, has_data: {self.has_more_data()}")
+        logger.info(f"📈 Starting to stream bars, max_bars: {max_bars}, has_data: {self.has_more_data()}")
         
         while self.has_more_data() and bars_streamed < max_bars:
             if self.update_bars():
                 bars_streamed += 1
+                # Add emoji progress indicator for every bar (small datasets) or every 10 bars
+                show_progress = (max_bars <= 50 and bars_streamed % 1 == 0) or (bars_streamed % max(1, max_bars // 20) == 0)
+                if show_progress or bars_streamed == max_bars:
+                    percentage = (bars_streamed / max_bars) * 100
+                    print(f"\r📊 Streaming: {bars_streamed}/{max_bars} bars ({percentage:.1f}%) {'█' * int(percentage/5)}", end='', flush=True)
             else:
                 break
         
-        logger.info(f"Data handler streamed {bars_streamed} bars")
+        print()  # New line after progress
+        logger.info(f"✅ Data handler completed: streamed {bars_streamed:,} bars")
     
     # Implements BarStreamer protocol
     def update_bars(self) -> bool:
@@ -172,6 +205,10 @@ class SimpleHistoricalDataHandler:
             # Update index
             indices[symbol] = idx + 1
             
+            # Update progress tracking
+            self._bars_processed += 1
+            self._report_progress()
+            
             # Publish BAR event to shared root event bus
             logger.debug(f"Publishing BAR event - container: {self.container}, event_bus: {self.event_bus}")
             if self.container:
@@ -188,7 +225,7 @@ class SimpleHistoricalDataHandler:
                     source_id=f"data_{symbol}",
                     container_id=self.container.container_id if self.container else None
                 )
-                logger.info(f"📊 Publishing BAR event #{self._timeline_idx} for {symbol} at {timestamp}")
+                logger.debug(f"📊 Publishing BAR event #{self._timeline_idx} for {symbol} at {timestamp}")
                 # Publish directly to container's event bus (should be shared root bus)
                 self.container.event_bus.publish(event)
             elif self.event_bus:
@@ -205,7 +242,7 @@ class SimpleHistoricalDataHandler:
                     },
                     source_id=self.handler_id
                 )
-                logger.info(f"📊 Publishing BAR event #{self._timeline_idx} for {symbol} at {timestamp}")
+                logger.debug(f"📊 Publishing BAR event #{self._timeline_idx} for {symbol} at {timestamp}")
                 self.event_bus.publish(event)
             
             return True
@@ -236,6 +273,10 @@ class SimpleHistoricalDataHandler:
         
         # Reset timeline
         self._timeline_idx = 0
+        
+        # Reset progress tracking
+        self._bars_processed = 0
+        self._last_progress_report = 0
     
     # Implements DataAccessor protocol
     def get_latest_bar(self, symbol: str) -> Optional[Bar]:
@@ -565,6 +606,34 @@ class SimpleHistoricalDataHandler:
         
         timeline.sort(key=lambda x: x[0])
         return timeline
+    
+    def _report_progress(self) -> None:
+        """Report progress at configured intervals."""
+        if self._total_bars == 0:
+            return
+            
+        # Simple progress reporting every 100 bars for small datasets, 
+        # or at percentage intervals for larger ones
+        if self._total_bars <= 1000:
+            # For small datasets, report every 100 bars
+            if self._bars_processed % 100 == 0 or self._bars_processed == self._total_bars:
+                progress_pct = (self._bars_processed / self._total_bars) * 100
+                logger.info(f"Progress: {self._bars_processed:,}/{self._total_bars:,} bars ({progress_pct:.1f}%)")
+        else:
+            # For larger datasets, report at percentage intervals
+            progress_pct = (self._bars_processed / self._total_bars) * 100
+            
+            # Calculate reporting interval
+            if self._total_bars < 10000:
+                report_interval = 5  # Every 5%
+            else:
+                report_interval = 1  # Every 1%
+            
+            # Check if we should report
+            current_interval = int(progress_pct / report_interval)
+            if current_interval > self._last_progress_report:
+                self._last_progress_report = current_interval
+                logger.info(f"Progress: {self._bars_processed:,}/{self._total_bars:,} bars ({progress_pct:.1f}%)")
     
     def _get_original_bar_index(self, symbol: str, split_index: int) -> int:
         """

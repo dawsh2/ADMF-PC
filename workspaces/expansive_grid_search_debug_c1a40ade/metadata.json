@@ -1,0 +1,110 @@
+{
+  "workflow_id": "expansive_grid_search_debug",
+  "workspace_path": "workspaces/expansive_grid_search_debug_c1a40ade",
+  "total_bars": 100,
+  "total_signals": 639,
+  "total_classifications": 0,
+  "stored_changes": 9,
+  "compression_ratio": 1.4084507042253522,
+  "components": {
+    "SPY_roc_threshold_grid_5_1.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_5_1.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.441594"
+    },
+    "SPY_roc_threshold_grid_5_2.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_5_2.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.441687"
+    },
+    "SPY_roc_threshold_grid_5_3.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_5_3.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.441906"
+    },
+    "SPY_roc_threshold_grid_10_1.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_10_1.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.441974"
+    },
+    "SPY_roc_threshold_grid_10_2.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_10_2.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.442036"
+    },
+    "SPY_roc_threshold_grid_10_3.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_10_3.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.442094"
+    },
+    "SPY_roc_threshold_grid_20_1.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_20_1.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.442150"
+    },
+    "SPY_roc_threshold_grid_20_2.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_20_2.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.442206"
+    },
+    "SPY_roc_threshold_grid_20_3.0": {
+      "component_type": "strategy",
+      "strategy_type": "roc_threshold_grid",
+      "signal_file_path": "traces/SPY_1m/signals/roc_threshold_grid/SPY_roc_threshold_grid_20_3.0.parquet",
+      "total_bars": 30,
+      "signal_changes": 1,
+      "compression_ratio": 0.03333333333333333,
+      "signal_frequency": 0.03333333333333333,
+      "parameters": {},
+      "created_at": "2025-06-15T10:39:14.442260"
+    }
+  }
+}

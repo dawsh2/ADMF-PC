@@ -27,17 +27,26 @@ Stage 1: Fast Strategies (Parallel)
 ├── Save signals to storage
 └── Time: ~10ms per bar
 
-Stage 2: ML Models (Sequential with full resources)
+Stage 2: ML Strategy Models (Sequential with full resources)
 ├── Load each model once
 ├── Process all bars in batch
 ├── Save predictions as signals
 └── Time: ~5ms per bar (after model load)
 
-Stage 3: Signal Replay (Massively Parallel)
+Stage 3: Risk Assessment (Parallel ML Models)
+├── Portfolio Optimization ML
+├── Correlation Risk ML
+├── Custom Risk Ensembles
+├── Save risk decisions to storage
+└── Time: ~20ms per portfolio batch
+
+Stage 4: Signal + Risk Fusion & Execution (Massively Parallel)
 ├── Load all signals from storage
+├── Load all risk decisions from storage
+├── Fuse signals with risk assessments
 ├── Run thousands of portfolios in parallel
-├── Each portfolio filters relevant signals
-└── Generate orders and track performance
+├── Generate risk-adjusted orders
+└── Track performance with full lineage
 ```
 
 ### Performance Comparison
@@ -46,12 +55,20 @@ Stage 3: Signal Replay (Massively Parallel)
 - 1000 bars × 500ms (waiting for ML) = **500 seconds**
 - ML models running at 10% efficiency (waiting for next bar)
 - Fast strategies idle 98% of the time
+- Risk models constrained by portfolio processing bottleneck
 
 #### Staged Approach (Optimized)
 - Stage 1: 1000 bars × 10ms = **10 seconds** (fast strategies)
-- Stage 2: Model load (2s) + 1000 bars × 5ms = **7 seconds** (ML batch)
-- Stage 3: Signal replay = **50 seconds** (parallel portfolios)
-- **Total: 67 seconds (7.4x faster)**
+- Stage 2: Model load (2s) + 1000 bars × 5ms = **7 seconds** (ML strategy batch)
+- Stage 3: Risk model load (3s) + 1000 portfolios × 20ms = **23 seconds** (risk assessment)
+- Stage 4: Signal + risk fusion replay = **30 seconds** (parallel execution)
+- **Total: 70 seconds (7.1x faster)**
+
+#### Additional Benefits with Risk Workers
+- **Resource Isolation**: Strategy ML and Risk ML don't compete for GPU/CPU
+- **Independent Optimization**: Each risk model type optimized separately
+- **Parallel Risk Assessment**: Portfolio optimization and correlation analysis run simultaneously
+- **Complete Audit Trail**: Full lineage from signal → risk assessment → final order
 
 ### Implementation Benefits
 
@@ -357,11 +374,11 @@ def run_fast_strategies():
         signal_storage.save_batch(signals)
 ```
 
-#### Stage 2: ML Model Signal Generation
+#### Stage 2: ML Strategy Model Signal Generation
 ```python
-# Run ML models sequentially with full resources
-def run_ml_models():
-    for model_config in ml_models:
+# Run ML strategy models sequentially with full resources
+def run_ml_strategy_models():
+    for model_config in ml_strategy_models:
         # Load model once
         model = load_model(model_config)
         
@@ -376,12 +393,42 @@ def run_ml_models():
         torch.cuda.empty_cache()
 ```
 
-#### Stage 3: Signal Replay and Portfolio Execution
+#### Stage 3: Risk Assessment Generation
 ```python
-# Replay signals through thousands of portfolios in parallel
-def replay_signals_to_portfolios():
-    # Load all generated signals
+# Run risk models in parallel, specialized by type
+def run_risk_assessment():
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        futures = []
+        
+        # Portfolio optimization models
+        future = executor.submit(run_portfolio_optimization_models)
+        futures.append(future)
+        
+        # Correlation risk models  
+        future = executor.submit(run_correlation_risk_models)
+        futures.append(future)
+        
+        # Stateless risk validators (VaR, limits)
+        future = executor.submit(run_stateless_risk_validators)
+        futures.append(future)
+        
+        # Custom ML risk ensembles
+        future = executor.submit(run_custom_risk_ensembles)
+        futures.append(future)
+        
+        # Collect all risk assessments
+        for future in futures:
+            risk_decisions = future.result()
+            risk_storage.save_batch(risk_decisions)
+```
+
+#### Stage 4: Signal + Risk Fusion and Portfolio Execution
+```python
+# Fuse signals with risk assessments and execute portfolios in parallel
+def fuse_and_execute_portfolios():
+    # Load all generated signals and risk decisions
     all_signals = signal_storage.load_all()
+    all_risk_decisions = risk_storage.load_all()
     
     # Split portfolios into batches for workers
     portfolio_batches = split_portfolios(all_portfolios, n_workers=8)
@@ -391,9 +438,10 @@ def replay_signals_to_portfolios():
         futures = []
         for batch in portfolio_batches:
             future = executor.submit(
-                process_portfolio_batch,
+                process_portfolio_batch_with_risk_fusion,
                 batch,
                 all_signals,
+                all_risk_decisions,
                 vectorized=True  # Use vectorized operations
             )
             futures.append(future)
@@ -402,6 +450,33 @@ def replay_signals_to_portfolios():
         for future in futures:
             batch_results = future.result()
             save_portfolio_results(batch_results)
+
+def process_portfolio_batch_with_risk_fusion(batch, signals, risk_decisions, vectorized=True):
+    """Process portfolio batch with signal-risk fusion."""
+    results = []
+    
+    for portfolio in batch:
+        # Filter relevant signals and risk decisions
+        portfolio_signals = filter_signals_for_portfolio(signals, portfolio.config)
+        portfolio_risk = filter_risk_for_portfolio(risk_decisions, portfolio.config)
+        
+        # Fuse signals with risk assessments
+        risk_adjusted_signals = fuse_signals_with_risk(
+            portfolio_signals,
+            portfolio_risk,
+            portfolio.risk_tolerance
+        )
+        
+        # Generate orders based on fused signals
+        orders = portfolio.generate_orders(risk_adjusted_signals)
+        results.append({
+            'portfolio_id': portfolio.id,
+            'orders': orders,
+            'risk_metrics': portfolio_risk,
+            'signal_count': len(portfolio_signals)
+        })
+    
+    return results
 ```
 
 ### Traditional Process Structure (Still Supported)
@@ -414,7 +489,7 @@ def replay_signals_to_portfolios():
 The staged approach relies on efficient signal storage and replay:
 
 ```python
-# Signal storage during generation stages
+# Signal and risk storage during generation stages
 class SignalStorage:
     def __init__(self, storage_path: str):
         self.path = Path(storage_path)
@@ -429,6 +504,21 @@ class SignalStorage:
         # Efficiently retrieve only relevant signals
         strategy_ids = portfolio_config['subscribed_strategies']
         return [s for s in self.load_all() if s.strategy_id in strategy_ids]
+
+class RiskStorage:
+    def __init__(self, storage_path: str):
+        self.path = Path(storage_path)
+        self.risk_index = {}  # Fast lookup by risk type/portfolio
+    
+    def save_risk_decision(self, risk_decision: RiskDecision):
+        # Store with indexing for fast fusion
+        key = f"{risk_decision.risk_type}_{risk_decision.portfolio_pattern}"
+        self.risk_index[key] = risk_decision.to_dict()
+    
+    def get_risk_for_portfolio(self, portfolio_config: Dict) -> List[RiskDecision]:
+        # Efficiently retrieve applicable risk decisions
+        portfolio_pattern = portfolio_config.get('risk_pattern', 'default')
+        return [r for r in self.load_all() if r.applies_to_portfolio(portfolio_pattern)]
 ```
 
 ### Traditional IPC for Real-Time Systems
@@ -459,8 +549,9 @@ portfolio_worker.subscribe(
 
 #### Staged Approach (Research/Backtesting)
 1. **Stage 1**: Fast strategies → Save signals to storage
-2. **Stage 2**: ML models → Append signals to storage
-3. **Stage 3**: Load all signals → Replay through portfolios in parallel
+2. **Stage 2**: ML strategy models → Append signals to storage
+3. **Stage 3**: Risk models → Save risk assessments to storage
+4. **Stage 4**: Load signals + risk → Fuse and execute through portfolios in parallel
 
 #### Traditional Approach (Live Trading)
 1. **Data Flow**: Data streamers publish BAR events to main process event bus
@@ -513,10 +604,11 @@ The key insight is that you keep the efficient shared computation (data + strate
 
 #### Use Staged Execution When:
 - Running backtests with heterogeneous strategies (fast + ML)
+- Using complex ML risk models (portfolio optimization, correlation analysis)
 - Optimizing thousands of parameter combinations
 - ML models have high latency (>100ms per prediction)
-- You want to analyze signals between generation and execution
-- Research and development workflows
+- You want to analyze signals and risk assessments between generation and execution
+- Research and development workflows requiring complete audit trails
 
 #### Use Traditional Multi-Process When:
 - Live trading with low-latency requirements
@@ -526,6 +618,15 @@ The key insight is that you keep the efficient shared computation (data + strate
 
 ### Next Steps
 
-1. **For Staged Execution**: Implement signal storage layer and modify topology to support staged workflows
-2. **For Traditional Multi-Process**: Add IPC layer to existing event bus and implement process management
-3. **Hybrid Approach**: Use staged for research, traditional for production trading
+1. **For Staged Execution**: 
+   - Implement signal and risk storage layers
+   - Create risk worker process framework
+   - Modify topology to support 4-stage workflows
+   - Add signal-risk fusion logic
+2. **For Traditional Multi-Process**: 
+   - Add IPC layer to existing event bus
+   - Implement process management for strategy and risk workers
+   - Create risk assessment communication protocols
+3. **Hybrid Approach**: 
+   - Use staged for research and parameter optimization
+   - Use traditional for production trading with real-time risk assessment

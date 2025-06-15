@@ -1,0 +1,2709 @@
+{
+  "workflow_id": "expansive_grid_search",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "file",
+    "symbols": [
+      "SPY"
+    ],
+    "timeframes": [
+      "1m"
+    ]
+  },
+  "total_bars": 3000,
+  "total_signals": 520282,
+  "total_classifications": 54,
+  "stored_changes": 38821,
+  "compression_ratio": 0.07461530477702477,
+  "components": {
+    "SPY_sma_crossover_grid_3_15": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_7_15": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_11_15": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_19_15": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_55_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_55_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_55_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_60_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_60_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_60_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_65_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_65_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_05_65_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_55_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_55_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_55_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_60_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_60_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_60_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_65_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_65_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_08_65_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_55_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_55_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_55_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_60_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_60_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_60_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_65_35": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_65_40": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_volatility_momentum_grid_12_65_45": {
+      "type": "classifier",
+      "strategy_type": "volatility_momentum_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_0001_00003": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_0001_00005": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_0001_00008": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_00015_00003": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_00015_00005": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_00015_00008": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_0002_00003": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_0002_00005": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_microstructure_grid_0002_00008": {
+      "type": "classifier",
+      "strategy_type": "microstructure_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_3_15": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_3_23": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_3_35": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_3_50": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_7_15": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_7_23": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_7_35": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_7_50": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_11_15": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_11_23": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_11_35": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_11_50": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_19_15": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_19_23": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_19_35": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_crossover_grid_19_50": {
+      "type": "strategy",
+      "strategy_type": "ema_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_5_15": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_5_23": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_11_15": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_11_23": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_19_15": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_19_23": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_27_15": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_27_23": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_5_15": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_5_23": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_11_15": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_11_23": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_19_15": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_19_23": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_27_15": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_27_23": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_5_15": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_5_23": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_11_15": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_11_23": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_19_15": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_19_23": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_27_15": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_27_23": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_3_23": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_7_23": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_11_23": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_19_23": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_7_40": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_7_45": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_7_50": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_7_55": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_7_60": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_11_40": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_11_45": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_11_50": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_11_55": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_11_60": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_19_40": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_19_45": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_19_50": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_19_55": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_19_60": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_27_40": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_27_45": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_27_50": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_27_55": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_threshold_grid_27_60": {
+      "type": "strategy",
+      "strategy_type": "rsi_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_15_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_20_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_25_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_30_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_35_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_-60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_-40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_-20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_0": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_11_60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_-60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_-40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_-20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_0": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_19_60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_-60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_-40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_-20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_0": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_27_60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-120_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-120_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-120_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-100_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-100_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-100_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-80_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-80_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_11_-80_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-120_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-120_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-100_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-100_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-80_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-80_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-120_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-100_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-80_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_10_0.03": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_10_0.05": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_20_0.03": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_20_0.05": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_20_0.1": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_30_0.03": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_30_0.05": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_30_0.1": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_15_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_20_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_25_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_30_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_35_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-120_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-100_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_19_-80_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-120_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-120_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-100_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-100_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-80_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_27_-80_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_chaikin_money_flow_grid_10_0.1": {
+      "type": "strategy",
+      "strategy_type": "chaikin_money_flow_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_27_15": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_27_23": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_15_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_15_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_20_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_20_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_25_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_25_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_5_35": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_11_35": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_19_35": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_27_35": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_5_35": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_11_35": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_19_35": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_27_35": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_5_35": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_11_35": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_19_35": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_27_35": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_-60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_-40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_-20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_0": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_20": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_40": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_threshold_grid_35_60": {
+      "type": "strategy",
+      "strategy_type": "cci_threshold_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-120_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-120_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-120_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-100_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-100_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-100_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-80_80": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-80_100": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_cci_bands_grid_35_-80_120": {
+      "type": "strategy",
+      "strategy_type": "cci_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_15_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_20_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_25_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_30_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_35_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_3_35": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_7_35": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_11_35": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_19_35": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_27_35": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_5_50": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_11_50": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_19_50": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_ema_sma_crossover_grid_27_50": {
+      "type": "strategy",
+      "strategy_type": "ema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_5_50": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_11_50": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_19_50": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_dema_sma_crossover_grid_27_50": {
+      "type": "strategy",
+      "strategy_type": "dema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_5_50": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_11_50": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_19_50": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_tema_sma_crossover_grid_27_50": {
+      "type": "strategy",
+      "strategy_type": "tema_sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0002_00005": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0002_0001": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0002_00015": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0003_00005": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0003_0001": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0003_00015": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0004_00005": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0004_0001": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_enhanced_trend_grid_0004_00015": {
+      "type": "classifier",
+      "strategy_type": "enhanced_trend_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_00015_03": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_00015_05": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_00015_07": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_0002_03": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_0002_05": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_0002_07": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_0003_03": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_0003_05": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_market_regime_grid_0003_07": {
+      "type": "classifier",
+      "strategy_type": "market_regime_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_3_50": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_7_50": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_11_50": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_19_50": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_27_50": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_35_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_35_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_35_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_25_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_25_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_25_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_30_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_30_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_30_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_35_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_35_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_35_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_35_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_25_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_14_10_1.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_14_20_1.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_21_10_1.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_21_20_1.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_15_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_7_20_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_7_20_1.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_15_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_15_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_15_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_20_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_20_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_7_20_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_25_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_25_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_25_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_25_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_30_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_30_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_30_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_30_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_35_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_35_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_35_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_35_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_35_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_20_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_20_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_20_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_25_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_25_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_25_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_7_10_1.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_7_20_2.0": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_14_10_2.0": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_14_20_2.0": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_14_20_2.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_21_10_2.0": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_21_20_2.0": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_21_20_2.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_3_61": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_7_61": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_11_61": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_19_61": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_sma_crossover_grid_27_61": {
+      "type": "strategy",
+      "strategy_type": "sma_crossover_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_25_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_25_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_25_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_15_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_15_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_20_75": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_15_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_14_15_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_35_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_35_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_35_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_35_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_35_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_21_10_2.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_7_20_2.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_20_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_20_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_20_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_20_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_30_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_30_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_30_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_30_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_30_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_30_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_30_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_30_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_30_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_30_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_25_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_25_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_25_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_25_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_25_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_15_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_15_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_15_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_11_15_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_20_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_20_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_20_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_20_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_20_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_25_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_25_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_25_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_25_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_25_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_7_10_2.0": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_14_10_2.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_20_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_20_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_15_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_15_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_15_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_20_65": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_atr_channel_breakout_grid_7_10_2.5": {
+      "type": "strategy",
+      "strategy_type": "atr_channel_breakout_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_15_80": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_mfi_bands_grid_21_15_85": {
+      "type": "strategy",
+      "strategy_type": "mfi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_15_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_15_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_20_70": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_15_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_15_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_20_75": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_20_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_20_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_19_15_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_15_80": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_rsi_bands_grid_27_15_85": {
+      "type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_vwap_deviation_grid_1.5_0.015": {
+      "type": "strategy",
+      "strategy_type": "vwap_deviation_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_vwap_deviation_grid_2.0_0.015": {
+      "type": "strategy",
+      "strategy_type": "vwap_deviation_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_vwap_deviation_grid_2.5_0.015": {
+      "type": "strategy",
+      "strategy_type": "vwap_deviation_grid",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    }
+  },
+  "timestamp": "2025-06-15T10:06:54.338150"
+}

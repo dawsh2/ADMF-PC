@@ -87,6 +87,10 @@ from .configuration import (
     get_trace_config,
     apply_trace_level,
 )
+from .tracer_setup import (
+    setup_multi_strategy_tracer,
+    finalize_multi_strategy_tracer,
+)
 
 # Create aliases for backward compatibility
 SubscriptionManager = WeakSubscriptionManager
@@ -165,5 +169,9 @@ __all__ = [
     'SignalStorageManager',
     'SignalStorageProtocol',
     'ClassifierStateProtocol',
+    
+    # Tracer setup
+    'setup_multi_strategy_tracer',
+    'finalize_multi_strategy_tracer',
     
 ]

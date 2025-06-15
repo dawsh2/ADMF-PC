@@ -14,11 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @strategy(
-    feature_config={
-        'sma': {'params': ['sma_period'], 'default': 20},
-        'rsi': {'params': ['rsi_period'], 'default': 14}
-    },
-    validate_features=False  # Temporarily disable validation to test core flow
+    feature_config=['sma', 'rsi']  # Topology builder infers parameters from strategy logic
 )
 def momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -105,9 +101,7 @@ def momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
 
 @strategy(
     name='dual_momentum',
-    indicators={
-        'sma': {'params': ['fast_period', 'slow_period'], 'defaults': {'fast_period': 10, 'slow_period': 30}}
-    }
+    feature_config=['sma']  # Topology builder infers parameters from strategy logic
 )
 def dual_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -163,9 +157,7 @@ def dual_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='price_momentum',
-    indicators={
-        'price_history': {'params': ['lookback_period'], 'default': 20}
-    }
+    feature_config=['price_history']  # Topology builder infers parameters from strategy logic
 )
 def price_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

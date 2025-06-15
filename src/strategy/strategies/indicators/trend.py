@@ -6,20 +6,18 @@ direction, and changes.
 """
 
 from typing import Dict, Any, Optional
+import logging
 from ....core.components.discovery import strategy
+
+logger = logging.getLogger(__name__)
 
 
 @strategy(
     name='adx_trend_strength',
-    feature_config={
-        'adx': {
-            'params': ['adx_period'],
-            'defaults': {'adx_period': 14}
-        },
-        'di': {
-            'params': ['di_period'],
-            'defaults': {'di_period': 14}
-        }
+    feature_config=['adx'],  # Simple: just declare we need ADX features (includes DI)
+    param_feature_mapping={
+        'adx_period': 'adx_{adx_period}',
+        'di_period': 'adx_{di_period}'
     }
 )
 def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -37,10 +35,11 @@ def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     
     # Get features
     adx = features.get(f'adx_{adx_period}')
-    di_plus = features.get(f'di_plus_{di_period}')
-    di_minus = features.get(f'di_minus_{di_period}')
+    di_plus = features.get(f'adx_{di_period}_di_plus')
+    di_minus = features.get(f'adx_{di_period}_di_minus')
     
     if adx is None or di_plus is None or di_minus is None:
+        logger.debug(f"adx_trend_strength waiting for features: adx={adx is not None}, di_plus={di_plus is not None}, di_minus={di_minus is not None}")
         return None
     
     # Determine signal
@@ -63,10 +62,12 @@ def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Di
         'strategy_id': 'adx_trend_strength',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'adx': adx,
+            'adx_period': adx_period,                  # Parameters for sparse storage separation
+            'di_period': di_period,
+            'adx_threshold': adx_threshold,
+            'adx': adx,                                # Values for analysis
             'di_plus': di_plus,
             'di_minus': di_minus,
-            'adx_threshold': adx_threshold,
             'trend_strength': 'strong' if adx > adx_threshold else 'weak',
             'price': bar.get('close', 0)
         }
@@ -75,11 +76,10 @@ def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='parabolic_sar',
-    feature_config={
-        'psar': {
-            'params': ['psar_af', 'psar_max_af'],
-            'defaults': {'psar_af': 0.02, 'psar_max_af': 0.2}
-        }
+    feature_config=['psar'],  # Simple: just declare we need Parabolic SAR features
+    param_feature_mapping={
+        'af_start': 'psar_{af_start}_{af_max}',
+        'af_max': 'psar_{af_start}_{af_max}'
     }
 )
 def parabolic_sar(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -91,8 +91,8 @@ def parabolic_sar(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
     - -1: Price < PSAR (downtrend)
     - 0: Price = PSAR (rare)
     """
-    psar_af = params.get('psar_af', 0.02)
-    psar_max_af = params.get('psar_max_af', 0.2)
+    psar_af = params.get('af_start', 0.02)
+    psar_max_af = params.get('af_max', 0.2)
     
     # Get features
     psar = features.get(f'psar_{psar_af}_{psar_max_af}')
@@ -119,7 +119,9 @@ def parabolic_sar(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
         'strategy_id': 'parabolic_sar',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'price': price,
+            'af_start': psar_af,                       # Parameters for sparse storage separation
+            'af_max': psar_max_af,
+            'price': price,                            # Values for analysis
             'psar': psar,
             'distance': abs(price - psar),
             'distance_pct': abs(price - psar) / price * 100 if price != 0 else 0
@@ -129,11 +131,9 @@ def parabolic_sar(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='aroon_crossover',
-    feature_config={
-        'aroon': {
-            'params': ['aroon_period'],
-            'defaults': {'aroon_period': 25}
-        }
+    feature_config=['aroon'],  # Simple: just declare we need Aroon features
+    param_feature_mapping={
+        'period': 'aroon_{period}'
     }
 )
 def aroon_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -145,11 +145,11 @@ def aroon_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[
     - -1: Aroon Up < Aroon Down (downtrend)
     - 0: Equal (no clear trend)
     """
-    aroon_period = params.get('aroon_period', 25)
+    aroon_period = params.get('period', 25)
     
     # Get features
-    aroon_up = features.get(f'aroon_up_{aroon_period}')
-    aroon_down = features.get(f'aroon_down_{aroon_period}')
+    aroon_up = features.get(f'aroon_{aroon_period}_up')
+    aroon_down = features.get(f'aroon_{aroon_period}_down')
     
     if aroon_up is None or aroon_down is None:
         return None
@@ -172,7 +172,8 @@ def aroon_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[
         'strategy_id': 'aroon_crossover',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'aroon_up': aroon_up,
+            'period': aroon_period,                    # Parameters for sparse storage separation
+            'aroon_up': aroon_up,                      # Values for analysis
             'aroon_down': aroon_down,
             'aroon_oscillator': aroon_up - aroon_down,
             'price': bar.get('close', 0)
@@ -182,11 +183,10 @@ def aroon_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[
 
 @strategy(
     name='supertrend',
-    feature_config={
-        'supertrend': {
-            'params': ['supertrend_period', 'supertrend_multiplier'],
-            'defaults': {'supertrend_period': 10, 'supertrend_multiplier': 3.0}
-        }
+    feature_config=['supertrend'],  # Simple: just declare we need Supertrend features
+    param_feature_mapping={
+        'period': 'supertrend_{period}_{multiplier}',
+        'multiplier': 'supertrend_{period}_{multiplier}'
     }
 )
 def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -198,8 +198,8 @@ def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
     - -1: Price < Supertrend (downtrend)
     - 0: Price = Supertrend (rare)
     """
-    period = params.get('supertrend_period', 10)
-    multiplier = params.get('supertrend_multiplier', 3.0)
+    period = params.get('period', 10)
+    multiplier = params.get('multiplier', 3.0)
     
     # Get features
     supertrend_value = features.get(f'supertrend_{period}_{multiplier}')
@@ -230,7 +230,9 @@ def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
         'strategy_id': 'supertrend',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'price': price,
+            'period': period,                          # Parameters for sparse storage separation
+            'multiplier': multiplier,
+            'price': price,                            # Values for analysis
             'supertrend': supertrend_value,
             'direction': supertrend_direction if supertrend_direction is not None else signal_value,
             'distance': abs(price - supertrend_value) if supertrend_value is not None else 0
@@ -240,11 +242,9 @@ def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
 
 @strategy(
     name='linear_regression_slope',
-    feature_config={
-        'linear_regression': {
-            'params': ['lr_period'],
-            'defaults': {'lr_period': 20}
-        }
+    feature_config=['linear_regression'],  # Simple: just declare we need Linear Regression features
+    param_feature_mapping={
+        'period': 'linear_regression_{period}'
     }
 )
 def linear_regression_slope(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -256,13 +256,13 @@ def linear_regression_slope(features: Dict[str, Any], bar: Dict[str, Any], param
     - -1: Negative slope < -threshold (downtrend)
     - 0: Flat (abs(slope) < threshold)
     """
-    lr_period = params.get('lr_period', 20)
+    lr_period = params.get('period', 20)
     slope_threshold = params.get('slope_threshold', 0.0)
     
     # Get features
-    lr_slope = features.get(f'lr_slope_{lr_period}')
-    lr_intercept = features.get(f'lr_intercept_{lr_period}')
-    lr_r2 = features.get(f'lr_r2_{lr_period}')
+    lr_slope = features.get(f'linear_regression_{lr_period}_slope')
+    lr_intercept = features.get(f'linear_regression_{lr_period}_intercept')
+    lr_r2 = features.get(f'linear_regression_{lr_period}_r2')
     
     if lr_slope is None:
         return None
@@ -285,10 +285,11 @@ def linear_regression_slope(features: Dict[str, Any], bar: Dict[str, Any], param
         'strategy_id': 'linear_regression_slope',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'slope': lr_slope,
+            'period': lr_period,                       # Parameters for sparse storage separation
+            'slope_threshold': slope_threshold,
+            'slope': lr_slope,                         # Values for analysis
             'intercept': lr_intercept if lr_intercept is not None else 0,
             'r_squared': lr_r2 if lr_r2 is not None else 0,
-            'slope_threshold': slope_threshold,
             'price': bar.get('close', 0)
         }
     }

@@ -3,202 +3,38 @@ Stateful Feature Management - FeatureHub.
 
 The FeatureHub is the Tier 2 stateful component that manages incremental 
 feature computation, allowing strategies to remain completely stateless.
+
+This is THE canonical FeatureHub implementation using O(1) incremental updates.
+Uses protocol + composition architecture - no inheritance.
 """
 
-import pandas as pd
-import numpy as np
-from typing import Dict, Any, Optional, Union, Set, List, Deque
-from datetime import datetime
-from collections import deque, defaultdict
+from typing import Optional, Dict, List, Any
 import logging
 
-# Import all feature functions for computation
-from .trend import sma_feature, ema_feature, dema_feature, tema_feature
-from .oscillators import rsi_feature, stochastic_feature, stochastic_rsi_feature, williams_r_feature, cci_feature
-from .momentum import macd_feature, adx_feature, momentum_feature, vortex_feature
-from .volatility import atr_feature, bollinger_bands_feature, keltner_channel_feature, donchian_channel_feature, volatility_feature
-from .volume import volume_feature, volume_sma_feature, volume_ratio_feature
-from .complex import ichimoku_feature
-from .price import high_feature, low_feature, atr_sma_feature, volatility_sma_feature
-from .advanced import (
-    ultimate_oscillator_feature, mfi_feature, obv_feature, roc_feature,
-    cmf_feature, ad_feature, aroon_feature, vwap_feature
-)
-from .trend_advanced import (
-    supertrend_feature, psar_feature, linear_regression_feature,
-    pivot_points_feature, fibonacci_retracement_feature,
-    support_resistance_feature, swing_points_feature
-)
+from .protocols import Feature, FeatureState
+from .indicators import ALL_INDICATOR_FEATURES
 
 logger = logging.getLogger(__name__)
 
 
-# Feature registry for easy discovery and dynamic creation
-FEATURE_REGISTRY = {
-    # Trend features
-    "sma": sma_feature,
-    "ema": ema_feature,
-    "dema": dema_feature,
-    "tema": tema_feature,
-    
-    # Oscillator features
-    "rsi": rsi_feature,
-    "stochastic": stochastic_feature,
-    "stochastic_rsi": stochastic_rsi_feature,
-    "williams_r": williams_r_feature,
-    "cci": cci_feature,
-    
-    # Momentum features
-    "macd": macd_feature,
-    "adx": adx_feature,
-    "di": adx_feature,  # Alias for ADX (returns di_plus, di_minus)
-    "momentum": momentum_feature,
-    "vortex": vortex_feature,
-    
-    # Volatility features
-    "atr": atr_feature,
-    "bollinger_bands": bollinger_bands_feature,
-    "bollinger": bollinger_bands_feature,  # Alias for bollinger_bands
-    "keltner_channel": keltner_channel_feature,
-    "donchian_channel": donchian_channel_feature,
-    "volatility": volatility_feature,
-    
-    # Volume features
-    "volume": volume_feature,
-    "volume_sma": volume_sma_feature,
-    "volume_ratio": volume_ratio_feature,
-    
-    # Price features
-    "high": high_feature,
-    "low": low_feature,
-    "atr_sma": atr_sma_feature,
-    "volatility_sma": volatility_sma_feature,
-    
-    # Complex features
-    "ichimoku": ichimoku_feature,
-    
-    # Advanced features
-    "ultimate": ultimate_oscillator_feature,
-    "ultimate_oscillator": ultimate_oscillator_feature,
-    "mfi": mfi_feature,
-    "obv": obv_feature,
-    "roc": roc_feature,
-    "cmf": cmf_feature,
-    "ad": ad_feature,
-    "aroon": aroon_feature,
-    "vwap": vwap_feature,
-    
-    # Trend advanced features
-    "supertrend": supertrend_feature,
-    "psar": psar_feature,
-    "linear_regression": linear_regression_feature,
-    "pivot_points": pivot_points_feature,
-    "fibonacci_retracement": fibonacci_retracement_feature,
-    "fibonacci": fibonacci_retracement_feature,  # Alias for fibonacci_retracement
-    "support_resistance": support_resistance_feature,
-    "swing_points": swing_points_feature,
-    "swing": swing_points_feature  # Alias for swing_points
-}
+# All features are now imported from organized modules
 
 
-def compute_feature(feature_name: str, data: Union[pd.DataFrame, pd.Series], **kwargs) -> Union[pd.Series, Dict[str, pd.Series]]:
-    """
-    Compute a single feature by name.
-    
-    Pure function dispatcher for feature calculation.
-    
-    Args:
-        feature_name: Name of feature to compute
-        data: Price data (DataFrame with OHLCV or Series)
-        **kwargs: Additional parameters for feature calculation
-        
-    Returns:
-        Feature values as Series or Dict of Series
-    """
-    if feature_name not in FEATURE_REGISTRY:
-        raise ValueError(f"Unknown feature: {feature_name}")
-    
-    feature_func = FEATURE_REGISTRY[feature_name]
-    
-    # Handle different data input types
-    if isinstance(data, pd.DataFrame):
-        # Extract common price series from DataFrame
-        if feature_name in ["sma", "ema", "dema", "tema", "rsi", "momentum", "volatility", "stochastic_rsi", "roc", "linear_regression"]:
-            return feature_func(data["close"], **kwargs)
-        elif feature_name in ["macd", "bollinger_bands", "bollinger"]:
-            return feature_func(data["close"], **kwargs)
-        elif feature_name in ["atr", "stochastic", "adx", "di", "williams_r", "cci", "vortex", "keltner_channel", "donchian_channel", "ichimoku", "ultimate", "ultimate_oscillator", "supertrend", "psar", "pivot_points", "support_resistance", "swing_points", "swing"]:
-            return feature_func(data["high"], data["low"], data["close"], **kwargs)
-        elif feature_name in ["aroon", "fibonacci_retracement", "fibonacci"]:
-            return feature_func(data["high"], data["low"], **kwargs)
-        elif feature_name in ["obv"]:
-            return feature_func(data["close"], data["volume"], **kwargs)
-        elif feature_name in ["mfi", "cmf", "ad"]:
-            return feature_func(data["high"], data["low"], data["close"], data["volume"], **kwargs)
-        elif feature_name in ["vwap"]:
-            return feature_func(data["high"], data["low"], data["close"], data["volume"], **kwargs)
-        elif feature_name in ["volume", "volume_sma"]:
-            if feature_name == "volume":
-                return feature_func(data["volume"], data["close"], **kwargs)
-            else:
-                return feature_func(data["volume"], **kwargs)
-        elif feature_name == "volume_ratio":
-            return feature_func(data["volume"], **kwargs)
-        elif feature_name in ["high", "low"]:
-            return feature_func(data, **kwargs)
-        elif feature_name in ["atr_sma", "volatility_sma"]:
-            return feature_func(data, **kwargs)
-    else:
-        # Single series input
-        if feature_name in ["sma", "ema", "dema", "tema", "rsi", "momentum", "volatility", "stochastic_rsi", "roc", "linear_regression"]:
-            return feature_func(data, **kwargs)
-        else:
-            raise ValueError(f"Feature {feature_name} requires OHLC data, not single series")
-    
-    return feature_func(data, **kwargs)
-
-
-def compute_multiple_features(feature_configs: Dict[str, Dict[str, Any]], 
-                            data: pd.DataFrame) -> Dict[str, Union[pd.Series, Dict[str, pd.Series]]]:
-    """
-    Compute multiple features in one call.
-    
-    Pure function for batch feature computation.
-    
-    Args:
-        feature_configs: Dict mapping feature names to their configurations
-        data: OHLCV DataFrame
-        
-    Returns:
-        Dict mapping feature names to their computed values
-    
-    Example:
-        configs = {
-            "sma_20": {"feature": "sma", "period": 20},
-            "rsi": {"feature": "rsi", "period": 14},
-            "macd": {"feature": "macd", "fast": 12, "slow": 26, "signal": 9}
-        }
-        features = compute_multiple_features(configs, data)
-    """
-    results = {}
-    
-    for name, config in feature_configs.items():
-        feature_type = config.pop("feature")
-        results[name] = compute_feature(feature_type, data, **config)
-    
-    return results
+# Feature registry - consolidated from all indicator modules
+FEATURE_REGISTRY = ALL_INDICATOR_FEATURES.copy()
 
 
 class FeatureHub:
     """
-    Centralized stateful feature computation engine.
+    THE canonical FeatureHub implementation.
     
+    Centralized stateful feature computation engine using O(1) incremental updates.
     This Tier 2 component manages ALL incremental feature calculation,
     allowing strategies to remain completely stateless.
     
     Key responsibilities:
     - Maintain rolling windows for all features
-    - Provide incremental updates for streaming data
+    - Provide O(1) incremental updates for streaming data
     - Cache computed features for efficiency
     - Manage dependencies between features
     """
@@ -212,25 +48,18 @@ class FeatureHub:
         """
         self.symbols = symbols or []
         
-        # Stateful data storage - rolling windows per symbol
-        self.price_data: Dict[str, Dict[str, Deque[float]]] = defaultdict(lambda: {
-            'open': deque(maxlen=1000),
-            'high': deque(maxlen=1000), 
-            'low': deque(maxlen=1000),
-            'close': deque(maxlen=1000),
-            'volume': deque(maxlen=1000)
-        })
+        # Feature storage: symbol -> feature_name -> Feature
+        self._features: Dict[str, Dict[str, Any]] = {}
+        self._feature_configs: Dict[str, Dict[str, Any]] = {}
         
         # Feature cache - computed feature values per symbol
-        self.feature_cache: Dict[str, Dict[str, Any]] = defaultdict(dict)
-        
-        # Feature configurations - what features to compute
-        self.feature_configs: Dict[str, Dict[str, Any]] = {}
+        self.feature_cache: Dict[str, Dict[str, Any]] = {}
         
         # State tracking
-        self.bar_count: Dict[str, int] = defaultdict(int)
+        self.bar_count: Dict[str, int] = {}
         
-        logger.info("FeatureHub initialized for symbols: %s", self.symbols)
+        logger.debug("FeatureHub initialized with INCREMENTAL mode (O(1) updates)")
+        logger.debug("FeatureHub initialized for symbols: %s", self.symbols)
     
     def configure_features(self, feature_configs: Dict[str, Dict[str, Any]]) -> None:
         """
@@ -241,19 +70,34 @@ class FeatureHub:
             
         Example:
             {
-                "sma_20": {"feature": "sma", "period": 20},
-                "rsi": {"feature": "rsi", "period": 14},
-                "bollinger": {"feature": "bollinger_bands", "period": 20, "std_dev": 2.0}
+                "sma_20": {"type": "sma", "period": 20},
+                "rsi": {"type": "rsi", "period": 14},
+                "bollinger": {"type": "bollinger", "period": 20, "std_dev": 2.0}
             }
         """
-        self.feature_configs = feature_configs
-        logger.info("FeatureHub configured with features: %s", list(feature_configs.keys()))
+        self._feature_configs = feature_configs
+        logger.debug("FeatureHub configured with features: %s", list(feature_configs.keys()))
+    
+    def _create_feature(self, feature_name: str, config: Dict[str, Any]) -> Any:
+        """Create a feature instance based on configuration."""
+        feature_type = config.get("type", "")
+        
+        if feature_type not in FEATURE_REGISTRY:
+            raise ValueError(f"Unknown feature type: {feature_type}")
+        
+        feature_class = FEATURE_REGISTRY[feature_type]
+        
+        # Extract parameters (remove 'type' key)
+        params = {k: v for k, v in config.items() if k != "type"}
+        params["name"] = feature_name
+        
+        return feature_class(**params)
     
     def add_symbol(self, symbol: str) -> None:
         """Add a symbol to track."""
         if symbol not in self.symbols:
             self.symbols.append(symbol)
-            logger.info("Added symbol to FeatureHub: %s", symbol)
+            logger.debug("Added symbol to FeatureHub: %s", symbol)
     
     def update_bar(self, symbol: str, bar: Dict[str, float]) -> None:
         """
@@ -263,16 +107,38 @@ class FeatureHub:
             symbol: Symbol to update
             bar: Bar data with open, high, low, close, volume
         """
-        # Store new bar data
-        for field in ['open', 'high', 'low', 'close', 'volume']:
-            if field in bar:
-                self.price_data[symbol][field].append(bar[field])
+        self.bar_count[symbol] = self.bar_count.get(symbol, 0) + 1
         
-        self.bar_count[symbol] += 1
+        # Initialize features for symbol if needed
+        if symbol not in self._features:
+            self._features[symbol] = {}
+            for name, config in self._feature_configs.items():
+                self._features[symbol][name] = self._create_feature(name, config)
         
-        # Recompute features incrementally
-        self._update_features(symbol)
+        # Update all features
+        results = {}
+        for name, feature in self._features[symbol].items():
+            try:
+                value = feature.update(
+                    price=bar.get("close", 0),
+                    high=bar.get("high"),
+                    low=bar.get("low"),
+                    volume=bar.get("volume")
+                )
+                
+                if value is not None:
+                    if isinstance(value, dict):
+                        # Multi-value features
+                        for sub_name, sub_value in value.items():
+                            results[f"{name}_{sub_name}"] = sub_value
+                    else:
+                        # Single-value features
+                        results[name] = value
+                        
+            except Exception as e:
+                logger.error(f"Error updating feature {name} for {symbol}: {e}")
         
+        self.feature_cache[symbol] = results
         logger.debug("Updated bar for %s, total bars: %d", symbol, self.bar_count[symbol])
     
     def get_features(self, symbol: str) -> Dict[str, Any]:
@@ -310,7 +176,10 @@ class FeatureHub:
         Returns:
             True if sufficient data available
         """
-        return self.bar_count.get(symbol, 0) >= min_bars
+        if symbol not in self._features:
+            return False
+        
+        return all(f.is_ready for f in self._features[symbol].values())
     
     def reset(self, symbol: Optional[str] = None) -> None:
         """
@@ -320,72 +189,19 @@ class FeatureHub:
             symbol: Symbol to reset (None for all symbols)
         """
         if symbol:
-            # Reset specific symbol
-            for field in self.price_data[symbol]:
-                self.price_data[symbol][field].clear()
-            self.feature_cache[symbol].clear()
+            if symbol in self._features:
+                for feature in self._features[symbol].values():
+                    feature.reset()
+            self.feature_cache[symbol] = {}
             self.bar_count[symbol] = 0
-            logger.info("Reset FeatureHub state for symbol: %s", symbol)
+            logger.debug("Reset FeatureHub state for symbol: %s", symbol)
         else:
-            # Reset all symbols
-            self.price_data.clear()
+            for symbol_features in self._features.values():
+                for feature in symbol_features.values():
+                    feature.reset()
             self.feature_cache.clear()
             self.bar_count.clear()
-            logger.info("Reset FeatureHub state for all symbols")
-    
-    def _update_features(self, symbol: str) -> None:
-        """
-        Update features for a symbol using current data.
-        
-        This converts the rolling window data to pandas and computes
-        features using the stateless feature functions.
-        """
-        # Convert deques to pandas DataFrame for feature computation
-        data_dict = {}
-        for field, deque_data in self.price_data[symbol].items():
-            if len(deque_data) > 0:
-                data_dict[field] = list(deque_data)
-        
-        if not data_dict or len(data_dict['close']) < 2:
-            return
-        
-        # Create DataFrame for feature computation
-        df = pd.DataFrame(data_dict)
-        
-        # Compute all configured features
-        symbol_features = {}
-        
-        for feature_name, config in self.feature_configs.items():
-            try:
-                feature_type = config.get('feature')
-                if feature_type not in FEATURE_REGISTRY:
-                    logger.warning("Unknown feature type: %s", feature_type)
-                    continue
-                
-                # Create config copy without 'feature' key
-                feature_params = {k: v for k, v in config.items() if k != 'feature'}
-                
-                # Compute feature using stateless function
-                result = compute_feature(feature_type, df, **feature_params)
-                
-                # Store latest feature value(s)
-                if isinstance(result, dict):
-                    # Multi-value features (e.g., MACD, Bollinger Bands)
-                    for sub_name, series in result.items():
-                        if len(series) > 0 and not pd.isna(series.iloc[-1]):
-                            symbol_features[f"{feature_name}_{sub_name}"] = float(series.iloc[-1])
-                else:
-                    # Single-value features (e.g., SMA, RSI)
-                    if len(result) > 0 and not pd.isna(result.iloc[-1]):
-                        symbol_features[feature_name] = float(result.iloc[-1])
-                        
-            except Exception as e:
-                logger.error("Error computing feature %s for %s: %s", feature_name, symbol, e)
-        
-        # Update cache
-        self.feature_cache[symbol].update(symbol_features)
-        
-        logger.debug("Updated %d features for %s", len(symbol_features), symbol)
+            logger.debug("Reset FeatureHub state for all symbols")
     
     def get_feature_summary(self) -> Dict[str, Any]:
         """
@@ -396,7 +212,7 @@ class FeatureHub:
         """
         return {
             "symbols": len(self.symbols),
-            "configured_features": len(self.feature_configs),
+            "configured_features": len(self._feature_configs),
             "bar_counts": dict(self.bar_count),
             "feature_counts": {
                 symbol: len(features)
@@ -428,20 +244,30 @@ def create_feature_hub(symbols: Optional[List[str]] = None,
 
 # Default feature configurations for common strategies
 DEFAULT_MOMENTUM_FEATURES = {
-    "sma_fast": {"feature": "sma", "period": 10},
-    "sma_slow": {"feature": "sma", "period": 20},
-    "rsi": {"feature": "rsi", "period": 14},
-    "macd": {"feature": "macd", "fast": 12, "slow": 26, "signal": 9}
+    "sma_fast": {"type": "sma", "period": 10},
+    "sma_slow": {"type": "sma", "period": 20},
+    "rsi": {"type": "rsi", "period": 14},
+    "macd": {"type": "macd", "fast_period": 12, "slow_period": 26, "signal_period": 9}
 }
 
 DEFAULT_MEAN_REVERSION_FEATURES = {
-    "bollinger": {"feature": "bollinger_bands", "period": 20, "std_dev": 2.0},
-    "rsi": {"feature": "rsi", "period": 14},
-    "stochastic": {"feature": "stochastic", "k_period": 14, "d_period": 3}
+    "bollinger": {"type": "bollinger", "period": 20, "std_dev": 2.0},
+    "rsi": {"type": "rsi", "period": 14}
 }
 
 DEFAULT_VOLATILITY_FEATURES = {
-    "atr": {"feature": "atr", "period": 14},
-    "bollinger": {"feature": "bollinger_bands", "period": 20, "std_dev": 2.0},
-    "adx": {"feature": "adx", "period": 14}
+    "atr": {"type": "atr", "period": 14},
+    "bollinger": {"type": "bollinger", "period": 20, "std_dev": 2.0}
+}
+
+DEFAULT_STRUCTURE_FEATURES = {
+    "pivot_points": {"type": "pivot_points"},
+    "support_resistance": {"type": "support_resistance", "lookback": 50, "min_touches": 2},
+    "swing_points": {"type": "swing_points", "lookback": 5}
+}
+
+DEFAULT_VOLUME_FEATURES = {
+    "volume_sma": {"type": "volume_sma", "period": 20},
+    "obv": {"type": "obv"},
+    "vpt": {"type": "vpt"}
 }

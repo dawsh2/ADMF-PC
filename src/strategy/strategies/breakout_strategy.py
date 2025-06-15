@@ -14,12 +14,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='breakout_strategy',
-    feature_config={
-        'high': {'params': ['lookback_period'], 'default': 20},
-        'low': {'params': ['lookback_period'], 'default': 20},
-        'volume': {'params': ['lookback_period'], 'default': 20},
-        'atr': {'params': ['atr_period'], 'default': 14}
-    }
+    feature_config=['high', 'low', 'volume', 'atr']  # Topology builder infers parameters from strategy logic
 )
 def breakout_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

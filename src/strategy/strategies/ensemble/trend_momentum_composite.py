@@ -18,16 +18,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='trend_momentum_composite',
-    feature_config={
-        'sma': {
-            'params': ['fast_period', 'slow_period'],
-            'defaults': {'fast_period': 10, 'slow_period': 20}
-        },
-        'rsi': {
-            'params': ['rsi_period'],
-            'defaults': {'rsi_period': 14}
-        }
-    }
+    feature_config=['sma', 'rsi']  # Topology builder infers parameters from strategy logic
 )
 def trend_momentum_composite(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -125,20 +116,7 @@ def _get_rsi_filter(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[
 # Alternative: Voting-based ensemble strategy
 @strategy(
     name='multi_indicator_voting',
-    feature_config={
-        'sma': {
-            'params': ['fast_period', 'slow_period'],
-            'defaults': {'fast_period': 10, 'slow_period': 20}
-        },
-        'rsi': {
-            'params': ['rsi_period'],
-            'defaults': {'rsi_period': 14}
-        },
-        'bollinger_bands': {
-            'params': ['period', 'std_dev'],
-            'defaults': {'period': 20, 'std_dev': 2.0}
-        }
-    }
+    feature_config=['sma', 'rsi', 'bollinger']  # Topology builder infers parameters from strategy logic
 )
 def multi_indicator_voting(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -211,8 +189,8 @@ def _get_bollinger_signal(features: Dict[str, Any], bar: Dict[str, Any], params:
     period = params.get('period', 20)
     std_dev = params.get('std_dev', 2.0)
     
-    upper_band = features.get(f'bollinger_bands_{period}_{std_dev}_upper')
-    lower_band = features.get(f'bollinger_bands_{period}_{std_dev}_lower')
+    upper_band = features.get(f'bollinger_{period}_{std_dev}_upper')
+    lower_band = features.get(f'bollinger_{period}_{std_dev}_lower')
     price = bar.get('close', 0)
     
     if upper_band is None or lower_band is None:

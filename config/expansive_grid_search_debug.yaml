@@ -1,0 +1,206 @@
+# Debug Configuration - Missing Strategies Only
+# Tests strategies that didn't generate signal files
+
+name: expansive_grid_search_debug
+description: Debug configuration for missing strategies
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2023-01-01"
+end_date: "2023-02-01"
+max_bars: 2000
+
+# Topology 
+topology: signal_generation
+
+# Only the strategies that were missing signal files
+strategies:
+  # Missing crossover strategies
+  - type: dema_crossover
+    name: dema_crossover_grid
+    params:
+      fast_dema_period: [3, 7, 11, 19]      # 4 values
+      slow_dema_period: [15, 23, 35, 50]    # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: stochastic_crossover
+    name: stochastic_crossover_grid
+    params:
+      k_period: [5, 11, 19, 27]     # 4 values
+      d_period: [3, 5, 7]           # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  - type: vortex_crossover
+    name: vortex_crossover_grid
+    params:
+      vortex_period: [11, 19, 27, 35]    # 4 values
+      # Total: 4 combinations
+      
+  - type: ichimoku_cloud_position
+    name: ichimoku_grid
+    params:
+      conversion_period: [7, 9, 11]      # 3 values
+      base_period: [23, 26, 35]          # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: macd_crossover
+    name: macd_crossover_grid
+    params:
+      fast_ema: [5, 12, 15]              # 3 values
+      slow_ema: [20, 26, 35]             # 3 values
+      signal_ema: [7, 9, 11]             # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  # Missing oscillator strategies
+  - type: stochastic_rsi
+    name: stochastic_rsi_grid
+    params:
+      rsi_period: [7, 14, 21]        # 3 values
+      stoch_period: [7, 14, 21]      # 3 values
+      oversold: [15, 20, 25]         # 3 values
+      overbought: [75, 80, 85]       # 3 values
+      # Total: 3 * 3 * 3 * 3 = 81 combinations
+      
+  - type: williams_r
+    name: williams_r_grid
+    params:
+      williams_period: [7, 14, 21]   # 3 values
+      oversold: [-85, -80, -75]      # 3 values (near -100)
+      overbought: [-25, -20, -15]    # 3 values (near 0)
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  - type: roc_threshold
+    name: roc_threshold_grid
+    params:
+      roc_period: [5, 10, 20]        # 3 values
+      threshold: [0.02, 0.05, 0.1]   # 3 values (%) - very low for 1m data
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: ultimate_oscillator
+    name: ultimate_oscillator_grid
+    params:
+      period1: [5, 7, 10]            # 3 values
+      period2: [10, 14, 20]          # 3 values
+      period3: [20, 28, 35]          # 3 values
+      oversold: [25, 30, 35]         # 3 values
+      overbought: [65, 70, 75]       # 3 values
+      # Total: 3 * 3 * 3 * 3 * 3 = 243 combinations
+      
+  # Missing volatility breakout strategies
+  - type: keltner_breakout
+    name: keltner_breakout_grid
+    params:
+      period: [11, 19, 27, 35]      # 4 values
+      multiplier: [1.5, 2.0, 2.5]   # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  - type: donchian_breakout
+    name: donchian_breakout_grid
+    params:
+      period: [15, 23, 35, 50]      # 4 values
+      # Total: 4 combinations
+      
+  - type: bollinger_breakout
+    name: bollinger_breakout_grid
+    params:
+      period: [11, 19, 27, 35]      # 4 values
+      std_dev: [1.5, 2.0, 2.5]      # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  # Missing volume-based strategies
+  - type: obv_trend
+    name: obv_trend_grid
+    params:
+      obv_sma_period: [10, 20, 30]  # 3 values
+      # Total: 3 combinations
+      
+  - type: accumulation_distribution
+    name: accumulation_distribution_grid
+    params:
+      ad_ema_period: [10, 20, 30]   # 3 values
+      # Total: 3 combinations
+      
+  # Missing trend-based strategies
+  - type: adx_trend_strength
+    name: adx_trend_strength_grid
+    params:
+      adx_period: [7, 14, 21]        # 3 values
+      di_period: [7, 14, 21]         # 3 values
+      adx_threshold: [20, 25, 30]    # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  - type: parabolic_sar
+    name: parabolic_sar_grid
+    params:
+      af_start: [0.01, 0.02, 0.03]   # 3 values
+      af_max: [0.1, 0.2, 0.3]         # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: aroon_crossover
+    name: aroon_crossover_grid
+    params:
+      period: [14, 25, 35]           # 3 values
+      # Total: 3 combinations
+      
+  - type: supertrend
+    name: supertrend_grid
+    params:
+      period: [7, 10, 14]            # 3 values
+      multiplier: [2.0, 3.0, 4.0]    # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: linear_regression_slope
+    name: linear_regression_slope_grid
+    params:
+      period: [10, 20, 30]           # 3 values
+      slope_threshold: [0.0, 0.001, 0.002] # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  # Missing market structure strategies
+  - type: pivot_points
+    name: pivot_points_grid
+    params:
+      pivot_type: ['standard', 'fibonacci', 'camarilla'] # 3 values
+      # Total: 3 combinations
+      
+  - type: fibonacci_retracement
+    name: fibonacci_retracement_grid
+    params:
+      period: [30, 50, 100]          # 3 values
+      # Total: 3 combinations
+      
+  - type: support_resistance_breakout
+    name: support_resistance_breakout_grid
+    params:
+      period: [10, 20, 30]           # 3 values
+      threshold: [0.01, 0.02, 0.03]  # 3 values (1%, 2%, 3%)
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: price_action_swing
+    name: price_action_swing_grid
+    params:
+      period: [5, 10, 20]            # 3 values
+      # Total: 3 combinations
+
+# No classifiers for this debug run
+classifiers: []
+
+# Execution settings
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: debug_missing_strategies
+  description: |
+    Debug configuration to test only the 23 strategies that didn't generate signal files.
+    Total missing strategies: 23
+    Total combinations: 488

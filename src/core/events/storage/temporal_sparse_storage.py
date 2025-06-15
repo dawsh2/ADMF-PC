@@ -142,14 +142,14 @@ class TemporalSparseStorage:
             # First signal for this strategy
             is_change = True
             current_bar_index = bar_index if bar_index is not None else self._bar_index
-            logger.info(f"First signal for {state_key}: {direction} at bar {current_bar_index}")
+            logger.debug(f"First signal for {state_key}: {direction} at bar {current_bar_index}")
             
         elif current['value'] != signal_value:
             # Signal changed direction
             is_change = True
             current_bar_index = bar_index if bar_index is not None else self._bar_index
-            logger.info(f"Signal change for {state_key}: "
-                       f"{current['value']} -> {signal_value} at bar {current_bar_index}")
+            logger.debug(f"Signal change for {state_key}: "
+                        f"{current['value']} -> {signal_value} at bar {current_bar_index}")
             
         if is_change:
             # Use provided bar_index or fall back to internal counter
@@ -390,9 +390,9 @@ class TemporalSparseStorage:
             logger.warning("PyArrow not available, saving Parquet without metadata")
             df.to_parquet(filepath, engine='pandas', index=False)
             
-        logger.info(f"Saved {len(self._changes)} signal changes to {filepath}")
-        logger.info(f"Compression: {len(self._changes)} changes for {self._bar_index} bars "
-                   f"({len(self._changes)/self._bar_index*100:.1f}% of original)")
+        logger.debug(f"Saved {len(self._changes)} signal changes to {filepath}")
+        logger.debug(f"Compression: {len(self._changes)} changes for {self._bar_index} bars "
+                    f"({len(self._changes)/self._bar_index*100:.1f}% of original)")
         
         return str(filepath)
     

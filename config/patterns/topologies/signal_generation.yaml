@@ -1,8 +1,9 @@
 # Signal Generation Pattern
-# Pipeline for generating and saving signals: data → strategies (signals saved)
+# Root container with child containers for proper event bus hierarchy
+# Data containers publish BAR events to root, strategy container receives them and publishes SIGNAL events
 
 name: signal_generation
-description: Generate trading signals and save to disk for later replay
+description: Generate trading signals using root container with data and strategy children
 
 # Stateless components
 components:
@@ -13,76 +14,68 @@ components:
     from_config: classifiers
     default: []
 
-# Root container with child containers
+# Containers to create (root + children)
 containers:
+  # Root container
   - name: root
     type: root
+    components: []
     config:
-      components: []  # No components at root level
+      # Root container has no components, just manages child containers
       
-    # Child containers defined inline
-    containers:
-      # Data containers - one per symbol/timeframe combo
-      - name_template: "{symbol}_{timeframe}_data"
-        type: data
-        components: ["data_streamer"]
-        foreach:
-          symbol:
-            from_config: symbols
-          timeframe:
-            from_config: timeframes
-        config:
-          symbol: "{symbol}"
-          timeframe: "{timeframe}"
-          data_source:
-            from_config: data_source
-            default: file
-          data_path:
-            from_config: data_path
-          data_dir:
-            from_config: data_dir
-            default: ./data
-          start_date:
-            from_config: start_date
-          end_date:
-            from_config: end_date
-          max_bars:
-            from_config: max_bars
-          dataset:
-            from_config: dataset
-          split_ratio:
-            from_config: split_ratio
+  # Data containers - one per symbol/timeframe combo
+  - name_template: "{symbol}_{timeframe}_data"
+    type: data
+    components: ["data_streamer"]
+    parent: root
+    foreach:
+      symbol:
+        from_config: symbols
+      timeframe:
+        from_config: timeframes
+    config:
+      symbol: "{symbol}"
+      timeframe: "{timeframe}"
+      data_source:
+        from_config: data_source
+        default: file
+      data_path:
+        from_config: data_path
+      data_dir:
+        from_config: data_dir
+        default: ./data
+      start_date:
+        from_config: start_date
+      end_date:
+        from_config: end_date
+      max_bars:
+        from_config: max_bars
+      dataset:
+        from_config: dataset
+      split_ratio:
+        from_config: split_ratio
 
-      # Single strategy container that processes all symbols/timeframes
-      - name: "strategy"
-        type: strategy
-        components: ["strategy_state"]
-        config:
-          symbols:
-            from_config: symbols
-          features:
-            from_config: feature_configs
-            default: {}
-          strategies:
-            from_config: strategies
-            default: []
-          classifiers:
-            from_config: classifiers
-            default: []
-          # Pass through execution config to enable tracing
-          execution:
-            from_config: execution
-          metadata:
-            from_config: metadata
-      
-      # No portfolio containers needed - strategy containers handle their own signal tracing
+  # Strategy container with FeatureHub - receives BAR events, publishes SIGNAL events
+  - name: "strategy"
+    type: strategy
+    components: ["feature_hub", "strategy_state"]
+    parent: root
+    config:
+      symbols:
+        from_config: symbols
+      features:
+        from_config: feature_configs
+        default: {}
+      strategies:
+        from_config: strategies
+        default: []
+      classifiers:
+        from_config: classifiers
+        default: []
+      execution:
+        from_config: execution
+      metadata:
+        from_config: metadata
 
-# Routes to create
-routes: []  # No routes needed - strategy containers handle signal tracing directly
-
-# Special behaviors
-behaviors:
-  # Feature dispatcher - routes features to strategies
-  - type: feature_dispatcher
-    source_pattern: "*_features"
-    target: strategies
+# Routes - not needed since containers use parent-child event communication
+routes: []
