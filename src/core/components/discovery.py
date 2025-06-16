@@ -248,7 +248,7 @@ def classifier(
     features: Optional[List[str]] = None,
     feature_config: Optional[List[str]] = None,
     param_feature_mapping: Optional[Dict[str, str]] = None,
-    validate_features: bool = True,
+    validate_features: bool = False,  # Disabled by default - ComponentState handles validation
     **metadata
 ):
     """
@@ -303,6 +303,14 @@ def classifier(
         
         if hasattr(func_or_class, '__dict__'):
             func_or_class._component_info = info
+            # Also add classifier-specific metadata for component state to use
+            func_or_class._classifier_metadata = {
+                'features': features_list,
+                'feature_config': feature_config,
+                'param_feature_mapping': param_feature_mapping,
+                'validate_features': validate_features,
+                **metadata
+            }
         
         # Ensure required_features is accessible
         if not hasattr(func_or_class, 'required_features'):

@@ -117,6 +117,13 @@ class FeatureHub:
         
         # Update all features
         results = {}
+        
+        # Add raw OHLCV data to results first
+        # This allows classifiers and strategies to access raw price data
+        for key in ['open', 'high', 'low', 'close', 'volume']:
+            if key in bar:
+                results[key] = bar[key]
+        
         for name, feature in self._features[symbol].items():
             try:
                 # Special handling for ParabolicSAR which needs positional args

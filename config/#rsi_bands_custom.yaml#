@@ -1,0 +1,60 @@
+# Custom RSI Bands Configuration - Testing 2 specific parameter sets
+# Tests only:
+#   1. SPY_rsi_bands_grid_19_30_80
+#   2. SPY_rsi_bands_grid_19_30_75
+
+name: rsi_bands_custom
+description: Custom parameter test for specific RSI bands configurations
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2025-01-17"
+end_date: null  # Use all available data until end of dataset
+
+# Topology 
+topology: signal_generation
+
+# Feature configuration will be automatically inferred by topology builder
+# based on strategy requirements and parameter values
+
+# RSI Bands strategies with specific parameters
+strategies:
+  - type: rsi_bands
+    name: rsi_bands_grid
+    params:
+      rsi_period: [19]          # Single value: 19
+      oversold: [30]            # Single value: 30
+      overbought: [75, 80]      # Two values: 75 and 80
+      # This will generate exactly 2 combinations:
+      # 1. rsi_period=19, oversold=30, overbought=80
+      # 2. rsi_period=19, oversold=30, overbought=75
+
+# No classifiers for this simple test
+classifiers: []
+
+# Execution settings
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: rsi_bands_custom_v1
+  description: |
+    Custom RSI bands test with specific parameter combinations:
+    - Strategy: rsi_bands
+    - Parameter combinations:
+      1. rsi_period=19, oversold=30, overbought=80
+      2. rsi_period=19, oversold=30, overbought=75
+    - Total: 2 strategy combinations
+  analysis_goals:
+    - Test specific RSI bands parameter sets
+    - Compare performance between overbought levels of 75 vs 80
+    - Validate signal generation with fixed RSI period of 19

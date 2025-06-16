@@ -12,7 +12,12 @@ from ...core.components.discovery import classifier
 @classifier(
     name='multi_timeframe_trend_classifier',
     regime_types=['strong_uptrend', 'weak_uptrend', 'sideways', 'weak_downtrend', 'strong_downtrend'],
-    feature_config=['sma_10', 'sma_20', 'sma_50']  # Hardcoded periods - no param mapping needed
+    feature_config=['sma', 'close'],
+    param_feature_mapping={
+        'sma_short': 'sma_{sma_short}',
+        'sma_medium': 'sma_{sma_medium}',
+        'sma_long': 'sma_{sma_long}'
+    }
 )
 def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -29,10 +34,15 @@ def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str,
     strong_threshold = params.get('strong_threshold', 0.02)  # 2%
     weak_threshold = params.get('weak_threshold', 0.005)    # 0.5%
     
-    # Get moving averages
-    sma_10 = features.get('sma_10')
-    sma_20 = features.get('sma_20') 
-    sma_50 = features.get('sma_50')
+    # Get periods from parameters with defaults
+    sma_short_period = params.get('sma_short', 10)
+    sma_medium_period = params.get('sma_medium', 20)
+    sma_long_period = params.get('sma_long', 50)
+    
+    # Get moving averages using parameterized names
+    sma_10 = features.get(f'sma_{sma_short_period}')
+    sma_20 = features.get(f'sma_{sma_medium_period}') 
+    sma_50 = features.get(f'sma_{sma_long_period}')
     price = features.get('close', 0)
     
     if not all([sma_10, sma_20, sma_50, price > 0]):
@@ -107,7 +117,12 @@ def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str,
 @classifier(
     name='volatility_momentum_classifier',
     regime_types=['high_vol_bullish', 'high_vol_bearish', 'low_vol_bullish', 'low_vol_bearish', 'neutral'],
-    feature_config=['atr_14', 'rsi_14', 'sma_20']  # Hardcoded periods - no param mapping needed
+    feature_config=['atr', 'rsi', 'sma', 'close'],
+    param_feature_mapping={
+        'atr_period': 'atr_{atr_period}',
+        'rsi_period': 'rsi_{rsi_period}',
+        'sma_period': 'sma_{sma_period}'
+    }
 )
 def volatility_momentum_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -125,10 +140,15 @@ def volatility_momentum_classifier(features: Dict[str, Any], params: Dict[str, A
     rsi_overbought = params.get('rsi_overbought', 65)
     rsi_oversold = params.get('rsi_oversold', 35)
     
-    # Get features
-    atr = features.get('atr_14') or features.get('atr')
-    rsi = features.get('rsi_14') or features.get('rsi')
-    sma = features.get('sma_20')
+    # Get periods from parameters with defaults
+    atr_period = params.get('atr_period', 14)
+    rsi_period = params.get('rsi_period', 14)
+    sma_period = params.get('sma_period', 20)
+    
+    # Get features using parameterized names
+    atr = features.get(f'atr_{atr_period}')
+    rsi = features.get(f'rsi_{rsi_period}')
+    sma = features.get(f'sma_{sma_period}')
     price = features.get('close', 0)
     
     if not all([atr, rsi, sma, price > 0]):
@@ -187,7 +207,13 @@ def volatility_momentum_classifier(features: Dict[str, Any], params: Dict[str, A
 @classifier(
     name='market_regime_classifier',
     regime_types=['bull_trending', 'bull_ranging', 'bear_trending', 'bear_ranging', 'neutral'],
-    feature_config=['sma_10', 'sma_50', 'atr_20', 'rsi_14']  # Hardcoded periods - no param mapping needed
+    feature_config=['sma', 'atr', 'rsi', 'close'],
+    param_feature_mapping={
+        'sma_short': 'sma_{sma_short}',
+        'sma_long': 'sma_{sma_long}',
+        'atr_period': 'atr_{atr_period}',
+        'rsi_period': 'rsi_{rsi_period}'
+    }
 )
 def market_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -204,11 +230,17 @@ def market_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
     trend_threshold = params.get('trend_threshold', 0.01)
     vol_threshold = params.get('vol_threshold', 1.0)
     
-    # Get features
-    sma_short = features.get('sma_10')
-    sma_long = features.get('sma_50')
-    atr = features.get('atr_20') or features.get('atr')
-    rsi = features.get('rsi_14') or features.get('rsi')
+    # Get periods from parameters with defaults
+    sma_short_period = params.get('sma_short', 10)
+    sma_long_period = params.get('sma_long', 50)
+    atr_period = params.get('atr_period', 20)
+    rsi_period = params.get('rsi_period', 14)
+    
+    # Get features using parameterized names
+    sma_short = features.get(f'sma_{sma_short_period}')
+    sma_long = features.get(f'sma_{sma_long_period}')
+    atr = features.get(f'atr_{atr_period}')
+    rsi = features.get(f'rsi_{rsi_period}')
     price = features.get('close', 0)
     
     if not all([sma_short, sma_long, atr, rsi, price > 0]):
@@ -264,7 +296,13 @@ def market_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
 @classifier(
     name='microstructure_classifier', 
     regime_types=['breakout_up', 'breakout_down', 'consolidation', 'reversal_up', 'reversal_down'],
-    feature_config=['sma_5', 'sma_20', 'atr_10', 'rsi_7']  # Hardcoded periods - no param mapping needed
+    feature_config=['sma', 'atr', 'rsi', 'close'],
+    param_feature_mapping={
+        'sma_fast': 'sma_{sma_fast}',
+        'sma_slow': 'sma_{sma_slow}',
+        'atr_period': 'atr_{atr_period}',
+        'rsi_period': 'rsi_{rsi_period}'
+    }
 )
 def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -281,11 +319,17 @@ def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) 
     breakout_threshold = params.get('breakout_threshold', 0.005)  # 0.5%
     consolidation_threshold = params.get('consolidation_threshold', 0.002)  # 0.2%
     
-    # Get features
-    sma_fast = features.get('sma_5')
-    sma_slow = features.get('sma_20')
-    atr = features.get('atr_10') or features.get('atr')
-    rsi = features.get('rsi_7') or features.get('rsi')
+    # Get periods from parameters with defaults
+    sma_fast_period = params.get('sma_fast', 5)
+    sma_slow_period = params.get('sma_slow', 20)
+    atr_period = params.get('atr_period', 10)
+    rsi_period = params.get('rsi_period', 7)
+    
+    # Get features using parameterized names
+    sma_fast = features.get(f'sma_{sma_fast_period}')
+    sma_slow = features.get(f'sma_{sma_slow_period}')
+    atr = features.get(f'atr_{atr_period}')
+    rsi = features.get(f'rsi_{rsi_period}')
     price = features.get('close', 0)
     
     if not all([sma_fast, sma_slow, atr, rsi, price > 0]):
@@ -368,7 +412,13 @@ def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) 
 @classifier(
     name='hidden_markov_classifier',
     regime_types=['accumulation', 'markup', 'distribution', 'markdown', 'uncertainty'],
-    feature_config=['volume', 'rsi_14', 'sma_20', 'sma_50', 'atr_14']  # Hardcoded periods - no param mapping needed
+    feature_config=['volume', 'rsi', 'sma', 'atr', 'close'],
+    param_feature_mapping={
+        'rsi_period': 'rsi_{rsi_period}',
+        'sma_short': 'sma_{sma_short}',
+        'sma_long': 'sma_{sma_long}',
+        'atr_period': 'atr_{atr_period}'
+    }
 )
 def hidden_markov_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -386,16 +436,22 @@ def hidden_markov_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
     trend_strength_threshold = params.get('trend_strength_threshold', 0.02)
     volatility_threshold = params.get('volatility_threshold', 1.5)
     
-    # Get features
+    # Get periods from parameters with defaults
+    rsi_period = params.get('rsi_period', 14)
+    sma_short_period = params.get('sma_short', 20)
+    sma_long_period = params.get('sma_long', 50)
+    atr_period = params.get('atr_period', 14)
+    
+    # Get features using parameterized names
     volume = features.get('volume', 0)
-    rsi = features.get('rsi_14') or features.get('rsi')
-    sma_20 = features.get('sma_20')
-    sma_50 = features.get('sma_50')
-    atr = features.get('atr_14') or features.get('atr')
+    rsi = features.get(f'rsi_{rsi_period}')
+    sma_20 = features.get(f'sma_{sma_short_period}')
+    sma_50 = features.get(f'sma_{sma_long_period}')
+    atr = features.get(f'atr_{atr_period}')
     price = features.get('close', 0)
     
     # Get historical volume for comparison (simplified - would need rolling average in production)
-    avg_volume = features.get('volume_sma_20', volume)  # Fallback to current if no average
+    avg_volume = features.get(f'volume_sma_{sma_short_period}', volume)  # Fallback to current if no average
     
     if not all([volume > 0, rsi, sma_20, sma_50, atr, price > 0]):
         return {

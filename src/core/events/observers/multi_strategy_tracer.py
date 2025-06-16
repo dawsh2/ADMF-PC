@@ -59,8 +59,9 @@ class MultiStrategyTracer(EventObserverProtocol):
         # Storage instances per component
         self._storages: Dict[str, TemporalSparseStorage] = {}
         
-        # Current bar count (shared across all components)
+        # Current bar count (shared across all components) - 0-based to match source files
         self._current_bar_count = 0
+        self._initialized_bar_count = False
         
         # Metrics
         self._total_signals = 0
@@ -85,10 +86,14 @@ class MultiStrategyTracer(EventObserverProtocol):
         if event.event_type == EventType.BAR.value:
             # Use original bar index from event payload for consistent sparse storage
             if hasattr(event, 'payload') and 'original_bar_index' in event.payload:
-                self._current_bar_count = event.payload['original_bar_index'] + 1  # Convert to 1-based
+                self._current_bar_count = event.payload['original_bar_index']  # Keep 0-based indexing to match source
                 logger.debug(f"Bar count (original): {self._current_bar_count}")
             else:
                 # Fallback to incrementing for backward compatibility
+                # Start from -1 so first increment gives 0
+                if not hasattr(self, '_initialized_bar_count'):
+                    self._current_bar_count = -1
+                    self._initialized_bar_count = True
                 self._current_bar_count += 1
                 logger.debug(f"Bar count (incremented): {self._current_bar_count}")
             

@@ -11,9 +11,9 @@ from ....core.components.discovery import strategy
 
 @strategy(
     name='obv_trend',
-    feature_config=['obv', 'sma'],  # Simple: declare we need OBV and SMA features
+    feature_config=['obv', 'obv_sma'],  # Need OBV and SMA of OBV
     param_feature_mapping={
-        'obv_sma_period': 'sma_{obv_sma_period}'
+        'obv_sma_period': 'obv_sma_{obv_sma_period}'
     }
 )
 def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -29,7 +29,7 @@ def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
     
     # Get features
     obv = features.get('obv')
-    obv_sma = features.get(f'sma_{obv_sma_period}')
+    obv_sma = features.get(f'obv_sma_{obv_sma_period}')
     
     if obv is None or obv_sma is None:
         return None
@@ -225,9 +225,9 @@ def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='accumulation_distribution',
-    feature_config=['ad', 'ema'],  # Simple: declare we need A/D and EMA features
+    feature_config=['ad', 'ad_ema'],  # Need A/D and EMA of A/D
     param_feature_mapping={
-        'ad_ema_period': 'ema_{ad_ema_period}'
+        'ad_ema_period': 'ad_ema_{ad_ema_period}'
     }
 )
 def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -243,7 +243,7 @@ def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], par
     
     # Get features
     ad_line = features.get('ad')
-    ad_ema = features.get(f'ema_{ad_ema_period}')
+    ad_ema = features.get(f'ad_ema_{ad_ema_period}')
     
     if ad_line is None or ad_ema is None:
         return None

@@ -1,0 +1,33 @@
+{
+  "workflow_id": "rsi_bands_custom_v1",
+  "workspace_path": "workspaces/rsi_bands_custom_v1_1a9e2420",
+  "total_bars": 102236,
+  "total_signals": 204414,
+  "total_classifications": 0,
+  "stored_changes": 4059,
+  "compression_ratio": 1.9856761278581703,
+  "components": {
+    "SPY_rsi_bands_grid_19_30_75": {
+      "component_type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "signal_file_path": "traces/SPY_1m/signals/rsi_bands_grid/SPY_rsi_bands_grid_19_30_75.parquet",
+      "total_bars": 102183,
+      "signal_changes": 2260,
+      "compression_ratio": 0.022117181918714462,
+      "signal_frequency": 0.022117181918714462,
+      "parameters": {},
+      "created_at": "2025-06-15T20:04:04.958627"
+    },
+    "SPY_rsi_bands_grid_19_30_80": {
+      "component_type": "strategy",
+      "strategy_type": "rsi_bands_grid",
+      "signal_file_path": "traces/SPY_1m/signals/rsi_bands_grid/SPY_rsi_bands_grid_19_30_80.parquet",
+      "total_bars": 102183,
+      "signal_changes": 1799,
+      "compression_ratio": 0.017605668261843947,
+      "signal_frequency": 0.017605668261843947,
+      "parameters": {},
+      "created_at": "2025-06-15T20:04:04.958696"
+    }
+  }
+}

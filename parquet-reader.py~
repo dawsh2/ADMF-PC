@@ -1,0 +1,35 @@
+import pandas as pd
+import glob
+
+def read_parquet_preview(directory_path, limit=100):
+    """
+    Reads the first `limit` rows from all Parquet files in a given directory.
+
+    Parameters:
+        directory_path (str): Path to directory containing Parquet files or a file path.
+        limit (int): Number of rows to read from each file.
+
+    Returns:
+        dict: A dictionary of DataFrames keyed by file name.
+    """
+    previews = {}
+    
+    # Accept both a directory path or a single file
+    file_paths = glob.glob(directory_path) if '*' in directory_path or directory_path.endswith('/') else [directory_path]
+    
+    for file in file_paths:
+        try:
+            df = pd.read_parquet(file, engine='pyarrow')
+            previews[file] = df.head(limit)
+            print(f"Read {min(limit, len(df))} rows from: {file}")
+        except Exception as e:
+            print(f"Failed to read {file}: {e}")
+    
+    return previews
+
+# Example usage
+# Can be a directory glob like "data/*.parquet" or a single file path
+previews = read_parquet_preview("data/*.parquet", limit=100)
+
+# Access preview for a specific file:
+# print(previews["data/example.parquet"])

@@ -69,7 +69,7 @@ class ComponentState:
         # Performance optimization: cache ready components after warmup
         self._ready_components_cache: Dict[str, List[tuple]] = {}  # symbol -> [(id, info)]
         self._warmup_complete: Dict[str, bool] = {}  # symbol -> bool
-        self._warmup_bars = 100  # After this many bars, cache ready components
+        self._warmup_bars = 200  # After this many bars, cache ready components - increased for classifiers
         
         # Metrics
         self._bars_processed = 0
@@ -404,12 +404,22 @@ class ComponentState:
         
         if classifier_components:
             logger.debug(f"Using {len(classifier_components)} classifiers from topology")
+            
+            # Get expanded parameters from context if available
+            expanded_params = container.config.config.get('stateless_components', {}).get('parameters', {}).get('classifiers', {})
+            
             for classifier_name, classifier_func in classifier_components.items():
-                # Find matching config by name or type
-                classifier_config = next(
-                    (c for c in classifiers if c.get('name') == classifier_name or c.get('type') == classifier_name),
-                    {}
-                )
+                # Try to get parameters from expanded_params first
+                classifier_params = expanded_params.get(classifier_name, {})
+                
+                # If not found, try to find matching config by base name
+                if not classifier_params:
+                    # Extract base name (before first underscore with digits)
+                    base_name = classifier_name
+                    for c in classifiers:
+                        if c.get('name') in classifier_name or c.get('type') in classifier_name:
+                            classifier_params = c.get('params', {})
+                            break
                 
                 # Create component_id with symbol pattern for proper filtering
                 symbols = container.config.config.get('symbols', ['unknown'])
@@ -420,9 +430,9 @@ class ComponentState:
                     component_id=component_id,
                     component_func=classifier_func,
                     component_type="classifier",
-                    parameters=classifier_config.get('params', {})
+                    parameters=classifier_params
                 )
-                logger.debug(f"Loaded classifier: {classifier_name} from topology")
+                logger.debug(f"Loaded classifier: {classifier_name} with params: {list(classifier_params.keys())}")
         else:
             logger.warning("No classifiers found in stateless_components")
     
@@ -909,24 +919,82 @@ class ComponentState:
             return ['rsi_14']
     
     def _get_classifier_required_features(self, component_id: str, params: Dict[str, Any]) -> List[str]:
-        """Get the specific features this classifier needs."""
-        # Extract classifier type from component_id
-        if 'enhanced_trend' in component_id:
-            return ['sma_10', 'sma_20', 'sma_50']
+        """Get the specific features this classifier needs by extracting from function metadata."""
+        logger.debug(f"Getting required features for classifier {component_id} with params: {params}")
+        
+        # First, try to get the classifier function and extract its feature config
+        component_info = self._components.get(component_id)
+        if component_info and 'function' in component_info:
+            classifier_func = component_info['function']
+            
+            # Extract feature config from the classifier function's metadata
+            if hasattr(classifier_func, '_component_info'):
+                metadata = classifier_func._component_info.metadata
+                feature_config = metadata.get('feature_config', [])
+                param_feature_mapping = metadata.get('param_feature_mapping', {})
+                
+                logger.debug(f"Found classifier metadata for {component_id}: feature_config={feature_config}, param_mapping={param_feature_mapping}")
+                
+                required_features = []
+                
+                # Handle new list format with param_feature_mapping
+                if isinstance(feature_config, list) and param_feature_mapping:
+                    # Process param_feature_mapping to generate actual feature names
+                    for param_name, feature_template in param_feature_mapping.items():
+                        param_value = params.get(param_name)
+                        if param_value is not None:
+                            # Substitute parameter value into template
+                            feature_name = feature_template.format(**{param_name: param_value})
+                            required_features.append(feature_name)
+                            logger.debug(f"Generated feature {feature_name} from param {param_name}={param_value}")
+                    
+                    # Add base features that don't have parameter mappings
+                    for feature_name in feature_config:
+                        # Check if this feature is covered by param_feature_mapping
+                        is_parameterized = any(
+                            template.startswith(feature_name + '_') or template == feature_name
+                            for template in param_feature_mapping.values()
+                        )
+                        if not is_parameterized:
+                            # This is a base feature without parameters
+                            required_features.append(feature_name)
+                            logger.debug(f"Added base feature {feature_name}")
+                
+                if required_features:
+                    logger.debug(f"Classifier {component_id} requires features: {required_features}")
+                    return required_features
+        
+        # Fallback to old hardcoded approach if metadata not found
+        logger.warning(f"No metadata found for classifier {component_id}, using fallback")
+        if 'enhanced_trend' in component_id or 'multi_timeframe_trend' in component_id:
+            # Use parameterized features based on params
+            sma_short = params.get('sma_short', 10)
+            sma_medium = params.get('sma_medium', 20)
+            sma_long = params.get('sma_long', 50)
+            return [f'sma_{sma_short}', f'sma_{sma_medium}', f'sma_{sma_long}', 'close']
         elif 'market_regime' in component_id:
-            return ['sma_10', 'sma_50', 'atr_20', 'rsi_14']
+            sma_short = params.get('sma_short', 10)
+            sma_long = params.get('sma_long', 50)
+            atr_period = params.get('atr_period', 20)
+            rsi_period = params.get('rsi_period', 14)
+            return [f'sma_{sma_short}', f'sma_{sma_long}', f'atr_{atr_period}', f'rsi_{rsi_period}', 'close']
         elif 'hidden_markov' in component_id:
-            return ['volume', 'rsi_14', 'sma_20', 'sma_50', 'atr_14']
+            rsi_period = params.get('rsi_period', 14)
+            sma_short = params.get('sma_short', 20)
+            sma_long = params.get('sma_long', 50)
+            atr_period = params.get('atr_period', 14)
+            return ['volume', f'rsi_{rsi_period}', f'sma_{sma_short}', f'sma_{sma_long}', f'atr_{atr_period}', 'close']
         elif 'volatility_momentum' in component_id:
-            return ['atr_14', 'rsi_14', 'sma_20']
+            atr_period = params.get('atr_period', 14)
+            rsi_period = params.get('rsi_period', 14)
+            sma_period = params.get('sma_period', 20)
+            return [f'atr_{atr_period}', f'rsi_{rsi_period}', f'sma_{sma_period}', 'close']
         elif 'microstructure' in component_id:
-            return ['sma_5', 'sma_20', 'atr_10', 'rsi_7']
-        elif 'momentum' in component_id:
-            return ['rsi_14', 'macd', 'momentum_10']
-        elif 'volatility' in component_id:
-            return ['atr_14', 'volatility_20']
-        elif 'trend' in component_id:
-            return ['sma_10', 'sma_20', 'sma_50']
+            sma_fast = params.get('sma_fast', 5)
+            sma_slow = params.get('sma_slow', 20)
+            atr_period = params.get('atr_period', 10)
+            rsi_period = params.get('rsi_period', 7)
+            return [f'sma_{sma_fast}', f'sma_{sma_slow}', f'atr_{atr_period}', f'rsi_{rsi_period}', 'close']
         else:
             return ['sma_20', 'rsi_14']  # Basic features
     
@@ -1142,13 +1210,17 @@ class ComponentState:
             regime = result.get('regime')
             confidence = result.get('confidence', 0.0)
             
+            logger.debug(f"🔍 Classifier {component_id} output: regime={regime}, confidence={confidence:.3f}, previous_output={previous_output}")
+            
             if regime:
                 # Check if classification changed
                 previous_regime = previous_output.get('regime') if previous_output else None
                 
+                logger.debug(f"🔍 Checking regime change: previous={previous_regime}, current={regime}")
+                
                 if previous_regime != regime:
                     # Classification changed - publish CLASSIFICATION event
-                    logger.debug(f"Classifier {component_id} regime change: {previous_regime} → {regime} (confidence: {confidence:.3f})")
+                    logger.debug(f"📊 Classifier {component_id} regime CHANGED: {previous_regime} → {regime} (confidence: {confidence:.3f})")
                     
                     # Create Classification object without full features
                     classification = Classification(
@@ -1165,7 +1237,7 @@ class ComponentState:
                     self._publish_classification(classification)
                 else:
                     # Same classification - don't publish (sparse storage)
-                    logger.debug(f"Classifier {component_id} regime unchanged: {regime} (confidence: {confidence:.3f})")
+                    logger.debug(f"🔍 Classifier {component_id} regime UNCHANGED: {regime} (confidence: {confidence:.3f})")
         
         else:
             # Future component types - generic handling
@@ -1216,7 +1288,8 @@ class ComponentState:
             container_id=self._container.container_id
         )
         
-        logger.debug(f"👑 Publishing CLASSIFICATION event: {classification_event.event_type} with payload: {classification_event.payload}")
+        logger.debug(f"👑 Publishing CLASSIFICATION event: {classification.classifier_id} → {classification.regime} (from {classification.previous_regime})")
+        logger.debug(f"Full payload: {classification_event.payload}")
         
         # Publish to parent for cross-container visibility
         self._container.publish_event(classification_event, target_scope="parent")

@@ -1,3 +1,5 @@
 logs/
 tmp/
 *.log
+*.duckdb
+*.parquet
