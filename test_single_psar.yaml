@@ -1,0 +1,19 @@
+metadata:
+  experiment_id: test_psar
+  experiment_name: Test PSAR Strategy
+  version: "1.0"
+  description: Test single parabolic SAR strategy
+
+symbols: ["SPY"]
+timeframe: "1m"
+
+strategies:
+  - type: parabolic_sar
+    name: parabolic_sar_test
+    params:
+      af_start: 0.02
+      af_max: 0.2
+
+analytics:
+  store_signal_trace: true
+  store_classifier_trace: true

@@ -1002,7 +1002,7 @@ class Container:
         
         # Check execution configuration
         execution_config = self.config.config.get('execution', {})
-        if execution_config.get('track_metrics', False):
+        if execution_config and execution_config.get('track_metrics', False):
             return True
         
         # Check if results configuration requests metrics

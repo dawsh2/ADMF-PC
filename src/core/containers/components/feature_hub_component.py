@@ -98,11 +98,11 @@ class FeatureHubComponent:
             # Log progress occasionally
             if self._bars_processed % 20 == 0 or update_time > 0.01:
                 features_count = len(self._feature_hub.get_features(symbol))
-                logger.info(f"FeatureHub bar {self._bars_processed}: update_bar took {update_time*1000:.1f}ms for {features_count} features")
+                logger.debug(f"FeatureHub bar {self._bars_processed}: update_bar took {update_time*1000:.1f}ms for {features_count} features")
             
             if self._bars_processed % 100 == 0:
                 summary = self._feature_hub.get_feature_summary()
-                logger.info(f"FeatureHub processed {self._bars_processed} bars. "
+                logger.debug(f"FeatureHub processed {self._bars_processed} bars. "
                           f"Features computed: {summary['feature_counts']}")
         except Exception as e:
             logger.error(f"Error updating FeatureHub for {symbol}: {e}", exc_info=True)

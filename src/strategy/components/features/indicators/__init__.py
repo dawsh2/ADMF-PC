@@ -9,7 +9,7 @@ No inheritance - pure protocol + composition architecture.
 
 # Import all trend indicators
 from .trend import (
-    SMA, EMA, DEMA, TEMA, WMA, HMA, VWMA, IchimokuCloud,
+    SMA, EMA, DEMA, TEMA, WMA, HMA, VWMA, IchimokuCloud, ParabolicSAR,
     TREND_FEATURES
 )
 
@@ -65,7 +65,7 @@ __all__ = [
     'ALL_INDICATOR_FEATURES',
     
     # Trend indicators
-    'SMA', 'EMA', 'DEMA', 'TEMA', 'WMA', 'HMA', 'VWMA', 'IchimokuCloud',
+    'SMA', 'EMA', 'DEMA', 'TEMA', 'WMA', 'HMA', 'VWMA', 'IchimokuCloud', 'ParabolicSAR',
     
     # Oscillator indicators
     'RSI', 'StochasticOscillator', 'WilliamsR', 'CCI', 'StochasticRSI', 'MFI', 'UltimateOscillator',

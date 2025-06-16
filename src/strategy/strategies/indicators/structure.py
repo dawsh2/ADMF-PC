@@ -82,38 +82,37 @@ def fibonacci_retracement(features: Dict[str, Any], bar: Dict[str, Any], params:
     """
     fib_period = params.get('period', 50)
     
-    # Get features
-    fib_0 = features.get(f'fibonacci_retracement_{fib_period}_0')      # 0% (high)
-    fib_236 = features.get(f'fibonacci_retracement_{fib_period}_236')  # 23.6%
-    fib_382 = features.get(f'fibonacci_retracement_{fib_period}_382')  # 38.2%
-    fib_618 = features.get(f'fibonacci_retracement_{fib_period}_618')  # 61.8%
-    fib_100 = features.get(f'fibonacci_retracement_{fib_period}_100')  # 100% (low)
-    trend_direction = features.get(f'fibonacci_retracement_{fib_period}_trend')  # 1 for up, -1 for down
+    # Get Fibonacci features (they are decomposed with 'fib_' prefix and shortened levels)
+    fib_0 = features.get(f'fibonacci_retracement_{fib_period}_fib_0')      # 0% (high)
+    fib_382 = features.get(f'fibonacci_retracement_{fib_period}_fib_38')   # 38.2%
+    fib_618 = features.get(f'fibonacci_retracement_{fib_period}_fib_61')   # 61.8%
+    fib_100 = features.get(f'fibonacci_retracement_{fib_period}_fib_100')  # 100% (low)
+    
     price = bar.get('close', 0)
     
-    if fib_382 is None or fib_618 is None:
+    if fib_382 is None or fib_618 is None or fib_0 is None or fib_100 is None:
         return None
+    
+    # Determine trend direction from Fibonacci levels (fib_0 is high, fib_100 is low)
+    trend_direction = 1 if fib_0 > fib_100 else -1  # Simple trend determination
     
     # Determine signal based on Fibonacci zones and trend
     signal_value = 0
     
-    if trend_direction == 1:  # Uptrend
+    if trend_direction == 1:  # Uptrend (fib_0 > fib_100)
         if price > fib_382:
             signal_value = 1   # Above 38.2% - bullish continuation
         elif price < fib_618:
             signal_value = -1  # Below 61.8% - potential reversal
         else:
             signal_value = 0   # Between 38.2% and 61.8% - neutral zone
-    elif trend_direction == -1:  # Downtrend  
+    else:  # Downtrend (fib_0 < fib_100)
         if price < fib_618:
             signal_value = -1  # Below 61.8% - bearish continuation
         elif price > fib_382:
             signal_value = 1   # Above 38.2% - potential reversal
         else:
             signal_value = 0   # Between levels - neutral zone
-    else:
-        # No clear trend
-        signal_value = 0
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -273,16 +272,16 @@ def price_action_swing(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     """
     swing_period = params.get('period', 10)
     
-    # Get features
-    swing_high = features.get(f'swing_points_high_{swing_period}')
-    swing_low = features.get(f'swing_points_low_{swing_period}')
-    prev_swing_high = features.get(f'swing_points_prev_high_{swing_period}')
-    prev_swing_low = features.get(f'swing_points_prev_low_{swing_period}')
+    # Get swing points features (they are decomposed with correct parameter order)
+    swing_high = features.get(f'swing_points_{swing_period}_swing_high')
+    swing_low = features.get(f'swing_points_{swing_period}_swing_low')
+    prev_swing_high = features.get(f'swing_points_{swing_period}_prev_swing_high')
+    prev_swing_low = features.get(f'swing_points_{swing_period}_prev_swing_low')
     
     if swing_high is None or swing_low is None:
         return None
     
-    # Determine trend based on swing points
+    # Determine trend based on swing points - only activate when we have historical data
     signal_value = 0
     
     if prev_swing_high is not None and prev_swing_low is not None:
@@ -297,6 +296,7 @@ def price_action_swing(features: Dict[str, Any], bar: Dict[str, Any], params: Di
             signal_value = -1  # Downtrend
         else:
             signal_value = 0   # Mixed/ranging
+    # If we don't have prev_swing data yet, strategy stays inactive (returns 0)
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -320,46 +320,52 @@ def price_action_swing(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='pivot_channel_breaks',
-    feature_config=['pivot_channels'],  # Simple: just declare we need pivot channel features
-    param_feature_mapping={}
+    feature_config=['pivot_points', 'support_resistance'],  # Use existing features
+    param_feature_mapping={
+        'pivot_type': 'pivot_points_{pivot_type}',
+        'sr_period': 'support_resistance_{sr_period}'
+    }
 )
 def pivot_channel_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Pivot Channel breakout strategy.
+    Pivot Channel breakout strategy using pivot points and support/resistance.
     
-    Returns sustained signal based on channel breaks:
-    - 1: Price breaks above pivot high or upper channel
-    - -1: Price breaks below pivot low or lower channel
-    - 0: Price within channels
+    Returns sustained signal based on level breaks:
+    - 1: Price breaks above R1 or resistance level
+    - -1: Price breaks below S1 or support level
+    - 0: Price within levels
     """
-    channel_feature = 'pivot_channels'
+    pivot_type = params.get('pivot_type', 'standard')
+    sr_period = params.get('sr_period', 20)
+    breakout_threshold = params.get('breakout_threshold', 0.001)  # 0.1% threshold
     
-    # Get all pivot channel values
-    pivot_high = features.get(f'{channel_feature}_pivot_high')
-    pivot_low = features.get(f'{channel_feature}_pivot_low')
-    upper_channel = features.get(f'{channel_feature}_upper_channel')
-    lower_channel = features.get(f'{channel_feature}_lower_channel')
-    break_up = features.get(f'{channel_feature}_break_up', False)
-    break_down = features.get(f'{channel_feature}_break_down', False)
+    # Get pivot point features (they are decomposed by FeatureHub)
+    r1 = features.get(f'pivot_points_{pivot_type}_r1')
+    s1 = features.get(f'pivot_points_{pivot_type}_s1')
+    pivot = features.get(f'pivot_points_{pivot_type}_pivot')
+    
+    # Get support/resistance features (they are decomposed by FeatureHub)
+    resistance = features.get(f'support_resistance_{sr_period}_resistance')
+    support = features.get(f'support_resistance_{sr_period}_support')
     
     price = bar.get('close', 0)
     
-    if pivot_high is None or pivot_low is None:
+    if r1 is None or s1 is None:
         return None
     
-    # Determine signal based on breaks
-    signal_value = 0
+    if r1 is None or s1 is None:
+        return None
     
-    if break_up:
+    # Determine signal based on level breaks
+    signal_value = 0
+    upper_level = max(r1, resistance or r1)
+    lower_level = min(s1, support or s1)
+    
+    # Apply breakout threshold
+    if price > upper_level * (1 + breakout_threshold):
         signal_value = 1   # Bullish breakout
-    elif break_down:
+    elif price < lower_level * (1 - breakout_threshold):
         signal_value = -1  # Bearish breakdown
-    elif upper_channel and lower_channel:
-        # Check position within channels
-        if price > upper_channel:
-            signal_value = 1
-        elif price < lower_channel:
-            signal_value = -1
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -371,62 +377,71 @@ def pivot_channel_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: 
         'strategy_id': 'pivot_channel_breaks',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
+            'pivot_type': pivot_type,                 # Parameters for sparse storage separation
+            'sr_period': sr_period,
+            'breakout_threshold': breakout_threshold,
             'price': price,                           # Values for analysis
-            'pivot_high': pivot_high,
-            'pivot_low': pivot_low,
-            'upper_channel': upper_channel,
-            'lower_channel': lower_channel,
-            'channel_width': upper_channel - lower_channel if upper_channel and lower_channel else 0
+            'r1': r1,
+            's1': s1,
+            'resistance': resistance,
+            'support': support,
+            'upper_level': upper_level,
+            'lower_level': lower_level,
+            'channel_width': upper_level - lower_level
         }
     }
 
 
 @strategy(
     name='pivot_channel_bounces',
-    feature_config=['pivot_channels'],  # Simple: just declare we need pivot channel features
+    feature_config=['support_resistance'],  # Use existing support/resistance feature
     param_feature_mapping={
-        'min_touches': 'pivot_channels_{min_touches}'
+        'sr_period': 'support_resistance_{sr_period}'
     }
 )
 def pivot_channel_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Pivot Channel bounce strategy.
+    Support/Resistance bounce strategy.
     
-    Returns sustained signal based on channel bounces:
-    - 1: Price bounces from lower channel or pivot low
-    - -1: Price bounces from upper channel or pivot high
+    Returns sustained signal based on level bounces:
+    - 1: Price bounces from support level (mean reversion long)
+    - -1: Price bounces from resistance level (mean reversion short)
     - 0: No bounce detected
     """
-    channel_feature = 'pivot_channels'
+    sr_period = params.get('sr_period', 20)
     min_touches = params.get('min_touches', 2)
+    bounce_threshold = params.get('bounce_threshold', 0.002)  # 0.2% proximity for bounce
     
-    # Get bounce signals and touch counts
-    bounce_up = features.get(f'{channel_feature}_bounce_up', False)
-    bounce_down = features.get(f'{channel_feature}_bounce_down', False)
-    upper_touches = features.get(f'{channel_feature}_upper_touches', 0)
-    lower_touches = features.get(f'{channel_feature}_lower_touches', 0)
-    pivot_high_touches = features.get(f'{channel_feature}_pivot_high_touches', 0)
-    pivot_low_touches = features.get(f'{channel_feature}_pivot_low_touches', 0)
-    
-    # Get proximity scores
-    proximity_upper = features.get(f'{channel_feature}_proximity_upper', 0)
-    proximity_lower = features.get(f'{channel_feature}_proximity_lower', 0)
+    # Get support/resistance features (they are decomposed by FeatureHub)
+    resistance = features.get(f'support_resistance_{sr_period}_resistance')
+    support = features.get(f'support_resistance_{sr_period}_support')
     
     price = bar.get('close', 0)
+    high = bar.get('high', price)
+    low = bar.get('low', price)
     
-    # Determine signal based on bounces
+    if resistance is None and support is None:
+        return None
+    
+    # Determine signal based on proximity to levels
     signal_value = 0
     
-    # Only trade validated levels (minimum touches)
-    if bounce_up and (lower_touches >= min_touches or pivot_low_touches >= min_touches):
-        signal_value = 1   # Bullish bounce
-    elif bounce_down and (upper_touches >= min_touches or pivot_high_touches >= min_touches):
-        signal_value = -1  # Bearish bounce
-    elif proximity_lower > 0.8 and lower_touches >= min_touches:
-        # Anticipatory long when very close to validated support
+    # Check for bounce from support (mean reversion long)
+    if support and low <= support * (1 + bounce_threshold) and price > support:
+        # Price touched support and bounced up
         signal_value = 1
-    elif proximity_upper > 0.8 and upper_touches >= min_touches:
-        # Anticipatory short when very close to validated resistance
+    
+    # Check for bounce from resistance (mean reversion short)  
+    elif resistance and high >= resistance * (1 - bounce_threshold) and price < resistance:
+        # Price touched resistance and bounced down
+        signal_value = -1
+    
+    # Additional proximity-based signals
+    elif support and abs(price - support) / support < bounce_threshold / 2:
+        # Very close to support - anticipatory long
+        signal_value = 1
+    elif resistance and abs(price - resistance) / resistance < bounce_threshold / 2:
+        # Very close to resistance - anticipatory short
         signal_value = -1
     
     # Always return current signal state (sustained while conditions hold)
@@ -439,14 +454,14 @@ def pivot_channel_bounces(features: Dict[str, Any], bar: Dict[str, Any], params:
         'strategy_id': 'pivot_channel_bounces',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'min_touches': min_touches,               # Parameters for sparse storage separation
+            'sr_period': sr_period,                   # Parameters for sparse storage separation
+            'min_touches': min_touches,
+            'bounce_threshold': bounce_threshold,
             'price': price,                           # Values for analysis
-            'upper_touches': upper_touches,
-            'lower_touches': lower_touches,
-            'pivot_high_touches': pivot_high_touches,
-            'pivot_low_touches': pivot_low_touches,
-            'proximity_upper': proximity_upper,
-            'proximity_lower': proximity_lower
+            'resistance': resistance,
+            'support': support,
+            'support_distance': abs(price - support) / support if support else None,
+            'resistance_distance': abs(price - resistance) / resistance if resistance else None
         }
     }
 
@@ -454,9 +469,7 @@ def pivot_channel_bounces(features: Dict[str, Any], bar: Dict[str, Any], params:
 @strategy(
     name='trendline_breaks',
     feature_config=['trendlines'],  # Simple: just declare we need trendline features
-    param_feature_mapping={
-        'min_strength': 'trendlines_{min_strength}'
-    }
+    param_feature_mapping={}  # Use simple feature names without parameter mapping
 )
 def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -467,27 +480,32 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
     - -1: Price breaks below uptrend line
     - 0: No break or mixed signals
     """
-    min_strength = params.get('min_strength', 0.2)
+    pivot_lookback = params.get('pivot_lookback', 20)
+    min_touches = params.get('min_touches', 2)
+    tolerance = params.get('tolerance', 0.002)
     
-    # Get trendline data
-    recent_breaks = features.get('trendlines_recent_breaks', [])
+    # Get trendline features (using simple names from FeatureHub)
     valid_uptrends = features.get('trendlines_valid_uptrends', 0)
     valid_downtrends = features.get('trendlines_valid_downtrends', 0)
+    nearest_support = features.get('trendlines_nearest_support')
+    nearest_resistance = features.get('trendlines_nearest_resistance')
+    
+    if nearest_support is None and nearest_resistance is None:
+        return None
     
     price = bar.get('close', 0)
     
-    # Determine signal based on recent breaks
+    # Determine signal based on trendline strength and support/resistance
     signal_value = 0
     
-    if recent_breaks:
-        # Check most recent break
-        last_break = recent_breaks[-1]
-        
-        if last_break['type'] == 'downtrend':
-            # Breaking above downtrend is bullish
+    # Simple signal based on trendline strength and proximity to levels
+    if valid_downtrends > valid_uptrends and nearest_resistance:
+        # Stronger downtrends suggest resistance break could be bullish
+        if price > nearest_resistance * (1 + tolerance):
             signal_value = 1
-        elif last_break['type'] == 'uptrend':
-            # Breaking below uptrend is bearish
+    elif valid_uptrends > valid_downtrends and nearest_support:
+        # Stronger uptrends suggest support break could be bearish
+        if price < nearest_support * (1 - tolerance):
             signal_value = -1
     
     # Always return current signal state (sustained while conditions hold)
@@ -500,12 +518,14 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
         'strategy_id': 'trendline_breaks',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'min_strength': min_strength,             # Parameters for sparse storage separation
+            'pivot_lookback': pivot_lookback,         # Parameters for sparse storage separation
+            'min_touches': min_touches,
+            'tolerance': tolerance,
             'price': price,                           # Values for analysis
             'valid_uptrends': valid_uptrends,
             'valid_downtrends': valid_downtrends,
-            'break_count': len(recent_breaks),
-            'last_break': recent_breaks[-1] if recent_breaks else None
+            'nearest_support': nearest_support,
+            'nearest_resistance': nearest_resistance
         }
     }
 
@@ -513,10 +533,7 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
 @strategy(
     name='trendline_bounces',
     feature_config=['trendlines'],  # Simple: just declare we need trendline features
-    param_feature_mapping={
-        'min_touches': 'trendlines_{min_touches}',
-        'min_strength': 'trendlines_{min_strength}'
-    }
+    param_feature_mapping={}  # Use simple feature names without parameter mapping
 )
 def trendline_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -527,42 +544,34 @@ def trendline_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
     - -1: Price bounces from downtrend line
     - 0: No bounce or weak signal
     """
+    pivot_lookback = params.get('pivot_lookback', 20)
     min_touches = params.get('min_touches', 3)
-    min_strength = params.get('min_strength', 0.3)
+    tolerance = params.get('tolerance', 0.002)
     
-    # Get trendline data
-    recent_bounces = features.get('trendlines_recent_bounces', [])
+    # Get trendline features (using simple names from FeatureHub)
     nearest_support = features.get('trendlines_nearest_support')
     nearest_resistance = features.get('trendlines_nearest_resistance')
+    valid_uptrends = features.get('trendlines_valid_uptrends', 0)
+    valid_downtrends = features.get('trendlines_valid_downtrends', 0)
+    
+    if nearest_support is None and nearest_resistance is None:
+        return None
     
     price = bar.get('close', 0)
     
-    # Determine signal based on bounces
+    # Determine signal based on proximity to validated trendlines
     signal_value = 0
     
-    if recent_bounces:
-        # Filter bounces by minimum criteria
-        valid_bounces = [b for b in recent_bounces 
-                        if b['touches'] >= min_touches and b['strength'] >= min_strength]
-        
-        if valid_bounces:
-            # Use most recent valid bounce
-            last_bounce = valid_bounces[-1]
-            
-            if last_bounce['type'] == 'uptrend':
-                signal_value = 1   # Bullish bounce
-            elif last_bounce['type'] == 'downtrend':
-                signal_value = -1  # Bearish bounce
+    # Check proximity for bounce signals (mean reversion)
+    if nearest_support and valid_uptrends >= min_touches:
+        support_distance = (price - nearest_support) / price if price > nearest_support else 0
+        if support_distance < 0.002:  # Within 0.2% of validated support
+            signal_value = 1  # Bounce from support (long)
     
-    # Check proximity for anticipatory signals
-    elif nearest_support and price > nearest_support:
-        support_distance = (price - nearest_support) / price
-        if support_distance < 0.002:  # Within 0.2%
-            signal_value = 1  # Anticipatory long
-    elif nearest_resistance and price < nearest_resistance:
-        resistance_distance = (nearest_resistance - price) / price
-        if resistance_distance < 0.002:  # Within 0.2%
-            signal_value = -1  # Anticipatory short
+    elif nearest_resistance and valid_downtrends >= min_touches:
+        resistance_distance = (nearest_resistance - price) / price if price < nearest_resistance else 0
+        if resistance_distance < 0.002:  # Within 0.2% of validated resistance
+            signal_value = -1  # Bounce from resistance (short)
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -574,12 +583,15 @@ def trendline_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
         'strategy_id': 'trendline_bounces',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'min_touches': min_touches,               # Parameters for sparse storage separation
-            'min_strength': min_strength,
+            'pivot_lookback': pivot_lookback,         # Parameters for sparse storage separation
+            'min_touches': min_touches,
+            'tolerance': tolerance,
             'price': price,                           # Values for analysis
             'nearest_support': nearest_support,
             'nearest_resistance': nearest_resistance,
-            'bounce_count': len(recent_bounces),
-            'valid_bounces': len([b for b in recent_bounces if b['touches'] >= min_touches])
+            'valid_uptrends': valid_uptrends,
+            'valid_downtrends': valid_downtrends,
+            'support_distance': (price - nearest_support) / price if nearest_support and price > nearest_support else None,
+            'resistance_distance': (nearest_resistance - price) / price if nearest_resistance and price < nearest_resistance else None
         }
     }

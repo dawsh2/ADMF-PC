@@ -35,7 +35,8 @@ class ComponentState:
     def __init__(
         self,
         symbols: Optional[List[str]] = None,
-        feature_configs: Optional[Dict[str, Dict[str, Any]]] = None
+        feature_configs: Optional[Dict[str, Dict[str, Any]]] = None,
+        verbose_signals: bool = False
     ):
         """
         Initialize component state.
@@ -43,8 +44,10 @@ class ComponentState:
         Args:
             symbols: Initial symbols to track
             feature_configs: Feature configurations (used for readiness checks only)
+            verbose_signals: Whether to print signal generation to console
         """
         self._symbols = symbols or []
+        self._verbose_signals = verbose_signals
         
         # Feature configurations - only used for readiness checks now
         self._feature_configs = feature_configs or {}
@@ -304,9 +307,17 @@ class ComponentState:
         
         # Check if stateless components were passed from topology
         stateless_components = config.get('stateless_components', {})
-        logger.debug(f"ComponentState received stateless_components: {list(stateless_components.keys())}")
+        logger.info(f"ComponentState received stateless_components: {list(stateless_components.keys())}")
         for comp_type, components in stateless_components.items():
-            logger.debug(f"  {comp_type}: {list(components.keys()) if isinstance(components, dict) else components}")
+            if isinstance(components, dict):
+                logger.info(f"  {comp_type}: {len(components)} components")
+                # Show first few component names
+                for i, name in enumerate(list(components.keys())[:5]):
+                    logger.info(f"    - {name}")
+                if len(components) > 5:
+                    logger.info(f"    ... and {len(components) - 5} more")
+            else:
+                logger.info(f"  {comp_type}: {components}")
         
         # Handle legacy strategies (backwards compatibility)
         if strategies:
@@ -329,8 +340,8 @@ class ComponentState:
         """Load strategies (backwards compatibility)."""
         strategy_components = stateless_components.get('strategies', {})
         
-        logger.debug(f"STRATEGY LOADING: Found {len(strategies)} strategy configs")
-        logger.debug(f"STRATEGY LOADING: Found {len(strategy_components)} strategy functions from topology")
+        logger.info(f"STRATEGY LOADING: Found {len(strategies)} strategy configs")
+        logger.info(f"STRATEGY LOADING: Found {len(strategy_components)} strategy functions from topology")
         
         if strategy_components:
             logger.debug(f"Using {len(strategy_components)} strategies from topology")
@@ -533,14 +544,16 @@ class ComponentState:
         # Execute components individually based on their readiness
         execute_start = time.time()
         try:
-            self._execute_components_individually(symbol, features, bar_dict, event.timestamp)
+            # Use bar timestamp from payload instead of event execution timestamp
+            bar_timestamp = payload.get('timestamp', event.timestamp)
+            self._execute_components_individually(symbol, features, bar_dict, bar_timestamp)
         except Exception as e:
             logger.error(f"Error executing components for {symbol}: {e}", exc_info=True)
         execute_time = time.time() - execute_start
         
         total_time = time.time() - start_time
         if current_bar % 20 == 0 or total_time > 0.1:  # Log every 20 bars or if slow
-            logger.info(f"Bar {current_bar} timing: total={total_time*1000:.1f}ms, update={update_time*1000:.1f}ms, features={features_time*1000:.1f}ms, execute={execute_time*1000:.1f}ms")
+            logger.debug(f"Bar {current_bar} timing: total={total_time*1000:.1f}ms, update={update_time*1000:.1f}ms, features={features_time*1000:.1f}ms, execute={execute_time*1000:.1f}ms")
     
     def _execute_components_individually(self, symbol: str, features: Dict[str, Any], 
                                        bar: Dict[str, float], timestamp: datetime) -> None:
@@ -555,17 +568,24 @@ class ComponentState:
             ready_strategies = cached.get('strategies', [])
             
             if current_bars % 100 == 0:  # Log occasionally
-                logger.info(f"Bar {current_bars}: Using cached ready components - {len(ready_classifiers)} classifiers, {len(ready_strategies)} strategies")
+                logger.debug(f"Bar {current_bars}: Using cached ready components - {len(ready_classifiers)} classifiers, {len(ready_strategies)} strategies")
+                # Check for ready target strategies
+                target_strategies_ready = sum(1 for c_id, _ in ready_strategies if any(name in c_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']))
+                logger.debug(f"  Target strategies (parabolic_sar/supertrend/adx_trend) ready: {target_strategies_ready}")
         else:
             # During warmup, check readiness
             components_snapshot = list(self._components.items())
+            
+            # Debug: count total strategies
+            total_strategies = sum(1 for _, info in components_snapshot if info['component_type'] == 'strategy')
+            logger.debug(f"Bar {current_bars}: Total strategies: {total_strategies}")
             
             # Track which components are ready
             ready_classifiers = []
             ready_strategies = []
             
             if current_bars == 1 or current_bars % 20 == 0:  # Log occasionally for debugging
-                logger.info(f"Bar {current_bars}: Checking {len(components_snapshot)} components for readiness. Available features: {len(features)} features")
+                logger.debug(f"Bar {current_bars}: Checking {len(components_snapshot)} components for readiness. Available features: {len(features)} features")
             
             for component_id, component_info in components_snapshot:
                 component_type = component_info['component_type']
@@ -596,11 +616,20 @@ class ComponentState:
                     'strategies': ready_strategies
                 }
                 self._warmup_complete[symbol] = True
-                logger.info(f"Warmup complete for {symbol} at bar {current_bars}. Cached {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
+                
+                # Detailed logging for target strategies
+                target_strategies_ready = [c_id for c_id, _ in ready_strategies if any(name in c_id for name in ['parabolic_sar', 'supertrend', 'adx_trend'])]
+                target_strategies_not_ready = [c_id for c_id, _ in components_snapshot if any(name in c_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']) and c_id not in [r_id for r_id, _ in ready_strategies]]
+                
+                logger.debug(f"Warmup complete for {symbol} at bar {current_bars}. Cached {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
+                logger.debug(f"Target strategies ready: {len(target_strategies_ready)}")
+                logger.debug(f"Target strategies NOT ready: {len(target_strategies_not_ready)}")
+                if target_strategies_not_ready:
+                    logger.info(f"NOT ready strategies: {target_strategies_not_ready[:5]}...")  # Show first 5
         
         if ready_classifiers or ready_strategies:
             if current_bars <= self._warmup_bars or current_bars % 20 == 0:
-                logger.info(f"Bar {current_bars}: Executing {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
+                logger.debug(f"Bar {current_bars}: Executing {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
         
         # Execute ready classifiers first
         current_classifications = {}
@@ -641,6 +670,11 @@ class ComponentState:
         # Execute ready strategies
         for component_id, component_info in ready_strategies:
             try:
+                # Debug logging for missing strategies
+                if any(name in component_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']):
+                    if current_bars % 50 == 0:  # Log every 50 bars
+                        logger.debug(f"Executing {component_id} with {len(features)} features")
+                
                 result = component_info['function'](
                     features=features,
                     bar=bar,
@@ -688,13 +722,43 @@ class ComponentState:
         # Check if all required features are available and not None
         missing_features = []
         for feature_name in required_features:
-            if feature_name not in features:
-                missing_features.append(f"{feature_name} (not in dict)")
-            elif features[feature_name] is None:
-                missing_features.append(f"{feature_name} (is None)")
+            # Handle multi-value features (e.g., supertrend_10_3.0 -> supertrend_10_3.0_supertrend)
+            found = False
+            
+            # First check exact match
+            if feature_name in features:
+                if features[feature_name] is not None:
+                    found = True
+                else:
+                    missing_features.append(f"{feature_name} (is None)")
+            else:
+                # Check for sub-key features (multi-value features)
+                # For example: supertrend_10_3.0 might be stored as supertrend_10_3.0_supertrend
+                prefix = feature_name + '_'
+                matching_features = [k for k in features.keys() if k.startswith(prefix)]
+                
+                if matching_features:
+                    # Found sub-keys, check if at least one has a value
+                    has_value = any(features[k] is not None for k in matching_features)
+                    if has_value:
+                        found = True
+                    else:
+                        missing_features.append(f"{feature_name} (all sub-keys are None)")
+                else:
+                    missing_features.append(f"{feature_name} (not in dict)")
         
         if missing_features and current_bars == 20:  # Log at bar 20 for debugging
-            logger.debug(f"Component {component_id} at bar 20 - Required: {required_features}, Missing: {missing_features}, Available: {list(features.keys())[:10]}...")
+            # Special logging for target strategies
+            if any(name in component_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']):
+                logger.info(f"NOT READY STRATEGY: {component_id} at bar 20")
+                logger.info(f"  Required: {required_features}")
+                logger.info(f"  Missing: {missing_features}")
+                # Check for partial matches in available features
+                partial_matches = [k for k in features.keys() if any(req.split('_')[0] in k for req in required_features)]
+                logger.info(f"  Partial feature matches: {partial_matches[:10]}")
+                logger.info(f"  Total available features: {len(features)}")
+            else:
+                logger.debug(f"Component {component_id} at bar 20 - Required: {required_features}, Missing: {missing_features}, Available: {list(features.keys())[:10]}...")
         
         return len(missing_features) == 0
         
@@ -702,7 +766,12 @@ class ComponentState:
     
     def _get_strategy_required_features(self, component_id: str, params: Dict[str, Any]) -> List[str]:
         """Get the specific features this strategy needs by extracting from function metadata."""
-        logger.debug(f"Getting required features for {component_id} with params: {params}")
+        # Add debug logging for target strategies
+        is_target_strategy = any(name in component_id for name in ['parabolic_sar', 'supertrend', 'adx_trend'])
+        if is_target_strategy:
+            logger.debug(f"Getting required features for TARGET STRATEGY {component_id} with params: {params}")
+        else:
+            logger.debug(f"Getting required features for {component_id} with params: {params}")
         
         # First, try to get the strategy function and extract its feature config
         component_info = self._components.get(component_id)
@@ -785,14 +854,20 @@ class ComponentState:
                             required_features.append(feature_base)
                 
                 if required_features:
-                    logger.debug(f"Extracted features from {component_id} metadata: {required_features}")
+                    if is_target_strategy:
+                        logger.debug(f"Extracted features from TARGET STRATEGY {component_id} metadata: {required_features}")
+                    else:
+                        logger.debug(f"Extracted features from {component_id} metadata: {required_features}")
                     return required_features
             else:
                 logger.debug(f"No _strategy_metadata found for {component_id}")
         
         # Fallback: try to infer from parameters and component type
         strategy_type = params.get('_strategy_type', '')
-        logger.debug(f"FALLBACK: Using fallback for {component_id}, strategy_type: {strategy_type}, params: {params}")
+        if is_target_strategy:
+            logger.info(f"FALLBACK: Using fallback for TARGET STRATEGY {component_id}, strategy_type: {strategy_type}, params: {params}")
+        else:
+            logger.debug(f"FALLBACK: Using fallback for {component_id}, strategy_type: {strategy_type}, params: {params}")
         
         # Handle specific strategy types
         if 'momentum' in component_id.lower() or strategy_type == 'simple_momentum':
@@ -1058,7 +1133,7 @@ class ComponentState:
                         }
                     )
                     self._publish_signal(signal)
-                    logger.info(f"Published signal for {component_id}: direction={direction}, signal_value={signal_value}")
+                    logger.debug(f"Published signal for {component_id}: direction={direction}, signal_value={signal_value}")
                 else:
                     logger.debug(f"Not publishing flat signal for {component_id}: signal_value={signal_value}")
                 
@@ -1113,9 +1188,13 @@ class ComponentState:
         
         logger.debug(f"📡 Publishing SIGNAL event: {signal_event.event_type} with payload: {signal_event.payload}")
         
-        # Console output for signal visibility
-        signal_type = signal.direction.name if hasattr(signal, 'direction') else 'UNKNOWN'
-        print(f"📡 SIGNAL: {signal.source} → {signal_type} @ {signal.timestamp}")
+        # Console output for signal visibility (removed spam)
+        if hasattr(signal.direction, 'name'):
+            signal_type = signal.direction.name
+        else:
+            signal_type = str(signal.direction).upper()
+        if self._verbose_signals:
+            print(f"📡 SIGNAL: {signal.strategy_id} → {signal_type} @ {signal.timestamp}")
         
         # Publish to parent for cross-container visibility
         self._container.publish_event(signal_event, target_scope="parent")

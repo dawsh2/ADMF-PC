@@ -63,7 +63,7 @@ class Event:
     container_id: Optional[str] = None
     correlation_id: Optional[str] = None
     causation_id: Optional[str] = None
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     event_id: str = field(default_factory=lambda: f"evt_{uuid.uuid4().hex[:12]}")
     sequence_number: Optional[int] = None

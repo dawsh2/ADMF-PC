@@ -1,0 +1,19 @@
+data_dir: ./data
+data_source: file
+end_date: '2023-01-05'
+execution:
+  enable_event_tracing: false
+max_bars: 100
+name: debug_aroon
+start_date: '2023-01-01'
+strategies:
+- name: aroon_debug
+  params:
+    aroon_period: 14
+    oscillator_threshold: 30
+  type: aroon_oscillator
+symbols:
+- SPY
+timeframes:
+- 1m
+topology: signal_generation

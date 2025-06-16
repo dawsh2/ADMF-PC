@@ -24,7 +24,8 @@ from .crossovers import (
     tema_sma_crossover,
     stochastic_crossover,
     vortex_crossover,
-    ichimoku_cloud_position
+    ichimoku_cloud_position,
+    macd_crossover
 )
 
 # Import oscillator strategies  
@@ -50,11 +51,11 @@ from .momentum import (
     adx_trend_strength_strategy,
     aroon_oscillator_strategy,
     vortex_trend_strategy,
-    momentum_composite_strategy
+    elder_ray_strategy
 )
 
 __all__ = [
-    # Crossover strategies (9 total)
+    # Crossover strategies (10 total)
     'sma_crossover',
     'ema_sma_crossover', 
     'ema_crossover',
@@ -64,6 +65,7 @@ __all__ = [
     'stochastic_crossover',
     'vortex_crossover',
     'ichimoku_cloud_position',
+    'macd_crossover',
     
     # Oscillator strategies (4 total)
     'rsi_threshold',
@@ -83,5 +85,5 @@ __all__ = [
     'adx_trend_strength_strategy',
     'aroon_oscillator_strategy',
     'vortex_trend_strategy',
-    'momentum_composite_strategy'
+    'elder_ray_strategy'
 ]

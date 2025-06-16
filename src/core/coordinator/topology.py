@@ -471,13 +471,15 @@ class TopologyBuilder:
             'linear_regression': {'params': ['period'], 'defaults': [20]},
             'parabolic_sar': {'params': ['af_start', 'af_max'], 'defaults': [0.02, 0.2]},
             'ultimate_oscillator': {'params': ['period1', 'period2', 'period3'], 'defaults': [7, 14, 28]},
-            'support_resistance': {'params': ['period'], 'defaults': [50]},
-            'fibonacci_retracement': {'params': ['period'], 'defaults': [50]},
-            'swing_points': {'params': ['period'], 'defaults': [5]},
+            'ichimoku': {'params': ['conversion_period', 'base_period'], 'defaults': [9, 26]},
+            'support_resistance': {'params': ['lookback', 'min_touches'], 'defaults': [50, 2]},
+            'fibonacci_retracement': {'params': [], 'defaults': []},  # No parameters
+            'swing_points': {'params': ['lookback'], 'defaults': [5]},
             'pivot_points': {'params': [], 'defaults': []},  # No parameters
             'stochastic_rsi': {'params': ['rsi_period', 'stoch_period'], 'defaults': [14, 14]},
             'atr_sma': {'params': ['atr_period', 'sma_period'], 'defaults': [14, 20]},
             'volatility_sma': {'params': ['vol_period', 'sma_period'], 'defaults': [20, 20]},
+            'trendlines': {'params': ['pivot_lookback', 'min_touches', 'tolerance'], 'defaults': [20, 2, 0.002]},
         }
         
         # First check if it's a compound feature
@@ -536,12 +538,12 @@ class TopologyBuilder:
             try:
                 return {
                     'type': 'macd',
-                    'fast': int(parts[1]),
-                    'slow': int(parts[2]),
-                    'signal': int(parts[3])
+                    'fast_period': int(parts[1]),
+                    'slow_period': int(parts[2]),
+                    'signal_period': int(parts[3])
                 }
             except ValueError:
-                return {'type': 'macd', 'fast': 12, 'slow': 26, 'signal': 9}
+                return {'type': 'macd', 'fast_period': 12, 'slow_period': 26, 'signal_period': 9}
         
         # Handle stochastic (2 parameters: k_period, d_period)
         elif feature_type == 'stochastic' and len(parts) >= 3:
@@ -1057,6 +1059,20 @@ class TopologyBuilder:
                         # Add all generated feature names
                         required_features.update(feature_names_generated)
                         self.logger.debug(f"Generated features for '{strategy_type}' using param_feature_mapping: {feature_names_generated}")
+                        
+                        # IMPORTANT: Also add base features from feature_config that don't need parameters
+                        # For example, obv_trend needs both 'obv' (base) and 'sma_{period}' (parameterized)
+                        for feature_name in feature_config:
+                            # Check if this feature is covered by param_feature_mapping by checking if 
+                            # any template starts with the feature name followed by underscore or equals
+                            is_parameterized = any(
+                                template.startswith(feature_name + '_') or template == feature_name
+                                for template in strategy_param_mapping.values()
+                            )
+                            if not is_parameterized:
+                                # This is a base feature without parameters - add it directly
+                                required_features.add(feature_name)
+                                self.logger.debug(f"Added base feature '{feature_name}' for strategy '{strategy_type}'")
                     else:
                         # Check if strategy has parameters that would affect feature names
                         has_feature_affecting_params = any(
@@ -1066,7 +1082,7 @@ class TopologyBuilder:
                         
                         if has_feature_affecting_params:
                             # Only warn if strategy has parameters that should affect feature names
-                            self.logger.warning(f"Strategy '{strategy_type}' missing param_feature_mapping - using simple feature names")
+                            self.logger.debug(f"Strategy '{strategy_type}' missing param_feature_mapping - using simple feature names")
                         else:
                             # Strategy uses hardcoded periods, no warning needed
                             self.logger.debug(f"Strategy '{strategy_type}' uses hardcoded periods - no param_feature_mapping needed")
@@ -1183,7 +1199,7 @@ class TopologyBuilder:
                         
                         if has_feature_affecting_params:
                             # Only warn if classifier has parameters that should affect feature names
-                            self.logger.warning(f"Classifier '{classifier_type}' missing param_feature_mapping - using simple feature names")
+                            self.logger.debug(f"Classifier '{classifier_type}' missing param_feature_mapping - using simple feature names")
                         else:
                             # Classifier uses hardcoded periods, no warning needed
                             self.logger.debug(f"Classifier '{classifier_type}' uses hardcoded periods - no param_feature_mapping needed")
@@ -1286,7 +1302,7 @@ class TopologyBuilder:
                     if comp_type not in components:
                         components[comp_type] = {}
                     components[comp_type][name] = component
-                    self.logger.debug(f"Added {comp_type} component: {name}")
+                    self.logger.info(f"Added {comp_type} component: {name} (type: {item.get('type')})")
         else:
             # Create single component
             component = self._create_single_component(comp_type, comp_spec)
@@ -1360,6 +1376,12 @@ class TopologyBuilder:
         components = container_spec.get('components', [])
         config = self._resolve_value(container_spec.get('config', {}), context)
         parent_name = container_spec.get('parent')
+        
+        # Inject stateless components into strategy containers
+        if container_type == 'strategy' and 'components' in context:
+            self.logger.info(f"Injecting stateless components into {container_name} config")
+            config['stateless_components'] = context['components']
+            self.logger.info(f"Injected stateless_components: {list(context['components'].keys())}")
         
         # Determine parent event bus
         parent_event_bus = None

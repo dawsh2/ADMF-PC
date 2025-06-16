@@ -105,6 +105,18 @@ class ContainerFactory:
             else:
                 logger.warning(f"Unknown component: {component_name}")
         
+        # Wire components together if both feature_hub and strategy_state exist
+        if 'feature_hub' in components and 'strategy_state' in components:
+            feature_hub_component = container.get_component('feature_hub')
+            strategy_state = container.get_component('strategy_state')
+            
+            if feature_hub_component and strategy_state:
+                # Connect ComponentState directly to FeatureHub in same container
+                if hasattr(feature_hub_component, 'get_feature_hub'):
+                    feature_hub = feature_hub_component.get_feature_hub()
+                    strategy_state._feature_hub = feature_hub
+                    logger.info(f"Wired strategy_state to feature_hub in container {name}")
+        
         return container
     
     def _create_component(self, component_name: str, config: Optional[Dict[str, Any]] = None) -> Optional[Any]:

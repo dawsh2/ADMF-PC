@@ -226,14 +226,14 @@ class LinearRegression:
         return self._state.name
     
     @property
-    def value(self) -> Optional[float]:
+    def value(self) -> Optional[Dict[str, float]]:
         return self._state.value
     
     @property
     def is_ready(self) -> bool:
         return self._state.is_ready
     
-    def update(self, price: float, **kwargs) -> Optional[float]:
+    def update(self, price: float, **kwargs) -> Optional[Dict[str, float]]:
         self._price_buffer.append(price)
         
         if len(self._price_buffer) == self.period:
@@ -247,7 +247,21 @@ class LinearRegression:
                 slope = (n * xy_sum - self._x_sum * y_sum) / denominator
                 intercept = (y_sum - slope * self._x_sum) / n
                 current_value = slope * (self.period - 1) + intercept
-                self._state.set_value(current_value)
+                
+                # Calculate R-squared
+                y_mean = y_sum / n
+                ss_tot = sum((y - y_mean) ** 2 for y in self._price_buffer)
+                ss_res = sum((y - (slope * x + intercept)) ** 2 for x, y in zip(self._x_values, self._price_buffer))
+                r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
+                
+                # Return multi-value result with slope, intercept, and r_squared
+                result = {
+                    'value': current_value,
+                    'slope': slope,
+                    'intercept': intercept,
+                    'r2': r_squared
+                }
+                self._state.set_value(result)
         
         return self._state.value
     
@@ -316,8 +330,8 @@ class TrendLines:
         self.tolerance = tolerance
         self.max_lines = max_lines
         
-        self._high_buffer = deque(maxlen=pivot_lookback * 2 + 1)
-        self._low_buffer = deque(maxlen=pivot_lookback * 2 + 1)
+        self._high_buffer = deque(maxlen=pivot_lookback * 4)  # Larger buffer for pivot detection
+        self._low_buffer = deque(maxlen=pivot_lookback * 4)
         self._bar_index = 0
         self._pivot_highs: List[Tuple[int, float]] = []
         self._pivot_lows: List[Tuple[int, float]] = []
@@ -345,20 +359,80 @@ class TrendLines:
         self._high_buffer.append(high)
         self._low_buffer.append(low)
         
-        # Simplified trendline detection for O(1) performance
+        # Simplified pivot detection - look for simple swing points
+        # Use a small lookback for practical pivot detection
+        lookback = 1  # Use 1 bar lookback for reliable swing detection
+        
+        if len(self._high_buffer) >= 2 * lookback + 1:
+            buffer_len = len(self._high_buffer)
+            
+            # Check the bar that is 'lookback' bars from the end
+            # This ensures we have 'lookback' bars on both sides
+            mid_idx = buffer_len - lookback - 1
+            
+            if mid_idx >= lookback:  # Ensure we have enough bars on both sides
+                mid_high = self._high_buffer[mid_idx]
+                mid_low = self._low_buffer[mid_idx]
+                
+                # Check for pivot high (higher than both sides)
+                is_pivot_high = True
+                for i in range(1, lookback + 1):
+                    left_idx = mid_idx - i
+                    right_idx = mid_idx + i
+                    if (left_idx >= 0 and self._high_buffer[left_idx] >= mid_high) or \
+                       (right_idx < buffer_len and self._high_buffer[right_idx] >= mid_high):
+                        is_pivot_high = False
+                        break
+                
+                if is_pivot_high:
+                    # Store with the actual bar index when this pivot occurred
+                    pivot_bar_idx = self._bar_index - (buffer_len - 1 - mid_idx)
+                    self._pivot_highs.append((pivot_bar_idx, mid_high))
+                    # Keep only recent pivots
+                    if len(self._pivot_highs) > self.max_lines:
+                        self._pivot_highs.pop(0)
+                
+                # Check for pivot low (lower than both sides)
+                is_pivot_low = True
+                for i in range(1, lookback + 1):
+                    left_idx = mid_idx - i
+                    right_idx = mid_idx + i
+                    if (left_idx >= 0 and self._low_buffer[left_idx] <= mid_low) or \
+                       (right_idx < buffer_len and self._low_buffer[right_idx] <= mid_low):
+                        is_pivot_low = False
+                        break
+                
+                if is_pivot_low:
+                    # Store with the actual bar index when this pivot occurred
+                    pivot_bar_idx = self._bar_index - (buffer_len - 1 - mid_idx)
+                    self._pivot_lows.append((pivot_bar_idx, mid_low))
+                    # Keep only recent pivots
+                    if len(self._pivot_lows) > self.max_lines:
+                        self._pivot_lows.pop(0)
+        
+        # Generate trendline data once we have pivot points
         if len(self._pivot_highs) >= 2 or len(self._pivot_lows) >= 2:
             nearest_support = None
             nearest_resistance = None
             
-            # Simple approximation for demo
+            # Find nearest levels above and below current price
             if self._pivot_lows:
-                nearest_support = max(p[1] for p in self._pivot_lows if p[1] < price)
+                below_pivots = [p[1] for p in self._pivot_lows if p[1] < price]
+                if below_pivots:
+                    nearest_support = max(below_pivots)
+            
             if self._pivot_highs:
-                nearest_resistance = min(p[1] for p in self._pivot_highs if p[1] > price)
+                above_pivots = [p[1] for p in self._pivot_highs if p[1] > price]
+                if above_pivots:
+                    nearest_resistance = min(above_pivots)
+            
+            # Count valid trend lines (simplified: number of pivot points that could form trends)
+            valid_uptrends = len(self._pivot_lows) if len(self._pivot_lows) >= self.min_touches else 0
+            valid_downtrends = len(self._pivot_highs) if len(self._pivot_highs) >= self.min_touches else 0
             
             self._state.set_value({
-                "valid_uptrends": len(self._uptrend_lines),
-                "valid_downtrends": len(self._downtrend_lines),
+                "valid_uptrends": valid_uptrends,
+                "valid_downtrends": valid_downtrends,
                 "nearest_support": nearest_support,
                 "nearest_resistance": nearest_resistance,
                 "strongest_uptrend": 0.5,  # Simplified

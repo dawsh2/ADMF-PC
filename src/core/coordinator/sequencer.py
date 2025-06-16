@@ -671,13 +671,24 @@ class Sequencer:
         return metrics
     
     def _collect_phase_results(self, topology: Dict[str, Any]) -> Dict[str, Any]:
-        """Collect results from all portfolio containers."""
+        """Collect results from all portfolio containers and finalize tracers."""
         results = {
             'container_results': {},
             'aggregate_metrics': {},
             'trades': [],
             'equity_curves': {}
         }
+        
+        # Finalize MultiStrategyTracer if present
+        if 'multi_strategy_tracer' in topology:
+            logger.info("Found multi_strategy_tracer in topology, finalizing...")
+            from ..events.tracer_setup import finalize_multi_strategy_tracer
+            tracer_results = finalize_multi_strategy_tracer(topology)
+            if tracer_results:
+                results['tracer_results'] = tracer_results
+                logger.info(f"MultiStrategyTracer finalized with {len(tracer_results.get('components', {}))} components")
+            else:
+                logger.warning("MultiStrategyTracer finalization returned None")
         
         containers = topology.get('containers', {})
         portfolio_results = []
@@ -792,7 +803,8 @@ class Sequencer:
             # Keep everything in memory (risky for large runs)
             result.update({
                 'phase_results': phase_results,
-                'aggregate_metrics': phase_results.get('aggregate_metrics', {})
+                'aggregate_metrics': phase_results.get('aggregate_metrics', {}),
+                'tracer_results': phase_results.get('tracer_results', {})
             })
         
         return result

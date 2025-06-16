@@ -34,9 +34,9 @@ def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     adx_threshold = params.get('adx_threshold', 25)
     
     # Get features
-    adx = features.get(f'adx_{adx_period}')
-    di_plus = features.get(f'adx_{di_period}_di_plus')
-    di_minus = features.get(f'adx_{di_period}_di_minus')
+    adx = features.get(f'adx_{adx_period}_adx')
+    di_plus = features.get(f'adx_{adx_period}_di_plus')
+    di_minus = features.get(f'adx_{adx_period}_di_minus')
     
     if adx is None or di_plus is None or di_minus is None:
         logger.debug(f"adx_trend_strength waiting for features: adx={adx is not None}, di_plus={di_plus is not None}, di_minus={di_minus is not None}")
@@ -202,8 +202,9 @@ def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
     multiplier = params.get('multiplier', 3.0)
     
     # Get features
-    supertrend_value = features.get(f'supertrend_{period}_{multiplier}')
-    supertrend_direction = features.get(f'supertrend_{period}_{multiplier}_direction')
+    # SuperTrend returns multiple values, need to access the sub-keys
+    supertrend_value = features.get(f'supertrend_{period}_{multiplier}_supertrend')
+    supertrend_direction = features.get(f'supertrend_{period}_{multiplier}_trend')
     price = bar.get('close', 0)
     
     if supertrend_value is None:
@@ -211,7 +212,7 @@ def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
     
     # Use direction if available, otherwise compare price to supertrend
     if supertrend_direction is not None:
-        signal_value = int(supertrend_direction)  # 1 for up, -1 for down
+        signal_value = 1 if supertrend_direction == 1 else -1  # trend: 1 for up, -1 for down
     else:
         if price > supertrend_value:
             signal_value = 1   # Uptrend

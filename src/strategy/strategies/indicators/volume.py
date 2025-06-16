@@ -29,7 +29,7 @@ def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
     
     # Get features
     obv = features.get('obv')
-    obv_sma = features.get(f'obv_sma_{obv_sma_period}')
+    obv_sma = features.get(f'sma_{obv_sma_period}')
     
     if obv is None or obv_sma is None:
         return None
@@ -117,10 +117,7 @@ def mfi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='vwap_deviation',
-    feature_config=['vwap'],  # Simple: just declare we need VWAP features
-    param_feature_mapping={
-        'std_multiplier': 'vwap_{std_multiplier}'
-    }
+    feature_config=['vwap']  # Simple: just declare we need VWAP features (no parameters needed)
 )
 def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -135,18 +132,16 @@ def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
     
     # Get features
     vwap = features.get('vwap')
-    vwap_upper = features.get(f'vwap_upper_{std_multiplier}')
-    vwap_lower = features.get(f'vwap_lower_{std_multiplier}')
     price = bar.get('close', 0)
     
     if vwap is None:
         return None
     
-    # Use VWAP bands if available, otherwise use percentage bands
-    if vwap_upper is None or vwap_lower is None:
-        band_pct = params.get('band_pct', 0.02)  # 2% default
-        vwap_upper = vwap * (1 + band_pct)
-        vwap_lower = vwap * (1 - band_pct)
+    # Calculate VWAP bands using percentage-based approach
+    # Since VWAP doesn't have standard deviation bands built-in, use percentage bands
+    band_pct = params.get('band_pct', 0.02)  # 2% default bands
+    vwap_upper = vwap * (1 + band_pct)
+    vwap_lower = vwap * (1 - band_pct)
     
     # Determine signal based on deviation
     if price > vwap_upper:

@@ -394,6 +394,7 @@ VOLUME_FEATURES = {
     "vpt": VPT,
     "cmf": ChaikinMoneyFlow,
     "chaikin_money_flow": ChaikinMoneyFlow,  # Alias
+    "ad": AccDistLine,  # Short alias for accumulation_distribution strategy
     "ad_line": AccDistLine,
     "accumulation_distribution": AccDistLine,  # Alias
     "vroc": VROC,

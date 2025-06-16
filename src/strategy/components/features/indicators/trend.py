@@ -417,6 +417,141 @@ class IchimokuCloud:
         self._senkou_span_b_buffer.clear()
 
 
+class ParabolicSAR:
+    """
+    Parabolic SAR (Stop and Reverse) with O(1) updates.
+    
+    The Parabolic SAR is a trend-following indicator that provides
+    potential reversal points. It uses an acceleration factor that
+    increases as the trend extends.
+    """
+    
+    def __init__(self, af_start: float = 0.02, af_max: float = 0.2, name: str = "psar"):
+        """
+        Initialize Parabolic SAR.
+        
+        Args:
+            af_start: Initial acceleration factor (default 0.02)
+            af_max: Maximum acceleration factor (default 0.2)
+            name: Feature name
+        """
+        self._state = FeatureState(name)
+        self.af_start = af_start
+        self.af_max = af_max
+        self.af_increment = af_start
+        
+        # PSAR calculation state
+        self.psar = None
+        self.ep = None  # Extreme point
+        self.af = af_start
+        self.trend = None  # 1 for uptrend, -1 for downtrend
+        self.high = None
+        self.low = None
+        
+        # Previous bar values for trend detection
+        self.prev_psar = None
+        self.prev_high = None
+        self.prev_low = None
+        
+    @property
+    def name(self) -> str:
+        return self._state.name
+    
+    @property
+    def value(self) -> Optional[float]:
+        return self._state.value
+    
+    @property
+    def is_ready(self) -> bool:
+        return self._state.is_ready
+    
+    def update(self, high: float, low: float, close: float, **kwargs) -> Optional[float]:
+        """
+        Update PSAR with new price data.
+        
+        Args:
+            high: High price
+            low: Low price
+            close: Close price (used for initialization)
+            
+        Returns:
+            Current PSAR value
+        """
+        # First bar initialization
+        if self.psar is None:
+            self.psar = low
+            self.ep = high
+            self.trend = 1  # Start with uptrend
+            self.high = high
+            self.low = low
+            self._state.set_value(self.psar)
+            return self.psar
+        
+        # Store previous values
+        self.prev_psar = self.psar
+        self.prev_high = self.high
+        self.prev_low = self.low
+        self.high = high
+        self.low = low
+        
+        # Calculate new PSAR
+        if self.trend == 1:  # Uptrend
+            # Update PSAR
+            self.psar = self.psar + self.af * (self.ep - self.psar)
+            
+            # Make sure PSAR is not above the prior two lows
+            if self.prev_low is not None:
+                self.psar = min(self.psar, self.prev_low, self.low)
+            
+            # Check for new extreme point
+            if high > self.ep:
+                self.ep = high
+                self.af = min(self.af + self.af_increment, self.af_max)
+            
+            # Check for trend reversal
+            if low <= self.psar:
+                self.trend = -1
+                self.psar = self.ep
+                self.ep = low
+                self.af = self.af_start
+                
+        else:  # Downtrend
+            # Update PSAR
+            self.psar = self.psar + self.af * (self.ep - self.psar)
+            
+            # Make sure PSAR is not below the prior two highs
+            if self.prev_high is not None:
+                self.psar = max(self.psar, self.prev_high, self.high)
+            
+            # Check for new extreme point
+            if low < self.ep:
+                self.ep = low
+                self.af = min(self.af + self.af_increment, self.af_max)
+            
+            # Check for trend reversal
+            if high >= self.psar:
+                self.trend = 1
+                self.psar = self.ep
+                self.ep = high
+                self.af = self.af_start
+        
+        self._state.set_value(self.psar)
+        return self.psar
+    
+    def reset(self) -> None:
+        """Reset the indicator state."""
+        self._state.reset()
+        self.psar = None
+        self.ep = None
+        self.af = self.af_start
+        self.trend = None
+        self.high = None
+        self.low = None
+        self.prev_psar = None
+        self.prev_high = None
+        self.prev_low = None
+
+
 # Trend feature registry for the FeatureHub factory
 TREND_FEATURES = {
     "sma": SMA,
@@ -427,4 +562,6 @@ TREND_FEATURES = {
     "hma": HMA,
     "vwma": VWMA,
     "ichimoku": IchimokuCloud,
+    "psar": ParabolicSAR,
+    "parabolic_sar": ParabolicSAR,  # Alias
 }

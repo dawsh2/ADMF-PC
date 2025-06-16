@@ -36,6 +36,13 @@ from .multi_state_classifiers import (
     hidden_markov_classifier
 )
 
+# Import intraday ORB classifiers
+from .intraday_orb_classifiers import (
+    intraday_orb_classifier,
+    microstructure_momentum_classifier,
+    session_pattern_classifier
+)
+
 # Old class-based classifiers moved to tmp/deprecated_classifiers/
 # Now using pure function classifiers with @classifier decorator
 
@@ -58,5 +65,10 @@ __all__ = [
     'volatility_momentum_classifier',
     'market_regime_classifier',
     'microstructure_classifier',
-    'hidden_markov_classifier'
+    'hidden_markov_classifier',
+    
+    # Intraday ORB classifiers
+    'intraday_orb_classifier',
+    'microstructure_momentum_classifier',
+    'session_pattern_classifier'
 ]

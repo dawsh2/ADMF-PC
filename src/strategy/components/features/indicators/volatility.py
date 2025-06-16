@@ -401,6 +401,4 @@ VOLATILITY_FEATURES = {
     "volatility": Volatility,
     "supertrend": SuperTrend,
     "vwap": VWAP,
-    "psar": SuperTrend,  # Temporary mapping until PSAR is implemented
-    "parabolic_sar": SuperTrend,  # Temporary mapping
 }

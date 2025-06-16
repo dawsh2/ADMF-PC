@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @strategy(
-    name='macd_crossover',
+    name='macd_crossover_strategy',
     feature_config=['macd'],  # Topology builder infers parameters from strategy logic
     param_feature_mapping={
         'fast_period': 'macd_{fast_period}_{slow_period}_{signal_period}',
@@ -282,15 +282,10 @@ def aroon_oscillator_strategy(features: Dict[str, Any], bar: Dict[str, Any], par
     aroon_period = params.get('aroon_period', 25)
     oscillator_threshold = params.get('oscillator_threshold', 50)
     
-    # Get Aroon features
-    aroon_data = features.get(f'aroon_{aroon_period}')
-    
-    if not aroon_data or not isinstance(aroon_data, dict):
-        return None
-    
-    aroon_up = aroon_data.get('up')
-    aroon_down = aroon_data.get('down')
-    aroon_oscillator = aroon_data.get('oscillator')
+    # Get Aroon features (they are decomposed into separate keys)
+    aroon_up = features.get(f'aroon_{aroon_period}_up')
+    aroon_down = features.get(f'aroon_{aroon_period}_down')
+    aroon_oscillator = features.get(f'aroon_{aroon_period}_oscillator')
     
     if aroon_oscillator is None:
         return None
@@ -344,14 +339,9 @@ def vortex_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params:
     vortex_period = params.get('vortex_period', 14)
     crossover_threshold = params.get('crossover_threshold', 0.02)  # Minimum spread for signal
     
-    # Get Vortex features
-    vortex_data = features.get(f'vortex_{vortex_period}')
-    
-    if not vortex_data or not isinstance(vortex_data, dict):
-        return None
-    
-    vi_plus = vortex_data.get('vi_plus')
-    vi_minus = vortex_data.get('vi_minus')
+    # Get Vortex features (they are decomposed into separate keys)
+    vi_plus = features.get(f'vortex_{vortex_period}_vi_plus')
+    vi_minus = features.get(f'vortex_{vortex_period}_vi_minus')
     
     if vi_plus is None or vi_minus is None:
         return None
@@ -388,121 +378,87 @@ def vortex_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params:
 
 
 @strategy(
-    name='momentum_composite',
-    feature_config=['macd', 'roc', 'adx'],  # Multi-indicator momentum strategy
+    name='elder_ray',
+    feature_config=['ema'],  # Elder Ray uses EMA as baseline
     param_feature_mapping={
-        'macd_fast': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
-        'macd_slow': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
-        'macd_signal': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
-        'roc_period': 'roc_{roc_period}',
-        'adx_period': 'adx_{adx_period}'
+        'ema_period': 'ema_{ema_period}'
     }
 )
-def momentum_composite_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def elder_ray_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Composite momentum strategy using multiple indicators.
+    Elder Ray strategy - Bull Power vs Bear Power analysis.
     
     Entry signals:
-    - Long when majority of momentum indicators are bullish
-    - Short when majority of momentum indicators are bearish
+    - Long when Bull Power > threshold AND Bear Power is rising
+    - Short when Bear Power < threshold AND Bull Power is falling
     
-    Combines MACD, ROC, and ADX for robust momentum detection.
+    Elder Ray measures buying vs selling pressure relative to EMA:
+    - Bull Power = High - EMA (buying strength above trend)
+    - Bear Power = Low - EMA (selling pressure below trend)
     """
     # Parameters
-    macd_fast = params.get('macd_fast', 12)
-    macd_slow = params.get('macd_slow', 26)
-    macd_signal = params.get('macd_signal', 9)
-    roc_period = params.get('roc_period', 12)
-    adx_period = params.get('adx_period', 14)
-    roc_threshold = params.get('roc_threshold', 1.0)
-    adx_strength_threshold = params.get('adx_strength_threshold', 25)
+    ema_period = params.get('ema_period', 21)
+    bull_threshold = params.get('bull_threshold', 0.001)  # Minimum bull power
+    bear_threshold = params.get('bear_threshold', -0.001)  # Maximum bear power (negative)
     
     # Get features
-    macd_data = features.get(f'macd_{macd_fast}_{macd_slow}_{macd_signal}')
-    roc_value = features.get(f'roc_{roc_period}')
-    adx_data = features.get(f'adx_{adx_period}')
+    ema_value = features.get(f'ema_{ema_period}')
     
-    # Check if all features are available
-    if not macd_data or roc_value is None or not adx_data:
+    if ema_value is None:
         return None
     
     # Get bar info
     symbol = bar.get('symbol', 'UNKNOWN')
     timeframe = bar.get('timeframe', '1m')
-    current_price = bar.get('close', 0)
+    high = bar.get('high', 0)
+    low = bar.get('low', 0)
+    close = bar.get('close', 0)
     
-    # Score each indicator
-    scores = []
-    reasons = []
-    
-    # MACD score
-    macd_histogram = macd_data.get('histogram')
-    if macd_histogram is not None:
-        if macd_histogram > 0:
-            scores.append(1)
-            reasons.append(f"MACD bullish ({macd_histogram:.4f})")
-        elif macd_histogram < 0:
-            scores.append(-1)
-            reasons.append(f"MACD bearish ({macd_histogram:.4f})")
-        else:
-            scores.append(0)
-            reasons.append("MACD neutral")
-    
-    # ROC score
-    if roc_value > roc_threshold:
-        scores.append(1)
-        reasons.append(f"ROC bullish ({roc_value:.2f}%)")
-    elif roc_value < -roc_threshold:
-        scores.append(-1)
-        reasons.append(f"ROC bearish ({roc_value:.2f}%)")
-    else:
-        scores.append(0)
-        reasons.append("ROC neutral")
-    
-    # ADX score (only if trend is strong enough)
-    adx_value = adx_data.get('adx')
-    di_plus = adx_data.get('di_plus')
-    di_minus = adx_data.get('di_minus')
-    
-    if adx_value and adx_value > adx_strength_threshold and di_plus is not None and di_minus is not None:
-        if di_plus > di_minus:
-            scores.append(1)
-            reasons.append(f"ADX bullish (DI+: {di_plus:.1f} > DI-: {di_minus:.1f})")
-        else:
-            scores.append(-1)
-            reasons.append(f"ADX bearish (DI-: {di_minus:.1f} > DI+: {di_plus:.1f})")
-    else:
-        scores.append(0)
-        reasons.append("ADX neutral/weak")
-    
-    # Calculate composite signal
-    if not scores:
+    if high <= 0 or low <= 0 or ema_value <= 0:
         return None
     
-    composite_score = sum(scores)
-    total_indicators = len(scores)
+    # Calculate Elder Ray components
+    bull_power = high - ema_value  # Buying pressure above EMA
+    bear_power = low - ema_value   # Selling pressure below EMA
     
-    # Generate signal based on majority
+    # Convert to percentage for better comparison
+    bull_power_pct = bull_power / ema_value
+    bear_power_pct = bear_power / ema_value
+    
+    # Generate signals based on Bull/Bear power
     signal_value = 0
-    if composite_score > 0:
-        signal_value = 1  # Majority bullish
-    elif composite_score < 0:
-        signal_value = -1  # Majority bearish
+    reason = ""
+    
+    # Long signal: Strong buying pressure
+    if bull_power_pct > bull_threshold and bear_power_pct > bear_threshold:
+        signal_value = 1
+        reason = f"Bull power dominant: {bull_power_pct:.4f}, Bear power: {bear_power_pct:.4f}"
+    
+    # Short signal: Strong selling pressure  
+    elif bear_power_pct < bear_threshold and bull_power_pct < bull_threshold:
+        signal_value = -1
+        reason = f"Bear power dominant: {bear_power_pct:.4f}, Bull power: {bull_power_pct:.4f}"
+    
+    # Neutral: Mixed or weak signals
+    else:
+        signal_value = 0
+        reason = f"Mixed signals - Bull: {bull_power_pct:.4f}, Bear: {bear_power_pct:.4f}"
     
     return {
         'signal_value': signal_value,
         'timestamp': bar.get('timestamp'),
-        'strategy_id': 'momentum_composite',
+        'strategy_id': 'elder_ray',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'composite_score': composite_score,
-            'total_indicators': total_indicators,
-            'individual_scores': scores,
-            'macd_histogram': macd_histogram,
-            'roc_value': roc_value,
-            'adx_value': adx_value,
-            'price': current_price,
-            'reasons': reasons,
-            'reason': f'Composite: {composite_score}/{total_indicators} indicators bullish'
+            'ema_value': ema_value,
+            'bull_power': bull_power,
+            'bear_power': bear_power,
+            'bull_power_pct': bull_power_pct,
+            'bear_power_pct': bear_power_pct,
+            'bull_threshold': bull_threshold,
+            'bear_threshold': bear_threshold,
+            'price': close,
+            'reason': reason
         }
     }
+

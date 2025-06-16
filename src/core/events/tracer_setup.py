@@ -54,18 +54,31 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
         logger.info(f"Study workspace: {results_dir}/{workspace_name}")
     else:
         # Fallback to legacy naming for backwards compatibility
-        config_name = context.get('metadata', {}).get('config_name', 'unknown_config')
-        if not config_name or config_name == 'unknown_config':
-            config_file = context.get('metadata', {}).get('config_file', '')
-            if config_file:
-                config_name = Path(config_file).stem
-            else:
-                config_name = 'signal_generation'
+        # First try to get experiment_id from config metadata
+        experiment_id = context.get('config', {}).get('metadata', {}).get('experiment_id')
+        if experiment_id:
+            config_name = experiment_id
+        else:
+            # Try context metadata
+            config_name = context.get('metadata', {}).get('config_name', 'unknown_config')
+            if not config_name or config_name == 'unknown_config':
+                config_file = context.get('metadata', {}).get('config_file', '')
+                if config_file:
+                    config_name = Path(config_file).stem
+                else:
+                    config_name = 'signal_generation'
         
-        unique_run_id = str(uuid.uuid4())[:8]
+        # Use execution_id from context if available, otherwise generate new one
+        execution_id = context.get('execution_id')
+        if execution_id:
+            # Take last 8 chars of execution_id for brevity
+            unique_run_id = str(execution_id)[-8:]
+        else:
+            unique_run_id = str(uuid.uuid4())[:8]
+        
         workspace_name = f"{config_name}_{unique_run_id}"
         full_workspace_path = os.path.join(workspace_path, workspace_name)
-        logger.info(f"Legacy workspace: {workspace_name}")
+        logger.info(f"Workspace: {workspace_name} (config: {config_name}, run: {unique_run_id})")
     
     # Get all strategy and classifier IDs from expanded configurations
     strategy_ids = []

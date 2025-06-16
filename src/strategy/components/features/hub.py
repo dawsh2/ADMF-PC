@@ -119,12 +119,25 @@ class FeatureHub:
         results = {}
         for name, feature in self._features[symbol].items():
             try:
-                value = feature.update(
-                    price=bar.get("close", 0),
-                    high=bar.get("high"),
-                    low=bar.get("low"),
-                    volume=bar.get("volume")
-                )
+                # Special handling for ParabolicSAR which needs positional args
+                if hasattr(feature, '__class__') and feature.__class__.__name__ == 'ParabolicSAR':
+                    # ParabolicSAR requires high, low, close as positional arguments
+                    high = bar.get("high")
+                    low = bar.get("low")
+                    close = bar.get("close", 0)
+                    if high is not None and low is not None:
+                        value = feature.update(high, low, close)
+                    else:
+                        logger.warning(f"ParabolicSAR {name} skipped - missing high/low data")
+                        continue
+                else:
+                    # Standard keyword argument update for other features
+                    value = feature.update(
+                        price=bar.get("close", 0),
+                        high=bar.get("high"),
+                        low=bar.get("low"),
+                        volume=bar.get("volume")
+                    )
                 
                 if value is not None:
                     if isinstance(value, dict):

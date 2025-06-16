@@ -1,0 +1,455 @@
+# Complete Grid Search Configuration - All 47 Strategies
+# Tests all available strategy types with parameter expansions
+# and multiple classifier types with their own parameters
+
+name: complete_grid_search
+description: Comprehensive parameter grid search across all 47 available strategies and classifiers
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2023-01-01"
+end_date: "2023-02-01"
+max_bars: 2000
+
+# Topology 
+topology: signal_generation
+
+# Feature configuration will be automatically inferred by topology builder
+# based on strategy requirements and parameter values
+
+# All 49 indicator-based strategies
+strategies:
+  # CROSSOVER STRATEGIES (10 strategies)
+  - type: sma_crossover
+    name: sma_crossover_grid
+    params:
+      fast_period: [3, 7, 11, 19, 27]      # 5 values
+      slow_period: [15, 23, 35, 50, 61]    # 5 values
+      # Total: 5 * 5 = 25 combinations
+      
+  - type: ema_crossover
+    name: ema_crossover_grid
+    params:
+      fast_ema_period: [3, 7, 11, 19]       # 4 values
+      slow_ema_period: [15, 23, 35, 50]     # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: ema_sma_crossover
+    name: ema_sma_crossover_grid
+    params:
+      ema_period: [5, 11, 19, 27]       # 4 values
+      sma_period: [15, 23, 35, 50]      # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: dema_crossover
+    name: dema_crossover_grid
+    params:
+      fast_dema_period: [3, 7, 11, 19]      # 4 values
+      slow_dema_period: [15, 23, 35, 50]    # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: dema_sma_crossover
+    name: dema_sma_crossover_grid
+    params:
+      dema_period: [5, 11, 19, 27]         # 4 values
+      sma_period: [15, 23, 35, 50]         # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: tema_sma_crossover
+    name: tema_sma_crossover_grid
+    params:
+      tema_period: [5, 11, 19, 27]         # 4 values
+      sma_period: [15, 23, 35, 50]         # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: stochastic_crossover
+    name: stochastic_crossover_grid
+    params:
+      k_period: [5, 11, 19, 27]     # 4 values
+      d_period: [3, 5, 7]           # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  - type: vortex_crossover
+    name: vortex_crossover_grid
+    params:
+      vortex_period: [11, 19, 27, 35]    # 4 values
+      # Total: 4 combinations
+      
+  - type: ichimoku_cloud_position
+    name: ichimoku_grid
+    params:
+      conversion_period: [7, 9, 11]      # 3 values
+      base_period: [23, 26, 35]          # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: macd_crossover
+    name: macd_crossover_grid
+    params:
+      fast_ema: [5, 12, 15]              # 3 values
+      slow_ema: [20, 26, 35]             # 3 values
+      signal_ema: [7, 9, 11]             # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+
+  # MOMENTUM STRATEGIES (7 strategies) - momentum_composite removed
+  - type: macd_crossover  # momentum.py version
+    name: macd_momentum_grid
+    params:
+      fast_period: [8, 12, 16]           # 3 values
+      slow_period: [22, 26, 30]          # 3 values
+      signal_period: [7, 9, 11]          # 3 values
+      min_threshold: [0.0005, 0.001, 0.002]  # 3 values
+      # Total: 3 * 3 * 3 * 3 = 81 combinations
+      
+  - type: momentum_breakout
+    name: momentum_breakout_grid
+    params:
+      momentum_period: [5, 10, 15, 20]      # 4 values
+      breakout_threshold: [0.01, 0.02, 0.03, 0.05]  # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: roc_trend
+    name: roc_trend_grid
+    params:
+      roc_period: [5, 10, 12, 15, 20]       # 5 values
+      trend_threshold: [0.5, 1.0, 1.5, 2.0]  # 4 values
+      # Total: 5 * 4 = 20 combinations
+      
+  - type: adx_trend_strength
+    name: adx_momentum_grid
+    params:
+      adx_period: [10, 14, 18, 22]          # 4 values
+      trend_strength_threshold: [20, 25, 30, 35]  # 4 values
+      di_spread_threshold: [1, 2, 3]       # 3 values
+      # Total: 4 * 4 * 3 = 48 combinations
+      
+  - type: aroon_oscillator
+    name: aroon_oscillator_grid
+    params:
+      aroon_period: [14, 20, 25, 30]        # 4 values
+      oscillator_threshold: [30, 40, 50, 60]  # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  - type: vortex_trend
+    name: vortex_trend_grid
+    params:
+      vortex_period: [10, 14, 20, 25]       # 4 values
+      crossover_threshold: [0.01, 0.02, 0.03]  # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  - type: elder_ray
+    name: elder_ray_grid
+    params:
+      ema_period: [13, 21, 34]           # 3 values
+      bull_threshold: [0, 0.001, 0.002]  # 3 values
+      bear_threshold: [0, -0.001, -0.002] # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  # OSCILLATOR STRATEGIES (8 strategies)
+  - type: rsi_threshold
+    name: rsi_threshold_grid
+    params:
+      rsi_period: [7, 11, 19, 27]   # 4 values
+      threshold: [40, 45, 50, 55, 60]    # 5 values
+      # Total: 4 * 5 = 20 combinations
+      
+  - type: rsi_bands
+    name: rsi_bands_grid
+    params:
+      rsi_period: [7, 11, 19, 27]   # 4 values
+      oversold: [15, 20, 25, 30, 35]     # 5 values
+      overbought: [65, 70, 75, 80, 85]   # 5 values
+      # Total: 4 * 5 * 5 = 100 combinations
+      
+  - type: cci_threshold
+    name: cci_threshold_grid
+    params:
+      cci_period: [11, 19, 27, 35]  # 4 values
+      threshold: [-60, -40, -20, 0, 20, 40, 60]  # 7 values
+      # Total: 4 * 7 = 28 combinations
+      
+  - type: cci_bands
+    name: cci_bands_grid
+    params:
+      cci_period: [11, 19, 27, 35]  # 4 values
+      oversold: [-120, -100, -80]   # 3 values
+      overbought: [80, 100, 120]    # 3 values
+      # Total: 4 * 3 * 3 = 36 combinations
+      
+  - type: stochastic_rsi
+    name: stochastic_rsi_grid
+    params:
+      rsi_period: [7, 14, 21]        # 3 values
+      stoch_period: [7, 14, 21]      # 3 values
+      oversold: [15, 20, 25]         # 3 values
+      overbought: [75, 80, 85]       # 3 values
+      # Total: 3 * 3 * 3 * 3 = 81 combinations
+      
+  - type: williams_r
+    name: williams_r_grid
+    params:
+      williams_period: [7, 14, 21]   # 3 values
+      oversold: [-85, -80, -75]      # 3 values (near -100)
+      overbought: [-25, -20, -15]    # 3 values (near 0)
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  - type: roc_threshold
+    name: roc_threshold_grid
+    params:
+      roc_period: [5, 10, 20]        # 3 values
+      threshold: [0.02, 0.05, 0.1]   # 3 values (%)
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: ultimate_oscillator
+    name: ultimate_oscillator_grid
+    params:
+      period1: [5, 7, 10]            # 3 values
+      period2: [10, 14, 20]          # 3 values
+      period3: [20, 28, 35]          # 3 values
+      oversold: [25, 30, 35]         # 3 values
+      overbought: [65, 70, 75]       # 3 values
+      # Total: 3 * 3 * 3 * 3 * 3 = 243 combinations
+      
+  # VOLATILITY STRATEGIES (3 strategies)
+  - type: keltner_breakout
+    name: keltner_breakout_grid
+    params:
+      period: [11, 19, 27, 35]      # 4 values
+      multiplier: [1.5, 2.0, 2.5]   # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  - type: donchian_breakout
+    name: donchian_breakout_grid
+    params:
+      period: [15, 23, 35, 50]      # 4 values
+      # Total: 4 combinations
+      
+  - type: bollinger_breakout
+    name: bollinger_breakout_grid
+    params:
+      period: [11, 19, 27, 35]      # 4 values
+      std_dev: [1.5, 2.0, 2.5]      # 3 values
+      # Total: 4 * 3 = 12 combinations
+      
+  # VOLUME STRATEGIES (5 strategies)
+  - type: obv_trend
+    name: obv_trend_grid
+    params:
+      obv_sma_period: [10, 20, 30]  # 3 values
+      # Total: 3 combinations
+      
+  - type: mfi_bands
+    name: mfi_bands_grid
+    params:
+      mfi_period: [7, 14, 21]        # 3 values
+      oversold: [15, 20, 25]         # 3 values
+      overbought: [75, 80, 85]       # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  - type: vwap_deviation
+    name: vwap_deviation_grid
+    params:
+      std_multiplier: [1.5, 2.0, 2.5] # 3 values
+      band_pct: [0.015, 0.02, 0.025]  # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: chaikin_money_flow
+    name: chaikin_money_flow_grid
+    params:
+      period: [10, 20, 30]           # 3 values
+      threshold: [0.03, 0.05, 0.1]   # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: accumulation_distribution
+    name: accumulation_distribution_grid
+    params:
+      ad_ema_period: [10, 20, 30]   # 3 values
+      # Total: 3 combinations
+      
+  # TREND STRATEGIES (5 strategies)
+  - type: parabolic_sar
+    name: parabolic_sar_grid
+    params:
+      af_start: [0.01, 0.02, 0.03]   # 3 values
+      af_max: [0.1, 0.2, 0.3]         # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: aroon_crossover
+    name: aroon_crossover_grid
+    params:
+      period: [14, 25, 35]           # 3 values
+      # Total: 3 combinations
+      
+  - type: supertrend
+    name: supertrend_grid
+    params:
+      period: [7, 10, 14]            # 3 values
+      multiplier: [2.0, 3.0, 4.0]    # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: linear_regression_slope
+    name: linear_regression_slope_grid
+    params:
+      period: [10, 20, 30]           # 3 values
+      slope_threshold: [0.0, 0.001, 0.002] # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: adx_trend_strength  # trend.py version
+    name: adx_trend_strength_trend_grid
+    params:
+      adx_period: [10, 14, 18, 22]          # 4 values
+      adx_threshold: [20, 25, 30, 35]       # 4 values
+      # Total: 4 * 4 = 16 combinations
+      
+  # STRUCTURE STRATEGIES (11 strategies)
+  - type: pivot_points
+    name: pivot_points_grid
+    params:
+      pivot_type: ['standard', 'fibonacci', 'camarilla'] # 3 values
+      # Total: 3 combinations
+      
+  - type: fibonacci_retracement
+    name: fibonacci_retracement_grid
+    params:
+      period: [30, 50, 100]          # 3 values
+      # Total: 3 combinations
+      
+  - type: support_resistance_breakout
+    name: support_resistance_breakout_grid
+    params:
+      period: [10, 20, 30]           # 3 values
+      threshold: [0.01, 0.02, 0.03]  # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  - type: atr_channel_breakout
+    name: atr_channel_breakout_grid
+    params:
+      atr_period: [7, 14, 21]        # 3 values
+      channel_period: [10, 20, 30]   # 3 values
+      atr_multiplier: [1.5, 2.0, 2.5] # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  - type: price_action_swing
+    name: price_action_swing_grid
+    params:
+      period: [5, 10, 20]            # 3 values
+      # Total: 3 combinations
+      
+  - type: pivot_channel_breaks
+    name: pivot_channel_breaks_grid
+    params:
+      pivot_type: ["standard", "fibonacci"]     # 2 values
+      sr_period: [15, 20, 30]                   # 3 values  
+      breakout_threshold: [0.0005, 0.001, 0.002]  # 3 values
+      # Total: 2 * 3 * 3 = 18 combinations
+      
+  - type: pivot_channel_bounces
+    name: pivot_channel_bounces_grid
+    params:
+      sr_period: [15, 20, 30]           # 3 values
+      min_touches: [2, 3, 4]            # 3 values 
+      bounce_threshold: [0.001, 0.002, 0.003]  # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  - type: trendline_breaks
+    name: trendline_breaks_grid
+    params:
+      pivot_lookback: [15, 20, 25]       # 3 values
+      min_touches: [2, 3]                # 2 values
+      tolerance: [0.001, 0.002, 0.003]   # 3 values
+      # Total: 3 * 2 * 3 = 18 combinations
+      
+  - type: trendline_bounces
+    name: trendline_bounces_grid
+    params:
+      pivot_lookback: [15, 20, 25]       # 3 values
+      min_touches: [2, 3, 4]             # 3 values
+      tolerance: [0.001, 0.002, 0.003]   # 3 values
+      min_strength: [0.2, 0.3, 0.4]      # 3 values (required by strategy implementation)
+      # Total: 3 * 3 * 3 * 3 = 81 combinations
+
+# Selected classifier types only
+classifiers:
+  # Multi-timeframe Trend classifier (5 states)
+  - type: multi_timeframe_trend_classifier
+    name: multi_timeframe_trend_grid
+    params:
+      strong_threshold: [0.002, 0.003, 0.004]  # 3 values
+      weak_threshold: [0.0005, 0.001, 0.0015]  # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  # Market Regime classifier (5 states)
+  - type: market_regime_classifier
+    name: market_regime_grid
+    params:
+      trend_threshold: [0.0015, 0.002, 0.003]    # 3 values
+      vol_threshold: [0.3, 0.5, 0.7]          # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  # Volatility Momentum classifier (5 states)
+  - type: volatility_momentum_classifier
+    name: volatility_momentum_grid
+    params:
+      vol_threshold: [0.5, 0.8, 1.2]         # 3 values
+      rsi_overbought: [55, 60, 65]          # 3 values
+      rsi_oversold: [35, 40, 45]            # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+      
+  # Microstructure classifier (5 states)
+  - type: microstructure_classifier
+    name: microstructure_grid
+    params:
+      breakout_threshold: [0.001, 0.0015, 0.002]      # 3 values
+      consolidation_threshold: [0.0003, 0.0005, 0.0008] # 3 values
+      # Total: 3 * 3 = 9 combinations
+      
+  # Hidden Markov classifier (5 states - Wyckoff phases)
+  - type: hidden_markov_classifier
+    name: hidden_markov_grid
+    params:
+      volume_surge_threshold: [1.1, 1.2, 1.3]        # 3 values
+      trend_strength_threshold: [0.001, 0.002, 0.003] # 3 values
+      volatility_threshold: [0.5, 0.8, 1.0]          # 3 values
+      # Total: 3 * 3 * 3 = 27 combinations
+
+# Execution settings
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: complete_strategy_grid_v1
+  description: |
+    Complete strategy grid search across all 47 available indicators:
+    - 47 strategy types across 6 categories
+    - 5 multi-state classifier types (all with 5 states each)
+    - Strategy breakdown:
+      - Crossovers (10): 25+16+16+16+16+16+12+4+9+27 = 157 combinations
+      - Momentum (7): 81+16+20+48+16+12+27 = 220 combinations
+      - Oscillators (8): 20+100+28+36+81+27+9+243 = 544 combinations
+      - Volatility (3): 12+4+12 = 28 combinations
+      - Volume (5): 3+27+9+9+3 = 51 combinations
+      - Trend (5): 9+3+9+9+16 = 46 combinations
+      - Structure (11): 3+3+9+27+3+18+27+9+27 = 126 combinations
+    - Total strategies: 1172 combinations
+    - Classifier breakdown:
+      - Enhanced Trend: 9 combinations
+      - Market Regime: 9 combinations
+      - Volatility Momentum: 27 combinations
+      - Microstructure: 9 combinations
+      - Hidden Markov: 27 combinations
+    - Total classifiers: 81 combinations  
+    - Total rules: 1172 + 81 = 1253 rules (rulewise optimization)
+  analysis_goals:
+    - Test all available indicator strategies comprehensively
+    - Analyze regime-specific performance across full strategy space
+    - Identify optimal indicator-classifier pairings
+    - Test multi-state regime adaptation with complete coverage
+    - Extract top configurations for ensemble strategies

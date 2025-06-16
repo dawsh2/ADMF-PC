@@ -123,7 +123,14 @@ class MultiStrategyTracer(EventObserverProtocol):
         # Process the signal
         direction = payload.get('direction', 'flat')
         symbol = payload.get('symbol', 'UNKNOWN')
-        timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
+        
+        # Use bar timestamp from payload instead of execution timestamp
+        bar_timestamp = payload.get('timestamp')
+        if bar_timestamp:
+            timestamp = bar_timestamp.isoformat() if hasattr(bar_timestamp, 'isoformat') else str(bar_timestamp)
+        else:
+            # Fallback to event timestamp for backward compatibility
+            timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
         price = payload.get('price', 0.0)
         
         was_change = storage.process_signal(
@@ -164,7 +171,14 @@ class MultiStrategyTracer(EventObserverProtocol):
         # Process the classification
         regime = payload.get('regime', 'unknown')
         symbol = payload.get('symbol', 'UNKNOWN')
-        timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
+        
+        # Use bar timestamp from payload instead of execution timestamp
+        bar_timestamp = payload.get('timestamp')
+        if bar_timestamp:
+            timestamp = bar_timestamp.isoformat() if hasattr(bar_timestamp, 'isoformat') else str(bar_timestamp)
+        else:
+            # Fallback to event timestamp for backward compatibility
+            timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
         
         # Classifications are already sparse (only published on change)
         was_change = storage.process_signal(

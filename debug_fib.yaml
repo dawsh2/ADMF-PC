@@ -1,0 +1,18 @@
+data_dir: ./data
+data_source: file
+end_date: '2023-01-05'
+execution:
+  enable_event_tracing: false
+max_bars: 100
+name: debug_fib
+start_date: '2023-01-01'
+strategies:
+- name: fib_debug
+  params:
+    period: 30
+  type: fibonacci_retracement
+symbols:
+- SPY
+timeframes:
+- 1m
+topology: signal_generation
