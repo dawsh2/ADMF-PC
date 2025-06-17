@@ -2,21 +2,21 @@
 
 ## Executive Summary
 
-This document outlines an upgrade path for your existing YAML-based trading strategy system to support regime-adaptive strategies and complex conditional logic while maintaining backward compatibility. The design emphasizes composability, allowing simple strategies to remain simple while enabling progressive complexity when needed.
+This document outlines a complete redesign of the YAML-based trading strategy system to support regime-adaptive strategies and complex conditional logic. The design prioritizes clean architecture and maintainability over backward compatibility, requiring migration of existing strategies to eliminate technical debt and enable robust future development.
 
 ## Core Design Principles
 
-### 1. **Backward Compatibility**
-Your existing indicator-based strategies continue to work without modification. The system recognizes strategy types based on structure, not explicit type declarations.
+### 1. **Clean Architecture First**
+Legacy patterns and backward compatibility are explicitly rejected to prevent technical debt accumulation. All existing strategies must be migrated to the new system, ensuring new developers learn correct patterns from day one.
 
 ### 2. **Recursive Composability**
 Every strategy, regardless of complexity, implements the same interface. Complex strategies are built by composing simpler strategies, creating a fractal architecture where any strategy can contain any other strategy type.
 
 ### 3. **Centralized Feature Computation**
-The existing centralized computation system (where `sma(5)` is computed once and shared) extends naturally to regime detectors and conditional evaluators.
+The centralized computation system (where `sma(5)` is computed once and shared) extends to regime detectors and conditional evaluators, with strict validation ensuring all required features are available.
 
-### 4. **Progressive Complexity**
-Users can start with simple indicator lists and gradually add regime detection, conditions, or decision trees only where needed.
+### 4. **Progressive Enhancement**
+Users can start with simple indicator lists and gradually add regime detection, conditions, or decision trees only where needed. Configurations can evolve from simple to complex without structural rewrites.
 
 ## Strategy Type Hierarchy
 
@@ -449,28 +449,42 @@ config3 = {
 }
 ```
 
-## Migration Path
+## Implementation Philosophy
 
-### Phase 1: Extend Parser
-- Add support for 'type' field in strategy blocks
-- Implement regime_switch and conditional types
-- Maintain full backward compatibility
+### Backward Compatibility vs Progressive Enhancement
 
-### Phase 2: Add Regime Detectors
-- Create regime detector library (volatility, trend, time-based)
-- Integrate with centralized feature computation
-- Add caching for expensive computations
+**Backward Compatibility (REJECTED)**: Supporting old code formats and legacy patterns to avoid migration work.
+- ❌ Keeps technical debt in the system
+- ❌ New developers learn bad patterns  
+- ❌ Prevents architectural improvements
 
-### Phase 3: Enable Composition
-- Implement strategy references and libraries
-- Add validation for circular dependencies
-- Optimize nested strategy evaluation
+**Progressive Enhancement (EMBRACED)**: Allowing configurations to evolve from simple to complex structures.
+- ✅ Simple strategies stay simple: `indicators: [rsi(20, 80)]`
+- ✅ Can add regime detection: `type: regime_switch` + `detector: volatility_regime(20)`
+- ✅ Can add nesting: `type: ensemble` + `strategies: [...]`
+- ✅ Clean evolution path without structural rewrites
 
-### Phase 4: Advanced Features
-- Dynamic parameters with formula evaluation
-- Inline adaptations
-- Decision tree strategies
-- Strategy optimization hooks
+### Migration Path - Clean Slate Approach
+
+### Phase 1: System Replacement (Week 1)
+- Replace feature inference system with validation-first approach
+- Implement new strategy parser with explicit declarations
+- Delete legacy code patterns to prevent confusion
+
+### Phase 2: Strategy Migration (Week 2)  
+- Convert all existing strategies to new format
+- Standardize parameter naming across all strategies
+- Validate all configurations work with new system
+
+### Phase 3: Advanced Composition Features (Week 3)
+- Implement regime_switch, conditional, ensemble, and decision_tree types
+- Add strategy nesting and composition support
+- Enable progressive enhancement from simple to complex
+
+### Phase 4: Documentation and Training (Week 4)
+- Document progressive enhancement patterns
+- Create examples showing evolution from simple to complex
+- Train team on new composition capabilities
 
 ## Example: Progressive Enhancement
 
