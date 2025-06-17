@@ -1,0 +1,92 @@
+# Two-Layer Ensemble - Working Debug Configuration
+# Uses enhanced debug with only existing strategies
+
+name: two_layer_working_debug
+description: Enhanced debug with working strategies
+
+# Data configuration  
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+
+# Topology
+topology: signal_generation
+
+# Classifier configuration
+classifiers:
+  - type: market_regime_classifier
+    name: market_regime_detector
+    params:
+      trend_threshold: 0.006
+      vol_threshold: 0.8
+      sma_short: 12
+      sma_long: 20
+      atr_period: 14
+      rsi_period: 14
+
+# Enhanced debug ensemble with working strategies
+strategies:
+  - type: two_layer_ensemble_enhanced_debug
+    name: working_debug_ensemble
+    params:
+      classifier_name: market_regime_classifier
+      baseline_allocation: 0.25
+      baseline_aggregation: equal_weight
+      booster_aggregation: equal_weight
+      min_baseline_agreement: 0.2
+      min_booster_agreement: 0.2
+      
+      # Pass classifier params
+      trend_threshold: 0.006
+      vol_threshold: 0.8
+      sma_short: 12
+      sma_long: 20
+      atr_period: 14
+      rsi_period: 14
+      
+      # Baseline strategies (always active) - ONLY EXISTING STRATEGIES
+      baseline_strategies:
+        - name: sma_crossover
+          params: {fast_period: 10, slow_period: 20}
+        - name: ema_crossover
+          params: {fast_period: 12, slow_period: 26}
+        - name: macd_crossover
+          params: {fast_ema: 12, slow_ema: 26, signal_ema: 9}
+      
+      # Regime boosters - ONLY EXISTING STRATEGIES
+      regime_boosters:
+        bull_ranging:
+          - name: stochastic_crossover
+            params: {stochastic_k_period: 14, stochastic_d_period: 3}
+          - name: dema_crossover
+            params: {fast_dema_period: 10, slow_dema_period: 20}
+          - name: vortex_crossover
+            params: {vortex_period: 14}
+          
+        bear_ranging:
+          - name: tema_sma_crossover
+            params: {tema_period: 10, sma_period: 20}
+          - name: ema_sma_crossover
+            params: {ema_period: 12, sma_period: 26}
+          - name: dema_sma_crossover
+            params: {dema_period: 10, sma_period: 20}
+            
+        neutral:
+          - name: ichimoku_cloud_position
+            params: {conversion_period: 9, base_period: 26}
+          - name: macd_crossover
+            params: {fast_ema: 6, slow_ema: 13, signal_ema: 5}
+
+# Execution settings
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: two_layer_working_debug
+  description: Enhanced debug with working strategies

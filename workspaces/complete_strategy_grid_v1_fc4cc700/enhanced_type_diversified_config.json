@@ -1,0 +1,95 @@
+{
+  "ensemble_name": "enhanced_type_diversified_regime_adaptive",
+  "classifier": "SPY_market_regime_grid_0006_12",
+  "allocation": {
+    "regime_specialists": 0.75,
+    "cross_regime_hedge": 0.25
+  },
+  "regime_strategies": {
+    "bull_ranging": [
+      {
+        "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+        "strategy_type": "pivot_channel_bounces_grid",
+        "weight": 0.45724328224256644,
+        "expected_return": 0.1191694874197633
+      },
+      {
+        "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+        "strategy_type": "roc_threshold_grid",
+        "weight": 0.2767991014514525,
+        "expected_return": 0.07214104245870945
+      },
+      {
+        "strategy_name": "SPY_sma_crossover_grid_27_35",
+        "strategy_type": "sma_crossover_grid",
+        "weight": 0.265957616305981,
+        "expected_return": 0.06931546955730283
+      }
+    ],
+    "bear_ranging": [
+      {
+        "strategy_name": "SPY_stochastic_crossover_grid_27_7",
+        "strategy_type": "stochastic_crossover_grid",
+        "weight": 0.4200705773723916,
+        "expected_return": 0.15375284098684405
+      },
+      {
+        "strategy_name": "SPY_trendline_bounces_grid_5_2_0.0005_0.1",
+        "strategy_type": "trendline_bounces_grid",
+        "weight": 0.30253804009836566,
+        "expected_return": 0.1107339710928601
+      },
+      {
+        "strategy_name": "SPY_tema_sma_crossover_grid_5_23",
+        "strategy_type": "tema_sma_crossover_grid",
+        "weight": 0.2773913825292427,
+        "expected_return": 0.10152987480323006
+      }
+    ],
+    "neutral": [
+      {
+        "strategy_name": "SPY_sma_crossover_grid_27_35",
+        "strategy_type": "sma_crossover_grid",
+        "weight": 0.4037149538090567,
+        "expected_return": 0.10867473699422292
+      },
+      {
+        "strategy_name": "SPY_ichimoku_grid_9_35",
+        "strategy_type": "ichimoku_grid",
+        "weight": 0.3195134711214011,
+        "expected_return": 0.08600880921704057
+      },
+      {
+        "strategy_name": "SPY_williams_r_grid_21_-80_-20",
+        "strategy_type": "williams_r_grid",
+        "weight": 0.27677157506954214,
+        "expected_return": 0.07450325494354915
+      }
+    ]
+  },
+  "cross_regime_strategies": [
+    {
+      "strategy_name": "SPY_dema_crossover_grid_19_15",
+      "strategy_type": "dema_crossover_grid",
+      "weight": 0.3333333333333333,
+      "weighted_return": 0.1308
+    },
+    {
+      "strategy_name": "SPY_elder_ray_grid_13_0_-0.001",
+      "strategy_type": "elder_ray_grid",
+      "weight": 0.3333333333333333,
+      "weighted_return": 0.0899
+    },
+    {
+      "strategy_name": "SPY_sma_crossover_grid_19_15",
+      "strategy_type": "sma_crossover_grid",
+      "weight": 0.3333333333333333,
+      "weighted_return": 0.0868
+    }
+  ],
+  "expected_performance": {
+    "total_expected_return": 0.10248062450420554,
+    "specialist_contribution": 0.07685562450420555,
+    "cross_regime_contribution": 0.025625
+  }
+}

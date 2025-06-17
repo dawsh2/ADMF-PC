@@ -1,0 +1,36 @@
+{
+  "workflow_id": "duckdb_ensemble_v1",
+  "workspace_path": "workspaces/duckdb_ensemble_v1_69d8a188",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "file",
+    "symbols": [
+      "SPY"
+    ],
+    "timeframes": [
+      "1m"
+    ]
+  },
+  "total_bars": 79999,
+  "total_signals": 79971,
+  "total_classifications": 10831,
+  "stored_changes": 32287,
+  "compression_ratio": 0.40373385352190166,
+  "components": {
+    "SPY_vol_mom_classifier": {
+      "type": "classifier",
+      "strategy_type": "vol",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    },
+    "SPY_adaptive_ensemble_default": {
+      "type": "strategy",
+      "strategy_type": "adaptive",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    }
+  },
+  "timestamp": "2025-06-17T09:38:08.024450"
+}

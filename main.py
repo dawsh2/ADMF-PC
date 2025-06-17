@@ -112,6 +112,10 @@ def main():
         action_topology = 'signal_replay'
     elif args.optimize:
         action_topology = 'optimization'
+    elif args.alpaca:
+        action_topology = 'universal'  # Use universal topology for complete trading
+    elif args.universal:
+        action_topology = 'universal'  # Use universal topology for complete trading
     
     # Check that we have config or CLI parameters for config-less operation
     if not config_path and not (args.strategies or args.classifiers or args.parameters):
@@ -150,17 +154,30 @@ def main():
             
         # Apply dataset CLI override
         if args.dataset:
+            # Set at top level for topology patterns
+            config_dict['dataset'] = args.dataset
+            # Also set in data config for backwards compatibility
             if 'data' not in config_dict:
                 config_dict['data'] = {}
             config_dict['data']['dataset'] = args.dataset
             logger.info(f"Using dataset: {args.dataset}")
             
-        # Apply split_ratio CLI override
+        # Apply split_ratio CLI override (or set default if dataset is specified)
         if args.split_ratio:
+            # Set at top level for topology patterns
+            config_dict['split_ratio'] = args.split_ratio
+            # Also set in data config for backwards compatibility
             if 'data' not in config_dict:
                 config_dict['data'] = {}
             config_dict['data']['split_ratio'] = args.split_ratio
             logger.info(f"Using split ratio: {args.split_ratio}")
+        elif args.dataset:
+            # If dataset is specified but no split_ratio, use default 0.8
+            config_dict['split_ratio'] = 0.8
+            if 'data' not in config_dict:
+                config_dict['data'] = {}
+            config_dict['data']['split_ratio'] = 0.8
+            logger.info(f"Using default split ratio: 0.8")
             
         # Apply WFV and study configuration
         if args.results_dir:
@@ -175,6 +192,33 @@ def main():
         if args.phase:
             config_dict['phase'] = args.phase
             logger.info(f"Execution phase: {args.phase}")
+            
+        # Apply Alpaca live trading configuration
+        if args.alpaca:
+            import os
+            
+            # Override data source to use Alpaca WebSocket
+            config_dict['data_source'] = 'alpaca_websocket'
+            
+            # Add live trading configuration
+            config_dict['live_trading'] = {
+                'api_key': os.getenv('ALPACA_API_KEY'),
+                'secret_key': os.getenv('ALPACA_SECRET_KEY') or os.getenv('ALPACA_API_SECRET'),
+                'paper_trading': False,  # Live account for paid users
+                'feed': 'sip'  # Use SIP feed for paid accounts (more reliable than IEX)
+            }
+            
+            # Ensure we have the required credentials
+            if not config_dict['live_trading']['api_key'] or not config_dict['live_trading']['secret_key']:
+                logger.error("❌ Alpaca credentials required for live trading")
+                logger.error("Set ALPACA_API_KEY and ALPACA_SECRET_KEY environment variables")
+                return 1
+            
+            logger.info("🔴 Live trading mode enabled with Alpaca WebSocket")
+            logger.info(f"📊 Symbols: {config_dict.get('symbols', ['SPY'])}")
+            logger.info(f"🔑 API Key: {config_dict['live_trading']['api_key'][:8]}...")
+            logger.info(f"📄 Paper Trading: {config_dict['live_trading']['paper_trading']}")
+            logger.info(f"📡 Data Feed: {config_dict['live_trading']['feed']}")
         
         # VALIDATE CONFIGURATION (if Pydantic available)
         # Temporarily disabled validation as it's too restrictive

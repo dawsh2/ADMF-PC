@@ -1,0 +1,43 @@
+name: "Ensemble Minimal Test"
+description: "Minimal ensemble test without complex features"
+
+symbols: ["SPY"]
+data:
+  source: "local"
+  timeframe: "1m"
+  start_date: "2024-03-26"
+  end_date: "2024-03-28"
+
+# No explicit features - let topology builder infer them automatically
+
+classifiers:
+  - type: volatility_momentum_classifier
+    name: vol_mom_classifier
+    params:
+      vol_threshold: 0.8
+      rsi_overbought: 60
+      rsi_oversold: 40
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+
+strategies:
+  - type: duckdb_ensemble
+    name: test_ensemble
+    params:
+      classifier_name: volatility_momentum_classifier
+      min_agreement: 0.3
+      regime_strategies:
+        neutral:
+          - name: rsi_strategy
+            params:
+              rsi_period: 14
+              entry_rsi_oversold: 30
+              entry_rsi_overbought: 70
+
+mode: signal_generation
+
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    storage_backend: memory

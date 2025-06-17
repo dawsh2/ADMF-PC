@@ -1,0 +1,61 @@
+# Universal topology test configuration
+# Complete trading pipeline with signal generation, portfolio management, and execution
+
+# Workflow configuration defaults to simple_backtest
+# Use CLI to override: --signal-generation, --alpaca, etc.
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file  # Will be overridden to 'alpaca_websocket' when using --alpaca
+data_dir: ./data
+max_bars: 100
+
+# Feature configuration (auto-inferred from strategies)
+feature_configs: {}  # Will be populated automatically
+
+# Strategies
+strategies:
+  - name: simple_momentum
+    type: momentum_simple
+    params:
+      sma_period: 20
+      rsi_period: 14
+      oversold_threshold: 30
+      overbought_threshold: 70
+
+# Risk configuration
+risk_limits:
+  max_position_size: 0.2      # 20% of capital per position
+  max_portfolio_leverage: 1.0  # No leverage
+  max_drawdown: 0.2           # 20% max drawdown
+
+# Position sizing
+position_sizing:
+  type: fixed
+  size: 1000  # $1000 per trade
+
+# Initial capital
+initial_capital: 100000
+
+# Broker configuration
+broker: simulated  # Will use 'alpaca' when live trading is fully implemented
+
+# Execution configuration
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    use_streaming_tracer: true
+    include_components:
+      - "multi_strategy_tracer"
+  slippage_model:
+    type: percentage
+    rate: 0.001  # 0.1% slippage
+  commission_model:
+    type: zero  # No commission for testing
+
+# Metadata
+metadata:
+  description: "Universal topology test with simple momentum strategy"
+  version: "1.0"

@@ -34,6 +34,13 @@ class ContainerFactory:
         # Registry of available component factories
         self._component_factories: Dict[str, Any] = {}
         self._default_components = self._load_default_components()
+        
+        # Store system configuration for access during component creation
+        self._system_config = {}
+    
+    def set_system_config(self, config: Dict[str, Any]) -> None:
+        """Set the system configuration for access during component creation."""
+        self._system_config = config
     
     def _load_default_components(self) -> Dict[str, ComponentSpec]:
         """Load default component specifications."""
@@ -119,6 +126,96 @@ class ContainerFactory:
         
         return container
     
+    def _create_data_handler(self, data_source: str, config: Dict[str, Any]) -> Any:
+        """
+        Dynamically create data handler based on data source configuration.
+        
+        Args:
+            data_source: Type of data source (file, alpaca_websocket, etc.)
+            config: Configuration dictionary
+            
+        Returns:
+            Data handler instance
+        """
+        # Data source to handler mapping
+        data_handler_map = {
+            'file': self._create_file_data_handler,
+            'local': self._create_file_data_handler,  # Alias for file
+            'alpaca_websocket': self._create_alpaca_data_handler,
+            'live': self._create_alpaca_data_handler,  # Alias for alpaca_websocket
+        }
+        
+        handler_creator = data_handler_map.get(data_source)
+        if not handler_creator:
+            logger.warning(f"Unknown data source '{data_source}', falling back to file handler")
+            handler_creator = self._create_file_data_handler
+        
+        return handler_creator(config)
+    
+    def _create_file_data_handler(self, config: Dict[str, Any]) -> Any:
+        """Create file-based historical data handler."""
+        from ...data.handlers import SimpleHistoricalDataHandler
+        
+        # Pass config to handler including dataset and split_ratio
+        handler = SimpleHistoricalDataHandler(
+            handler_id=f"data_{config.get('symbol', 'unknown')}",
+            data_dir=config.get('data_dir', './data'),
+            dataset=config.get('dataset'),
+            split_ratio=config.get('split_ratio', 0.8)
+        )
+        
+        # Configure symbols
+        symbols = config.get('symbol', [])
+        if isinstance(symbols, str):
+            symbols = [symbols]
+        handler.symbols = symbols or []
+        
+        # Set max bars if configured
+        if 'max_bars' in config:
+            handler.max_bars = config['max_bars']
+        
+        # Configure WFV window if specified
+        if all(k in config for k in ['wfv_window', 'wfv_windows', 'wfv_phase']):
+            wfv_dataset = config.get('wfv_dataset', 'train')
+            handler.setup_wfv_window(
+                window_num=config['wfv_window'],
+                total_windows=config['wfv_windows'],
+                phase=config['wfv_phase'],
+                dataset_split=wfv_dataset
+            )
+        
+        logger.info(f"📁 Created file data handler for symbols: {handler.symbols}")
+        return handler
+    
+    def _create_alpaca_data_handler(self, config: Dict[str, Any]) -> Any:
+        """Create Alpaca WebSocket live data handler."""
+        try:
+            from ...data.live_data_handler import LiveDataHandler
+            
+            # Get symbols
+            symbols = config.get('symbol', [])
+            if isinstance(symbols, str):
+                symbols = [symbols]
+            
+            # Get live trading config from system config
+            live_trading_config = self._system_config.get('live_trading', {})
+            
+            # Create live data handler with Alpaca configuration
+            handler = LiveDataHandler(
+                handler_id=f"live_data_{'+'.join(symbols)}",
+                symbols=symbols or ['SPY'],
+                live_config=live_trading_config,
+                config=config
+            )
+            
+            logger.info(f"🔴 Created Alpaca live data handler for symbols: {handler.symbols}")
+            return handler
+            
+        except ImportError as e:
+            logger.error(f"Failed to import LiveDataHandler: {e}")
+            logger.info("Falling back to file data handler")
+            return self._create_file_data_handler(config)
+
     def _create_component(self, component_name: str, config: Optional[Dict[str, Any]] = None) -> Optional[Any]:
         """
         Create a component instance.
@@ -130,38 +227,13 @@ class ContainerFactory:
         try:
             # Map component names to actual implementations
             if component_name == 'data_streamer':
-                from ...data.handlers import SimpleHistoricalDataHandler
-                # Pass config to handler
-                handler = SimpleHistoricalDataHandler(
-                    handler_id=f"data_{config.get('symbol', 'unknown')}",
-                    data_dir=config.get('data_dir', './data')
-                )
-                # Configure data loading (don't load during creation)
-                symbols = config.get('symbol', [])
-                if isinstance(symbols, str):
-                    symbols = [symbols]
-                handler.symbols = symbols or []
+                # Dynamic data handler creation based on config
+                data_source = config.get('data_source', 'file')
+                logger.info(f"🔍 Creating data_streamer for data_source: {data_source}")
+                logger.debug(f"🔍 Full component config: {config}")
                 
-                # Set max bars if configured
-                if 'max_bars' in config:
-                    handler.max_bars = config['max_bars']
-                
-                # Configure train/test split if specified
-                if config.get('split_ratio'):
-                    handler.setup_split(train_ratio=config['split_ratio'])
-                    if config.get('dataset'):
-                        handler.set_active_split(config['dataset'])
-                
-                # Configure WFV window if specified
-                if all(k in config for k in ['wfv_window', 'wfv_windows', 'wfv_phase']):
-                    wfv_dataset = config.get('wfv_dataset', 'train')
-                    handler.setup_wfv_window(
-                        window_num=config['wfv_window'],
-                        total_windows=config['wfv_windows'],
-                        phase=config['wfv_phase'],
-                        dataset_split=wfv_dataset
-                    )
-                
+                # Create data handler based on configuration
+                handler = self._create_data_handler(data_source, config)
                 return handler
             elif component_name == 'signal_streamer':
                 from ...data.streamers import SignalStreamerComponent
@@ -182,12 +254,39 @@ class ContainerFactory:
             elif component_name == 'execution_engine':
                 from ...execution import ExecutionEngine
                 # ExecutionEngine needs component_id and broker
-                from ...execution.brokers import SimulatedBroker
-                broker = SimulatedBroker(config.get('execution', {}))
+                
+                # Determine broker type from config
+                broker_type = config.get('broker', 'simulated')
+                live_config = self._system_config.get('live_trading', {})
+                
+                if broker_type == 'alpaca' and live_config:
+                    # For now, use simulated broker with live data
+                    # TODO: Implement sync Alpaca broker or use async broker with adapter
+                    logger.warning("Alpaca broker requested but not yet implemented for sync execution. Using simulated broker.")
+                    from ...execution.synchronous.broker import SimulatedBroker
+                    broker = SimulatedBroker(
+                        broker_id="alpaca_simulated",
+                        slippage_model=None,  # TODO: Create from execution_config
+                        commission_model=None,  # TODO: Create from execution_config
+                        liquidity_model=None  # TODO: Create from execution_config
+                    )
+                    logger.info("Created simulated broker (Alpaca sync broker pending implementation)")
+                else:
+                    # Default to simulated broker
+                    from ...execution.synchronous.broker import SimulatedBroker
+                    execution_config = config.get('execution', {})
+                    broker = SimulatedBroker(
+                        broker_id="simulated",
+                        slippage_model=None,  # TODO: Create from execution_config
+                        commission_model=None,  # TODO: Create from execution_config
+                        liquidity_model=None  # TODO: Create from execution_config
+                    )
+                    logger.info("Created simulated broker")
+                
                 return ExecutionEngine(f"exec_{component_name}", broker)
             elif component_name == 'order_manager':
                 from ...execution import SyncOrderManager
-                return SyncOrderManager()
+                return SyncOrderManager(component_id="order_manager")
             elif component_name == 'strategy':
                 from ...strategy.strategies import NullStrategy
                 return NullStrategy()
@@ -195,7 +294,8 @@ class ContainerFactory:
                 from ...strategy.state import ComponentState
                 return ComponentState(
                     symbols=config.get('symbols', []),
-                    feature_configs=config.get('features', {})
+                    feature_configs=config.get('features', {}),
+                    verbose_signals=True  # Enable signal logging to console
                 )
             elif component_name == 'feature_hub':
                 from .components.feature_hub_component import create_feature_hub_component

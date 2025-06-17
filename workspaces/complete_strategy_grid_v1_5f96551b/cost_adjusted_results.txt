@@ -1,0 +1,5 @@
+Catalog Error: Table with name strategy_signals does not exist!
+Did you mean "strategy_scores"?
+
+LINE 20:     FROM analytics.strategy_signals s
+                  ^

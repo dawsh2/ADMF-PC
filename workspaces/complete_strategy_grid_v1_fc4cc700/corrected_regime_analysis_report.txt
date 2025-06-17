@@ -1,0 +1,96 @@
+==========================================================================================
+STRATEGY PERFORMANCE BY REGIME - SUMMARY REPORT
+==========================================================================================
+Analysis Date: 2025-06-17T11:06:09.923031
+Classifier: SPY_market_regime_grid_0006_12
+Strategies Analyzed: 10
+
+UNKNOWN REGIME:
+  Strategies with trades: 10
+  Total trades: 108
+  Average return per strategy: -0.09%
+  Median return per strategy: -0.09%
+
+BULL_RANGING REGIME:
+  Strategies with trades: 10
+  Total trades: 34894
+  Average return per strategy: -15.60%
+  Median return per strategy: -17.90%
+
+BEAR_RANGING REGIME:
+  Strategies with trades: 10
+  Total trades: 27317
+  Average return per strategy: 1.76%
+  Median return per strategy: 1.13%
+
+NEUTRAL REGIME:
+  Strategies with trades: 10
+  Total trades: 8295
+  Average return per strategy: -5.72%
+  Median return per strategy: -5.59%
+
+BEAR_TRENDING REGIME:
+  Strategies with trades: 10
+  Total trades: 592
+  Average return per strategy: -1.83%
+  Median return per strategy: -1.84%
+
+BULL_TRENDING REGIME:
+  Strategies with trades: 10
+  Total trades: 333
+  Average return per strategy: 1.14%
+  Median return per strategy: 1.22%
+
+TOP 5 PERFORMERS - UNKNOWN REGIME:
+Rank  Strategy                                 Return     Trades  
+----------------------------------------------------------------------
+1     SPY_macd_crossover_grid_12_20_7          -0.00%   8       
+2     SPY_macd_crossover_grid_15_20_7          -0.01%   8       
+3     SPY_macd_crossover_grid_5_20_9           -0.02%   14      
+4     SPY_macd_crossover_grid_12_26_7          -0.06%   10      
+5     SPY_macd_crossover_grid_12_35_11         -0.07%   8       
+
+TOP 5 PERFORMERS - BULL_RANGING REGIME:
+Rank  Strategy                                 Return     Trades  
+----------------------------------------------------------------------
+1     SPY_macd_crossover_grid_5_20_9           -4.29%   4577    
+2     SPY_macd_crossover_grid_5_35_9           -8.23%   4351    
+3     SPY_macd_crossover_grid_12_20_7          -10.75%   3688    
+4     SPY_macd_crossover_grid_12_26_7          -14.86%   3559    
+5     SPY_macd_crossover_grid_15_20_7          -16.54%   3496    
+
+TOP 5 PERFORMERS - BEAR_RANGING REGIME:
+Rank  Strategy                                 Return     Trades  
+----------------------------------------------------------------------
+1     SPY_macd_crossover_grid_5_35_9           8.20%   3342    
+2     SPY_macd_crossover_grid_5_20_9           7.40%   3575    
+3     SPY_macd_crossover_grid_15_35_7          4.28%   2547    
+4     SPY_macd_crossover_grid_15_35_11         3.07%   2083    
+5     SPY_macd_crossover_grid_12_35_11         1.23%   2264    
+
+TOP 5 PERFORMERS - NEUTRAL REGIME:
+Rank  Strategy                                 Return     Trades  
+----------------------------------------------------------------------
+1     SPY_macd_crossover_grid_15_35_7          -0.48%   566     
+2     SPY_macd_crossover_grid_12_35_11         -1.88%   503     
+3     SPY_macd_crossover_grid_12_26_11         -2.79%   635     
+4     SPY_macd_crossover_grid_15_35_11         -3.74%   403     
+5     SPY_macd_crossover_grid_15_26_7          -4.96%   742     
+
+TOP 5 PERFORMERS - BEAR_TRENDING REGIME:
+Rank  Strategy                                 Return     Trades  
+----------------------------------------------------------------------
+1     SPY_macd_crossover_grid_5_20_9           -0.87%   97      
+2     SPY_macd_crossover_grid_5_35_9           -0.90%   72      
+3     SPY_macd_crossover_grid_12_35_11         -1.06%   41      
+4     SPY_macd_crossover_grid_15_20_7          -1.61%   58      
+5     SPY_macd_crossover_grid_12_20_7          -1.78%   69      
+
+TOP 5 PERFORMERS - BULL_TRENDING REGIME:
+Rank  Strategy                                 Return     Trades  
+----------------------------------------------------------------------
+1     SPY_macd_crossover_grid_5_35_9           1.68%   47      
+2     SPY_macd_crossover_grid_15_20_7          1.59%   37      
+3     SPY_macd_crossover_grid_12_26_7          1.51%   33      
+4     SPY_macd_crossover_grid_15_35_11         1.28%   16      
+5     SPY_macd_crossover_grid_15_35_7          1.28%   24      

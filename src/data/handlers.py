@@ -23,19 +23,27 @@ class SimpleHistoricalDataHandler:
     Implements multiple protocols through duck typing.
     """
     
-    def __init__(self, handler_id: str = "historical_data", data_dir: str = "data"):
+    def __init__(self, handler_id: str = "historical_data", data_dir: str = "data", 
+                 dataset: Optional[str] = None, split_ratio: float = 0.8):
         # Simple initialization - no base class complexity
         self.handler_id = handler_id
         self.data_dir = data_dir
         
         # Data storage
         self.symbols: List[str] = []
-        self.data: Dict[str, pd.DataFrame] = {}
+        self.data: Dict[str, pd.DataFrame] = {}  # Always contains the FULL original dataset
+        self.working_data: Dict[str, pd.DataFrame] = {}  # Contains the data being processed (split if applicable)
         self.current_indices: Dict[str, int] = {}
         
         # Train/test splits
         self.splits: Dict[str, DataSplit] = {}
         self.active_split: Optional[str] = None
+        
+        # Dataset configuration
+        self.dataset_mode = dataset  # 'train', 'test', or None for full
+        self.split_ratio = split_ratio
+        
+        logger.info(f"SimpleHistoricalDataHandler initialized with dataset_mode={dataset}, split_ratio={split_ratio}")
         
         # Timeline for multi-symbol synchronization
         self._timeline: List[Tuple[datetime, str]] = []
@@ -80,17 +88,34 @@ class SimpleHistoricalDataHandler:
             
             for symbol in symbols:
                 # Load data using loader
-                df = self.loader.load(symbol)
+                original_df = self.loader.load(symbol)
+                logger.info(f"📂 Raw data loaded for {symbol}: {len(original_df):,} bars")
                 
-                # Truncate data if max_bars is set
-                if max_bars_limit and max_bars_limit < len(df):
-                    df = df.head(max_bars_limit)
-                    logger.info(f"📊 Loaded {len(df):,} bars for {symbol} (limited by max_bars={max_bars_limit:,})")
+                # Always store the FULL original dataset for index mapping
+                self.data[symbol] = original_df
+                
+                # Truncate data FIRST if max_bars is set (before applying split)
+                if max_bars_limit and max_bars_limit < len(original_df):
+                    truncated_df = original_df.head(max_bars_limit)
+                    logger.info(f"📊 Limited to first {len(truncated_df):,} bars (max_bars={max_bars_limit:,})")
                 else:
-                    logger.info(f"📊 Loaded {len(df):,} bars for {symbol}")
+                    truncated_df = original_df
                 
-                # Store data
-                self.data[symbol] = df
+                # Apply dataset split AFTER truncation if configured
+                if self.dataset_mode:
+                    logger.info(f"📊 Applying dataset split: mode={self.dataset_mode}")
+                    working_df = self._apply_dataset_split(truncated_df, symbol)
+                    if len(working_df) == 0:
+                        logger.warning(f"⚠️ No data remaining for {symbol} after applying {self.dataset_mode} split")
+                        continue
+                else:
+                    logger.info(f"📊 No dataset split configured (dataset_mode={self.dataset_mode})")
+                    working_df = truncated_df
+                
+                logger.info(f"📊 Final dataset for {symbol}: {len(working_df):,} bars")
+                
+                # Store working data (what we actually iterate over)
+                self.working_data[symbol] = working_df
                 self.current_indices[symbol] = 0
             
             # Build synchronized timeline
@@ -143,7 +168,7 @@ class SimpleHistoricalDataHandler:
         if max_bars is None:
             max_bars = float('inf')
         
-        logger.info(f"📈 Starting to stream bars, max_bars: {max_bars}, has_data: {self.has_more_data()}")
+        logger.info(f"📈 Starting to stream bars, max_bars: {max_bars}, symbols: {self.symbols}, data_keys: {list(self.data.keys())}, has_data: {self.has_more_data()}")
         
         while self.has_more_data() and bars_streamed < max_bars:
             if self.update_bars():
@@ -201,6 +226,7 @@ class SimpleHistoricalDataHandler:
             
             # Calculate original dataset bar index for consistent sparse storage
             original_bar_index = self._get_original_bar_index(symbol, idx)
+            logger.debug(f"📊 Bar {idx} for {symbol} → original_bar_index={original_bar_index} (timestamp={timestamp})")
             
             # Update index
             indices[symbol] = idx + 1
@@ -254,10 +280,17 @@ class SimpleHistoricalDataHandler:
         data_dict = self._get_active_data()
         indices = self._get_active_indices()
         
-        return any(
+        has_data = any(
             indices.get(symbol, 0) < len(data_dict.get(symbol, []))
             for symbol in self.symbols
         )
+        
+        # Debug logging
+        if not has_data and self.symbols:
+            symbol = self.symbols[0]
+            logger.debug(f"has_more_data check: symbol={symbol}, index={indices.get(symbol, 0)}, data_len={len(data_dict.get(symbol, []))}")
+        
+        return has_data
     
     def reset(self) -> None:
         """Reset to beginning of data."""
@@ -577,7 +610,7 @@ class SimpleHistoricalDataHandler:
         """Get the currently active dataset."""
         if self.active_split and self.active_split in self.splits:
             return self.splits[self.active_split].data
-        return self.data
+        return self.working_data
     
     def _get_active_indices(self) -> Dict[str, int]:
         """Get the currently active indices."""
@@ -585,11 +618,33 @@ class SimpleHistoricalDataHandler:
             return self.splits[self.active_split].indices
         return self.current_indices
     
+    def _apply_dataset_split(self, df: pd.DataFrame, symbol: str) -> pd.DataFrame:
+        """Apply train/test split to dataframe based on dataset_mode."""
+        total_bars = len(df)
+        split_idx = int(total_bars * self.split_ratio)
+        
+        logger.info(f"📊 Applying {self.dataset_mode} split with ratio {self.split_ratio} (split_idx={split_idx:,})")
+        
+        if self.dataset_mode == 'train':
+            # Return first split_ratio portion
+            result_df = df.iloc[:split_idx]
+            logger.info(f"📚 Using TRAIN dataset for {symbol}: {len(result_df):,}/{total_bars:,} bars ({self.split_ratio*100:.0f}%)")
+        elif self.dataset_mode == 'test':
+            # Return remaining portion after split_ratio
+            result_df = df.iloc[split_idx:]
+            logger.info(f"🧪 Using TEST dataset for {symbol}: {len(result_df):,}/{total_bars:,} bars ({(1-self.split_ratio)*100:.0f}%)")
+        else:
+            # Return full dataset
+            result_df = df
+            logger.info(f"📊 Using FULL dataset for {symbol}: {total_bars:,} bars")
+        
+        return result_df
+    
     def _build_timeline(self) -> None:
         """Build synchronized timeline across all symbols."""
         self._timeline = []
         
-        for symbol, df in self.data.items():
+        for symbol, df in self.working_data.items():
             for timestamp in df.index:
                 self._timeline.append((timestamp, symbol))
         
@@ -646,31 +701,35 @@ class SimpleHistoricalDataHandler:
         Returns:
             Original dataset bar index (0-based)
         """
-        if not self.active_split or self.active_split not in self.splits:
-            # No split active, use direct index
-            return split_index
-        
-        # Get the split data and original data
-        split_data = self.splits[self.active_split].data.get(symbol)
+        # Get the working data (what we're iterating over) and original data
+        working_data = self.working_data.get(symbol)
         original_data = self.data.get(symbol)
         
-        if split_data is None or original_data is None:
+        if working_data is None or original_data is None:
+            logger.warning(f"📊 Missing data for {symbol} (working_data={working_data is not None}, original_data={original_data is not None})")
             return split_index
         
-        if split_index >= len(split_data):
+        if split_index >= len(working_data):
+            logger.warning(f"📊 Split index {split_index} >= working data length {len(working_data)} for {symbol}")
             return split_index
         
-        # Get the timestamp at the split index
-        split_timestamp = split_data.index[split_index]
+        # If working_data is the same as original_data (no split), use direct index
+        if working_data is original_data:
+            logger.debug(f"📊 No split active for {symbol}, using direct index: {split_index}")
+            return split_index
+        
+        # Get the timestamp at the split index in working data
+        working_timestamp = working_data.index[split_index]
         
         # Find this timestamp in the original dataset
         try:
             # Use get_loc to find the position of this timestamp in original data
-            original_index = original_data.index.get_loc(split_timestamp)
+            original_index = original_data.index.get_loc(working_timestamp)
+            logger.debug(f"📊 Split index {split_index} → timestamp {working_timestamp} → original index {original_index}")
             return original_index
         except KeyError:
             # Timestamp not found (shouldn't happen), fall back to split index
-            logger.warning(f"Timestamp {split_timestamp} not found in original dataset for {symbol}")
+            logger.warning(f"📊 Timestamp {working_timestamp} not found in original dataset for {symbol}")
             return split_index
 
 

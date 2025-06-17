@@ -1,0 +1,59 @@
+# Universal topology test with RSI strategy
+# Shows complete BAR->SIGNAL->ORDER->FILL flow with console logging
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+max_bars: 100
+
+# Simple RSI strategy
+strategies:
+  - name: rsi_simple
+    type: rsi_strategy
+    params:
+      rsi_period: 14
+      oversold_threshold: 45  # More aggressive - buy when RSI < 45
+      overbought_threshold: 55  # More aggressive - sell when RSI > 55
+
+# Risk configuration
+risk_limits:
+  max_position_size: 0.2      # 20% of capital per position
+  max_portfolio_leverage: 1.0  # No leverage
+  max_drawdown: 0.2           # 20% max drawdown
+
+# Position sizing
+position_sizing:
+  type: fixed
+  size: 1000  # $1000 per trade
+
+# Initial capital
+initial_capital: 10000
+
+# Broker configuration
+broker: simulated
+
+# Execution configuration with verbose logging
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    use_streaming_tracer: true
+    include_components:
+      - "multi_strategy_tracer"
+  slippage_model:
+    type: percentage
+    rate: 0.001  # 0.1% slippage
+  commission_model:
+    type: zero  # No commission for testing
+  # Enable console logging for signals, orders, and fills
+  verbose_logging: true
+  log_signals: true
+  log_orders: true
+  log_fills: true
+
+# Metadata
+metadata:
+  description: "Universal topology test with RSI strategy and verbose logging"
+  version: "1.0"

@@ -123,7 +123,8 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
             managed_classifiers=classifier_ids if classifier_ids else None,
             data_source_config=data_source_config,
             write_interval=write_interval,
-            write_on_changes=write_on_changes
+            write_on_changes=write_on_changes,
+            full_config=context.get('config', {})
         )
     else:
         tracer = MultiStrategyTracer(
@@ -131,7 +132,8 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
             workflow_id=config_name,
             managed_strategies=strategy_ids if strategy_ids else None,
             managed_classifiers=classifier_ids if classifier_ids else None,
-            data_source_config=data_source_config
+            data_source_config=data_source_config,
+            full_config=context.get('config', {})
         )
     
     # Attach to root event bus - use the actual root container's bus if available

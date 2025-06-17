@@ -60,6 +60,22 @@ class Order:
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = datetime.now()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert order to dictionary."""
+        return {
+            'order_id': self.order_id,
+            'symbol': self.symbol,
+            'side': self.side.value,
+            'order_type': self.order_type.value,
+            'quantity': str(self.quantity),
+            'price': str(self.price) if self.price else None,
+            'stop_price': str(self.stop_price) if self.stop_price else None,
+            'time_in_force': self.time_in_force,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'status': self.status.value,
+            'metadata': self.metadata
+        }
 
 
 @dataclass
@@ -75,6 +91,21 @@ class Fill:
     executed_at: datetime
     status: FillStatus = FillStatus.FILLED
     metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert fill to dictionary."""
+        return {
+            'fill_id': self.fill_id,
+            'order_id': self.order_id,
+            'symbol': self.symbol,
+            'side': self.side.value,
+            'quantity': str(self.quantity),
+            'price': str(self.price),
+            'commission': str(self.commission),
+            'executed_at': self.executed_at.isoformat() if self.executed_at else None,
+            'status': self.status.value,
+            'metadata': self.metadata
+        }
 
 
 @dataclass

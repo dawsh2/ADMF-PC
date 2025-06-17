@@ -1,0 +1,79 @@
+# Minimal Ensemble Test Configuration
+# Uses only RSI-based strategies to avoid feature inference issues
+
+name: ensemble_minimal_test
+description: Minimal test for ensemble strategy with RSI only
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2024-03-26"
+end_date: "2025-01-17"
+
+# Topology 
+topology: signal_generation
+
+# Classifier configuration - using only RSI and SMA
+classifiers:
+  - type: volatility_momentum_classifier
+    name: vol_mom_classifier
+    params:
+      vol_threshold: 0.8
+      rsi_overbought: 60
+      rsi_oversold: 40
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+
+# Minimal ensemble with RSI strategies only
+strategies:
+  - type: duckdb_ensemble
+    name: minimal_ensemble
+    params:
+      classifier_name: volatility_momentum_classifier
+      aggregation_method: equal_weight
+      min_agreement: 0.3
+      # Use only RSI strategies to avoid complex feature issues
+      regime_strategies:
+        low_vol_bullish:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 50
+        low_vol_bearish:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 50
+        neutral:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 50
+        high_vol_bullish:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 40
+        high_vol_bearish:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 60
+
+# Execution settings with debug
+execution:
+  enable_event_tracing: false  # Disable tracing to avoid storage issues
+  trace_settings:
+    events_to_trace: []
+    storage_backend: memory
+    use_sparse_storage: false
+    
+# Metadata
+metadata:
+  experiment_id: ensemble_minimal_test
+  description: |
+    Minimal test using only RSI threshold strategy
+    to verify ensemble mechanism works

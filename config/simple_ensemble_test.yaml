@@ -1,0 +1,54 @@
+name: "Simple Ensemble Test"
+description: "Test ensemble with strategies that work in grid search"
+
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2023-01-01"
+end_date: "2023-02-01"
+max_bars: 100
+
+# No classifiers - ensemble will use fallback logic
+
+# Add working strategies from grid search to generate features
+strategies:
+  # Copy exact working strategies from complete_grid_search.yaml
+  - type: stochastic_rsi
+    name: stochastic_rsi_test
+    params:
+      rsi_period: [7, 14]
+      stoch_period: [7, 14] 
+      oversold: [15, 20]
+      overbought: [75, 80]
+
+  - type: rsi_bands
+    name: rsi_bands_test
+    params:
+      rsi_period: [7, 14, 21]
+      oversold: [25, 30]
+      overbought: [70, 75]
+
+  # Ensemble strategy
+  - type: duckdb_ensemble
+    name: simple_ensemble
+    params:
+      classifier_name: volatility_momentum_classifier
+      min_agreement: 0.3
+      # No period parameters - let recursive inference handle everything
+      regime_strategies:
+        # Only use one simple strategy that we know works
+        neutral:
+          - name: stochastic_rsi
+            params:
+              rsi_period: 7
+              stoch_period: 7
+              oversold: 15
+              overbought: 80
+
+mode: signal_generation
+
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    storage_backend: memory

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Dict, Optional, List, Any
 from dataclasses import dataclass, field
 import statistics
+import logging
 
 from .protocols import (
     PortfolioStateProtocol,
@@ -13,6 +14,8 @@ from .protocols import (
 )
 from ..core.events.types import Event
 from ..execution.protocols import OrderProcessor
+
+logger = logging.getLogger(__name__)
 
 
 class PortfolioState(PortfolioStateProtocol):
@@ -403,12 +406,69 @@ class PortfolioState(PortfolioStateProtocol):
             strategy_id = payload.get("strategy_id")
             
             # Log signal reception for debugging
-            print(f"📨 Portfolio received SIGNAL: {symbol} {direction} strength={strength} from strategy_id={strategy_id}")
+            logger.info(f"📨 Portfolio received SIGNAL: {symbol} {direction} strength={strength:.2f} from {strategy_id}")
             
-            # TODO: Implement signal processing logic
-            # - Generate orders based on signals
-            # - Apply position sizing
-            # - Check risk limits
+            # Process signal to generate order
+            from ..execution.types import Order, OrderSide, OrderType
+            from ..strategy.types import SignalDirection
+            
+            # Check if we should create an order
+            if direction == SignalDirection.FLAT or direction == "FLAT":
+                logger.info(f"  ↔️ Flat signal, no action taken")
+                return
+            
+            # Check if we already have a position or pending order
+            if not self.can_create_order(symbol):
+                logger.info(f"  ⏸️ Skipping order: pending order exists for {symbol}")
+                return
+            
+            # Determine order side
+            order_side = OrderSide.BUY if direction in [SignalDirection.LONG, "LONG"] else OrderSide.SELL
+            
+            # Get position size from risk management
+            # For now, use fixed size from config
+            quantity = Decimal("100")  # Default 100 shares
+            
+            # Get current market price for the order
+            current_price = None
+            payload = event.payload
+            
+            # Check for price in payload first, then in metadata
+            if 'price' in payload:
+                current_price = Decimal(str(payload['price']))
+            elif 'metadata' in payload and 'price' in payload['metadata']:
+                current_price = Decimal(str(payload['metadata']['price']))
+            
+            if current_price:
+                logger.info(f"  💰 Using signal price: ${current_price}")
+            else:
+                logger.warning(f"  ⚠️ Signal missing price information: {payload}")
+            
+            # Create order with market context
+            order = Order(
+                order_id=f"ORD_{symbol}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                symbol=symbol,
+                side=order_side,
+                quantity=quantity,
+                order_type=OrderType.MARKET,
+                price=current_price,  # Include current market price for execution
+                created_at=datetime.now()
+            )
+            
+            logger.info(f"  📤 Creating ORDER: {order.side} {order.quantity} {order.symbol} @ ${current_price} MARKET")
+            
+            # Publish ORDER event
+            if self._container:
+                from ..core.events.types import Event, EventType
+                order_event = Event(
+                    event_type=EventType.ORDER.value,
+                    timestamp=datetime.now(),
+                    payload=order.to_dict(),
+                    source_id="portfolio",
+                    container_id=self._container.container_id
+                )
+                self._container.publish_event(order_event, target_scope="parent")
+                logger.info(f"  ✅ Order published to execution engine")
             
         elif event.event_type == "BAR" or event.event_type == "TICK":
             # Handle market data update
@@ -423,6 +483,85 @@ class PortfolioState(PortfolioStateProtocol):
                 
             if price and symbol in self._positions:
                 self.update_market_prices({symbol: price})
+    
+    def on_fill(self, event: Any) -> None:
+        """Handle FILL event from execution engine.
+        
+        Updates portfolio positions based on order fills.
+        """
+        from ..core.events.types import Event
+        
+        if not isinstance(event, Event) or event.event_type != "FILL":
+            return
+        
+        payload = event.payload
+        logger.info(f"💰 Portfolio received FILL: {payload.get('side')} {payload.get('quantity')} {payload.get('symbol')} @ ${payload.get('price')}")
+        
+        # Convert to Fill object
+        from ..execution.types import Fill, FillStatus, OrderSide
+        fill = Fill(
+            fill_id=payload['fill_id'],
+            order_id=payload['order_id'],
+            symbol=payload['symbol'],
+            side=OrderSide[payload['side']],
+            quantity=Decimal(str(payload['quantity'])),
+            price=Decimal(str(payload['price'])),
+            commission=Decimal(str(payload['commission'])),
+            status=FillStatus[payload['status']],
+            executed_at=datetime.fromisoformat(payload.get('filled_at', payload.get('executed_at')))
+        )
+        
+        # Update position
+        symbol = fill.symbol
+        quantity = fill.quantity if fill.side == OrderSide.BUY else -fill.quantity
+        
+        if symbol in self._positions:
+            # Update existing position
+            position = self._positions[symbol]
+            new_quantity = position.quantity + quantity
+            
+            if new_quantity == 0:
+                # Position closed
+                logger.info(f"  📊 Position CLOSED: {symbol}")
+                # Calculate P&L
+                if quantity < 0:  # Selling
+                    pnl = (fill.price - position.avg_price) * abs(quantity)
+                else:  # Buying to close short
+                    pnl = (position.avg_price - fill.price) * abs(quantity)
+                self._realized_pnl += pnl
+                logger.info(f"  💵 Realized P&L: ${pnl:.2f}")
+                del self._positions[symbol]
+            else:
+                # Update position
+                old_value = position.quantity * position.avg_price
+                new_value = quantity * fill.price
+                position.avg_price = (old_value + new_value) / new_quantity
+                position.quantity = new_quantity
+                logger.info(f"  📊 Position UPDATED: {symbol} qty={position.quantity} avg=${position.avg_price:.2f}")
+        else:
+            # New position
+            from .protocols import Position
+            self._positions[symbol] = Position(
+                symbol=symbol,
+                quantity=quantity,
+                avg_price=fill.price,
+                current_price=fill.price,
+                entry_time=fill.executed_at
+            )
+            logger.info(f"  📊 Position OPENED: {symbol} qty={quantity} @ ${fill.price}")
+        
+        # Update cash and commission
+        self._cash_balance -= (fill.price * fill.quantity * (1 if fill.side == OrderSide.BUY else -1))
+        self._cash_balance -= fill.commission
+        self._commission_paid += fill.commission
+        
+        # Update high water mark
+        total_value = self.get_total_value()
+        if total_value > self._high_water_mark:
+            self._high_water_mark = total_value
+        
+        logger.info(f"  💳 Cash balance: ${self._cash_balance:.2f}")
+        logger.info(f"  📈 Total portfolio value: ${total_value:.2f}")
     
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get performance summary."""

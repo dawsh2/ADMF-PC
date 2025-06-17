@@ -323,20 +323,22 @@ class TrendLines:
     """Dynamic Trendline detection with validation and break detection."""
     
     def __init__(self, pivot_lookback: int = 20, min_touches: int = 2, 
-                 tolerance: float = 0.002, max_lines: int = 10, name: str = "trendlines"):
+                 tolerance: float = 0.002, max_lines: int = 10, num_pivots: int = 3, name: str = "trendlines"):
         self._state = FeatureState(name)
         self.pivot_lookback = pivot_lookback
         self.min_touches = min_touches
         self.tolerance = tolerance
         self.max_lines = max_lines
+        self.num_pivots = num_pivots  # Number of pivot points to store
         
         self._high_buffer = deque(maxlen=pivot_lookback * 4)  # Larger buffer for pivot detection
         self._low_buffer = deque(maxlen=pivot_lookback * 4)
+        self._close_buffer = deque(maxlen=pivot_lookback * 4)
         self._bar_index = 0
-        self._pivot_highs: List[Tuple[int, float]] = []
-        self._pivot_lows: List[Tuple[int, float]] = []
-        self._uptrend_lines: List[Dict[str, Any]] = []
-        self._downtrend_lines: List[Dict[str, Any]] = []
+        self._pivot_highs = deque(maxlen=num_pivots)  # Store recent pivot highs
+        self._pivot_lows = deque(maxlen=num_pivots)   # Store recent pivot lows
+        self._valid_uptrend_lines: List[Dict[str, Any]] = []
+        self._valid_downtrend_lines: List[Dict[str, Any]] = []
     
     @property
     def name(self) -> str:
@@ -358,98 +360,159 @@ class TrendLines:
         self._bar_index += 1
         self._high_buffer.append(high)
         self._low_buffer.append(low)
+        self._close_buffer.append(price)
         
-        # Simplified pivot detection - look for simple swing points
-        # Use a small lookback for practical pivot detection
-        lookback = 1  # Use 1 bar lookback for reliable swing detection
+        # Pivot detection similar to Pine Script
+        lookback = min(self.pivot_lookback, 3)  # Use practical lookback
         
         if len(self._high_buffer) >= 2 * lookback + 1:
             buffer_len = len(self._high_buffer)
-            
-            # Check the bar that is 'lookback' bars from the end
-            # This ensures we have 'lookback' bars on both sides
             mid_idx = buffer_len - lookback - 1
             
-            if mid_idx >= lookback:  # Ensure we have enough bars on both sides
+            if mid_idx >= lookback:
                 mid_high = self._high_buffer[mid_idx]
                 mid_low = self._low_buffer[mid_idx]
                 
-                # Check for pivot high (higher than both sides)
-                is_pivot_high = True
-                for i in range(1, lookback + 1):
-                    left_idx = mid_idx - i
-                    right_idx = mid_idx + i
-                    if (left_idx >= 0 and self._high_buffer[left_idx] >= mid_high) or \
-                       (right_idx < buffer_len and self._high_buffer[right_idx] >= mid_high):
-                        is_pivot_high = False
-                        break
+                # Check for pivot high
+                is_pivot_high = all(
+                    self._high_buffer[mid_idx - i] < mid_high and 
+                    self._high_buffer[mid_idx + i] < mid_high
+                    for i in range(1, lookback + 1)
+                )
                 
                 if is_pivot_high:
-                    # Store with the actual bar index when this pivot occurred
                     pivot_bar_idx = self._bar_index - (buffer_len - 1 - mid_idx)
                     self._pivot_highs.append((pivot_bar_idx, mid_high))
-                    # Keep only recent pivots
-                    if len(self._pivot_highs) > self.max_lines:
-                        self._pivot_highs.pop(0)
                 
-                # Check for pivot low (lower than both sides)
-                is_pivot_low = True
-                for i in range(1, lookback + 1):
-                    left_idx = mid_idx - i
-                    right_idx = mid_idx + i
-                    if (left_idx >= 0 and self._low_buffer[left_idx] <= mid_low) or \
-                       (right_idx < buffer_len and self._low_buffer[right_idx] <= mid_low):
-                        is_pivot_low = False
-                        break
+                # Check for pivot low
+                is_pivot_low = all(
+                    self._low_buffer[mid_idx - i] > mid_low and 
+                    self._low_buffer[mid_idx + i] > mid_low
+                    for i in range(1, lookback + 1)
+                )
                 
                 if is_pivot_low:
-                    # Store with the actual bar index when this pivot occurred
                     pivot_bar_idx = self._bar_index - (buffer_len - 1 - mid_idx)
                     self._pivot_lows.append((pivot_bar_idx, mid_low))
-                    # Keep only recent pivots
-                    if len(self._pivot_lows) > self.max_lines:
-                        self._pivot_lows.pop(0)
         
-        # Generate trendline data once we have pivot points
-        if len(self._pivot_highs) >= 2 or len(self._pivot_lows) >= 2:
-            nearest_support = None
-            nearest_resistance = None
-            
-            # Find nearest levels above and below current price
-            if self._pivot_lows:
-                below_pivots = [p[1] for p in self._pivot_lows if p[1] < price]
-                if below_pivots:
-                    nearest_support = max(below_pivots)
-            
-            if self._pivot_highs:
-                above_pivots = [p[1] for p in self._pivot_highs if p[1] > price]
-                if above_pivots:
-                    nearest_resistance = min(above_pivots)
-            
-            # Count valid trend lines (simplified: number of pivot points that could form trends)
-            valid_uptrends = len(self._pivot_lows) if len(self._pivot_lows) >= self.min_touches else 0
-            valid_downtrends = len(self._pivot_highs) if len(self._pivot_highs) >= self.min_touches else 0
-            
+        # Calculate trendlines and find nearest levels
+        nearest_support, nearest_resistance = self._calculate_trendlines(price)
+        
+        # Count valid trend lines
+        valid_uptrends = len(self._valid_uptrend_lines)
+        valid_downtrends = len(self._valid_downtrend_lines)
+        
+        if nearest_support is not None or nearest_resistance is not None:
             self._state.set_value({
                 "valid_uptrends": valid_uptrends,
                 "valid_downtrends": valid_downtrends,
                 "nearest_support": nearest_support,
                 "nearest_resistance": nearest_resistance,
-                "strongest_uptrend": 0.5,  # Simplified
-                "strongest_downtrend": 0.5  # Simplified
+                "strongest_uptrend": 1.0 if valid_uptrends > 0 else 0.0,
+                "strongest_downtrend": 1.0 if valid_downtrends > 0 else 0.0
             })
         
         return self._state.value
+    
+    def _calculate_trendlines(self, current_price: float) -> Tuple[Optional[float], Optional[float]]:
+        """Calculate valid trendlines and return nearest support/resistance."""
+        self._valid_uptrend_lines = []
+        self._valid_downtrend_lines = []
+        
+        # Check uptrend lines (connecting pivot lows)
+        if len(self._pivot_lows) >= 2:
+            for i in range(len(self._pivot_lows) - 1):
+                for j in range(i + 1, len(self._pivot_lows)):
+                    idx1, val1 = self._pivot_lows[i]
+                    idx2, val2 = self._pivot_lows[j]
+                    
+                    if idx1 != idx2 and val1 > val2:  # Uptrend: newer pivot is higher
+                        slope = (val1 - val2) / (idx1 - idx2)
+                        
+                        # Validate the trendline
+                        valid = True
+                        touches = 0
+                        
+                        # Check if price stayed above the trendline
+                        for k in range(max(0, len(self._close_buffer) - (self._bar_index - idx2))):
+                            expected_val = val2 + slope * (self._bar_index - k - idx2)
+                            if self._close_buffer[-(k+1)] < expected_val * (1 - self.tolerance):
+                                valid = False
+                                break
+                            if abs(self._close_buffer[-(k+1)] - expected_val) / expected_val < self.tolerance:
+                                touches += 1
+                        
+                        if valid and touches >= self.min_touches:
+                            current_trendline_val = val2 + slope * (self._bar_index - idx2)
+                            self._valid_uptrend_lines.append({
+                                'start_idx': idx2,
+                                'start_val': val2,
+                                'slope': slope,
+                                'current_val': current_trendline_val,
+                                'touches': touches
+                            })
+        
+        # Check downtrend lines (connecting pivot highs)
+        if len(self._pivot_highs) >= 2:
+            for i in range(len(self._pivot_highs) - 1):
+                for j in range(i + 1, len(self._pivot_highs)):
+                    idx1, val1 = self._pivot_highs[i]
+                    idx2, val2 = self._pivot_highs[j]
+                    
+                    if idx1 != idx2 and val1 < val2:  # Downtrend: newer pivot is lower
+                        slope = (val2 - val1) / (idx1 - idx2)
+                        
+                        # Validate the trendline
+                        valid = True
+                        touches = 0
+                        
+                        # Check if price stayed below the trendline
+                        for k in range(max(0, len(self._close_buffer) - (self._bar_index - idx2))):
+                            expected_val = val2 - slope * (self._bar_index - k - idx2)
+                            if self._close_buffer[-(k+1)] > expected_val * (1 + self.tolerance):
+                                valid = False
+                                break
+                            if abs(self._close_buffer[-(k+1)] - expected_val) / expected_val < self.tolerance:
+                                touches += 1
+                        
+                        if valid and touches >= self.min_touches:
+                            current_trendline_val = val2 - slope * (self._bar_index - idx2)
+                            self._valid_downtrend_lines.append({
+                                'start_idx': idx2,
+                                'start_val': val2,
+                                'slope': slope,
+                                'current_val': current_trendline_val,
+                                'touches': touches
+                            })
+        
+        # Find nearest support and resistance
+        nearest_support = None
+        nearest_resistance = None
+        
+        # Support from uptrend lines
+        for line in self._valid_uptrend_lines:
+            if line['current_val'] < current_price:
+                if nearest_support is None or line['current_val'] > nearest_support:
+                    nearest_support = line['current_val']
+        
+        # Resistance from downtrend lines
+        for line in self._valid_downtrend_lines:
+            if line['current_val'] > current_price:
+                if nearest_resistance is None or line['current_val'] < nearest_resistance:
+                    nearest_resistance = line['current_val']
+        
+        return nearest_support, nearest_resistance
     
     def reset(self) -> None:
         self._state.reset()
         self._high_buffer.clear()
         self._low_buffer.clear()
+        self._close_buffer.clear()
         self._bar_index = 0
         self._pivot_highs.clear()
         self._pivot_lows.clear()
-        self._uptrend_lines.clear()
-        self._downtrend_lines.clear()
+        self._valid_uptrend_lines.clear()
+        self._valid_downtrend_lines.clear()
 
 
 # Structure feature registry for the FeatureHub factory

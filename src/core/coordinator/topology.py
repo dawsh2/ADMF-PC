@@ -83,6 +83,10 @@ class TopologyBuilder:
         # Initialize factories
         self._initialize_factories()
         
+        # Set system config on factory for access during component creation
+        if hasattr(self.container_factory, 'set_system_config'):
+            self.container_factory.set_system_config(config)
+        
         # Build evaluation context
         context = self._build_context(pattern, config, tracing_config, metadata)
         
@@ -328,12 +332,24 @@ class TopologyBuilder:
             base_name = strategy_config.get('name', strategy_type)
             params = strategy_config.get('params', {})
             
+            # Special handling for ensemble strategies - don't expand their sub-strategy lists
+            if 'ensemble' in strategy_type.lower():
+                self.logger.debug(f"Skipping parameter expansion for ensemble strategy: {strategy_type}")
+                expanded_strategies.append(strategy_config)
+                continue
+            
             # Find parameters that are lists (to be expanded)
             list_params = {}
             scalar_params = {}
             
+            # Skip certain parameters that should not be expanded
+            skip_params = {'baseline_strategies', 'regime_boosters', 'regime_strategies', 'strategies'}
+            
             for param_name, param_value in params.items():
-                if isinstance(param_value, list):
+                if param_name in skip_params:
+                    # These are structural parameters, not grid search parameters
+                    scalar_params[param_name] = param_value
+                elif isinstance(param_value, list):
                     list_params[param_name] = param_value
                 else:
                     scalar_params[param_name] = param_value
@@ -697,6 +713,8 @@ class TopologyBuilder:
             self._setup_backtest_subscriptions(containers, root_bus, topology.get('parameter_combinations', []))
         elif mode == 'signal_generation':
             self._setup_signal_generation_subscriptions(containers, root_bus)
+        elif mode == 'universal':
+            self._setup_universal_subscriptions(containers, root_bus)
         elif mode == 'signal_replay':
             self._setup_signal_replay_subscriptions(containers, root_bus)
         else:
@@ -842,6 +860,57 @@ class TopologyBuilder:
             if portfolio_state and hasattr(portfolio_state, 'on_fill'):
                 root_bus.subscribe(EventType.FILL, portfolio_state.on_fill)
                 self.logger.info(f"Portfolio {portfolio_name} subscribed to FILL events")
+    
+    def _setup_universal_subscriptions(self, containers: Dict[str, Any], root_bus: Any) -> None:
+        """Set up subscriptions for universal topology.
+        
+        Universal topology supports the complete trading pipeline:
+        BAR -> SIGNAL -> ORDER -> FILL
+        """
+        from ..events import EventType
+        
+        # This is essentially the same as signal_generation but with portfolio/execution support
+        self._setup_signal_generation_subscriptions(containers, root_bus)
+        
+        # Additionally set up portfolio and execution subscriptions if those containers exist
+        
+        # 3. Execution container subscribes to ORDER events only
+        execution_container = containers.get('execution')
+        if execution_container:
+            execution_engine = execution_container.get_component('execution_engine')
+            if execution_engine and hasattr(execution_engine, 'on_order'):
+                # Subscribe to ORDER events on execution's event bus
+                event_type_str = EventType.ORDER.value if hasattr(EventType.ORDER, 'value') else str(EventType.ORDER)
+                execution_container.event_bus.subscribe(event_type_str, execution_engine.on_order)
+                self.logger.info(f"Execution engine subscribed to '{event_type_str}' events")
+            else:
+                self.logger.warning("Execution container has no execution_engine with on_order method")
+        
+        # 4. Portfolio subscribes to FILL events from execution
+        portfolio_container = containers.get('portfolio')
+        if portfolio_container:
+            portfolio_manager = portfolio_container.get_component('portfolio_manager')
+            if portfolio_manager:
+                # Get portfolio state which has on_fill method
+                portfolio_state = portfolio_container.get_component('portfolio_state') or portfolio_manager
+                if hasattr(portfolio_state, 'on_fill'):
+                    # Subscribe to FILL events with proper filter
+                    event_type_str = EventType.FILL.value if hasattr(EventType.FILL, 'value') else str(EventType.FILL)
+                    
+                    # Create filter function to only receive fills for this portfolio
+                    def fill_filter(event):
+                        # Accept all fills for now - in production would filter by portfolio ID
+                        return True
+                    
+                    portfolio_container.event_bus.subscribe(
+                        event_type_str, 
+                        portfolio_state.on_fill,
+                        filter_func=fill_filter
+                    )
+                    self.logger.info(f"Portfolio subscribed to '{event_type_str}' events with filter")
+                else:
+                    self.logger.warning("Portfolio has no on_fill method")
+    
     def _extract_and_inject_strategy_names(self, context: Dict[str, Any]) -> None:
         """
         Automatically extract strategy names from strategies list and inject
@@ -981,10 +1050,12 @@ class TopologyBuilder:
         indicator_modules = [
             'src.strategy.strategies.indicators.crossovers',
             'src.strategy.strategies.indicators.oscillators', 
+            'src.strategy.strategies.indicators.momentum',  # Add momentum module
             'src.strategy.strategies.indicators.trend',
             'src.strategy.strategies.indicators.volatility',
             'src.strategy.strategies.indicators.volume',
-            'src.strategy.strategies.indicators.structure'
+            'src.strategy.strategies.indicators.structure',
+            'src.strategy.strategies.ensemble.duckdb_ensemble'  # Add ensemble module
         ]
         
         # Import all indicator modules to ensure decorators run
@@ -1106,6 +1177,13 @@ class TopologyBuilder:
                 
                 self.logger.debug(f"Strategy '{strategy_type}' requires features: {sorted(required_features)}")
                 
+                # RECURSIVE ANALYSIS: Check if this is an ensemble strategy with sub-strategies
+                if strategy_type in ['duckdb_ensemble', 'ensemble'] or 'ensemble' in strategy_type.lower():
+                    ensemble_features = self._infer_features_from_ensemble_substrategies(strategy_params, registry)
+                    if ensemble_features:
+                        required_features.update(ensemble_features)
+                        self.logger.info(f"Ensemble '{strategy_type}' recursive analysis added {len(ensemble_features)} sub-strategy features")
+                
             else:
                 # Strategy not found in registry - this shouldn't happen with proper imports
                 self.logger.warning(f"Strategy '{strategy_type}' not found in registry after importing all modules")
@@ -1140,9 +1218,9 @@ class TopologyBuilder:
             self.logger.debug("Could not import classifiers module")
         
         try:
-            importlib.import_module('src.strategy.classifiers.enhanced_multi_state_classifiers')
+            importlib.import_module('src.strategy.classifiers.multi_state_classifiers')
         except ImportError:
-            self.logger.debug("Could not import enhanced classifiers module")
+            self.logger.debug("Could not import multi_state_classifiers module")
         
         for classifier_config in classifiers:
             classifier_type = classifier_config.get('type', classifier_config.get('name'))
@@ -1229,6 +1307,119 @@ class TopologyBuilder:
         
         return required_features
 
+    def _infer_features_from_ensemble_substrategies(self, ensemble_params: Dict[str, Any], registry) -> Set[str]:
+        """
+        Recursively analyze ensemble sub-strategies to infer their feature requirements.
+        
+        Args:
+            ensemble_params: Parameters of the ensemble strategy containing regime_strategies
+            registry: Component registry for looking up sub-strategies
+            
+        Returns:
+            Set of required feature identifiers for all sub-strategies
+        """
+        required_features = set()
+        
+        # Look for regime_strategies in params (duckdb_ensemble format)
+        regime_strategies = ensemble_params.get('regime_strategies')
+        if not regime_strategies:
+            # If not specified, ensemble will use DEFAULT_REGIME_STRATEGIES
+            # Import the module to get the default strategies
+            try:
+                from ...strategy.strategies.ensemble.duckdb_ensemble import DEFAULT_REGIME_STRATEGIES
+                regime_strategies = DEFAULT_REGIME_STRATEGIES
+                self.logger.debug("Using DEFAULT_REGIME_STRATEGIES from duckdb_ensemble")
+            except ImportError as e:
+                self.logger.warning(f"Could not import DEFAULT_REGIME_STRATEGIES: {e}")
+                return required_features
+        
+        self.logger.debug(f"Analyzing ensemble with {len(regime_strategies)} regimes")
+        
+        # Iterate through all regimes and their sub-strategies
+        for regime_name, sub_strategies in regime_strategies.items():
+            if not isinstance(sub_strategies, list):
+                continue
+                
+            self.logger.debug(f"Regime '{regime_name}' has {len(sub_strategies)} sub-strategies")
+            
+            for sub_strategy_config in sub_strategies:
+                if not isinstance(sub_strategy_config, dict):
+                    continue
+                    
+                sub_strategy_name = sub_strategy_config.get('name')
+                sub_strategy_params = sub_strategy_config.get('params', {})
+                
+                if not sub_strategy_name:
+                    continue
+                
+                self.logger.debug(f"Analyzing sub-strategy '{sub_strategy_name}' with params: {sub_strategy_params}")
+                
+                # Get sub-strategy metadata from registry
+                sub_strategy_info = registry.get_component(sub_strategy_name)
+                if not sub_strategy_info:
+                    self.logger.warning(f"Sub-strategy '{sub_strategy_name}' not found in registry")
+                    continue
+                
+                # Extract feature requirements using same logic as main inference
+                feature_config = sub_strategy_info.metadata.get('feature_config', [])
+                
+                if isinstance(feature_config, list):
+                    # Use parameter mapping if available
+                    param_mapping = sub_strategy_info.metadata.get('param_feature_mapping', {})
+                    
+                    if param_mapping:
+                        # Generate features using parameter mapping
+                        for param_name, param_value in sub_strategy_params.items():
+                            if param_name in param_mapping:
+                                feature_template = param_mapping[param_name]
+                                
+                                # Simple template substitution
+                                if isinstance(param_value, list):
+                                    for value in param_value:
+                                        context = {param_name: value}
+                                        context.update({k: v if not isinstance(v, list) else v[0] 
+                                                      for k, v in sub_strategy_params.items() if k != param_name})
+                                        feature_name = feature_template.format(**context)
+                                        required_features.add(feature_name)
+                                else:
+                                    feature_name = feature_template.format(**sub_strategy_params)
+                                    required_features.add(feature_name)
+                        
+                        # Add base features not covered by param mapping
+                        for feature_name in feature_config:
+                            is_parameterized = any(
+                                template.startswith(feature_name + '_') or template == feature_name
+                                for template in param_mapping.values()
+                            )
+                            if not is_parameterized:
+                                required_features.add(feature_name)
+                    else:
+                        # Fallback: simple period-based inference
+                        for feature_name in feature_config:
+                            if feature_name == 'vwap':
+                                required_features.add('vwap')
+                            else:
+                                # Look for period parameters
+                                period_found = False
+                                for param_name, param_value in sub_strategy_params.items():
+                                    if 'period' in param_name.lower():
+                                        if isinstance(param_value, list):
+                                            for value in param_value:
+                                                required_features.add(f'{feature_name}_{value}')
+                                        else:
+                                            required_features.add(f'{feature_name}_{param_value}')
+                                        period_found = True
+                                        break
+                                
+                                if not period_found:
+                                    # Use default period for common features
+                                    defaults = {'sma': 20, 'ema': 20, 'rsi': 14, 'atr': 14, 'cci': 20}
+                                    default_period = defaults.get(feature_name, 14)
+                                    required_features.add(f'{feature_name}_{default_period}')
+                
+                self.logger.debug(f"Sub-strategy '{sub_strategy_name}' requires features: {sorted(required_features)}")
+        
+        return required_features
 
     def _build_context(self, pattern: Dict[str, Any], config: Dict[str, Any], 
                       tracing_config: Dict[str, Any], metadata: Dict[str, Any]) -> Dict[str, Any]:

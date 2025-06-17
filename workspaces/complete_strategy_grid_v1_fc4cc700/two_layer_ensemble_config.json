@@ -1,0 +1,161 @@
+{
+  "ensemble_name": "two_layer_baseline_plus_regime_boosters",
+  "classifier": "SPY_market_regime_grid_0006_12",
+  "architecture": {
+    "baseline_layer": {
+      "description": "Always-active cross-regime performers",
+      "allocation": 0.6,
+      "expected_return": 0.09416,
+      "contribution": 0.05649599999999999
+    },
+    "regime_layer": {
+      "description": "Regime-specific boosters (activate per regime)",
+      "allocation": 0.4,
+      "expected_return": 0.0707280752020508,
+      "contribution": 0.02829123008082032
+    }
+  },
+  "implementation": {
+    "baseline_strategies": {
+      "description": "Always active regardless of regime",
+      "allocation_method": "equal_weight",
+      "strategies": [
+        {
+          "strategy_name": "SPY_dema_crossover_grid_19_15",
+          "strategy_type": "dema_crossover_grid",
+          "weighted_return": 0.1308,
+          "regimes_covered": 3,
+          "weight": 0.2,
+          "status": "always_active"
+        },
+        {
+          "strategy_name": "SPY_elder_ray_grid_13_0_-0.001",
+          "strategy_type": "elder_ray_grid",
+          "weighted_return": 0.0899,
+          "regimes_covered": 2,
+          "weight": 0.2,
+          "status": "always_active"
+        },
+        {
+          "strategy_name": "SPY_sma_crossover_grid_19_15",
+          "strategy_type": "sma_crossover_grid",
+          "weighted_return": 0.0868,
+          "regimes_covered": 2,
+          "weight": 0.2,
+          "status": "always_active"
+        },
+        {
+          "strategy_name": "SPY_stochastic_crossover_grid_5_7",
+          "strategy_type": "stochastic_crossover_grid",
+          "weighted_return": 0.0834,
+          "regimes_covered": 2,
+          "weight": 0.2,
+          "status": "always_active"
+        },
+        {
+          "strategy_name": "SPY_pivot_channel_bounces_grid_15_2_0.001",
+          "strategy_type": "pivot_channel_bounces_grid",
+          "weighted_return": 0.0799,
+          "regimes_covered": 3,
+          "weight": 0.2,
+          "status": "always_active"
+        }
+      ]
+    },
+    "regime_boosters": {
+      "description": "Activate only when specific regime detected",
+      "allocation_method": "performance_weighted_within_regime",
+      "boosters_by_regime": {
+        "bull_ranging": [
+          {
+            "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+            "strategy_type": "roc_threshold_grid",
+            "weight": 0.3687723528921899,
+            "expected_return": 0.07214104245870945
+          },
+          {
+            "strategy_name": "SPY_rsi_threshold_grid_27_50",
+            "strategy_type": "rsi_threshold_grid",
+            "weight": 0.24349450581490012,
+            "expected_return": 0.0476335802960548
+          },
+          {
+            "strategy_name": "SPY_atr_channel_breakout_grid_7_30_1.5",
+            "strategy_type": "atr_channel_breakout_grid",
+            "weight": 0.21473659999366068,
+            "expected_return": 0.042007818796845786
+          },
+          {
+            "strategy_name": "SPY_mfi_bands_grid_7_25_85",
+            "strategy_type": "mfi_bands_grid",
+            "weight": 0.1729965412992493,
+            "expected_return": 0.03384242536947335
+          }
+        ],
+        "bear_ranging": [
+          {
+            "strategy_name": "SPY_trendline_bounces_grid_5_2_0.0005_0.1",
+            "strategy_type": "trendline_bounces_grid",
+            "weight": 0.2887138061986592,
+            "expected_return": 0.1107339710928601
+          },
+          {
+            "strategy_name": "SPY_tema_sma_crossover_grid_5_23",
+            "strategy_type": "tema_sma_crossover_grid",
+            "weight": 0.2647162050454447,
+            "expected_return": 0.10152987480323006
+          },
+          {
+            "strategy_name": "SPY_rsi_threshold_grid_27_50",
+            "strategy_type": "rsi_threshold_grid",
+            "weight": 0.23285923115903412,
+            "expected_return": 0.08931137624269891
+          },
+          {
+            "strategy_name": "SPY_macd_crossover_grid_5_35_9",
+            "strategy_type": "macd_crossover_grid",
+            "weight": 0.21371075759686195,
+            "expected_return": 0.08196712573447429
+          }
+        ],
+        "neutral": [
+          {
+            "strategy_name": "SPY_ichimoku_grid_9_35",
+            "strategy_type": "ichimoku_grid",
+            "weight": 0.3100948703089418,
+            "expected_return": 0.08600880921704057
+          },
+          {
+            "strategy_name": "SPY_williams_r_grid_21_-80_-20",
+            "strategy_type": "williams_r_grid",
+            "weight": 0.26861291755608424,
+            "expected_return": 0.07450325494354915
+          },
+          {
+            "strategy_name": "SPY_ema_sma_crossover_grid_5_50",
+            "strategy_type": "ema_sma_crossover_grid",
+            "weight": 0.2123911126694693,
+            "expected_return": 0.05890941269290839
+          },
+          {
+            "strategy_name": "SPY_aroon_crossover_grid_14",
+            "strategy_type": "aroon_crossover_grid",
+            "weight": 0.2089010994655047,
+            "expected_return": 0.057941412546612225
+          }
+        ]
+      }
+    }
+  },
+  "expected_performance": {
+    "total_expected_return": 0.08478723008082031,
+    "baseline_contribution": 0.05649599999999999,
+    "regime_booster_contribution": 0.02829123008082032
+  },
+  "operational_notes": {
+    "baseline_execution": "Run baseline strategies continuously",
+    "regime_detection": "Use SPY_market_regime_grid_0006_12 for regime classification",
+    "regime_boosters": "Activate/deactivate boosters based on regime changes",
+    "rebalancing": "Rebalance when regime changes or periodically"
+  }
+}

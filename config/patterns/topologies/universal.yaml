@@ -1,0 +1,125 @@
+# Universal Trading Pattern
+# Complete topology with all components: data, signals, portfolio, and execution
+# Can be used for live trading, backtesting, or any complete trading scenario
+# Implements full BAR->SIGNAL->ORDER->FILL event loop
+
+name: universal
+description: Universal trading topology with signal generation, portfolio management, and order execution
+
+# Stateless components
+components:
+  - type: strategies
+    from_config: strategies
+
+  - type: classifiers
+    from_config: classifiers
+    default: []
+
+  - type: risk_validators
+    from_config: risk_validators
+    default: []
+
+# Containers to create (root + children)
+containers:
+  # Root container
+  - name: root
+    type: root
+    components: []
+    config:
+      # Root container has no components, just manages child containers
+      
+  # Data containers - one per symbol/timeframe combo
+  - name_template: "{symbol}_{timeframe}_data"
+    type: data
+    components: ["data_streamer"]
+    parent: root
+    foreach:
+      symbol:
+        from_config: symbols
+      timeframe:
+        from_config: timeframes
+    config:
+      symbol: "{symbol}"
+      timeframe: "{timeframe}"
+      data_source:
+        from_config: data_source
+        default: file
+      data_path:
+        from_config: data_path
+      data_dir:
+        from_config: data_dir
+        default: ./data
+      start_date:
+        from_config: start_date
+      end_date:
+        from_config: end_date
+      max_bars:
+        from_config: max_bars
+      dataset:
+        from_config: dataset
+      split_ratio:
+        from_config: split_ratio
+
+  # Strategy container with FeatureHub - receives BAR events, publishes SIGNAL events
+  - name: "strategy"
+    type: strategy
+    components: ["feature_hub", "strategy_state"]
+    parent: root
+    config:
+      symbols:
+        from_config: symbols
+      features:
+        from_config: feature_configs
+        default: {}
+      strategies:
+        from_config: strategies
+        default: []
+      classifiers:
+        from_config: classifiers
+        default: []
+      execution:
+        from_config: execution
+      metadata:
+        from_config: metadata
+
+  # Portfolio container - receives SIGNAL events, publishes ORDER events
+  - name: "portfolio"
+    type: portfolio
+    components: ["portfolio_manager", "position_manager", "risk_manager"]
+    parent: root
+    config:
+      initial_capital:
+        from_config: initial_capital
+        default: 100000
+      managed_strategies:
+        from_config: strategy_names
+        default: ["default"]
+      risk_limits:
+        from_config: risk_limits
+        default:
+          max_position_size: 0.2
+          max_portfolio_leverage: 1.0
+          max_drawdown: 0.2
+      position_sizing:
+        from_config: position_sizing
+        default:
+          type: fixed
+          size: 1000
+
+  # Execution container - receives ORDER events, publishes FILL events
+  - name: "execution"
+    type: execution
+    components: ["execution_engine", "order_manager"]
+    parent: root
+    config:
+      broker:
+        from_config: broker
+        default: alpaca
+      live_trading:
+        from_config: live_trading
+      execution_models:
+        from_config: execution_models
+        default: []
+
+# Routes - not needed since containers use parent-child event communication
+routes: []

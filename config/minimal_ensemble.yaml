@@ -1,0 +1,34 @@
+name: "Minimal Ensemble"
+description: "Absolute minimal ensemble test"
+
+symbols: ["SPY"] 
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2023-01-01"
+end_date: "2023-02-01"
+max_bars: 50
+
+# No classifiers at all
+
+strategies:
+  # ONLY the ensemble - no standalone strategies
+  - type: duckdb_ensemble
+    name: minimal_ensemble
+    params:
+      min_agreement: 0.3
+      regime_strategies:
+        neutral:
+          - name: stochastic_rsi
+            params:
+              rsi_period: 7
+              stoch_period: 7
+              oversold: 15
+              overbought: 80
+
+mode: signal_generation
+
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    storage_backend: memory

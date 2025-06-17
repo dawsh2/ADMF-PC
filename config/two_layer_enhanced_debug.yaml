@@ -1,0 +1,86 @@
+# Enhanced Debug Configuration for Two-Layer Ensemble
+# Shows all strategy calls, signals, and decision logic
+
+name: two_layer_enhanced_debug
+description: Enhanced debug showing all strategy interactions
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+
+# Topology 
+topology: signal_generation
+
+# Classifier configuration
+classifiers:
+  - type: market_regime_classifier
+    name: market_regime_detector
+    params:
+      trend_threshold: 0.006
+      vol_threshold: 0.8
+      sma_short: 12
+      sma_long: 50
+      atr_period: 20
+      rsi_period: 14
+
+# Enhanced debug ensemble
+strategies:
+  - type: two_layer_ensemble_enhanced_debug
+    name: enhanced_debug_ensemble
+    params:
+      classifier_name: market_regime_classifier
+      baseline_allocation: 0.25   # 25% baseline
+      baseline_aggregation: equal_weight
+      booster_aggregation: equal_weight
+      min_baseline_agreement: 0.3
+      min_booster_agreement: 0.3
+      
+      # Pass classifier params
+      trend_threshold: 0.006
+      vol_threshold: 0.8
+      sma_short: 12
+      sma_long: 50
+      atr_period: 20
+      rsi_period: 14
+      
+      # Baseline strategies (always active)
+      baseline_strategies:
+        - name: sma_crossover
+          params: {fast_period: 19, slow_period: 15}
+        - name: dema_crossover
+          params: {fast_dema_period: 19, slow_dema_period: 15}
+      
+      # Regime boosters
+      regime_boosters:
+        bull_ranging:
+          - name: roc_threshold
+            params: {period: 5, threshold: 0.05}
+          - name: rsi_threshold
+            params: {period: 27, threshold: 50}
+            
+        bear_ranging:
+          - name: tema_sma_crossover
+            params: {tema_period: 5, sma_period: 23}
+          - name: macd_crossover
+            params: {fast_ema: 5, slow_ema: 35, signal_ema: 9}
+            
+        neutral:
+          - name: ichimoku_cloud_position
+            params: {conversion_period: 9, base_period: 35}
+          - name: williams_r
+            params: {williams_period: 21, oversold: -80, overbought: -20}
+
+# Execution settings
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: two_layer_enhanced_debug_test
+  description: Enhanced debug to verify dynamic strategy switching

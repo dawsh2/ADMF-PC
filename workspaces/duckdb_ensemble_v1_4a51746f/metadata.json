@@ -1,0 +1,44 @@
+{
+  "workflow_id": "duckdb_ensemble_v1",
+  "workspace_path": "workspaces/duckdb_ensemble_v1_4a51746f",
+  "total_bars": 499,
+  "total_signals": 942,
+  "total_classifications": 49,
+  "stored_changes": 372,
+  "compression_ratio": 37.53784056508577,
+  "components": {
+    "SPY_vol_mom_classifier": {
+      "component_type": "classifier",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/classifiers/unknown/SPY_vol_mom_classifier.parquet",
+      "total_bars": 474,
+      "signal_changes": 49,
+      "compression_ratio": 0.10337552742616034,
+      "signal_frequency": 0.10337552742616034,
+      "parameters": {},
+      "created_at": "2025-06-16T20:39:01.894739"
+    },
+    "SPY_adaptive_ensemble_default": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_adaptive_ensemble_default.parquet",
+      "total_bars": 499,
+      "signal_changes": 176,
+      "compression_ratio": 0.3527054108216433,
+      "signal_frequency": 0.3527054108216433,
+      "parameters": {},
+      "created_at": "2025-06-16T20:39:01.895962"
+    },
+    "SPY_adaptive_ensemble_custom": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_adaptive_ensemble_custom.parquet",
+      "total_bars": 479,
+      "signal_changes": 147,
+      "compression_ratio": 0.3068893528183716,
+      "signal_frequency": 0.3068893528183716,
+      "parameters": {},
+      "created_at": "2025-06-16T20:39:01.896092"
+    }
+  }
+}

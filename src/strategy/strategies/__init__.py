@@ -29,10 +29,10 @@ from .rsi_tuned import rsi_tuned_strategy
 # Import null strategy for testing
 # from .core.null_strategy import NullStrategy  # Commented out due to import error
 
-# Import new composable indicator strategies (temporarily disabled due to import issues)
-# from .indicators import *
-# from .ensemble import *
-# from .core import *
+# Import new composable indicator strategies
+from . import indicators
+from . import ensemble
+# from .core import *  # Keep commented if still causing issues
 
 # Lazy imports for strategies with external dependencies
 def _import_mean_reversion():

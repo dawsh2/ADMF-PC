@@ -1,0 +1,81 @@
+{
+  "ensemble_name": "final_optimized_regime_adaptive",
+  "classifier": "SPY_market_regime_grid_0006_12",
+  "description": "Final optimized ensemble from comprehensive analysis of all strategies",
+  "regime_strategies": {
+    "bull_ranging": [
+      {
+        "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+        "weight": 0.45724328224256644,
+        "expected_return": 0.1191694874197633,
+        "rank": 1
+      },
+      {
+        "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+        "weight": 0.2767991014514525,
+        "expected_return": 0.07214104245870945,
+        "rank": 2
+      },
+      {
+        "strategy_name": "SPY_sma_crossover_grid_27_35",
+        "weight": 0.265957616305981,
+        "expected_return": 0.06931546955730283,
+        "rank": 3
+      }
+    ],
+    "bear_ranging": [
+      {
+        "strategy_name": "SPY_stochastic_crossover_grid_27_7",
+        "weight": 0.37439229545500613,
+        "expected_return": 0.15375284098684405,
+        "rank": 1
+      },
+      {
+        "strategy_name": "SPY_stochastic_crossover_grid_27_5",
+        "weight": 0.35596751216733524,
+        "expected_return": 0.14618627829461905,
+        "rank": 2
+      },
+      {
+        "strategy_name": "SPY_trendline_bounces_grid_5_2_0.0005_0.1",
+        "weight": 0.2696401923776586,
+        "expected_return": 0.1107339710928601,
+        "rank": 3
+      }
+    ],
+    "neutral": [
+      {
+        "strategy_name": "SPY_sma_crossover_grid_27_35",
+        "weight": 0.39845111562710117,
+        "expected_return": 0.10867473699422292,
+        "rank": 1
+      },
+      {
+        "strategy_name": "SPY_ichimoku_grid_9_35",
+        "weight": 0.31534749412929436,
+        "expected_return": 0.08600880921704057,
+        "rank": 2
+      },
+      {
+        "strategy_name": "SPY_ichimoku_grid_9_23",
+        "weight": 0.28620139024360447,
+        "expected_return": 0.07805941454864174,
+        "rank": 3
+      }
+    ]
+  },
+  "expected_performance": {
+    "total_expected_return": 0.10721668749902191,
+    "regime_contributions": {
+      "bull_ranging": 0.04152317115998519,
+      "bear_ranging": 0.04853200139917183,
+      "neutral": 0.017161514939864897
+    }
+  },
+  "implementation_notes": {
+    "regime_detection": "Use SPY_market_regime_grid_0006_12 for real-time regime classification",
+    "position_sizing": "Weight positions by strategy weight within current regime",
+    "rebalancing": "Rebalance when regime changes detected",
+    "diversification": "Multiple strategies per regime for robustness"
+  }
+}

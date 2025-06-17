@@ -1,0 +1,383 @@
+{
+  "workflow_id": "duckdb_ensemble_v1",
+  "workspace_path": "workspaces/duckdb_ensemble_v1_5cc9e056",
+  "total_bars": 0,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "adaptive_ensemble_default": {
+        "type": "duckdb_ensemble",
+        "name": "adaptive_ensemble_default",
+        "params": {
+          "classifier_name": "volatility_momentum_classifier",
+          "aggregation_method": "equal_weight",
+          "min_agreement": 1.0,
+          "atr_period": 14,
+          "rsi_period": 14,
+          "sma_period": 20
+        },
+        "depth": 0,
+        "uses_default_strategies": true,
+        "regime_strategies": {
+          "low_vol_bullish": [
+            {
+              "type": "dema_crossover",
+              "name": "dema_crossover",
+              "params": {
+                "fast_dema_period": 19,
+                "slow_dema_period": 35
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "macd_crossover",
+              "name": "macd_crossover",
+              "params": {
+                "fast_ema": 12,
+                "slow_ema": 35,
+                "signal_ema": 9
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "dema_crossover",
+              "name": "dema_crossover",
+              "params": {
+                "fast_dema_period": 7,
+                "slow_dema_period": 35
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "macd_crossover",
+              "name": "macd_crossover",
+              "params": {
+                "fast_ema": 15,
+                "slow_ema": 35,
+                "signal_ema": 7
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "cci_threshold",
+              "name": "cci_threshold",
+              "params": {
+                "cci_period": 11,
+                "threshold": -40
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "pivot_channel_bounces",
+              "name": "pivot_channel_bounces",
+              "params": {
+                "sr_period": 20,
+                "min_touches": 3,
+                "bounce_threshold": 0.003
+              },
+              "depth": 1,
+              "is_ensemble": false
+            }
+          ],
+          "low_vol_bearish": [
+            {
+              "type": "stochastic_crossover",
+              "name": "stochastic_crossover",
+              "params": {
+                "k_period": 27,
+                "d_period": 5
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "cci_threshold",
+              "name": "cci_threshold",
+              "params": {
+                "cci_period": 11,
+                "threshold": -20
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "ema_sma_crossover",
+              "name": "ema_sma_crossover",
+              "params": {
+                "ema_period": 11,
+                "sma_period": 15
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "keltner_breakout",
+              "name": "keltner_breakout",
+              "params": {
+                "period": 11,
+                "multiplier": 1.5
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "rsi_bands",
+              "name": "rsi_bands",
+              "params": {
+                "rsi_period": 7,
+                "oversold": 25,
+                "overbought": 70
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "pivot_channel_bounces",
+              "name": "pivot_channel_bounces",
+              "params": {
+                "sr_period": 20,
+                "min_touches": 2,
+                "bounce_threshold": 0.001
+              },
+              "depth": 1,
+              "is_ensemble": false
+            }
+          ],
+          "neutral": [
+            {
+              "type": "stochastic_rsi",
+              "name": "stochastic_rsi",
+              "params": {
+                "rsi_period": 21,
+                "stoch_period": 21,
+                "oversold": 15,
+                "overbought": 80
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "stochastic_rsi",
+              "name": "stochastic_rsi",
+              "params": {
+                "rsi_period": 14,
+                "stoch_period": 14,
+                "oversold": 20,
+                "overbought": 80
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "sma_crossover",
+              "name": "sma_crossover",
+              "params": {
+                "fast_period": 10,
+                "slow_period": 30
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "rsi_bands",
+              "name": "rsi_bands",
+              "params": {
+                "rsi_period": 14,
+                "oversold": 30,
+                "overbought": 70
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "rsi_bands",
+              "name": "rsi_bands",
+              "params": {
+                "rsi_period": 21,
+                "oversold": 25,
+                "overbought": 75
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "bollinger_mean_reversion",
+              "name": "bollinger_mean_reversion",
+              "params": {
+                "period": 20,
+                "std_dev": 2.0
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "bollinger_breakout",
+              "name": "bollinger_breakout",
+              "params": {
+                "period": 15,
+                "std_dev": 1.5
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "cci_threshold",
+              "name": "cci_threshold",
+              "params": {
+                "cci_period": 14,
+                "threshold": 100
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "cci_threshold",
+              "name": "cci_threshold",
+              "params": {
+                "cci_period": 14,
+                "threshold": -100
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "williams_r",
+              "name": "williams_r",
+              "params": {
+                "williams_period": 14,
+                "oversold": -80,
+                "overbought": -20
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "ultimate_oscillator",
+              "name": "ultimate_oscillator",
+              "params": {
+                "period1": 7,
+                "period2": 14,
+                "period3": 28,
+                "oversold": 30,
+                "overbought": 70
+              },
+              "depth": 1,
+              "is_ensemble": false
+            }
+          ],
+          "high_vol_bullish": [
+            {
+              "type": "keltner_breakout",
+              "name": "keltner_breakout",
+              "params": {
+                "period": 19,
+                "multiplier": 2.5
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "bollinger_breakout",
+              "name": "bollinger_breakout",
+              "params": {
+                "period": 20,
+                "std_dev": 2.0
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "atr_channel_breakout",
+              "name": "atr_channel_breakout",
+              "params": {
+                "atr_period": 14,
+                "channel_period": 20,
+                "atr_multiplier": 2.0
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "dema_crossover",
+              "name": "dema_crossover",
+              "params": {
+                "fast_dema_period": 7,
+                "slow_dema_period": 21
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "macd_crossover",
+              "name": "macd_crossover",
+              "params": {
+                "fast_ema": 12,
+                "slow_ema": 26,
+                "signal_ema": 9
+              },
+              "depth": 1,
+              "is_ensemble": false
+            }
+          ],
+          "high_vol_bearish": [
+            {
+              "type": "rsi_bands",
+              "name": "rsi_bands",
+              "params": {
+                "rsi_period": 14,
+                "oversold": 20,
+                "overbought": 80
+              },
+              "depth": 1,
+              "is_ensemble": false
+            },
+            {
+              "type": "stochastic_rsi",
+              "name": "stochastic_rsi",
+              "params": {
+                "rsi_period": 14,
+                "stoch_period": 14,
+                "oversold": 10,
+                "overbought": 90
+              },
+              "depth": 1,
+              "is_ensemble": false
+            }
+          ]
+        },
+        "is_ensemble": true,
+        "total_sub_strategies": 30,
+        "unique_strategy_types": 15
+      }
+    },
+    "classifiers": {
+      "vol_mom_classifier": {
+        "type": "volatility_momentum_classifier",
+        "name": "vol_mom_classifier",
+        "params": {
+          "vol_threshold": 1.6,
+          "rsi_overbought": 65,
+          "rsi_oversold": 40,
+          "atr_period": 14,
+          "rsi_period": 14,
+          "sma_period": 20
+        }
+      }
+    },
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 1,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 1
+    }
+  }
+}

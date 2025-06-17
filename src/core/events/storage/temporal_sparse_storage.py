@@ -171,8 +171,8 @@ class TemporalSparseStorage:
             
             # Check if we should write to prevent memory issues
             if len(self._changes) >= self._max_buffer_size:
-                logger.warning(f"Signal buffer at {len(self._changes)} changes, "
-                              f"consider using streaming storage for large runs")
+                logger.debug(f"Signal buffer at {len(self._changes)} changes, "
+                             f"consider using streaming storage for large runs")
                 # For now, just log warning. Could auto-save here if needed.
             
             # Update current state

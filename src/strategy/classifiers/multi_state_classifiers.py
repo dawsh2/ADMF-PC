@@ -30,9 +30,9 @@ def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str,
     - weak_downtrend: MAs mostly downward, weak momentum
     - strong_downtrend: All MAs aligned downward, strong momentum
     """
-    # Parameters
-    strong_threshold = params.get('strong_threshold', 0.02)  # 2%
-    weak_threshold = params.get('weak_threshold', 0.005)    # 0.5%
+    # Parameters - adjusted for better balance
+    strong_threshold = params.get('strong_threshold', 0.01)  # 1% - reduced from 2%
+    weak_threshold = params.get('weak_threshold', 0.002)    # 0.2% - reduced from 0.5%
     
     # Get periods from parameters with defaults
     sma_short_period = params.get('sma_short', 10)
@@ -57,8 +57,8 @@ def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str,
     medium_trend = (sma_20 - sma_50) / sma_50
     price_trend = (price - sma_10) / sma_10
     
-    # Average trend strength
-    avg_trend = (short_trend + medium_trend + price_trend) / 3
+    # Weighted average trend strength - price trend gets more weight
+    avg_trend = (short_trend * 0.2 + medium_trend * 0.3 + price_trend * 0.5)
     
     # Classification logic
     if avg_trend > strong_threshold:
@@ -135,10 +135,10 @@ def volatility_momentum_classifier(features: Dict[str, Any], params: Dict[str, A
     - low_vol_bearish: Low volatility with bearish momentum
     - neutral: Normal volatility and momentum
     """
-    # Parameters
-    vol_threshold = params.get('vol_threshold', 1.5)
-    rsi_overbought = params.get('rsi_overbought', 65)
-    rsi_oversold = params.get('rsi_oversold', 35)
+    # Parameters - adjusted for better balance
+    vol_threshold = params.get('vol_threshold', 1.0)      # 1% - reduced from 1.5%
+    rsi_overbought = params.get('rsi_overbought', 60)    # 60 - reduced from 65
+    rsi_oversold = params.get('rsi_oversold', 40)        # 40 - increased from 35
     
     # Get periods from parameters with defaults
     atr_period = params.get('atr_period', 14)
@@ -162,29 +162,29 @@ def volatility_momentum_classifier(features: Dict[str, Any], params: Dict[str, A
     vol_pct = (atr / price) * 100
     is_high_vol = vol_pct > vol_threshold
     
-    # Determine momentum direction
+    # Determine momentum direction - use OR logic for better balance
     price_momentum = (price - sma) / sma
-    is_bullish = rsi > 50 and price_momentum > 0
-    is_bearish = rsi < 50 and price_momentum < 0
+    is_bullish = rsi > rsi_overbought or (rsi > 55 and price_momentum > 0.005)
+    is_bearish = rsi < rsi_oversold or (rsi < 45 and price_momentum < -0.005)
     
     # Classification
     if is_high_vol:
         if is_bullish:
             regime = 'high_vol_bullish'
-            confidence = min((rsi - 50) / 50 + vol_pct / (vol_threshold * 2), 1.0)
+            confidence = min((rsi - rsi_overbought) / (100 - rsi_overbought) + vol_pct / (vol_threshold * 2), 1.0)
         elif is_bearish:
             regime = 'high_vol_bearish' 
-            confidence = min((50 - rsi) / 50 + vol_pct / (vol_threshold * 2), 1.0)
+            confidence = min((rsi_oversold - rsi) / rsi_oversold + vol_pct / (vol_threshold * 2), 1.0)
         else:
             regime = 'neutral'
             confidence = 0.5
     else:
         if is_bullish:
             regime = 'low_vol_bullish'
-            confidence = (rsi - 50) / 50 * (1 - vol_pct / vol_threshold)
+            confidence = (rsi - rsi_overbought) / (100 - rsi_overbought) * (1 - vol_pct / vol_threshold)
         elif is_bearish:
             regime = 'low_vol_bearish'
-            confidence = (50 - rsi) / 50 * (1 - vol_pct / vol_threshold)
+            confidence = (rsi_oversold - rsi) / rsi_oversold * (1 - vol_pct / vol_threshold)
         else:
             regime = 'neutral'
             confidence = 0.8
@@ -226,9 +226,9 @@ def market_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
     - bear_ranging: Bearish but sideways
     - neutral: No clear bias
     """
-    # Parameters
-    trend_threshold = params.get('trend_threshold', 0.01)
-    vol_threshold = params.get('vol_threshold', 1.0)
+    # Parameters - adjusted for better balance
+    trend_threshold = params.get('trend_threshold', 0.005)  # 0.5% - reduced from 1%
+    vol_threshold = params.get('vol_threshold', 0.8)       # 0.8% - reduced from 1%
     
     # Get periods from parameters with defaults
     sma_short_period = params.get('sma_short', 10)
@@ -254,10 +254,10 @@ def market_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
     trend_strength = (sma_short - sma_long) / sma_long
     vol_level = (atr / price) * 100
     
-    # Determine market bias
-    is_bullish = trend_strength > 0 and rsi > 50
-    is_bearish = trend_strength < 0 and rsi < 50
-    is_trending = abs(trend_strength) > trend_threshold and vol_level > vol_threshold
+    # Determine market bias - improved logic
+    is_bullish = trend_strength > 0 and rsi > 48  # More lenient RSI
+    is_bearish = trend_strength < 0 and rsi < 52  # More lenient RSI
+    is_trending = abs(trend_strength) > trend_threshold or vol_level > vol_threshold  # OR not AND
     
     # Classification
     if is_bullish:
@@ -315,9 +315,9 @@ def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) 
     - reversal_up: Oversold bounce pattern
     - reversal_down: Overbought pullback pattern
     """
-    # Parameters
-    breakout_threshold = params.get('breakout_threshold', 0.005)  # 0.5%
-    consolidation_threshold = params.get('consolidation_threshold', 0.002)  # 0.2%
+    # Parameters - adjusted for better balance
+    breakout_threshold = params.get('breakout_threshold', 0.003)  # 0.3% - reduced from 0.5%
+    consolidation_threshold = params.get('consolidation_threshold', 0.001)  # 0.1% - reduced from 0.2%
     
     # Get periods from parameters with defaults
     sma_fast_period = params.get('sma_fast', 5)
@@ -378,10 +378,10 @@ def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) 
             }
         }
     
-    if rsi < 25 and price_vs_fast < 0:
+    if rsi < 30 and price_vs_fast < 0:  # More lenient RSI threshold
         return {
             'regime': 'reversal_up',
-            'confidence': (25 - rsi) / 25,
+            'confidence': (30 - rsi) / 30,
             'metadata': {
                 'rsi': rsi,
                 'price_vs_fast': price_vs_fast,
@@ -389,10 +389,10 @@ def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) 
             }
         }
     
-    if rsi > 75 and price_vs_fast > 0:
+    if rsi > 70 and price_vs_fast > 0:  # More lenient RSI threshold
         return {
             'regime': 'reversal_down',
-            'confidence': (rsi - 75) / 25,
+            'confidence': (rsi - 70) / 30,
             'metadata': {
                 'rsi': rsi,
                 'price_vs_fast': price_vs_fast,
@@ -400,13 +400,44 @@ def microstructure_classifier(features: Dict[str, Any], params: Dict[str, Any]) 
             }
         }
     
-    return {
-        'regime': 'consolidation',
-        'confidence': 0.5,
-        'metadata': {
-            'reason': 'Default to consolidation'
+    # More nuanced default classification based on metrics
+    if vol_pct < 0.8:  # Low volatility
+        return {
+            'regime': 'consolidation',
+            'confidence': 0.7,
+            'metadata': {
+                'vol_pct': vol_pct,
+                'reason': 'Low volatility consolidation'
+            }
         }
-    }
+    elif price_vs_fast > 0 and rsi > 50:
+        return {
+            'regime': 'breakout_up',
+            'confidence': 0.4,
+            'metadata': {
+                'price_vs_fast': price_vs_fast,
+                'rsi': rsi,
+                'reason': 'Mild upward pressure'
+            }
+        }
+    elif price_vs_fast < 0 and rsi < 50:
+        return {
+            'regime': 'breakout_down',
+            'confidence': 0.4,
+            'metadata': {
+                'price_vs_fast': price_vs_fast,
+                'rsi': rsi,
+                'reason': 'Mild downward pressure'
+            }
+        }
+    else:
+        return {
+            'regime': 'consolidation',
+            'confidence': 0.5,
+            'metadata': {
+                'reason': 'Mixed signals'
+            }
+        }
 
 
 @classifier(
@@ -431,10 +462,10 @@ def hidden_markov_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
     - markdown: Downtrend phase, decreasing price
     - uncertainty: Transition phase, unclear direction
     """
-    # Parameters
-    volume_surge_threshold = params.get('volume_surge_threshold', 1.5)
-    trend_strength_threshold = params.get('trend_strength_threshold', 0.02)
-    volatility_threshold = params.get('volatility_threshold', 1.5)
+    # Parameters - adjusted for better balance
+    volume_surge_threshold = params.get('volume_surge_threshold', 1.3)      # 1.3x - reduced from 1.5x
+    trend_strength_threshold = params.get('trend_strength_threshold', 0.01) # 1% - reduced from 2%
+    volatility_threshold = params.get('volatility_threshold', 1.2)         # 1.2% - reduced from 1.5%
     
     # Get periods from parameters with defaults
     rsi_period = params.get('rsi_period', 14)
@@ -469,22 +500,18 @@ def hidden_markov_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
     # Market phase detection logic
     is_high_volume = volume_ratio > volume_surge_threshold
     is_low_volatility = volatility_pct < volatility_threshold
-    is_high_volatility = volatility_pct > volatility_threshold * 1.5
+    is_high_volatility = volatility_pct > volatility_threshold * 1.3  # Less strict multiplier
     
     # Accumulation: Low volatility, sideways price, possible volume spikes
     if abs(trend_strength) < trend_strength_threshold and is_low_volatility:
-        if is_high_volume and rsi < 50:
+        if is_high_volume or rsi < 45:  # More lenient conditions
             regime = 'accumulation'
             confidence = min(volume_ratio / 2 + (50 - rsi) / 100, 1.0)
-            reason = f'Low volatility sideways with volume surge, RSI: {rsi:.1f}'
-        elif rsi < 40:
-            regime = 'accumulation'
-            confidence = (40 - rsi) / 40
-            reason = f'Oversold sideways market, RSI: {rsi:.1f}'
+            reason = f'Low volatility sideways, RSI: {rsi:.1f}, Vol: {volume_ratio:.1f}x'
         else:
-            regime = 'uncertainty'
-            confidence = 0.6
-            reason = 'Sideways market, unclear accumulation'
+            regime = 'accumulation'  # Default to accumulation not uncertainty
+            confidence = 0.5
+            reason = 'Sideways consolidation phase'
     
     # Markup: Uptrend with increasing volume
     elif trend_strength > trend_strength_threshold and price_position > 0:
@@ -498,15 +525,10 @@ def hidden_markov_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
             reason = f'Uptrend, moderate volume'
     
     # Distribution: High volatility at tops, divergences
-    elif is_high_volatility and rsi > 60 and price_position > 0.01:
-        if is_high_volume:
-            regime = 'distribution'
-            confidence = min(volatility_pct / (volatility_threshold * 2) + (rsi - 60) / 40, 1.0)
-            reason = f'High volatility top with {volume_ratio:.1f}x volume, RSI: {rsi:.1f}'
-        else:
-            regime = 'distribution'
-            confidence = (rsi - 60) / 40 * volatility_pct / (volatility_threshold * 2)
-            reason = f'Potential top, RSI: {rsi:.1f}, volatility: {volatility_pct:.2f}%'
+    elif (is_high_volatility or rsi > 65) and price_position > 0:  # More lenient
+        regime = 'distribution'
+        confidence = min(volatility_pct / (volatility_threshold * 2) + max(0, rsi - 60) / 40, 1.0)
+        reason = f'Distribution phase, RSI: {rsi:.1f}, Vol: {volatility_pct:.2f}%'
     
     # Markdown: Downtrend phase
     elif trend_strength < -trend_strength_threshold and price_position < 0:
@@ -514,11 +536,25 @@ def hidden_markov_classifier(features: Dict[str, Any], params: Dict[str, Any]) -
         confidence = min(abs(trend_strength) / (trend_strength_threshold * 2) + (50 - rsi) / 50, 1.0)
         reason = f'Downtrend, RSI: {rsi:.1f}, trend: {trend_strength:.3f}'
     
-    # Default: Uncertainty
+    # Default: Assign based on dominant signal
     else:
-        regime = 'uncertainty'
-        confidence = 0.5
-        reason = f'Mixed signals: trend={trend_strength:.3f}, vol={volatility_pct:.2f}%, RSI={rsi:.1f}'
+        # Determine most likely regime based on individual signals
+        if rsi > 55 and trend_strength > 0:
+            regime = 'markup'
+            confidence = 0.4
+            reason = f'Weak bullish bias: trend={trend_strength:.3f}, RSI={rsi:.1f}'
+        elif rsi < 45 and trend_strength < 0:
+            regime = 'markdown'
+            confidence = 0.4
+            reason = f'Weak bearish bias: trend={trend_strength:.3f}, RSI={rsi:.1f}'
+        elif volatility_pct > volatility_threshold:
+            regime = 'distribution' if rsi > 50 else 'accumulation'
+            confidence = 0.4
+            reason = f'High volatility: {volatility_pct:.2f}%, RSI={rsi:.1f}'
+        else:
+            regime = 'accumulation'  # Default to accumulation over uncertainty
+            confidence = 0.3
+            reason = f'Low conviction signals: trend={trend_strength:.3f}, vol={volatility_pct:.2f}%'
     
     return {
         'regime': regime,

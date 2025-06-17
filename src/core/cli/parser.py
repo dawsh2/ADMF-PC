@@ -28,6 +28,8 @@ class CLIArgs:
     backtest: bool = False
     signal_replay: bool = False
     optimize: bool = False
+    alpaca: bool = False
+    universal: bool = False
     
     # Workflow and sequence arguments  
     workflow: Optional[str] = None
@@ -110,6 +112,18 @@ def parse_arguments() -> CLIArgs:
         '--optimize', '-opt',
         action='store_true',
         help='Run parameter optimization'
+    )
+    
+    action_group.add_argument(
+        '--alpaca', '-a',
+        action='store_true',
+        help='Run live trading with Alpaca WebSocket data'
+    )
+    
+    action_group.add_argument(
+        '--universal', '-u',
+        action='store_true',
+        help='Use universal topology with complete trading pipeline (signals, portfolio, execution)'
     )
     
     # Workflow for complex multi-phase executions
@@ -293,6 +307,8 @@ def parse_arguments() -> CLIArgs:
         backtest=getattr(args, 'backtest', False),
         signal_replay=getattr(args, 'signal_replay', False),
         optimize=getattr(args, 'optimize', False),
+        alpaca=getattr(args, 'alpaca', False),
+        universal=getattr(args, 'universal', False),
         # Workflow and sequence arguments
         workflow=getattr(args, 'workflow', None),
         sequence=getattr(args, 'sequence', None),

@@ -1,0 +1,42 @@
+{
+  "classifier": "SPY_market_regime_grid_0006_12",
+  "ensemble_method": "regime_specialist",
+  "creation_date": "2025-06-17T11:21:29.151490",
+  "regimes": {
+    "bull_ranging": {
+      "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+      "strategy_type": "pivot_channel_bounces_grid",
+      "expected_return": 0.1191694874197633,
+      "trade_frequency": 1800,
+      "win_rate": 0.5222222222222223,
+      "profit_factor": 1.143906724430517,
+      "confidence": "high"
+    },
+    "bear_ranging": {
+      "strategy_name": "SPY_stochastic_crossover_grid_5_7",
+      "strategy_type": "stochastic_crossover_grid",
+      "expected_return": 0.20983049671197684,
+      "trade_frequency": 8546,
+      "win_rate": 0.3659021764568219,
+      "profit_factor": 1.112716791063833,
+      "confidence": "high"
+    },
+    "neutral": {
+      "strategy_name": "SPY_ichimoku_grid_9_35",
+      "strategy_type": "ichimoku_grid",
+      "expected_return": 0.08600880921704057,
+      "trade_frequency": 1476,
+      "win_rate": 0.22628726287262874,
+      "profit_factor": 1.1226140731898024,
+      "confidence": "high"
+    }
+  },
+  "expected_performance": {
+    "total_expected_return": 0.14220140343755464,
+    "regime_contributions": {
+      "bull_ranging": 0.053268760876634194,
+      "bear_ranging": 0.07302101285576794,
+      "neutral": 0.015911629705152506
+    }
+  }
+}

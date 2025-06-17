@@ -1,0 +1,90 @@
+# Simple Ensemble Test Configuration
+# Uses only strategies that work with basic features to test the ensemble mechanism
+
+name: ensemble_simple_test
+description: Simple test for ensemble strategy functionality
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2024-03-26"
+end_date: "2025-01-17"
+
+# Topology 
+topology: signal_generation
+
+# Classifier configuration - using simple features
+classifiers:
+  - type: volatility_momentum_classifier
+    name: vol_mom_classifier
+    params:
+      vol_threshold: 0.8
+      rsi_overbought: 60
+      rsi_oversold: 40
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+
+# Simple ensemble with basic strategies
+strategies:
+  - type: duckdb_ensemble
+    name: simple_ensemble
+    params:
+      classifier_name: volatility_momentum_classifier
+      aggregation_method: equal_weight
+      min_agreement: 0.3
+      # Pass classifier params to ensemble
+      vol_threshold: 0.8
+      rsi_overbought: 60
+      rsi_oversold: 40
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+      # Use only strategies with simple features
+      regime_strategies:
+        low_vol_bullish:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 50
+        low_vol_bearish:
+          - name: rsi_bands
+            params:
+              rsi_period: 14
+              oversold: 30
+              overbought: 70
+        neutral:
+          - name: cci_threshold
+            params:
+              cci_period: 14
+              threshold: 0
+        high_vol_bullish:
+          - name: rsi_threshold
+            params:
+              rsi_period: 14
+              threshold: 40
+        high_vol_bearish:
+          - name: cci_bands
+            params:
+              cci_period: 14
+              oversold: -100
+              overbought: 100
+
+# Execution settings
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: ensemble_simple_test
+  description: |
+    Simple test configuration using only strategies with basic features:
+    - RSI threshold and bands strategies
+    - CCI threshold and bands strategies
+    - All use simple period parameters that work with feature inference

@@ -1,3 +1,9 @@
+- connect to live
+- fork codebase, keep old one for running live strat, do deep cleaning on new one
+- [ ] configs need to support strategy composition and regime adaptive behavior, see regime config.md. shouldn't haven't to ever write new strategy files if it's just using exsiting stuff
+- []  feature inference system blows balls, costing way too much time rn
+- []  data analysis phase is a mess
+
 - [ ] track real world slippage on alpaca 
 - [ ] options build out 
 - [ ] add strategy.extract() for composite strategies to keep rulewise ensemble optimization concise 

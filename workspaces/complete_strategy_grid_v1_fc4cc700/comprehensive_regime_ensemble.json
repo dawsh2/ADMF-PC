@@ -1,0 +1,446 @@
+{
+  "analysis_metadata": {
+    "classifier_name": "SPY_market_regime_grid_0006_12",
+    "strategy_types_total": 45,
+    "strategy_types_analyzed": 45,
+    "cost_config": {
+      "cost_multiplier": 0.99,
+      "commission_per_trade": null,
+      "slippage_bps": null,
+      "fixed_cost_per_trade": null
+    },
+    "regimes_analyzed": [
+      "bull_ranging",
+      "bear_ranging",
+      "neutral"
+    ],
+    "analysis_date": "2025-06-17T11:26:12.878364"
+  },
+  "regime_champions": {
+    "bull_ranging": {
+      "champion": {
+        "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+        "strategy_type": "pivot_channel_bounces_grid",
+        "return": 0.1191694874197633,
+        "log_return": 0.11258688114882155,
+        "trades": 1800,
+        "win_rate": 0.5222222222222223,
+        "avg_trade_return": 6.254826730490087e-05,
+        "profit_factor": 1.143906724430517,
+        "avg_bars_held": 16.252777777777776
+      },
+      "top_10": [
+        {
+          "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+          "strategy_type": "pivot_channel_bounces_grid",
+          "return": 0.1191694874197633,
+          "log_return": 0.11258688114882155,
+          "trades": 1800,
+          "win_rate": 0.5222222222222223,
+          "avg_trade_return": 6.254826730490087e-05,
+          "profit_factor": 1.143906724430517,
+          "avg_bars_held": 16.252777777777776
+        },
+        {
+          "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+          "strategy_type": "roc_threshold_grid",
+          "return": 0.07214104245870945,
+          "log_return": 0.0696576234518596,
+          "trades": 3753,
+          "win_rate": 0.40474287236877166,
+          "avg_trade_return": 1.856051783955758e-05,
+          "profit_factor": 1.0930762133923384,
+          "avg_bars_held": 2.811084465760725
+        },
+        {
+          "strategy_name": "SPY_sma_crossover_grid_27_35",
+          "strategy_type": "sma_crossover_grid",
+          "return": 0.06931546955730283,
+          "log_return": 0.06701869567040643,
+          "trades": 1191,
+          "win_rate": 0.4080604534005038,
+          "avg_trade_return": 5.62709451472766e-05,
+          "profit_factor": 1.1255930712781987,
+          "avg_bars_held": 24.450041981528127
+        },
+        {
+          "strategy_name": "SPY_rsi_threshold_grid_27_50",
+          "strategy_type": "rsi_threshold_grid",
+          "return": 0.0476335802960548,
+          "log_return": 0.04653388763945573,
+          "trades": 2969,
+          "win_rate": 0.19838329403839677,
+          "avg_trade_return": 1.5673252825683976e-05,
+          "profit_factor": 1.0607747153273983,
+          "avg_bars_held": 12.267430111148535
+        },
+        {
+          "strategy_name": "SPY_atr_channel_breakout_grid_7_30_1.5",
+          "strategy_type": "atr_channel_breakout_grid",
+          "return": 0.042007818796845786,
+          "log_return": 0.04114944694682887,
+          "trades": 2295,
+          "win_rate": 0.27145969498910677,
+          "avg_trade_return": 1.7930042242626958e-05,
+          "profit_factor": 1.0920979680978624,
+          "avg_bars_held": 5.99041394335512
+        },
+        {
+          "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.003",
+          "strategy_type": "pivot_channel_bounces_grid",
+          "return": 0.03486687847374048,
+          "log_return": 0.03427279861295759,
+          "trades": 261,
+          "win_rate": 0.4061302681992337,
+          "avg_trade_return": 0.00013131340464734708,
+          "profit_factor": 1.1821780993639015,
+          "avg_bars_held": 44.229885057471265
+        },
+        {
+          "strategy_name": "SPY_mfi_bands_grid_7_25_85",
+          "strategy_type": "mfi_bands_grid",
+          "return": 0.03384242536947335,
+          "log_return": 0.033282371213507696,
+          "trades": 2702,
+          "win_rate": 0.6080680977054034,
+          "avg_trade_return": 1.2317679945783751e-05,
+          "profit_factor": 1.0713164949025635,
+          "avg_bars_held": 3.1476683937823835
+        },
+        {
+          "strategy_name": "SPY_chaikin_money_flow_grid_20_0.1",
+          "strategy_type": "chaikin_money_flow_grid",
+          "return": 0.03261505407495413,
+          "log_return": 0.032094472163024385,
+          "trades": 2796,
+          "win_rate": 0.4105865522174535,
+          "avg_trade_return": 1.147870964342789e-05,
+          "profit_factor": 1.0512616677727917,
+          "avg_bars_held": 6.882689556509299
+        },
+        {
+          "strategy_name": "SPY_stochastic_rsi_grid_7_21_15_85",
+          "strategy_type": "stochastic_rsi_grid",
+          "return": 0.024758447626783697,
+          "log_return": 0.024456923966071277,
+          "trades": 5252,
+          "win_rate": 0.6681264280274182,
+          "avg_trade_return": 4.656687731544417e-06,
+          "profit_factor": 1.029914064776324,
+          "avg_bars_held": 2.713632901751714
+        },
+        {
+          "strategy_name": "SPY_atr_channel_breakout_grid_21_10_1.5",
+          "strategy_type": "atr_channel_breakout_grid",
+          "return": 0.019797388642366576,
+          "log_return": 0.01960396897900772,
+          "trades": 2021,
+          "win_rate": 0.34388916378030676,
+          "avg_trade_return": 9.700133092037468e-06,
+          "profit_factor": 1.0563428636479502,
+          "avg_bars_held": 2.566056407718951
+        }
+      ],
+      "total_candidates": 78
+    },
+    "bear_ranging": {
+      "champion": {
+        "strategy_name": "SPY_stochastic_crossover_grid_27_7",
+        "strategy_type": "stochastic_crossover_grid",
+        "return": 0.15375284098684405,
+        "log_return": 0.14301996922569082,
+        "trades": 7344,
+        "win_rate": 0.3221677559912854,
+        "avg_trade_return": 1.947439668105812e-05,
+        "profit_factor": 1.0929047921789372,
+        "avg_bars_held": 3.9362745098039214
+      },
+      "top_10": [
+        {
+          "strategy_name": "SPY_stochastic_crossover_grid_27_7",
+          "strategy_type": "stochastic_crossover_grid",
+          "return": 0.15375284098684405,
+          "log_return": 0.14301996922569082,
+          "trades": 7344,
+          "win_rate": 0.3221677559912854,
+          "avg_trade_return": 1.947439668105812e-05,
+          "profit_factor": 1.0929047921789372,
+          "avg_bars_held": 3.9362745098039214
+        },
+        {
+          "strategy_name": "SPY_stochastic_crossover_grid_27_5",
+          "strategy_type": "stochastic_crossover_grid",
+          "return": 0.14618627829461905,
+          "log_return": 0.13644015158819925,
+          "trades": 8503,
+          "win_rate": 0.3463483476420087,
+          "avg_trade_return": 1.604611920359864e-05,
+          "profit_factor": 1.0808663388479174,
+          "avg_bars_held": 3.3550511584146774
+        },
+        {
+          "strategy_name": "SPY_trendline_bounces_grid_5_2_0.0005_0.1",
+          "strategy_type": "trendline_bounces_grid",
+          "return": 0.1107339710928601,
+          "log_return": 0.10502103202335171,
+          "trades": 899,
+          "win_rate": 0.5706340378197998,
+          "avg_trade_return": 0.00011681983539861147,
+          "profit_factor": 1.3094245549522807,
+          "avg_bars_held": 15.25250278086763
+        },
+        {
+          "strategy_name": "SPY_tema_sma_crossover_grid_5_23",
+          "strategy_type": "tema_sma_crossover_grid",
+          "return": 0.10152987480323006,
+          "log_return": 0.0967000088200486,
+          "trades": 2781,
+          "win_rate": 0.2815533980582524,
+          "avg_trade_return": 3.477166804029076e-05,
+          "profit_factor": 1.1006106815350982,
+          "avg_bars_held": 12.20604099244876
+        },
+        {
+          "strategy_name": "SPY_rsi_threshold_grid_27_50",
+          "strategy_type": "rsi_threshold_grid",
+          "return": 0.08931137624269891,
+          "log_return": 0.08554573167855199,
+          "trades": 2504,
+          "win_rate": 0.21605431309904152,
+          "avg_trade_return": 3.416363086204153e-05,
+          "profit_factor": 1.1271397986469271,
+          "avg_bars_held": 12.678913738019169
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_35_9",
+          "strategy_type": "macd_crossover_grid",
+          "return": 0.08196712573447429,
+          "log_return": 0.07878079709254936,
+          "trades": 3342,
+          "win_rate": 0.3249551166965889,
+          "avg_trade_return": 2.3572949459170963e-05,
+          "profit_factor": 1.0692725977796143,
+          "avg_bars_held": 9.381508078994614
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_20_11",
+          "strategy_type": "macd_crossover_grid",
+          "return": 0.07806073445503348,
+          "log_return": 0.07516381083950485,
+          "trades": 3360,
+          "win_rate": 0.3351190476190476,
+          "avg_trade_return": 2.2370181797471683e-05,
+          "profit_factor": 1.0661602366401244,
+          "avg_bars_held": 9.033928571428572
+        },
+        {
+          "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+          "strategy_type": "roc_threshold_grid",
+          "return": 0.06535576717477176,
+          "log_return": 0.06330879706311052,
+          "trades": 3612,
+          "win_rate": 0.40365448504983387,
+          "avg_trade_return": 1.7527352453795824e-05,
+          "profit_factor": 1.080615530151945,
+          "avg_bars_held": 3.0598006644518274
+        },
+        {
+          "strategy_name": "SPY_ultimate_oscillator_grid_10_10_35_30_65",
+          "strategy_type": "ultimate_oscillator_grid",
+          "return": 0.0641242908889943,
+          "log_return": 0.06215219884243705,
+          "trades": 617,
+          "win_rate": 0.5834683954619124,
+          "avg_trade_return": 0.00010073289925840689,
+          "profit_factor": 1.6559448942423927,
+          "avg_bars_held": 2.5089141004862237
+        },
+        {
+          "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+          "strategy_type": "pivot_channel_bounces_grid",
+          "return": 0.05609571221920939,
+          "log_return": 0.05457881774804482,
+          "trades": 2518,
+          "win_rate": 0.3729150119142176,
+          "avg_trade_return": 2.1675463760144885e-05,
+          "profit_factor": 1.052594131363252,
+          "avg_bars_held": 13.902700555996823
+        }
+      ],
+      "total_candidates": 78
+    },
+    "neutral": {
+      "champion": {
+        "strategy_name": "SPY_sma_crossover_grid_27_35",
+        "strategy_type": "sma_crossover_grid",
+        "return": 0.10867473699422292,
+        "log_return": 0.10316537138541317,
+        "trades": 772,
+        "win_rate": 0.43911917098445596,
+        "avg_trade_return": 0.00013363390075830722,
+        "profit_factor": 1.2092479529192195,
+        "avg_bars_held": 35.75777202072539
+      },
+      "top_10": [
+        {
+          "strategy_name": "SPY_sma_crossover_grid_27_35",
+          "strategy_type": "sma_crossover_grid",
+          "return": 0.10867473699422292,
+          "log_return": 0.10316537138541317,
+          "trades": 772,
+          "win_rate": 0.43911917098445596,
+          "avg_trade_return": 0.00013363390075830722,
+          "profit_factor": 1.2092479529192195,
+          "avg_bars_held": 35.75777202072539
+        },
+        {
+          "strategy_name": "SPY_ichimoku_grid_9_35",
+          "strategy_type": "ichimoku_grid",
+          "return": 0.08600880921704057,
+          "log_return": 0.0825093330967457,
+          "trades": 1476,
+          "win_rate": 0.22628726287262874,
+          "avg_trade_return": 5.5900632179367005e-05,
+          "profit_factor": 1.1226140731898024,
+          "avg_bars_held": 22.508130081300813
+        },
+        {
+          "strategy_name": "SPY_ichimoku_grid_9_23",
+          "strategy_type": "ichimoku_grid",
+          "return": 0.07805941454864174,
+          "log_return": 0.0751625865047734,
+          "trades": 1469,
+          "win_rate": 0.2314499659632403,
+          "avg_trade_return": 5.116581790658502e-05,
+          "profit_factor": 1.1150160635913449,
+          "avg_bars_held": 21.168822328114363
+        },
+        {
+          "strategy_name": "SPY_williams_r_grid_21_-80_-20",
+          "strategy_type": "williams_r_grid",
+          "return": 0.07450325494354915,
+          "log_return": 0.07185846635926398,
+          "trades": 2301,
+          "win_rate": 0.6640591047370709,
+          "avg_trade_return": 3.122923353292654e-05,
+          "profit_factor": 1.1633240055478158,
+          "avg_bars_held": 4.049978270317253
+        },
+        {
+          "strategy_name": "SPY_sma_crossover_grid_7_61",
+          "strategy_type": "sma_crossover_grid",
+          "return": 0.062011888930846304,
+          "log_return": 0.060165117607222915,
+          "trades": 892,
+          "win_rate": 0.34641255605381166,
+          "avg_trade_return": 6.74496834161692e-05,
+          "profit_factor": 1.0848401004402506,
+          "avg_bars_held": 47.36659192825112
+        },
+        {
+          "strategy_name": "SPY_ema_sma_crossover_grid_5_50",
+          "strategy_type": "ema_sma_crossover_grid",
+          "return": 0.05890941269290839,
+          "log_return": 0.057239522538295985,
+          "trades": 807,
+          "win_rate": 0.3333333333333333,
+          "avg_trade_return": 7.092877637954893e-05,
+          "profit_factor": 1.0968784682348094,
+          "avg_bars_held": 37.44981412639405
+        },
+        {
+          "strategy_name": "SPY_aroon_crossover_grid_14",
+          "strategy_type": "aroon_crossover_grid",
+          "return": 0.057941412546612225,
+          "log_return": 0.05632495623799114,
+          "trades": 833,
+          "win_rate": 0.38055222088835533,
+          "avg_trade_return": 6.761699428330269e-05,
+          "profit_factor": 1.1646615603721,
+          "avg_bars_held": 14.39015606242497
+        },
+        {
+          "strategy_name": "SPY_chaikin_money_flow_grid_20_0.03",
+          "strategy_type": "chaikin_money_flow_grid",
+          "return": 0.05378395442651285,
+          "log_return": 0.052387452283609734,
+          "trades": 1317,
+          "win_rate": 0.4123006833712984,
+          "avg_trade_return": 3.977786809689426e-05,
+          "profit_factor": 1.1272305124361672,
+          "avg_bars_held": 10.644646924829157
+        },
+        {
+          "strategy_name": "SPY_rsi_bands_grid_11_35_65",
+          "strategy_type": "rsi_bands_grid",
+          "return": 0.05364435608852469,
+          "log_return": 0.05225497011328319,
+          "trades": 2091,
+          "win_rate": 0.7049258727881397,
+          "avg_trade_return": 2.49904209054439e-05,
+          "profit_factor": 1.1293287550373234,
+          "avg_bars_held": 4.0
+        },
+        {
+          "strategy_name": "SPY_vortex_crossover_grid_35",
+          "strategy_type": "vortex_crossover_grid",
+          "return": 0.051663778337035726,
+          "log_return": 0.05037346089058436,
+          "trades": 1080,
+          "win_rate": 0.3333333333333333,
+          "avg_trade_return": 4.664209341720774e-05,
+          "profit_factor": 1.0952027724232434,
+          "avg_bars_held": 23.368518518518517
+        }
+      ],
+      "total_candidates": 76
+    }
+  },
+  "final_ensemble": {
+    "classifier": "SPY_market_regime_grid_0006_12",
+    "ensemble_method": "regime_specialist",
+    "creation_date": "2025-06-17T11:26:12.878184",
+    "regimes": {
+      "bull_ranging": {
+        "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+        "strategy_type": "pivot_channel_bounces_grid",
+        "expected_return": 0.1191694874197633,
+        "trade_frequency": 1800,
+        "win_rate": 0.5222222222222223,
+        "profit_factor": 1.143906724430517,
+        "confidence": "high"
+      },
+      "bear_ranging": {
+        "strategy_name": "SPY_stochastic_crossover_grid_27_7",
+        "strategy_type": "stochastic_crossover_grid",
+        "expected_return": 0.15375284098684405,
+        "trade_frequency": 7344,
+        "win_rate": 0.3221677559912854,
+        "profit_factor": 1.0929047921789372,
+        "confidence": "high"
+      },
+      "neutral": {
+        "strategy_name": "SPY_sma_crossover_grid_27_35",
+        "strategy_type": "sma_crossover_grid",
+        "expected_return": 0.10867473699422292,
+        "trade_frequency": 772,
+        "win_rate": 0.43911917098445596,
+        "profit_factor": 1.2092479529192195,
+        "confidence": "high"
+      }
+    },
+    "analysis_summary": {
+      "strategy_types_analyzed": 45,
+      "total_strategies_tested": 90
+    },
+    "expected_performance": {
+      "total_expected_return": 0.12687957588398716,
+      "regime_contributions": {
+        "bull_ranging": 0.053268760876634194,
+        "bear_ranging": 0.053505988663421725,
+        "neutral": 0.02010482634393124
+      }
+    }
+  },
+  "detailed_results_location": "workspaces/complete_strategy_grid_v1_fc4cc700/batch_analysis_results"
+}

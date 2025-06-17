@@ -1,0 +1,230 @@
+{
+  "workflow_id": "two_layer_enhanced_debug_test",
+  "workspace_path": "workspaces/two_layer_enhanced_debug_test_9eabfc1f",
+  "total_bars": 149,
+  "total_signals": 252,
+  "total_classifications": 19,
+  "stored_changes": 59,
+  "compression_ratio": 21.771217712177123,
+  "components": {
+    "SPY_enhanced_debug_ensemble_{'name': 'sma_crossover', 'params': {'fast_period': 19, 'slow_period': 15}}": {
+      "component_type": "strategy",
+      "strategy_type": "ma_crossover",
+      "signal_file_path": "traces/SPY_1m/signals/ma_crossover/SPY_enhanced_debug_ensemble_{'name': 'sma_crossover', 'params': {'fast_period': 19, 'slow_period': 15}}.parquet",
+      "total_bars": 145,
+      "signal_changes": 20,
+      "compression_ratio": 0.13793103448275862,
+      "signal_frequency": 0.13793103448275862,
+      "parameters": {},
+      "created_at": "2025-06-17T14:26:08.527981"
+    },
+    "SPY_enhanced_debug_ensemble_{'name': 'dema_crossover', 'params': {'fast_dema_period': 19, 'slow_dema_period': 15}}": {
+      "component_type": "strategy",
+      "strategy_type": "ma_crossover",
+      "signal_file_path": "traces/SPY_1m/signals/ma_crossover/SPY_enhanced_debug_ensemble_{'name': 'dema_crossover', 'params': {'fast_dema_period': 19, 'slow_dema_period': 15}}.parquet",
+      "total_bars": 145,
+      "signal_changes": 20,
+      "compression_ratio": 0.13793103448275862,
+      "signal_frequency": 0.13793103448275862,
+      "parameters": {},
+      "created_at": "2025-06-17T14:26:08.528091"
+    },
+    "SPY_market_regime_detector": {
+      "component_type": "classifier",
+      "strategy_type": "regime",
+      "signal_file_path": "traces/SPY_1m/classifiers/regime/SPY_market_regime_detector.parquet",
+      "total_bars": 145,
+      "signal_changes": 19,
+      "compression_ratio": 0.1310344827586207,
+      "signal_frequency": 0.1310344827586207,
+      "parameters": {},
+      "created_at": "2025-06-17T14:26:08.536628"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "enhanced_debug_ensemble_{'name': 'sma_crossover', 'params': {'fast_period': 19, 'slow_period': 15}}": {
+        "type": "two_layer_ensemble_enhanced_debug",
+        "name": "enhanced_debug_ensemble_{'name': 'sma_crossover', 'params': {'fast_period': 19, 'slow_period': 15}}",
+        "params": {
+          "classifier_name": "market_regime_classifier",
+          "baseline_allocation": 0.25,
+          "baseline_aggregation": "equal_weight",
+          "booster_aggregation": "equal_weight",
+          "min_baseline_agreement": 0.3,
+          "min_booster_agreement": 0.3,
+          "trend_threshold": 0.006,
+          "vol_threshold": 0.8,
+          "sma_short": 12,
+          "sma_long": 50,
+          "atr_period": 20,
+          "rsi_period": 14,
+          "regime_boosters": {
+            "bull_ranging": [
+              {
+                "name": "roc_threshold",
+                "params": {
+                  "period": 5,
+                  "threshold": 0.05
+                }
+              },
+              {
+                "name": "rsi_threshold",
+                "params": {
+                  "period": 27,
+                  "threshold": 50
+                }
+              }
+            ],
+            "bear_ranging": [
+              {
+                "name": "tema_sma_crossover",
+                "params": {
+                  "tema_period": 5,
+                  "sma_period": 23
+                }
+              },
+              {
+                "name": "macd_crossover",
+                "params": {
+                  "fast_ema": 5,
+                  "slow_ema": 35,
+                  "signal_ema": 9
+                }
+              }
+            ],
+            "neutral": [
+              {
+                "name": "ichimoku_cloud_position",
+                "params": {
+                  "conversion_period": 9,
+                  "base_period": 35
+                }
+              },
+              {
+                "name": "williams_r",
+                "params": {
+                  "williams_period": 21,
+                  "oversold": -80,
+                  "overbought": -20
+                }
+              }
+            ]
+          },
+          "baseline_strategies": {
+            "name": "sma_crossover",
+            "params": {
+              "fast_period": 19,
+              "slow_period": 15
+            }
+          }
+        },
+        "depth": 0,
+        "is_ensemble": true,
+        "total_sub_strategies": 0,
+        "unique_strategy_types": 0
+      },
+      "enhanced_debug_ensemble_{'name': 'dema_crossover', 'params': {'fast_dema_period': 19, 'slow_dema_period': 15}}": {
+        "type": "two_layer_ensemble_enhanced_debug",
+        "name": "enhanced_debug_ensemble_{'name': 'dema_crossover', 'params': {'fast_dema_period': 19, 'slow_dema_period': 15}}",
+        "params": {
+          "classifier_name": "market_regime_classifier",
+          "baseline_allocation": 0.25,
+          "baseline_aggregation": "equal_weight",
+          "booster_aggregation": "equal_weight",
+          "min_baseline_agreement": 0.3,
+          "min_booster_agreement": 0.3,
+          "trend_threshold": 0.006,
+          "vol_threshold": 0.8,
+          "sma_short": 12,
+          "sma_long": 50,
+          "atr_period": 20,
+          "rsi_period": 14,
+          "regime_boosters": {
+            "bull_ranging": [
+              {
+                "name": "roc_threshold",
+                "params": {
+                  "period": 5,
+                  "threshold": 0.05
+                }
+              },
+              {
+                "name": "rsi_threshold",
+                "params": {
+                  "period": 27,
+                  "threshold": 50
+                }
+              }
+            ],
+            "bear_ranging": [
+              {
+                "name": "tema_sma_crossover",
+                "params": {
+                  "tema_period": 5,
+                  "sma_period": 23
+                }
+              },
+              {
+                "name": "macd_crossover",
+                "params": {
+                  "fast_ema": 5,
+                  "slow_ema": 35,
+                  "signal_ema": 9
+                }
+              }
+            ],
+            "neutral": [
+              {
+                "name": "ichimoku_cloud_position",
+                "params": {
+                  "conversion_period": 9,
+                  "base_period": 35
+                }
+              },
+              {
+                "name": "williams_r",
+                "params": {
+                  "williams_period": 21,
+                  "oversold": -80,
+                  "overbought": -20
+                }
+              }
+            ]
+          },
+          "baseline_strategies": {
+            "name": "dema_crossover",
+            "params": {
+              "fast_dema_period": 19,
+              "slow_dema_period": 15
+            }
+          }
+        },
+        "depth": 0,
+        "is_ensemble": true,
+        "total_sub_strategies": 0,
+        "unique_strategy_types": 0
+      }
+    },
+    "classifiers": {
+      "market_regime_detector": {
+        "type": "market_regime_classifier",
+        "name": "market_regime_detector",
+        "params": {
+          "trend_threshold": 0.006,
+          "vol_threshold": 0.8,
+          "sma_short": 12,
+          "sma_long": 50,
+          "atr_period": 20,
+          "rsi_period": 14
+        }
+      }
+    },
+    "summary": {
+      "total_strategies": 2,
+      "total_ensemble_strategies": 2,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

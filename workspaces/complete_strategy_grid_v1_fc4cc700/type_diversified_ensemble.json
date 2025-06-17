@@ -1,0 +1,130 @@
+{
+  "type_diversified_ensemble": {
+    "classifier": "SPY_market_regime_grid_0006_12",
+    "ensemble_method": "type_diversified_regime_adaptive",
+    "creation_date": "2025-06-17T12:03:13.219246",
+    "diversification_rule": "No duplicate strategy types within each regime",
+    "regimes": {
+      "bull_ranging": {
+        "strategies": [
+          {
+            "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+            "strategy_type": "pivot_channel_bounces_grid",
+            "expected_return": 0.1191694874197633,
+            "weight": 0.45724328224256644,
+            "trades": 1800,
+            "win_rate": 0.5222222222222223,
+            "profit_factor": 1.143906724430517,
+            "rank": 1
+          },
+          {
+            "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+            "strategy_type": "roc_threshold_grid",
+            "expected_return": 0.07214104245870945,
+            "weight": 0.2767991014514525,
+            "trades": 3753,
+            "win_rate": 0.40474287236877166,
+            "profit_factor": 1.0930762133923384,
+            "rank": 2
+          },
+          {
+            "strategy_name": "SPY_sma_crossover_grid_27_35",
+            "strategy_type": "sma_crossover_grid",
+            "expected_return": 0.06931546955730283,
+            "weight": 0.265957616305981,
+            "trades": 1191,
+            "win_rate": 0.4080604534005038,
+            "profit_factor": 1.1255930712781987,
+            "rank": 3
+          }
+        ],
+        "regime_expected_return": 0.0928930003579087,
+        "regime_frequency": 0.447,
+        "type_diversity": 3
+      },
+      "bear_ranging": {
+        "strategies": [
+          {
+            "strategy_name": "SPY_stochastic_crossover_grid_27_7",
+            "strategy_type": "stochastic_crossover_grid",
+            "expected_return": 0.15375284098684405,
+            "weight": 0.4200705773723916,
+            "trades": 7344,
+            "win_rate": 0.3221677559912854,
+            "profit_factor": 1.0929047921789372,
+            "rank": 1
+          },
+          {
+            "strategy_name": "SPY_trendline_bounces_grid_5_2_0.0005_0.1",
+            "strategy_type": "trendline_bounces_grid",
+            "expected_return": 0.1107339710928601,
+            "weight": 0.30253804009836566,
+            "trades": 899,
+            "win_rate": 0.5706340378197998,
+            "profit_factor": 1.3094245549522807,
+            "rank": 2
+          },
+          {
+            "strategy_name": "SPY_tema_sma_crossover_grid_5_23",
+            "strategy_type": "tema_sma_crossover_grid",
+            "expected_return": 0.10152987480323006,
+            "weight": 0.2773913825292427,
+            "trades": 2781,
+            "win_rate": 0.2815533980582524,
+            "profit_factor": 1.1006106815350982,
+            "rank": 3
+          }
+        ],
+        "regime_expected_return": 0.12625179561242098,
+        "regime_frequency": 0.348,
+        "type_diversity": 3
+      },
+      "neutral": {
+        "strategies": [
+          {
+            "strategy_name": "SPY_sma_crossover_grid_27_35",
+            "strategy_type": "sma_crossover_grid",
+            "expected_return": 0.10867473699422292,
+            "weight": 0.4037149538090567,
+            "trades": 772,
+            "win_rate": 0.43911917098445596,
+            "profit_factor": 1.2092479529192195,
+            "rank": 1
+          },
+          {
+            "strategy_name": "SPY_ichimoku_grid_9_35",
+            "strategy_type": "ichimoku_grid",
+            "expected_return": 0.08600880921704057,
+            "weight": 0.3195134711214011,
+            "trades": 1476,
+            "win_rate": 0.22628726287262874,
+            "profit_factor": 1.1226140731898024,
+            "rank": 2
+          },
+          {
+            "strategy_name": "SPY_williams_r_grid_21_-80_-20",
+            "strategy_type": "williams_r_grid",
+            "expected_return": 0.07450325494354915,
+            "weight": 0.27677157506954214,
+            "trades": 2301,
+            "win_rate": 0.6640591047370709,
+            "profit_factor": 1.1633240055478158,
+            "rank": 3
+          }
+        ],
+        "regime_expected_return": 0.09197497282432283,
+        "regime_frequency": 0.185,
+        "type_diversity": 3
+      }
+    },
+    "expected_performance": {
+      "total_expected_return": 0.10247416600560741,
+      "regime_contributions": {
+        "bull_ranging": 0.04152317115998519,
+        "bear_ranging": 0.0439356248731225,
+        "neutral": 0.017015369972499726
+      }
+    }
+  },
+  "methodology": "Enforce different strategy types within each regime"
+}

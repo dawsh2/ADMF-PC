@@ -1,0 +1,48 @@
+name: "Ensemble Debug"
+description: "Debug ensemble feature mapping"
+
+symbols: ["SPY"]
+data:
+  source: "local"
+  timeframe: "1m"
+  start_date: "2024-03-26"
+  end_date: "2024-03-28"
+
+# Features will be automatically inferred by topology builder
+
+classifiers:
+  - type: volatility_momentum_classifier
+    name: vol_mom_classifier
+    params:
+      vol_threshold: 0.8
+      rsi_overbought: 60
+      rsi_oversold: 40
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+
+strategies:
+  - type: duckdb_ensemble
+    name: test_ensemble
+    params:
+      classifier_name: volatility_momentum_classifier
+      min_agreement: 0.3
+      # Add explicit period parameters to help feature mapping
+      rsi_period: 21
+      atr_period: 14
+      sma_period: 20
+      regime_strategies:
+        neutral:
+          - name: stochastic_rsi
+            params:
+              rsi_period: 21
+              stoch_period: 21
+              oversold: 15
+              overbought: 80
+
+mode: signal_generation
+
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    storage_backend: memory

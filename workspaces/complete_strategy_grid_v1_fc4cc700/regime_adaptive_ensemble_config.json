@@ -1,0 +1,77 @@
+{
+  "classifier": "SPY_market_regime_grid_0006_12",
+  "regimes": [
+    "bull_ranging",
+    "bear_ranging",
+    "neutral"
+  ],
+  "allocation_method": "regime_adaptive",
+  "strategies_by_regime": {
+    "bull_ranging": [
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_-60",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.03141584557491606,
+        "trade_frequency": 2529
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_-40",
+        "weight": 0.3333333333333333,
+        "expected_return": -0.008564582978275781,
+        "trade_frequency": 2907
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_11_-40",
+        "weight": 0.3333333333333333,
+        "expected_return": -0.008666094208192643,
+        "trade_frequency": 5122
+      }
+    ],
+    "bear_ranging": [
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_0",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.11191138246411869,
+        "trade_frequency": 2748
+      },
+      {
+        "strategy_name": "SPY_macd_crossover_grid_5_26_7",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.11177862185174559,
+        "trade_frequency": 3744
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_19_-20",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.10488068640428372,
+        "trade_frequency": 3482
+      }
+    ],
+    "neutral": [
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_60",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.10225761525200117,
+        "trade_frequency": 823
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_35_20",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.09698424840222142,
+        "trade_frequency": 432
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_35_60",
+        "weight": 0.3333333333333333,
+        "expected_return": 0.09346425042029005,
+        "trade_frequency": 786
+      }
+    ]
+  },
+  "implementation_notes": {
+    "regime_detection": "Use SPY_market_regime_grid_0006_12 for real-time regime detection",
+    "position_sizing": "Weight positions by regime allocation weights",
+    "rebalancing": "Rebalance when regime changes detected",
+    "minimum_trades": 30
+  }
+}

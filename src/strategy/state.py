@@ -55,6 +55,9 @@ class ComponentState:
         # Bar count per symbol
         self._bar_count: Dict[str, int] = defaultdict(int)
         
+        # Track actual bar indices from data stream
+        self._current_bar_indices: Dict[str, Dict[str, int]] = defaultdict(lambda: {'original': 0, 'split': 0})
+        
         # Component registry - populated by container/topology
         # Each component has: function, parameters, component_type, last_output
         self._components: Dict[str, Dict[str, Any]] = {}
@@ -188,6 +191,12 @@ class ComponentState:
         # Add state features that strategies may need
         features['bar_count'] = self._bar_count.get(symbol, 0)
         
+        # Also add actual bar indices if available
+        if hasattr(self, '_current_bar_indices') and symbol in self._current_bar_indices:
+            features['original_bar_index'] = self._current_bar_indices[symbol].get('original', features['bar_count'])
+            features['split_bar_index'] = self._current_bar_indices[symbol].get('split', features['bar_count'])
+            features['actual_bar_count'] = self._current_bar_indices[symbol].get('original', features['bar_count'])
+        
         # Ensure basic price data is available as features
         if self._feature_hub and not features:
             # If FeatureHub returns empty, we might not have enough data yet
@@ -253,11 +262,14 @@ class ComponentState:
             self._warmup_complete[symbol] = False
             if symbol in self._ready_components_cache:
                 del self._ready_components_cache[symbol]
+            if symbol in self._current_bar_indices:
+                self._current_bar_indices[symbol] = {'original': 0, 'split': 0}
         else:
             # Full reset
             self._bar_count.clear()
             self._warmup_complete.clear()
             self._ready_components_cache.clear()
+            self._current_bar_indices.clear()
             for component in self._components.values():
                 component['last_output'] = None
     
@@ -383,8 +395,10 @@ class ComponentState:
                 params_with_type = strategy_config.get('params', {}).copy()
                 params_with_type['_strategy_type'] = strategy_config.get('type', strategy_name)
                 
-                logger.debug(f"Loading strategy {strategy_name} with params: {params_with_type}")
-                logger.debug(f"Strategy function metadata: {getattr(strategy_func, '_strategy_metadata', 'No metadata')}")
+                logger.info(f"Loading strategy {strategy_name} with params: {params_with_type}")
+                logger.info(f"Strategy function metadata: {getattr(strategy_func, '_strategy_metadata', 'No metadata')}")
+                if 'ensemble' in strategy_name.lower():
+                    logger.info(f"ENSEMBLE STRATEGY LOADED: {component_id}")
                 
                 self.add_component(
                     component_id=component_id,
@@ -530,6 +544,14 @@ class ComponentState:
         current_bar = self._bar_count.get(symbol, 0) + 1
         logger.debug(f"Processing BAR for {symbol}: close={bar_dict['close']}, bar_count={current_bar}")
         
+        # Get actual bar indices from payload
+        original_bar_index = payload.get('original_bar_index', current_bar)
+        split_bar_index = payload.get('split_bar_index', current_bar)
+        
+        # Store actual bar indices for later use
+        self._current_bar_indices[symbol]['original'] = original_bar_index
+        self._current_bar_indices[symbol]['split'] = split_bar_index
+        
         # Update features
         update_start = time.time()
         try:
@@ -563,12 +585,15 @@ class ComponentState:
         
         total_time = time.time() - start_time
         if current_bar % 20 == 0 or total_time > 0.1:  # Log every 20 bars or if slow
-            logger.debug(f"Bar {current_bar} timing: total={total_time*1000:.1f}ms, update={update_time*1000:.1f}ms, features={features_time*1000:.1f}ms, execute={execute_time*1000:.1f}ms")
+            logger.debug(f"Bar {original_bar_index} (relative: {current_bar}) timing: total={total_time*1000:.1f}ms, update={update_time*1000:.1f}ms, features={features_time*1000:.1f}ms, execute={execute_time*1000:.1f}ms")
     
     def _execute_components_individually(self, symbol: str, features: Dict[str, Any], 
                                        bar: Dict[str, float], timestamp: datetime) -> None:
         """Execute components individually, each checking its own readiness."""
         current_bars = self._bar_count.get(symbol, 0)
+        
+        # Get actual bar index for logging
+        actual_bar_index = self._current_bar_indices.get(symbol, {}).get('original', current_bars)
         
         # Performance optimization: Use cached ready components after warmup
         if self._warmup_complete.get(symbol, False):
@@ -578,7 +603,7 @@ class ComponentState:
             ready_strategies = cached.get('strategies', [])
             
             if current_bars % 100 == 0:  # Log occasionally
-                logger.debug(f"Bar {current_bars}: Using cached ready components - {len(ready_classifiers)} classifiers, {len(ready_strategies)} strategies")
+                logger.debug(f"Bar {actual_bar_index} (relative: {current_bars}): Using cached ready components - {len(ready_classifiers)} classifiers, {len(ready_strategies)} strategies")
                 # Check for ready target strategies
                 target_strategies_ready = sum(1 for c_id, _ in ready_strategies if any(name in c_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']))
                 logger.debug(f"  Target strategies (parabolic_sar/supertrend/adx_trend) ready: {target_strategies_ready}")
@@ -595,7 +620,7 @@ class ComponentState:
             ready_strategies = []
             
             if current_bars == 1 or current_bars % 20 == 0:  # Log occasionally for debugging
-                logger.debug(f"Bar {current_bars}: Checking {len(components_snapshot)} components for readiness. Available features: {len(features)} features")
+                logger.debug(f"Bar {actual_bar_index} (relative: {current_bars}): Checking {len(components_snapshot)} components for readiness. Available features: {len(features)} features")
             
             for component_id, component_info in components_snapshot:
                 component_type = component_info['component_type']
@@ -605,7 +630,17 @@ class ComponentState:
                     logger.debug(f"Checking component: {component_id} (type: {component_type})")
                 
                 # Check if this specific component has the features it needs
-                if self._is_component_ready(component_id, component_info, features, current_bars):
+                is_ready = self._is_component_ready(component_id, component_info, features, current_bars)
+                
+                # Debug ensemble strategies specifically (disabled - interferes with execution)
+                # if 'ensemble' in component_id and current_bars <= 50:
+                #     logger.error(f"🔍 ENSEMBLE DEBUG bar {current_bars}: {component_id} ready={is_ready}")
+                #     if not is_ready:
+                #         required_features = self._get_component_required_features(component_id, component_info)
+                #         missing_features = [f for f in required_features if f not in features or features[f] is None]
+                #         logger.error(f"🔍 ENSEMBLE MISSING: {missing_features[:5]}")
+                
+                if is_ready:
                     if component_type == 'classifier':
                         ready_classifiers.append((component_id, component_info))
                     else:
@@ -631,7 +666,7 @@ class ComponentState:
                 target_strategies_ready = [c_id for c_id, _ in ready_strategies if any(name in c_id for name in ['parabolic_sar', 'supertrend', 'adx_trend'])]
                 target_strategies_not_ready = [c_id for c_id, _ in components_snapshot if any(name in c_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']) and c_id not in [r_id for r_id, _ in ready_strategies]]
                 
-                logger.debug(f"Warmup complete for {symbol} at bar {current_bars}. Cached {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
+                logger.debug(f"Warmup complete for {symbol} at bar {actual_bar_index} (relative: {current_bars}). Cached {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
                 logger.debug(f"Target strategies ready: {len(target_strategies_ready)}")
                 logger.debug(f"Target strategies NOT ready: {len(target_strategies_not_ready)}")
                 if target_strategies_not_ready:
@@ -639,7 +674,7 @@ class ComponentState:
         
         if ready_classifiers or ready_strategies:
             if current_bars <= self._warmup_bars or current_bars % 20 == 0:
-                logger.debug(f"Bar {current_bars}: Executing {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
+                logger.debug(f"Bar {actual_bar_index} (relative: {current_bars}): Executing {len(ready_classifiers)} classifiers and {len(ready_strategies)} strategies")
         
         # Execute ready classifiers first
         current_classifications = {}
@@ -660,7 +695,8 @@ class ComponentState:
                         result=result,
                         symbol=symbol,
                         timestamp=timestamp,
-                        component_info=component_info
+                        component_info=component_info,
+                        bar=bar
                     )
                     
                     # Store classification result for strategies to use
@@ -680,6 +716,9 @@ class ComponentState:
         # Execute ready strategies
         for component_id, component_info in ready_strategies:
             try:
+                # Debug logging for ensemble strategies
+                if 'ensemble' in component_id.lower():
+                    logger.debug(f"EXECUTING ENSEMBLE COMPONENT: {component_id} at bar {current_bars}")
                 # Debug logging for missing strategies
                 if any(name in component_id for name in ['parabolic_sar', 'supertrend', 'adx_trend']):
                     if current_bars % 50 == 0:  # Log every 50 bars
@@ -699,7 +738,8 @@ class ComponentState:
                         result=result,
                         symbol=symbol,
                         timestamp=timestamp,
-                        component_info=component_info
+                        component_info=component_info,
+                        bar=bar
                     )
                     
             except Exception as e:
@@ -727,6 +767,9 @@ class ComponentState:
         
         # Check if we have enough bars
         if current_bars < min_bars_needed:
+            # Debug ensemble bar requirements
+            if 'ensemble' in component_id:
+                logger.error(f"🔍 ENSEMBLE BARS: {component_id} needs {min_bars_needed} bars, has {current_bars}")
             return False
         
         # Check if all required features are available and not None
@@ -790,13 +833,40 @@ class ComponentState:
             
             # Extract feature config from the strategy function's metadata
             if hasattr(strategy_func, '_strategy_metadata'):
-                feature_config = strategy_func._strategy_metadata.get('feature_config', {})
+                metadata = strategy_func._strategy_metadata
+                feature_config = metadata.get('feature_config', {})
+                param_feature_mapping = metadata.get('param_feature_mapping', {})
                 logger.debug(f"Found strategy metadata for {component_id}: {feature_config}")
                 
                 required_features = []
                 
-                # Handle both old dict format and new list format
-                if isinstance(feature_config, list):
+                # Check if strategy has param_feature_mapping (for ensemble strategies)
+                if param_feature_mapping:
+                    logger.debug(f"Strategy {component_id} has param_feature_mapping, using it for feature extraction")
+                    # Use the explicit parameter-to-feature mapping
+                    processed_templates = set()
+                    for param_name, feature_template in param_feature_mapping.items():
+                        if param_name in params and feature_template not in processed_templates:
+                            # For templates with multiple parameters, we need all parameters to be available
+                            try:
+                                # Try to format the template with all available parameters
+                                feature_name = feature_template.format(**params)
+                                required_features.append(feature_name)
+                                processed_templates.add(feature_template)
+                                logger.debug(f"Generated feature {feature_name} from template {feature_template}")
+                            except KeyError as e:
+                                # Template needs parameters we don't have - skip it
+                                logger.debug(f"Skipping template {feature_template} - missing parameter: {e}")
+                                continue
+                    
+                    # Also add any base features from feature_config that don't have parameters
+                    if isinstance(feature_config, list):
+                        for feature_name in feature_config:
+                            if feature_name in ['close', 'open', 'high', 'low', 'volume']:
+                                required_features.append(feature_name)
+                                
+                # Handle both old dict format and new list format (fallback)
+                elif isinstance(feature_config, list):
                     # New simplified format: ['sma', 'rsi', 'bollinger_bands']
                     for feature_name in feature_config:
                         # Try to infer required features from strategy parameters
@@ -1081,7 +1151,8 @@ class ComponentState:
                         result=result,
                         symbol=symbol,
                         timestamp=timestamp,
-                        component_info=component_info
+                        component_info=component_info,
+                        bar=bar
                     )
                     
                     # Store classification result for strategies to use
@@ -1122,7 +1193,8 @@ class ComponentState:
                         result=result,
                         symbol=symbol,
                         timestamp=timestamp,
-                        component_info=component_info
+                        component_info=component_info,
+                        bar=bar
                     )
                     
             except Exception as e:
@@ -1134,7 +1206,7 @@ class ComponentState:
     
     def _process_component_output(self, component_id: str, component_type: str,
                                 result: Dict[str, Any], symbol: str, timestamp: datetime,
-                                component_info: Optional[Dict[str, Any]] = None) -> None:
+                                component_info: Optional[Dict[str, Any]] = None, bar: Optional[Dict[str, Any]] = None) -> None:
         """Process component output and publish as SIGNAL event."""
         
         # Get previous output for comparison
@@ -1160,7 +1232,8 @@ class ComponentState:
                     signal_type=SignalType(result.get('signal_type', 'entry')),
                     metadata={
                         **result.get('metadata', {}),
-                        'component_type': component_type
+                        'component_type': component_type,
+                        'price': result.get('price', bar.get('close', 0) if bar else 0)  # Add price from result or bar
                     }
                 )
                 self._publish_signal(signal)
@@ -1197,7 +1270,8 @@ class ComponentState:
                             'component_type': component_type,
                             'signal_value': signal_value,
                             'symbol_timeframe': result.get('symbol_timeframe', f"{symbol}_1m"),
-                            'base_strategy_id': result.get('strategy_id', '')  # Keep original strategy type for reference
+                            'base_strategy_id': result.get('strategy_id', ''),  # Keep original strategy type for reference
+                            'price': result.get('metadata', {}).get('price', bar.get('close', 0) if bar else 0)  # Ensure price is included
                         }
                     )
                     self._publish_signal(signal)
@@ -1220,7 +1294,11 @@ class ComponentState:
                 
                 if previous_regime != regime:
                     # Classification changed - publish CLASSIFICATION event
-                    logger.debug(f"📊 Classifier {component_id} regime CHANGED: {previous_regime} → {regime} (confidence: {confidence:.3f})")
+                    # Get actual bar index for this symbol
+                    symbol_from_id = component_id.split('_')[0] if '_' in component_id else symbol
+                    actual_bar_index = self._current_bar_indices.get(symbol_from_id, {}).get('original', 0)
+                    
+                    logger.debug(f"📊 Classifier {component_id} regime CHANGED at bar {actual_bar_index}: {previous_regime} → {regime} (confidence: {confidence:.3f})")
                     
                     # Create Classification object without full features
                     classification = Classification(
@@ -1231,7 +1309,11 @@ class ComponentState:
                         classifier_id=component_id,
                         previous_regime=previous_regime,
                         features={},  # Empty features dict to reduce payload size
-                        metadata=result.get('metadata', {})
+                        metadata={
+                            **result.get('metadata', {}),
+                            'bar_index': actual_bar_index,  # Add actual bar index
+                            'original_bar_index': actual_bar_index
+                        }
                     )
                     
                     self._publish_classification(classification)
@@ -1266,7 +1348,7 @@ class ComponentState:
         else:
             signal_type = str(signal.direction).upper()
         if self._verbose_signals:
-            print(f"📡 SIGNAL: {signal.strategy_id} → {signal_type} @ {signal.timestamp}")
+            logger.debug(f"📡 SIGNAL: {signal.strategy_id} → {signal_type} @ {signal.timestamp}")
         
         # Publish to parent for cross-container visibility
         self._container.publish_event(signal_event, target_scope="parent")
@@ -1290,6 +1372,10 @@ class ComponentState:
         
         logger.debug(f"👑 Publishing CLASSIFICATION event: {classification.classifier_id} → {classification.regime} (from {classification.previous_regime})")
         logger.debug(f"Full payload: {classification_event.payload}")
+        
+        # Console output for classifier visibility  
+        if self._verbose_signals:
+            logger.debug(f"👑 REGIME: {classification.classifier_id} → {classification.regime} @ {classification.timestamp}")
         
         # Publish to parent for cross-container visibility
         self._container.publish_event(classification_event, target_scope="parent")

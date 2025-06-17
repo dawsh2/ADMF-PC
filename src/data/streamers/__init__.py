@@ -15,6 +15,18 @@ from .bar_streamer import (
     MultiSourceStreamer as MultiAssetStreamer
 )
 
+# Live streaming (optional - requires websockets)
+try:
+    from .alpaca_streamer import (
+        AlpacaWebSocketStreamer,
+        AlpacaBarPrinter,
+        create_alpaca_streamer,
+        demo_alpaca_streaming
+    )
+    _ALPACA_AVAILABLE = True
+except ImportError:
+    _ALPACA_AVAILABLE = False
+
 from .signal_streamer import (
     BoundaryAwareReplay,
     SignalStreamerComponent
@@ -43,3 +55,12 @@ __all__ = [
     'create_temporal_emitter',
     'add_temporal_events_to_streamer',
 ]
+
+# Add Alpaca streaming to exports if available
+if _ALPACA_AVAILABLE:
+    __all__.extend([
+        'AlpacaWebSocketStreamer',
+        'AlpacaBarPrinter', 
+        'create_alpaca_streamer',
+        'demo_alpaca_streaming'
+    ])

@@ -476,9 +476,9 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
     Trendline breakout strategy.
     
     Returns sustained signal based on trendline breaks:
-    - 1: Price breaks above downtrend line
-    - -1: Price breaks below uptrend line
-    - 0: No break or mixed signals
+    - 1: Price breaks above downtrend line (resistance)
+    - -1: Price breaks below uptrend line (support)
+    - 0: No break or within trendlines
     """
     pivot_lookback = params.get('pivot_lookback', 20)
     min_touches = params.get('min_touches', 2)
@@ -495,18 +495,19 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
     
     price = bar.get('close', 0)
     
-    # Determine signal based on trendline strength and support/resistance
+    # Determine signal based on trendline breaks
     signal_value = 0
     
-    # Simple signal based on trendline strength and proximity to levels
-    if valid_downtrends > valid_uptrends and nearest_resistance:
-        # Stronger downtrends suggest resistance break could be bullish
+    # Breakout signals - fixed logic to match Pine Script
+    # Break above resistance (downtrend line) is bullish
+    if nearest_resistance and valid_downtrends >= min_touches:
         if price > nearest_resistance * (1 + tolerance):
-            signal_value = 1
-    elif valid_uptrends > valid_downtrends and nearest_support:
-        # Stronger uptrends suggest support break could be bearish
+            signal_value = 1  # Bullish breakout above downtrend
+    
+    # Break below support (uptrend line) is bearish  
+    if nearest_support and valid_uptrends >= min_touches:
         if price < nearest_support * (1 - tolerance):
-            signal_value = -1
+            signal_value = -1  # Bearish breakdown below uptrend
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -525,7 +526,8 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
             'valid_uptrends': valid_uptrends,
             'valid_downtrends': valid_downtrends,
             'nearest_support': nearest_support,
-            'nearest_resistance': nearest_resistance
+            'nearest_resistance': nearest_resistance,
+            'breakout_type': 'resistance' if signal_value == 1 else 'support' if signal_value == -1 else 'none'
         }
     }
 
@@ -537,16 +539,17 @@ def trendline_breaks(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
 )
 def trendline_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Trendline bounce strategy.
+    Trendline bounce strategy (mean reversion).
     
     Returns sustained signal based on trendline bounces:
-    - 1: Price bounces from uptrend line
-    - -1: Price bounces from downtrend line
+    - 1: Price bounces from uptrend line (support)
+    - -1: Price bounces from downtrend line (resistance)
     - 0: No bounce or weak signal
     """
     pivot_lookback = params.get('pivot_lookback', 20)
     min_touches = params.get('min_touches', 3)
     tolerance = params.get('tolerance', 0.002)
+    bounce_threshold = params.get('bounce_threshold', 0.003)  # 0.3% proximity
     
     # Get trendline features (using simple names from FeatureHub)
     nearest_support = features.get('trendlines_nearest_support')
@@ -558,20 +561,29 @@ def trendline_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
         return None
     
     price = bar.get('close', 0)
+    low = bar.get('low', price)
+    high = bar.get('high', price)
     
     # Determine signal based on proximity to validated trendlines
     signal_value = 0
     
-    # Check proximity for bounce signals (mean reversion)
+    # Bounce from uptrend support line (bullish)
     if nearest_support and valid_uptrends >= min_touches:
-        support_distance = (price - nearest_support) / price if price > nearest_support else 0
-        if support_distance < 0.002:  # Within 0.2% of validated support
+        # Check if low touched support and closed above it
+        if low <= nearest_support * (1 + bounce_threshold) and price > nearest_support:
             signal_value = 1  # Bounce from support (long)
+        # Or very close to support (anticipatory)
+        elif abs(price - nearest_support) / nearest_support < bounce_threshold / 2:
+            signal_value = 1
     
+    # Bounce from downtrend resistance line (bearish)
     elif nearest_resistance and valid_downtrends >= min_touches:
-        resistance_distance = (nearest_resistance - price) / price if price < nearest_resistance else 0
-        if resistance_distance < 0.002:  # Within 0.2% of validated resistance
+        # Check if high touched resistance and closed below it
+        if high >= nearest_resistance * (1 - bounce_threshold) and price < nearest_resistance:
             signal_value = -1  # Bounce from resistance (short)
+        # Or very close to resistance (anticipatory)
+        elif abs(price - nearest_resistance) / nearest_resistance < bounce_threshold / 2:
+            signal_value = -1
     
     # Always return current signal state (sustained while conditions hold)
     symbol = bar.get('symbol', 'UNKNOWN')
@@ -586,12 +598,14 @@ def trendline_bounces(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
             'pivot_lookback': pivot_lookback,         # Parameters for sparse storage separation
             'min_touches': min_touches,
             'tolerance': tolerance,
+            'bounce_threshold': bounce_threshold,
             'price': price,                           # Values for analysis
             'nearest_support': nearest_support,
             'nearest_resistance': nearest_resistance,
             'valid_uptrends': valid_uptrends,
             'valid_downtrends': valid_downtrends,
-            'support_distance': (price - nearest_support) / price if nearest_support and price > nearest_support else None,
-            'resistance_distance': (nearest_resistance - price) / price if nearest_resistance and price < nearest_resistance else None
+            'support_distance': abs(price - nearest_support) / nearest_support if nearest_support else None,
+            'resistance_distance': abs(price - nearest_resistance) / nearest_resistance if nearest_resistance else None,
+            'bounce_type': 'support' if signal_value == 1 else 'resistance' if signal_value == -1 else 'none'
         }
     }

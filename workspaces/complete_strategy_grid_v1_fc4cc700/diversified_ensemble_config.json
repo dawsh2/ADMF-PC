@@ -1,0 +1,63 @@
+{
+  "classifier": "SPY_market_regime_grid_0006_12",
+  "ensemble_type": "diversified_regime_adaptive",
+  "regime_strategies": {
+    "bull_ranging": [
+      {
+        "strategy_name": "SPY_pivot_channel_bounces_grid_15_3_0.001",
+        "weight": 0.38382337277858797,
+        "expected_return": 0.1191694874197633
+      },
+      {
+        "strategy_name": "SPY_pivot_channel_bounces_grid_30_2_0.001",
+        "weight": 0.38382337277858797,
+        "expected_return": 0.1191694874197633
+      },
+      {
+        "strategy_name": "SPY_roc_threshold_grid_5_0.05",
+        "weight": 0.23235325444282404,
+        "expected_return": 0.07214104245870945
+      }
+    ],
+    "bear_ranging": [
+      {
+        "strategy_name": "SPY_stochastic_crossover_grid_5_7",
+        "weight": 0.4495557821074502,
+        "expected_return": 0.20983049671197684
+      },
+      {
+        "strategy_name": "SPY_stochastic_crossover_grid_27_5",
+        "weight": 0.31319988134195603,
+        "expected_return": 0.14618627829461905
+      },
+      {
+        "strategy_name": "SPY_trendline_bounces_grid_10_2_0.0001_0.1",
+        "weight": 0.2372443365505938,
+        "expected_return": 0.1107339710928601
+      }
+    ],
+    "neutral": [
+      {
+        "strategy_name": "SPY_ichimoku_grid_9_35",
+        "weight": 0.3702807769768676,
+        "expected_return": 0.08600880921704057
+      },
+      {
+        "strategy_name": "SPY_williams_r_grid_21_-80_-20",
+        "weight": 0.32074764642058673,
+        "expected_return": 0.07450325494354915
+      },
+      {
+        "strategy_name": "SPY_ichimoku_grid_11_26",
+        "weight": 0.3089715766025457,
+        "expected_return": 0.07176790975340519
+      }
+    ]
+  },
+  "cross_regime_strategies": [],
+  "allocation_framework": {
+    "regime_specialist_weight": 0.85,
+    "cross_regime_weight": 0.15
+  },
+  "expected_return": 0.10259660840392062
+}

@@ -1,0 +1,33 @@
+{
+  "workflow_id": "duckdb_ensemble_cost_optimized_v1",
+  "workspace_path": "workspaces/duckdb_ensemble_cost_optimized_v1_97e65443",
+  "total_bars": 99,
+  "total_signals": 71,
+  "total_classifications": 5,
+  "stored_changes": 26,
+  "compression_ratio": 34.21052631578947,
+  "components": {
+    "SPY_vol_mom_classifier": {
+      "component_type": "classifier",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/classifiers/unknown/SPY_vol_mom_classifier.parquet",
+      "total_bars": 67,
+      "signal_changes": 5,
+      "compression_ratio": 0.07462686567164178,
+      "signal_frequency": 0.07462686567164178,
+      "parameters": {},
+      "created_at": "2025-06-17T08:55:38.641801"
+    },
+    "SPY_adaptive_ensemble_cost_optimized": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_adaptive_ensemble_cost_optimized.parquet",
+      "total_bars": 93,
+      "signal_changes": 21,
+      "compression_ratio": 0.22580645161290322,
+      "signal_frequency": 0.22580645161290322,
+      "parameters": {},
+      "created_at": "2025-06-17T08:55:38.642916"
+    }
+  }
+}

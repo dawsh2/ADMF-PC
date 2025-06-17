@@ -1,0 +1,86 @@
+classifiers:
+- name: market_regime_detector
+  params:
+    atr_period: 14
+    rsi_period: 14
+    sma_long: 20
+    sma_short: 12
+    trend_threshold: 0.006
+    vol_threshold: 0.8
+  type: market_regime_classifier
+data_dir: ./data
+data_source: file
+description: Test actual two-layer ensemble
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    events_to_trace:
+    - SIGNAL
+    - CLASSIFICATION
+    storage_backend: parquet
+    use_sparse_storage: true
+metadata:
+  description: Test actual two-layer ensemble
+  experiment_id: test_actual_ensemble
+name: test_actual_ensemble
+strategies:
+- name: test_ensemble
+  params:
+    atr_period: 14
+    baseline_aggregation: equal_weight
+    baseline_allocation: 0.25
+    baseline_strategies:
+    - name: sma_crossover
+      params:
+        fast_period: 10
+        slow_period: 20
+    - name: rsi_threshold
+      params:
+        period: 14
+        threshold: 50
+    booster_aggregation: equal_weight
+    classifier_name: market_regime_classifier
+    min_baseline_agreement: 0.2
+    min_booster_agreement: 0.2
+    regime_boosters:
+      bear_ranging:
+      - name: macd_crossover
+        params:
+          fast_ema: 12
+          signal_ema: 9
+          slow_ema: 26
+      - name: rsi_threshold
+        params:
+          period: 14
+          threshold: 50
+      bull_ranging:
+      - name: rsi_threshold
+        params:
+          period: 14
+          threshold: 50
+      - name: roc_threshold
+        params:
+          period: 5
+          threshold: 0.05
+      neutral:
+      - name: williams_r
+        params:
+          overbought: -20
+          oversold: -80
+          williams_period: 14
+      - name: rsi_bands
+        params:
+          overbought: 70
+          oversold: 30
+          rsi_period: 14
+    rsi_period: 14
+    sma_long: 20
+    sma_short: 12
+    trend_threshold: 0.006
+    vol_threshold: 0.8
+  type: two_layer_ensemble
+symbols:
+- SPY
+timeframes:
+- 1m
+topology: signal_generation

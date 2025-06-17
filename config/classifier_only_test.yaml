@@ -1,0 +1,29 @@
+name: "Classifier Only Test"
+description: "Test just classifier to isolate the issue"
+
+symbols: ["SPY"]
+data:
+  source: "local"
+  timeframe: "1m"
+  start_date: "2024-03-26"
+  end_date: "2024-03-28"
+
+classifiers:
+  - type: volatility_momentum_classifier
+    name: vol_mom_classifier
+    params:
+      vol_threshold: 0.8
+      rsi_overbought: 60
+      rsi_oversold: 40
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+
+# No strategies - just test classifier
+
+mode: signal_generation
+
+execution:
+  enable_event_tracing: false
+  trace_settings:
+    storage_backend: memory

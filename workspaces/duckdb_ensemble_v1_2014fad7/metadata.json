@@ -1,0 +1,28 @@
+{
+  "workflow_id": "duckdb_ensemble_v1",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "file",
+    "symbols": [
+      "SPY"
+    ],
+    "timeframes": [
+      "1m"
+    ]
+  },
+  "total_bars": 79999,
+  "total_signals": 0,
+  "total_classifications": 3968,
+  "stored_changes": 3968,
+  "compression_ratio": 0,
+  "components": {
+    "SPY_vol_mom_classifier": {
+      "type": "classifier",
+      "strategy_type": "vol",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    }
+  },
+  "timestamp": "2025-06-16T18:27:38.010049"
+}

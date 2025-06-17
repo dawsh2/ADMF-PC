@@ -1,0 +1,77 @@
+# DuckDB Ensemble Strategy Configuration Example
+# This shows how to use the adaptive ensemble strategy that switches
+# strategies based on detected market regimes
+
+name: duckdb_ensemble_example
+description: Adaptive ensemble strategy using regime-based strategy selection
+
+# Data configuration
+symbols: ["SPY"]
+timeframes: ["1m"]
+data_source: file
+data_dir: ./data
+start_date: "2024-03-26"
+end_date: "2025-01-17"
+
+# Topology 
+topology: signal_generation
+
+# Feature configuration will be automatically inferred by topology builder
+# based on strategy and classifier requirements
+
+# Classifier configuration - this drives the regime detection
+classifiers:
+  - type: volatility_momentum_classifier
+    name: vol_mom_classifier
+    params:
+      vol_threshold: 1.6          # Based on our analysis
+      rsi_overbought: 65
+      rsi_oversold: 40
+      atr_period: 14             # Use common period values that definitely work
+      rsi_period: 14
+      sma_period: 20
+
+# Main ensemble strategy
+strategies:
+  # Option 1: Use default ensemble with analyzed strategies
+  - type: duckdb_ensemble
+    name: adaptive_ensemble_default
+    params:
+      classifier_name: volatility_momentum_classifier
+      aggregation_method: equal_weight
+      min_agreement: 1.0   # 100% consensus required - all strategies must agree
+      # Add period parameters to resolve param_feature_mapping
+      atr_period: 14
+      rsi_period: 14
+      sma_period: 20
+      # Uses DEFAULT_REGIME_STRATEGIES from duckdb_ensemble.py
+
+# Execution settings
+execution:
+  # DISABLE container event tracing - MultiStrategyTracer handles signals directly
+  enable_event_tracing: false
+  trace_settings:
+    events_to_trace: ["SIGNAL", "CLASSIFICATION"]
+    storage_backend: memory
+    use_sparse_storage: true
+    
+# Metadata
+metadata:
+  experiment_id: duckdb_ensemble_v1
+  description: |
+    Adaptive ensemble strategy that dynamically switches between different
+    strategies based on the current market regime as detected by the
+    volatility_momentum_classifier.
+    
+    Key features:
+    - Regime-based strategy selection
+    - Equal weighting (1/n) for active strategies
+    - Configurable agreement threshold
+    - Tracks which strategies contribute to each signal
+    
+    Regimes and their optimized strategies:
+    - low_vol_bullish: DEMA/MACD crossovers, CCI threshold, pivot bounces
+    - low_vol_bearish: Stochastic crossover, CCI, EMA-SMA, Keltner, RSI bands, pivot bounces
+    - neutral: 12 diverse strategies including trend-following and mean-reversion
+    - high_vol_bullish: Keltner/Bollinger breakouts
+    - high_vol_bearish: Keltner/ATR channel breakouts

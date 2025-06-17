@@ -305,8 +305,174 @@ The module is designed to grow:
 - `sqlite3`: Lightweight SQL storage
 - Standard library only otherwise
 
+## Sparse Trace Analysis Module
+
+**NEW**: Added comprehensive sparse trace analysis framework for post-backtest analysis.
+
+### Overview
+
+The `sparse_trace_analysis/` submodule provides specialized tools for analyzing sparse trace data from ADMF-PC backtests, focusing on:
+
+- **Classifier state distribution analysis** with proper duration calculation
+- **Strategy performance by market regime** with correct attribution
+- **Log returns calculation** with flexible execution cost modeling
+- **Regime transition analysis** for understanding market dynamics
+
+### Key Features
+
+```python
+from analytics.sparse_trace_analysis import (
+    ClassifierAnalyzer, StrategyAnalyzer, ExecutionCostConfig
+)
+
+# Analyze classifier balance from sparse state changes
+analyzer = ClassifierAnalyzer(workspace_path)
+classifier_analysis = analyzer.analyze_all_classifiers()
+balanced_classifiers = analyzer.select_balanced_classifiers(classifier_analysis)
+
+# Analyze strategy performance by regime
+strategy_analyzer = StrategyAnalyzer(workspace_path)
+cost_config = ExecutionCostConfig(cost_multiplier=0.99)  # 1% cost
+results = strategy_analyzer.analyze_multiple_strategies(
+    strategy_files, "best_classifier", cost_config
+)
+```
+
+### Data Format Understanding
+
+The framework handles **sparse trace data** where:
+- **Signals**: Only changes are stored (position opens/closes)
+- **Classifiers**: Only state changes are recorded
+- **Attribution**: Trades attributed to regime when position opened
+
+### Performance Calculation
+
+Uses proper **log returns per trade**:
+```python
+# Per trade: log(exit_price / entry_price) * signal_value
+# With costs: apply multiplicative or additive execution costs
+# Final: percentage_return = exp(sum(log_returns)) - 1
+```
+
+### Execution Cost Models
+
+```python
+# Multiplicative (preferred for percentage costs)
+cost_config = ExecutionCostConfig(cost_multiplier=0.99)  # 1% total cost
+
+# Additive (for fixed dollar costs)
+cost_config = ExecutionCostConfig(
+    commission_per_trade=1.0,
+    slippage_bps=2.0
+)
+```
+
+### Example Analysis Workflow
+
+```python
+# 1. Validate workspace
+from analytics.sparse_trace_analysis.data_validation import validate_workspace_structure
+validation = validate_workspace_structure(workspace_path)
+
+# 2. Find balanced classifiers
+analyzer = ClassifierAnalyzer(workspace_path)
+classifier_results = analyzer.analyze_all_classifiers()
+best_classifiers = analyzer.select_balanced_classifiers(classifier_results)
+
+# 3. Analyze strategy performance by regime
+strategy_analyzer = StrategyAnalyzer(workspace_path)
+cost_config = ExecutionCostConfig(cost_multiplier=0.99)
+performance_results = strategy_analyzer.analyze_multiple_strategies(
+    strategy_files, best_classifiers[0][0], cost_config
+)
+
+# 4. Generate comprehensive report
+report = strategy_analyzer.generate_regime_summary_report(performance_results)
+```
+
+### Key Insights from Analysis
+
+The framework enables discovery of regime-specific patterns:
+- **Bear ranging markets**: Often show positive returns for trend-following strategies
+- **Bull ranging markets**: Typically challenging for momentum strategies  
+- **Neutral periods**: Lower activity but important for overall performance
+- **Trending regimes**: Rare but high-impact periods
+
+### Files and Documentation
+
+- `sparse_trace_analysis/README.md` - Comprehensive module documentation
+- `sparse_trace_analysis/classifier_analysis.py` - Classifier balance analysis
+- `sparse_trace_analysis/strategy_analysis.py` - Strategy performance by regime
+- `sparse_trace_analysis/performance_calculation.py` - Log returns and execution costs
+- `sparse_trace_analysis/regime_attribution.py` - Regime mapping and transitions
+- `sparse_trace_analysis/data_validation.py` - Input validation and error checking
+
+## Standardized Regime Analysis Workflow
+
+**NEW**: Standardized workflow for regime-adaptive ensemble building based on lessons learned.
+
+### Standard Process
+
+1. **Classifier Analysis**
+   ```bash
+   python run_corrected_classifier_analysis.py
+   ```
+   - Analyze ALL classifiers for balance using proper duration calculation
+   - Select most balanced classifier (typically market_regime classifiers)
+   - Document results in `corrected_classifier_analysis.json`
+
+2. **Parameter Neighborhood Analysis**
+   ```bash
+   python smart_parameter_ensemble_builder.py
+   ```
+   - Smart sampling across parameter space (10 per strategy type)
+   - Identify profitable parameter neighborhoods
+   - Avoid random outliers, focus on robust parameter clusters
+   - Generate `parameter_aware_ensemble.json`
+
+3. **Regime-Adaptive Ensemble Building**
+   - Select 2-3 strategies per regime from profitable neighborhoods
+   - Weight by risk-adjusted performance within regime
+   - **Skip cross-regime performers** unless they add clear value
+   - Focus on regime specialists for maximum regime-specific returns
+
+### Key Principles
+
+- **Parameter Clustering**: Select strategies from profitable parameter neighborhoods, not isolated outliers
+- **Sparse Data Handling**: Proper duration calculation for classifiers, correct regime attribution for trades
+- **Execution Costs**: Use multiplicative cost model (e.g., 0.99 for 1% total cost)
+- **Risk-Adjusted Selection**: Consider worst-trade and consistency metrics, not just returns
+- **Efficiency**: Smart sampling for interactive analysis, full analysis for final validation
+
+### Standard File Outputs
+
+- `corrected_classifier_analysis.json` - Classifier balance analysis with proper duration calculation
+- `parameter_aware_ensemble.json` - Full ensemble analysis with parameter clustering
+- `parameter_aware_ensemble_config.json` - Implementation-ready ensemble configuration
+- `REGIME_ANALYSIS_SUMMARY.md` - Human-readable summary and insights
+
+### Quality Checklist
+
+- [ ] Classifier duration calculated from sparse changes (not occurrence counts)
+- [ ] Strategy parameters analyzed for neighborhood clustering
+- [ ] Execution costs applied correctly (multiplicative model preferred)
+- [ ] Regime attribution to position opening (not closing)
+- [ ] Minimum trade thresholds enforced (30+ trades per regime)
+- [ ] Risk-adjusted metrics considered alongside returns
+- [ ] Rare regimes excluded if <2% of data (e.g., trending states)
+- [ ] Implementation config generated for production use
+
+### Classifier Configuration Notes
+
+**Current Best Classifier**: `SPY_market_regime_grid_0006_12`
+- **Used regimes**: bull_ranging (44.7%), bear_ranging (34.8%), neutral (18.5%)
+- **Excluded regimes**: bull_trending (0.9%), bear_trending (1.1%)
+- **Reason for exclusion**: Insufficient data (<1k bars each, <2% combined)
+- **Future improvement**: Adjust grid parameters to make trending states less restrictive
+
 ## See Also
 
 - `docs/architecture/data-mining-architecture.md` - Detailed mining architecture
 - `src/core/events/` - Event tracing system
 - `src/core/containers/` - Container architecture
+- `sparse_trace_analysis/README.md` - Sparse trace analysis documentation

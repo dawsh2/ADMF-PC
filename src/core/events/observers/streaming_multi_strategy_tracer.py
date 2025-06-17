@@ -14,6 +14,7 @@ import json
 from ..types import Event, EventType
 from ..protocols import EventObserverProtocol
 from ..storage.streaming_sparse_storage import StreamingSparseStorage
+from .strategy_metadata_extractor import update_metadata_with_recursive_strategies
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,8 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
                  managed_classifiers: Optional[List[str]] = None,
                  data_source_config: Optional[Dict[str, Any]] = None,
                  write_interval: int = 0,
-                 write_on_changes: int = 0):
+                 write_on_changes: int = 0,
+                 full_config: Optional[Dict[str, Any]] = None):
         """
         Initialize streaming multi-strategy tracer.
         
@@ -47,12 +49,14 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
             data_source_config: Data source configuration
             write_interval: Write to disk every N bars (0 = only at end)
             write_on_changes: Write to disk every M changes (0 = only at end)
+            full_config: Full configuration dict containing strategy definitions for metadata extraction
         """
         self._workspace_path = Path(workspace_path)
         self._workflow_id = workflow_id
         self._data_source_config = data_source_config or {}
         self._write_interval = write_interval
         self._write_on_changes = write_on_changes
+        self._full_config = full_config or {}
         
         # If not specified, trace all
         self._managed_strategies = set(managed_strategies) if managed_strategies else None
@@ -87,9 +91,20 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
         """Process events from the root event bus."""
         if event.event_type == EventType.BAR.value:
             # Use original bar index from event payload for consistent sparse storage
-            if hasattr(event, 'payload') and 'original_bar_index' in event.payload:
+            has_payload = hasattr(event, 'payload')
+            has_original_index = has_payload and event.payload and 'original_bar_index' in event.payload
+            
+            if has_original_index:
                 self._current_bar_count = event.payload['original_bar_index']  # Keep 0-based indexing to match source
             else:
+                # Debug why we're falling back
+                if not has_payload:
+                    logger.warning("⚠️  BAR event missing payload - using incremental count")
+                elif not event.payload:
+                    logger.warning("⚠️  BAR event payload is None - using incremental count")
+                else:
+                    logger.warning(f"⚠️  BAR event missing original_bar_index - payload keys: {list(event.payload.keys())} - using incremental count")
+                
                 # Fallback to incrementing for backward compatibility
                 # Start from -1 so first increment gives 0
                 if not hasattr(self, '_initialized_bar_count'):
@@ -255,24 +270,40 @@ class StreamingMultiStrategyTracer(EventObserverProtocol):
         # Save workspace metadata
         metadata = {
             'workflow_id': self._workflow_id,
+            'workspace_path': str(self._workspace_path),  # Include workspace path for analytics
             'data_source': self._data_source_config,
             'total_bars': self._current_bar_count,
             'total_signals': self._total_signals,
             'total_classifications': self._total_classifications,
             'stored_changes': self._stored_changes,
-            'compression_ratio': self._stored_changes / self._total_signals if self._total_signals > 0 else 0,
+            'compression_ratio': (self._stored_changes / self._total_signals * 100) if self._total_signals > 0 else 0,
             'components': self._component_metadata,
             'timestamp': datetime.now().isoformat()
         }
+        
+        # Add recursive strategy metadata if full config was provided
+        if self._full_config:
+            try:
+                metadata = update_metadata_with_recursive_strategies(metadata, self._full_config)
+                logger.debug("Added recursive strategy metadata to results")
+            except Exception as e:
+                logger.error(f"Failed to extract recursive strategy metadata: {e}")
+                # Continue without recursive metadata rather than failing
         
         metadata_path = self._workspace_path / 'metadata.json'
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=2)
         
         logger.info(f"Workspace finalized: {self._workspace_path}")
-        logger.info(f"Total signals: {self._total_signals}, "
-                   f"Changes stored: {self._stored_changes} "
-                   f"({self._stored_changes/self._total_signals*100:.1f}% compression)")
+        
+        # Calculate compression ratio safely
+        if self._total_signals > 0:
+            compression_pct = self._stored_changes / self._total_signals * 100
+            logger.info(f"Total signals: {self._total_signals}, "
+                       f"Changes stored: {self._stored_changes} "
+                       f"({compression_pct:.1f}% compression)")
+        else:
+            logger.info(f"No signals generated (0 signals)")
         
         return metadata
     

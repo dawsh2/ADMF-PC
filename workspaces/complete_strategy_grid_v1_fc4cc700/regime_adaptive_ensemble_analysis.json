@@ -1,0 +1,633 @@
+{
+  "analysis_metadata": {
+    "classifier_name": "SPY_market_regime_grid_0006_12",
+    "strategies_analyzed": 50,
+    "cost_config": {
+      "cost_multiplier": 0.99,
+      "commission_per_trade": null,
+      "slippage_bps": null,
+      "fixed_cost_per_trade": null
+    },
+    "regimes": [
+      "bull_ranging",
+      "bear_ranging",
+      "neutral"
+    ],
+    "min_trades": 30,
+    "analysis_date": "2025-06-17T11:15:15.232467"
+  },
+  "regime_leaders": {
+    "bull_ranging": {
+      "top_performers": [
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_-60",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.03141584557491606,
+          "log_return": 0.03093246568804532,
+          "trades": 2529,
+          "win_rate": 0.24673784104389088,
+          "avg_trade_return": 1.2231105451975216e-05,
+          "best_trade": 0.017611299523377432,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 1.0415851442647261,
+          "avg_bars_held": 12.126136812969554,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_-40",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.008564582978275781,
+          "log_return": -0.008601469783482753,
+          "trades": 2907,
+          "win_rate": 0.24527003783969728,
+          "avg_trade_return": -2.9588819344625914e-06,
+          "best_trade": 0.01702663014159966,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 0.9899427613536632,
+          "avg_bars_held": 11.751633986928105,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_11_-40",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.008666094208192643,
+          "log_return": -0.008703863167158378,
+          "trades": 5122,
+          "win_rate": 0.29344006247559545,
+          "avg_trade_return": -1.6993094820691874e-06,
+          "best_trade": 0.021040194729824338,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 0.992875596616922,
+          "avg_bars_held": 7.0720421710269425,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_-40",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.01018513652171349,
+          "log_return": -0.010237359929003,
+          "trades": 3794,
+          "win_rate": 0.2588297311544544,
+          "avg_trade_return": -2.6983025643128623e-06,
+          "best_trade": 0.018377543752893806,
+          "worst_trade": -0.012056712299748801,
+          "profit_factor": 0.9898629711115317,
+          "avg_bars_held": 9.4148655772272
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_11_-60",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.017255294209644223,
+          "log_return": -0.017405901832448768,
+          "trades": 4828,
+          "win_rate": 0.29411764705882354,
+          "avg_trade_return": -3.6051992196455607e-06,
+          "best_trade": 0.021624864111602006,
+          "worst_trade": -0.039229415001123966,
+          "profit_factor": 0.9850839162380878,
+          "avg_bars_held": 7.09983429991715
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_11_20",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.019416855151707657,
+          "log_return": -0.01960783852348633,
+          "trades": 6000,
+          "win_rate": 0.2845,
+          "avg_trade_return": -3.2679730872477218e-06,
+          "best_trade": 0.021040194729824338,
+          "worst_trade": -0.04146199506478657,
+          "profit_factor": 0.9859852788241337,
+          "avg_bars_held": 6.724833333333334
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_20_7",
+          "strategy_type": "macd_crossover_grid",
+          "return": -0.021662219166492913,
+          "log_return": -0.02190028940161243,
+          "trades": 4976,
+          "win_rate": 0.3279742765273312,
+          "avg_trade_return": -4.401183561417289e-06,
+          "best_trade": 0.021645874268795055,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 0.983757146359423,
+          "avg_bars_held": 7.635852090032154
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_35_-60",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.021869297474142124,
+          "log_return": -0.022111975212228636,
+          "trades": 2028,
+          "win_rate": 0.22633136094674555,
+          "avg_trade_return": -1.0903340834432267e-05,
+          "best_trade": 0.020395541892354967,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 0.964692025070659,
+          "avg_bars_held": 13.742603550295858
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_11_0",
+          "strategy_type": "cci_threshold_grid",
+          "return": -0.025217894272006935,
+          "log_return": -0.02554131426458023,
+          "trades": 5618,
+          "win_rate": 0.2926308294766821,
+          "avg_trade_return": -4.5463357537522665e-06,
+          "best_trade": 0.021040194729824338,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 0.9811121734914005,
+          "avg_bars_held": 6.957814168743325
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_26_7",
+          "strategy_type": "macd_crossover_grid",
+          "return": -0.04146065412625066,
+          "log_return": -0.04234466791406051,
+          "trades": 4799,
+          "win_rate": 0.3236090852260888,
+          "avg_trade_return": -8.823644074611483e-06,
+          "best_trade": 0.02156160605903197,
+          "worst_trade": -0.04008583254395357,
+          "profit_factor": 0.9685866316905763,
+          "avg_bars_held": 8.024796832673474
+        }
+      ],
+      "total_qualified_strategies": 50,
+      "regime_stats": {
+        "best_return": 0.03141584557491606,
+        "worst_return": -0.21899271837612977,
+        "median_return": -0.11122230078617629,
+        "total_trades": 190216,
+        "avg_win_rate": 0.2840128788723389
+      }
+    },
+    "bear_ranging": {
+      "top_performers": [
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_0",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.11191138246411869,
+          "log_return": 0.106080500624142,
+          "trades": 2748,
+          "win_rate": 0.2631004366812227,
+          "avg_trade_return": 3.860280226497161e-05,
+          "best_trade": 0.02237388043647719,
+          "worst_trade": -0.017886465261902518,
+          "profit_factor": 1.1177228535782147,
+          "avg_bars_held": 12.450145560407568,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_26_7",
+          "strategy_type": "macd_crossover_grid",
+          "return": 0.11177862185174559,
+          "log_return": 0.10596109494055012,
+          "trades": 3744,
+          "win_rate": 0.33199786324786323,
+          "avg_trade_return": 2.8301574503352062e-05,
+          "best_trade": 0.01611896690338318,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.0911290300466958,
+          "avg_bars_held": 8.059027777777779,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_-20",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.10488068640428372,
+          "log_return": 0.0997373530351563,
+          "trades": 3482,
+          "win_rate": 0.27110855829982766,
+          "avg_trade_return": 2.864369702330738e-05,
+          "best_trade": 0.01929477254941483,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.0930645341836076,
+          "avg_bars_held": 10.103676048248133,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_-40",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.10003664802905265,
+          "log_return": 0.09534349563939422,
+          "trades": 3753,
+          "win_rate": 0.2749800159872102,
+          "avg_trade_return": 2.540460848371815e-05,
+          "best_trade": 0.01929477254941483,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.0830620050020026,
+          "avg_bars_held": 9.774846789235278
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_-20",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.09940755135381574,
+          "log_return": 0.09477144503445588,
+          "trades": 2978,
+          "win_rate": 0.2662860980523841,
+          "avg_trade_return": 3.182385662674811e-05,
+          "best_trade": 0.020197889429343384,
+          "worst_trade": -0.017446436234589514,
+          "profit_factor": 1.0973410399409786,
+          "avg_bars_held": 12.277031564808597
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_-60",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.09723690533063856,
+          "log_return": 0.09279511543492037,
+          "trades": 3960,
+          "win_rate": 0.2717171717171717,
+          "avg_trade_return": 2.3433109958313224e-05,
+          "best_trade": 0.02033161448273276,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.076825347722648,
+          "avg_bars_held": 9.697474747474747
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_11_40",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.09648736433594429,
+          "log_return": 0.09211176517597848,
+          "trades": 4099,
+          "win_rate": 0.303732617711637,
+          "avg_trade_return": 2.2471765107581968e-05,
+          "best_trade": 0.015632059628118315,
+          "worst_trade": -0.015544610635300727,
+          "profit_factor": 1.0844702436451839,
+          "avg_bars_held": 7.097096852890949
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_-40",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.09549589371155065,
+          "log_return": 0.09120713172280881,
+          "trades": 3169,
+          "win_rate": 0.25244556642473964,
+          "avg_trade_return": 2.878104503717539e-05,
+          "best_trade": 0.020298184912755427,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.0866247057048637,
+          "avg_bars_held": 12.280845692647523
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_35_9",
+          "strategy_type": "macd_crossover_grid",
+          "return": 0.08196712573447429,
+          "log_return": 0.07878079709254936,
+          "trades": 3342,
+          "win_rate": 0.3249551166965889,
+          "avg_trade_return": 2.3572949459170963e-05,
+          "best_trade": 0.017955305425852983,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.0692725977796143,
+          "avg_bars_held": 9.381508078994614
+        },
+        {
+          "strategy_name": "SPY_macd_crossover_grid_5_35_7",
+          "strategy_type": "macd_crossover_grid",
+          "return": 0.08080641855051418,
+          "log_return": 0.07770744634950646,
+          "trades": 3670,
+          "win_rate": 0.3223433242506812,
+          "avg_trade_return": 2.1173691103407756e-05,
+          "best_trade": 0.01611896690338318,
+          "worst_trade": -0.01751166221959138,
+          "profit_factor": 1.066710013259272,
+          "avg_bars_held": 8.407356948228882
+        }
+      ],
+      "total_qualified_strategies": 50,
+      "regime_stats": {
+        "best_return": 0.11191138246411869,
+        "worst_return": -0.050251610577012995,
+        "median_return": 0.03627919365772514,
+        "total_trades": 149890,
+        "avg_win_rate": 0.30292015200922273
+      }
+    },
+    "neutral": {
+      "top_performers": [
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_60",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.10225761525200117,
+          "log_return": 0.0973604540567219,
+          "trades": 823,
+          "win_rate": 0.3110571081409477,
+          "avg_trade_return": 0.00011829945814911531,
+          "best_trade": 0.017444208191980063,
+          "worst_trade": -0.0171556778257592,
+          "profit_factor": 1.3808176172306506,
+          "avg_bars_held": 10.923450789793439,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_35_20",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.09698424840222142,
+          "log_return": 0.09256482239531129,
+          "trades": 432,
+          "win_rate": 0.2986111111111111,
+          "avg_trade_return": 0.00021427042221136872,
+          "best_trade": 0.017059188936164593,
+          "worst_trade": -0.0171556778257592,
+          "profit_factor": 1.41608406155404,
+          "avg_bars_held": 21.675925925925927,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_35_60",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.09346425042029005,
+          "log_return": 0.08935086779760305,
+          "trades": 786,
+          "win_rate": 0.30407124681933845,
+          "avg_trade_return": 0.00011367794885191229,
+          "best_trade": 0.017059188936164593,
+          "worst_trade": -0.01902991259034111,
+          "profit_factor": 1.309076204393315,
+          "avg_bars_held": 13.083969465648854,
+          "weight": 0.3333333333333333
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_35_0",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.055659108763294496,
+          "log_return": 0.05416531949739794,
+          "trades": 381,
+          "win_rate": 0.30708661417322836,
+          "avg_trade_return": 0.00014216619290655628,
+          "best_trade": 0.017444208191980063,
+          "worst_trade": -0.0171556778257592,
+          "profit_factor": 1.2507034990530104,
+          "avg_bars_held": 22.2257217847769
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_35_40",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.04993352646171445,
+          "log_return": 0.048726854033687136,
+          "trades": 569,
+          "win_rate": 0.3093145869947276,
+          "avg_trade_return": 8.563594733512678e-05,
+          "best_trade": 0.017059188936164593,
+          "worst_trade": -0.01902991259034111,
+          "profit_factor": 1.2005594435329374,
+          "avg_bars_held": 15.84182776801406
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_20",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.04705183447361305,
+          "log_return": 0.04597843827861442,
+          "trades": 642,
+          "win_rate": 0.2803738317757009,
+          "avg_trade_return": 7.161750510687605e-05,
+          "best_trade": 0.01779104620852546,
+          "worst_trade": -0.01062049611043751,
+          "profit_factor": 1.2127433957297542,
+          "avg_bars_held": 11.422118380062305
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_27_20",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.02326363688535915,
+          "log_return": 0.022997163333439492,
+          "trades": 407,
+          "win_rate": 0.29975429975429974,
+          "avg_trade_return": 5.650408681434765e-05,
+          "best_trade": 0.018311049384859585,
+          "worst_trade": -0.009661435333671822,
+          "profit_factor": 1.1217489959746982,
+          "avg_bars_held": 15.68058968058968
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_40",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.020205296459604005,
+          "log_return": 0.02000387808270907,
+          "trades": 774,
+          "win_rate": 0.29844961240310075,
+          "avg_trade_return": 2.5844803724430324e-05,
+          "best_trade": 0.011275981423631704,
+          "worst_trade": -0.01062049611043751,
+          "profit_factor": 1.0808537902021282,
+          "avg_bars_held": 9.723514211886306
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_19_0",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.01970288199112402,
+          "log_return": 0.019511292696811587,
+          "trades": 578,
+          "win_rate": 0.29411764705882354,
+          "avg_trade_return": 3.3756561759189594e-05,
+          "best_trade": 0.013173508106151671,
+          "worst_trade": -0.00956547813632239,
+          "profit_factor": 1.0894502323700432,
+          "avg_bars_held": 11.842560553633218
+        },
+        {
+          "strategy_name": "SPY_cci_threshold_grid_35_-20",
+          "strategy_type": "cci_threshold_grid",
+          "return": 0.011058499892843354,
+          "log_return": 0.010997801759805586,
+          "trades": 451,
+          "win_rate": 0.29046563192904656,
+          "avg_trade_return": 2.438536975566649e-05,
+          "best_trade": 0.018311049384859585,
+          "worst_trade": -0.0171556778257592,
+          "profit_factor": 1.0405762302064006,
+          "avg_bars_held": 20.17960088691796
+        }
+      ],
+      "total_qualified_strategies": 50,
+      "regime_stats": {
+        "best_return": 0.10225761525200117,
+        "worst_return": -0.12823117513208881,
+        "median_return": -0.0407774412074457,
+        "total_trades": 42870,
+        "avg_win_rate": 0.29820190886381076
+      }
+    }
+  },
+  "coverage_analysis": {
+    "cci_threshold_grid": {
+      "regimes_covered": [
+        "bull_ranging",
+        "bear_ranging",
+        "neutral"
+      ],
+      "coverage_count": 3,
+      "best_regime": "bear_ranging",
+      "best_return": 0.11191138246411869,
+      "avg_return_by_regime": {
+        "bull_ranging": -0.00996991365509585,
+        "bear_ranging": 0.10077949023277204,
+        "neutral": 0.05195808990020652
+      }
+    },
+    "macd_crossover_grid": {
+      "regimes_covered": [
+        "bull_ranging",
+        "bear_ranging"
+      ],
+      "coverage_count": 2,
+      "best_regime": "bear_ranging",
+      "best_return": 0.11177862185174559,
+      "avg_return_by_regime": {
+        "bull_ranging": -0.03156143664637179,
+        "bear_ranging": 0.09151738871224468
+      }
+    }
+  },
+  "ensemble_allocation": {
+    "bull_ranging": [
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_-60",
+        "strategy_type": "cci_threshold_grid",
+        "return": 0.03141584557491606,
+        "log_return": 0.03093246568804532,
+        "trades": 2529,
+        "win_rate": 0.24673784104389088,
+        "avg_trade_return": 1.2231105451975216e-05,
+        "best_trade": 0.017611299523377432,
+        "worst_trade": -0.04008583254395357,
+        "profit_factor": 1.0415851442647261,
+        "avg_bars_held": 12.126136812969554,
+        "weight": 0.3333333333333333
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_-40",
+        "strategy_type": "cci_threshold_grid",
+        "return": -0.008564582978275781,
+        "log_return": -0.008601469783482753,
+        "trades": 2907,
+        "win_rate": 0.24527003783969728,
+        "avg_trade_return": -2.9588819344625914e-06,
+        "best_trade": 0.01702663014159966,
+        "worst_trade": -0.04008583254395357,
+        "profit_factor": 0.9899427613536632,
+        "avg_bars_held": 11.751633986928105,
+        "weight": 0.3333333333333333
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_11_-40",
+        "strategy_type": "cci_threshold_grid",
+        "return": -0.008666094208192643,
+        "log_return": -0.008703863167158378,
+        "trades": 5122,
+        "win_rate": 0.29344006247559545,
+        "avg_trade_return": -1.6993094820691874e-06,
+        "best_trade": 0.021040194729824338,
+        "worst_trade": -0.04008583254395357,
+        "profit_factor": 0.992875596616922,
+        "avg_bars_held": 7.0720421710269425,
+        "weight": 0.3333333333333333
+      }
+    ],
+    "bear_ranging": [
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_0",
+        "strategy_type": "cci_threshold_grid",
+        "return": 0.11191138246411869,
+        "log_return": 0.106080500624142,
+        "trades": 2748,
+        "win_rate": 0.2631004366812227,
+        "avg_trade_return": 3.860280226497161e-05,
+        "best_trade": 0.02237388043647719,
+        "worst_trade": -0.017886465261902518,
+        "profit_factor": 1.1177228535782147,
+        "avg_bars_held": 12.450145560407568,
+        "weight": 0.3333333333333333
+      },
+      {
+        "strategy_name": "SPY_macd_crossover_grid_5_26_7",
+        "strategy_type": "macd_crossover_grid",
+        "return": 0.11177862185174559,
+        "log_return": 0.10596109494055012,
+        "trades": 3744,
+        "win_rate": 0.33199786324786323,
+        "avg_trade_return": 2.8301574503352062e-05,
+        "best_trade": 0.01611896690338318,
+        "worst_trade": -0.01751166221959138,
+        "profit_factor": 1.0911290300466958,
+        "avg_bars_held": 8.059027777777779,
+        "weight": 0.3333333333333333
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_19_-20",
+        "strategy_type": "cci_threshold_grid",
+        "return": 0.10488068640428372,
+        "log_return": 0.0997373530351563,
+        "trades": 3482,
+        "win_rate": 0.27110855829982766,
+        "avg_trade_return": 2.864369702330738e-05,
+        "best_trade": 0.01929477254941483,
+        "worst_trade": -0.01751166221959138,
+        "profit_factor": 1.0930645341836076,
+        "avg_bars_held": 10.103676048248133,
+        "weight": 0.3333333333333333
+      }
+    ],
+    "neutral": [
+      {
+        "strategy_name": "SPY_cci_threshold_grid_27_60",
+        "strategy_type": "cci_threshold_grid",
+        "return": 0.10225761525200117,
+        "log_return": 0.0973604540567219,
+        "trades": 823,
+        "win_rate": 0.3110571081409477,
+        "avg_trade_return": 0.00011829945814911531,
+        "best_trade": 0.017444208191980063,
+        "worst_trade": -0.0171556778257592,
+        "profit_factor": 1.3808176172306506,
+        "avg_bars_held": 10.923450789793439,
+        "weight": 0.3333333333333333
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_35_20",
+        "strategy_type": "cci_threshold_grid",
+        "return": 0.09698424840222142,
+        "log_return": 0.09256482239531129,
+        "trades": 432,
+        "win_rate": 0.2986111111111111,
+        "avg_trade_return": 0.00021427042221136872,
+        "best_trade": 0.017059188936164593,
+        "worst_trade": -0.0171556778257592,
+        "profit_factor": 1.41608406155404,
+        "avg_bars_held": 21.675925925925927,
+        "weight": 0.3333333333333333
+      },
+      {
+        "strategy_name": "SPY_cci_threshold_grid_35_60",
+        "strategy_type": "cci_threshold_grid",
+        "return": 0.09346425042029005,
+        "log_return": 0.08935086779760305,
+        "trades": 786,
+        "win_rate": 0.30407124681933845,
+        "avg_trade_return": 0.00011367794885191229,
+        "best_trade": 0.017059188936164593,
+        "worst_trade": -0.01902991259034111,
+        "profit_factor": 1.309076204393315,
+        "avg_bars_held": 13.083969465648854,
+        "weight": 0.3333333333333333
+      }
+    ]
+  },
+  "summary_stats": {
+    "total_regimes_analyzed": 3,
+    "total_strategies_by_regime": {
+      "bull_ranging": 50,
+      "bear_ranging": 50,
+      "neutral": 50
+    },
+    "ensemble_strategies_selected": {
+      "bull_ranging": 3,
+      "bear_ranging": 3,
+      "neutral": 3
+    }
+  }
+}

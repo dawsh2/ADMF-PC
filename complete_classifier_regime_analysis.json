@@ -1,0 +1,2416 @@
+{
+  "workspace": "/Users/daws/ADMF-PC/workspaces/complete_strategy_grid_v1_acf6c935",
+  "analysis_summary": [
+    {
+      "classifier_type": "market_regime_grid",
+      "num_analyses": 9,
+      "avg_entropy": 1.5406255709371213,
+      "avg_balance_ratio": 0.003634806270208316,
+      "avg_max_regime_pct": 48.78,
+      "regimes_found": [
+        "bear_ranging",
+        "bear_trending",
+        "bull_ranging",
+        "bull_trending",
+        "neutral"
+      ]
+    },
+    {
+      "classifier_type": "microstructure_grid",
+      "num_analyses": 9,
+      "avg_entropy": 1.5923659636731895,
+      "avg_balance_ratio": 0.011025206605179317,
+      "avg_max_regime_pct": 49.343333333333334,
+      "regimes_found": [
+        "breakout_down",
+        "breakout_up",
+        "consolidation",
+        "reversal_down",
+        "reversal_up"
+      ]
+    },
+    {
+      "classifier_type": "multi_timeframe_trend_grid",
+      "num_analyses": 9,
+      "avg_entropy": 1.7196795539579697,
+      "avg_balance_ratio": 0.1188665063201984,
+      "avg_max_regime_pct": 49.096666666666664,
+      "regimes_found": [
+        "sideways",
+        "strong_downtrend",
+        "strong_uptrend",
+        "weak_downtrend",
+        "weak_uptrend"
+      ]
+    },
+    {
+      "classifier_type": "hidden_markov_grid",
+      "num_analyses": 27,
+      "avg_entropy": 1.5077830740526172,
+      "avg_balance_ratio": 0.12619715876868937,
+      "avg_max_regime_pct": 50.22333333333335,
+      "regimes_found": [
+        "accumulation",
+        "distribution",
+        "markdown",
+        "markup"
+      ]
+    },
+    {
+      "classifier_type": "volatility_momentum_grid",
+      "num_analyses": 27,
+      "avg_entropy": 1.4764186698829735,
+      "avg_balance_ratio": 0.3969111111111111,
+      "avg_max_regime_pct": 50.0,
+      "regimes_found": [
+        "low_vol_bearish",
+        "low_vol_bullish",
+        "neutral"
+      ]
+    }
+  ],
+  "improvement_summary": {
+    "excellent": [],
+    "good": [],
+    "moderate": [
+      [
+        "microstructure_grid",
+        1.9379302559030886
+      ],
+      [
+        "multi_timeframe_trend_grid",
+        1.5278497423392123
+      ],
+      [
+        "hidden_markov_grid",
+        1.6158719918225317
+      ],
+      [
+        "volatility_momentum_grid",
+        1.5093698777344347
+      ]
+    ],
+    "minimal": [
+      [
+        "market_regime_grid",
+        1.1263234483886482
+      ]
+    ]
+  },
+  "detailed_results": {
+    "market_regime_grid": [
+      {
+        "total_bars": 5791,
+        "valid_regime_bars": "5791",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1547,
+          "bear_ranging": 1394,
+          "bear_trending": 22,
+          "bull_trending": 20
+        },
+        "regime_percentages": {
+          "neutral": 48.49,
+          "bull_ranging": 26.71,
+          "bear_ranging": 24.07,
+          "bear_trending": 0.38,
+          "bull_trending": 0.35
+        },
+        "entropy": 1.5687272248026267,
+        "max_regime_pct": 48.49,
+        "min_regime_pct": 0.35,
+        "balance_ratio": 0.007217983089296762,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bear_trending",
+          "bull_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0006_12",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5725,
+        "valid_regime_bars": "5725",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1534,
+          "bear_ranging": 1380,
+          "bull_trending": 2,
+          "bear_trending": 1
+        },
+        "regime_percentages": {
+          "neutral": 49.05,
+          "bull_ranging": 26.79,
+          "bear_ranging": 24.1,
+          "bull_trending": 0.03,
+          "bear_trending": 0.02
+        },
+        "entropy": 1.513863175450042,
+        "max_regime_pct": 49.05,
+        "min_regime_pct": 0.02,
+        "balance_ratio": 0.00040774719673802244,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bull_trending",
+          "bear_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0012_12",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5754,
+        "valid_regime_bars": "5754",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1542,
+          "bear_ranging": 1385,
+          "bull_trending": 10,
+          "bear_trending": 9
+        },
+        "regime_percentages": {
+          "neutral": 48.8,
+          "bull_ranging": 26.8,
+          "bear_ranging": 24.07,
+          "bull_trending": 0.17,
+          "bear_trending": 0.16
+        },
+        "entropy": 1.539286312558695,
+        "max_regime_pct": 48.8,
+        "min_regime_pct": 0.16,
+        "balance_ratio": 0.0032786885245901644,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bull_trending",
+          "bear_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0008_16",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5791,
+        "valid_regime_bars": "5791",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1547,
+          "bear_ranging": 1394,
+          "bear_trending": 22,
+          "bull_trending": 20
+        },
+        "regime_percentages": {
+          "neutral": 48.49,
+          "bull_ranging": 26.71,
+          "bear_ranging": 24.07,
+          "bear_trending": 0.38,
+          "bull_trending": 0.35
+        },
+        "entropy": 1.5687272248026267,
+        "max_regime_pct": 48.49,
+        "min_regime_pct": 0.35,
+        "balance_ratio": 0.007217983089296762,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bear_trending",
+          "bull_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0006_08",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5725,
+        "valid_regime_bars": "5725",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1534,
+          "bear_ranging": 1380,
+          "bull_trending": 2,
+          "bear_trending": 1
+        },
+        "regime_percentages": {
+          "neutral": 49.05,
+          "bull_ranging": 26.79,
+          "bear_ranging": 24.1,
+          "bull_trending": 0.03,
+          "bear_trending": 0.02
+        },
+        "entropy": 1.513863175450042,
+        "max_regime_pct": 49.05,
+        "min_regime_pct": 0.02,
+        "balance_ratio": 0.00040774719673802244,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bull_trending",
+          "bear_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0012_08",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5754,
+        "valid_regime_bars": "5754",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1542,
+          "bear_ranging": 1385,
+          "bull_trending": 10,
+          "bear_trending": 9
+        },
+        "regime_percentages": {
+          "neutral": 48.8,
+          "bull_ranging": 26.8,
+          "bear_ranging": 24.07,
+          "bull_trending": 0.17,
+          "bear_trending": 0.16
+        },
+        "entropy": 1.539286312558695,
+        "max_regime_pct": 48.8,
+        "min_regime_pct": 0.16,
+        "balance_ratio": 0.0032786885245901644,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bull_trending",
+          "bear_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0008_08",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5791,
+        "valid_regime_bars": "5791",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1547,
+          "bear_ranging": 1394,
+          "bear_trending": 22,
+          "bull_trending": 20
+        },
+        "regime_percentages": {
+          "neutral": 48.49,
+          "bull_ranging": 26.71,
+          "bear_ranging": 24.07,
+          "bear_trending": 0.38,
+          "bull_trending": 0.35
+        },
+        "entropy": 1.5687272248026267,
+        "max_regime_pct": 48.49,
+        "min_regime_pct": 0.35,
+        "balance_ratio": 0.007217983089296762,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bear_trending",
+          "bull_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0006_16",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5725,
+        "valid_regime_bars": "5725",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1534,
+          "bear_ranging": 1380,
+          "bull_trending": 2,
+          "bear_trending": 1
+        },
+        "regime_percentages": {
+          "neutral": 49.05,
+          "bull_ranging": 26.79,
+          "bear_ranging": 24.1,
+          "bull_trending": 0.03,
+          "bear_trending": 0.02
+        },
+        "entropy": 1.513863175450042,
+        "max_regime_pct": 49.05,
+        "min_regime_pct": 0.02,
+        "balance_ratio": 0.00040774719673802244,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bull_trending",
+          "bear_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0012_16",
+        "classifier_type": "market_regime_grid"
+      },
+      {
+        "total_bars": 5754,
+        "valid_regime_bars": "5754",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "neutral": 2808,
+          "bull_ranging": 1542,
+          "bear_ranging": 1385,
+          "bull_trending": 10,
+          "bear_trending": 9
+        },
+        "regime_percentages": {
+          "neutral": 48.8,
+          "bull_ranging": 26.8,
+          "bear_ranging": 24.07,
+          "bull_trending": 0.17,
+          "bear_trending": 0.16
+        },
+        "entropy": 1.539286312558695,
+        "max_regime_pct": 48.8,
+        "min_regime_pct": 0.16,
+        "balance_ratio": 0.0032786885245901644,
+        "regime_states": [
+          "neutral",
+          "bull_ranging",
+          "bear_ranging",
+          "bull_trending",
+          "bear_trending"
+        ],
+        "filename": "SPY_market_regime_grid_0008_12",
+        "classifier_type": "market_regime_grid"
+      }
+    ],
+    "microstructure_grid": [
+      {
+        "total_bars": 711,
+        "valid_regime_bars": "711",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 343,
+          "reversal_up": 179,
+          "reversal_down": 160,
+          "breakout_up": 18,
+          "breakout_down": 11
+        },
+        "regime_percentages": {
+          "consolidation": 48.24,
+          "reversal_up": 25.18,
+          "reversal_down": 22.5,
+          "breakout_up": 2.53,
+          "breakout_down": 1.55
+        },
+        "entropy": 1.7199227237301935,
+        "max_regime_pct": 48.24,
+        "min_regime_pct": 1.55,
+        "balance_ratio": 0.03213101160862355,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0004_0002",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 2535,
+        "valid_regime_bars": "2535",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 1263,
+          "reversal_up": 680,
+          "reversal_down": 583,
+          "breakout_up": 6,
+          "breakout_down": 3
+        },
+        "regime_percentages": {
+          "consolidation": 49.82,
+          "reversal_up": 26.82,
+          "reversal_down": 23.0,
+          "breakout_up": 0.24,
+          "breakout_down": 0.12
+        },
+        "entropy": 1.5301993220615888,
+        "max_regime_pct": 49.82,
+        "min_regime_pct": 0.12,
+        "balance_ratio": 0.002408671216378964,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0008_0001",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 2569,
+        "valid_regime_bars": "2569",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 1263,
+          "reversal_up": 680,
+          "reversal_down": 582,
+          "breakout_up": 29,
+          "breakout_down": 15
+        },
+        "regime_percentages": {
+          "consolidation": 49.16,
+          "reversal_up": 26.47,
+          "reversal_down": 22.65,
+          "breakout_up": 1.13,
+          "breakout_down": 0.58
+        },
+        "entropy": 1.6126300496763706,
+        "max_regime_pct": 49.16,
+        "min_regime_pct": 0.58,
+        "balance_ratio": 0.011798209926769731,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0004_00015",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 693,
+        "valid_regime_bars": "693",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 343,
+          "reversal_up": 180,
+          "reversal_down": 162,
+          "breakout_up": 5,
+          "breakout_down": 3
+        },
+        "regime_percentages": {
+          "consolidation": 49.49,
+          "reversal_up": 25.97,
+          "reversal_down": 23.38,
+          "breakout_up": 0.72,
+          "breakout_down": 0.43
+        },
+        "entropy": 1.582607712265127,
+        "max_regime_pct": 49.49,
+        "min_regime_pct": 0.43,
+        "balance_ratio": 0.008688623964437259,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0008_0002",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 2569,
+        "valid_regime_bars": "2569",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 1263,
+          "reversal_up": 680,
+          "reversal_down": 582,
+          "breakout_up": 29,
+          "breakout_down": 15
+        },
+        "regime_percentages": {
+          "consolidation": 49.16,
+          "reversal_up": 26.47,
+          "reversal_down": 22.65,
+          "breakout_up": 1.13,
+          "breakout_down": 0.58
+        },
+        "entropy": 1.6126300496763706,
+        "max_regime_pct": 49.16,
+        "min_regime_pct": 0.58,
+        "balance_ratio": 0.011798209926769731,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0004_0001",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 2535,
+        "valid_regime_bars": "2535",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 1263,
+          "reversal_up": 680,
+          "reversal_down": 583,
+          "breakout_up": 6,
+          "breakout_down": 3
+        },
+        "regime_percentages": {
+          "consolidation": 49.82,
+          "reversal_up": 26.82,
+          "reversal_down": 23.0,
+          "breakout_up": 0.24,
+          "breakout_down": 0.12
+        },
+        "entropy": 1.5301993220615888,
+        "max_regime_pct": 49.82,
+        "min_regime_pct": 0.12,
+        "balance_ratio": 0.002408671216378964,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0008_00015",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 2545,
+        "valid_regime_bars": "2545",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 1263,
+          "reversal_up": 681,
+          "reversal_down": 582,
+          "breakout_up": 11,
+          "breakout_down": 8
+        },
+        "regime_percentages": {
+          "consolidation": 49.63,
+          "reversal_up": 26.76,
+          "reversal_down": 22.87,
+          "breakout_up": 0.43,
+          "breakout_down": 0.31
+        },
+        "entropy": 1.5569728356680657,
+        "max_regime_pct": 49.63,
+        "min_regime_pct": 0.31,
+        "balance_ratio": 0.00624622204311908,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0006_0001",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 2545,
+        "valid_regime_bars": "2545",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 1263,
+          "reversal_up": 681,
+          "reversal_down": 582,
+          "breakout_up": 11,
+          "breakout_down": 8
+        },
+        "regime_percentages": {
+          "consolidation": 49.63,
+          "reversal_up": 26.76,
+          "reversal_down": 22.87,
+          "breakout_up": 0.43,
+          "breakout_down": 0.31
+        },
+        "entropy": 1.5569728356680657,
+        "max_regime_pct": 49.63,
+        "min_regime_pct": 0.31,
+        "balance_ratio": 0.00624622204311908,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0006_00015",
+        "classifier_type": "microstructure_grid"
+      },
+      {
+        "total_bars": 698,
+        "valid_regime_bars": "698",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "consolidation": 343,
+          "reversal_up": 180,
+          "reversal_down": 161,
+          "breakout_up": 8,
+          "breakout_down": 6
+        },
+        "regime_percentages": {
+          "consolidation": 49.14,
+          "reversal_up": 25.79,
+          "reversal_down": 23.07,
+          "breakout_up": 1.15,
+          "breakout_down": 0.86
+        },
+        "entropy": 1.6291588222513358,
+        "max_regime_pct": 49.14,
+        "min_regime_pct": 0.86,
+        "balance_ratio": 0.0175010175010175,
+        "regime_states": [
+          "consolidation",
+          "reversal_up",
+          "reversal_down",
+          "breakout_up",
+          "breakout_down"
+        ],
+        "filename": "SPY_microstructure_grid_0006_0002",
+        "classifier_type": "microstructure_grid"
+      }
+    ],
+    "multi_timeframe_trend_grid": [
+      {
+        "total_bars": 24,
+        "valid_regime_bars": "24",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "sideways": 12,
+          "weak_uptrend": 6,
+          "weak_downtrend": 5,
+          "strong_downtrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 50.0,
+          "weak_uptrend": 25.0,
+          "weak_downtrend": 20.83,
+          "strong_downtrend": 4.17
+        },
+        "entropy": 1.662582979937053,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 4.17,
+        "balance_ratio": 0.0834,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "weak_downtrend",
+          "strong_downtrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0016_0005",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 9,
+        "valid_regime_bars": "9",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "sideways": 4,
+          "weak_uptrend": 2,
+          "strong_downtrend": 1,
+          "weak_downtrend": 1,
+          "strong_uptrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 44.44,
+          "weak_uptrend": 22.22,
+          "strong_downtrend": 11.11,
+          "weak_downtrend": 11.11,
+          "strong_uptrend": 11.11
+        },
+        "entropy": 2.058752271232541,
+        "max_regime_pct": 44.44,
+        "min_regime_pct": 11.11,
+        "balance_ratio": 0.25,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "strong_downtrend",
+          "weak_downtrend",
+          "strong_uptrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0008_0007",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 25,
+        "valid_regime_bars": "25",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "sideways": 12,
+          "weak_uptrend": 6,
+          "weak_downtrend": 5,
+          "strong_downtrend": 1,
+          "strong_uptrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 48.0,
+          "weak_uptrend": 24.0,
+          "weak_downtrend": 20.0,
+          "strong_downtrend": 4.0,
+          "strong_uptrend": 4.0
+        },
+        "entropy": 1.8382975702780198,
+        "max_regime_pct": 48.0,
+        "min_regime_pct": 4.0,
+        "balance_ratio": 0.08333333333333333,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "weak_downtrend",
+          "strong_downtrend",
+          "strong_uptrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0008_0005",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 86,
+        "valid_regime_bars": "86",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "sideways": 43,
+          "weak_uptrend": 24,
+          "weak_downtrend": 18,
+          "strong_downtrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 50.0,
+          "weak_uptrend": 27.91,
+          "weak_downtrend": 20.93,
+          "strong_downtrend": 1.16
+        },
+        "entropy": 1.5607039898645854,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 1.16,
+        "balance_ratio": 0.0232,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "weak_downtrend",
+          "strong_downtrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0012_0003",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 8,
+        "valid_regime_bars": "8",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "sideways": 4,
+          "weak_uptrend": 2,
+          "strong_downtrend": 1,
+          "weak_downtrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 50.0,
+          "weak_uptrend": 25.0,
+          "strong_downtrend": 12.5,
+          "weak_downtrend": 12.5
+        },
+        "entropy": 1.75,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 12.5,
+        "balance_ratio": 0.25,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "strong_downtrend",
+          "weak_downtrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0016_0007",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 8,
+        "valid_regime_bars": "8",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "sideways": 4,
+          "weak_uptrend": 2,
+          "strong_downtrend": 1,
+          "weak_downtrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 50.0,
+          "weak_uptrend": 25.0,
+          "strong_downtrend": 12.5,
+          "weak_downtrend": 12.5
+        },
+        "entropy": 1.75,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 12.5,
+        "balance_ratio": 0.25,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "strong_downtrend",
+          "weak_downtrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0012_0007",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 86,
+        "valid_regime_bars": "86",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "sideways": 43,
+          "weak_uptrend": 24,
+          "weak_downtrend": 18,
+          "strong_downtrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 50.0,
+          "weak_uptrend": 27.91,
+          "weak_downtrend": 20.93,
+          "strong_downtrend": 1.16
+        },
+        "entropy": 1.5607039898645854,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 1.16,
+        "balance_ratio": 0.0232,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "weak_downtrend",
+          "strong_downtrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0016_0003",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 24,
+        "valid_regime_bars": "24",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "sideways": 12,
+          "weak_uptrend": 6,
+          "weak_downtrend": 5,
+          "strong_downtrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 50.0,
+          "weak_uptrend": 25.0,
+          "weak_downtrend": 20.83,
+          "strong_downtrend": 4.17
+        },
+        "entropy": 1.662582979937053,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 4.17,
+        "balance_ratio": 0.0834,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "weak_downtrend",
+          "strong_downtrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0012_0005",
+        "classifier_type": "multi_timeframe_trend_grid"
+      },
+      {
+        "total_bars": 87,
+        "valid_regime_bars": "87",
+        "unique_regimes": 5,
+        "regime_counts": {
+          "sideways": 43,
+          "weak_uptrend": 24,
+          "weak_downtrend": 18,
+          "strong_downtrend": 1,
+          "strong_uptrend": 1
+        },
+        "regime_percentages": {
+          "sideways": 49.43,
+          "weak_uptrend": 27.59,
+          "weak_downtrend": 20.69,
+          "strong_downtrend": 1.15,
+          "strong_uptrend": 1.15
+        },
+        "entropy": 1.6334922045078901,
+        "max_regime_pct": 49.43,
+        "min_regime_pct": 1.15,
+        "balance_ratio": 0.023265223548452355,
+        "regime_states": [
+          "sideways",
+          "weak_uptrend",
+          "weak_downtrend",
+          "strong_downtrend",
+          "strong_uptrend"
+        ],
+        "filename": "SPY_multi_timeframe_trend_grid_0008_0003",
+        "classifier_type": "multi_timeframe_trend_grid"
+      }
+    ],
+    "hidden_markov_grid": [
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0002_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0002_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0004_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0003_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0002_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0004_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0003_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0002_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0002_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0004_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0003_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0002_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0002_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0004_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0003_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0004_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0003_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0004_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0003_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0002_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0004_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0004_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0003_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 581,
+        "valid_regime_bars": "581",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 291,
+          "markdown": 146,
+          "markup": 142,
+          "distribution": 2
+        },
+        "regime_percentages": {
+          "accumulation": 50.09,
+          "markdown": 25.13,
+          "markup": 24.44,
+          "distribution": 0.34
+        },
+        "entropy": 1.5249888066771091,
+        "max_regime_pct": 50.09,
+        "min_regime_pct": 0.34,
+        "balance_ratio": 0.006787781992413655,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_16_0002_10",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0003_12",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 245,
+        "valid_regime_bars": "245",
+        "unique_regimes": 4,
+        "regime_counts": {
+          "accumulation": 123,
+          "markdown": 64,
+          "markup": 57,
+          "distribution": 1
+        },
+        "regime_percentages": {
+          "accumulation": 50.2,
+          "markdown": 26.12,
+          "markup": 23.27,
+          "distribution": 0.41
+        },
+        "entropy": 1.5269820806130194,
+        "max_regime_pct": 50.2,
+        "min_regime_pct": 0.41,
+        "balance_ratio": 0.008167330677290835,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup",
+          "distribution"
+        ],
+        "filename": "SPY_hidden_markov_grid_12_0003_08",
+        "classifier_type": "hidden_markov_grid"
+      },
+      {
+        "total_bars": 131,
+        "valid_regime_bars": "131",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "accumulation": 66,
+          "markdown": 41,
+          "markup": 24
+        },
+        "regime_percentages": {
+          "accumulation": 50.38,
+          "markdown": 31.3,
+          "markup": 18.32
+        },
+        "entropy": 1.4713783348677245,
+        "max_regime_pct": 50.38,
+        "min_regime_pct": 18.32,
+        "balance_ratio": 0.36363636363636365,
+        "regime_states": [
+          "accumulation",
+          "markdown",
+          "markup"
+        ],
+        "filename": "SPY_hidden_markov_grid_14_0004_10",
+        "classifier_type": "hidden_markov_grid"
+      }
+    ],
+    "volatility_momentum_grid": [
+      {
+        "total_bars": 672,
+        "valid_regime_bars": "672",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 336,
+          "low_vol_bearish": 236,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 35.12,
+          "low_vol_bullish": 14.88
+        },
+        "entropy": 1.4391686707890319,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 14.88,
+        "balance_ratio": 0.29760000000000003,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_80_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 426,
+        "valid_regime_bars": "426",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 213,
+          "low_vol_bearish": 113,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 26.53,
+          "low_vol_bullish": 23.47
+        },
+        "entropy": 1.4986482735310636,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 23.47,
+        "balance_ratio": 0.4694,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_80_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 564,
+        "valid_regime_bars": "564",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 282,
+          "low_vol_bullish": 142,
+          "low_vol_bearish": 140
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 25.18,
+          "low_vol_bearish": 24.82
+        },
+        "entropy": 1.4999813025107218,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 24.82,
+        "balance_ratio": 0.4964,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_75_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 672,
+        "valid_regime_bars": "672",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 336,
+          "low_vol_bearish": 236,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 35.12,
+          "low_vol_bullish": 14.88
+        },
+        "entropy": 1.4391686707890319,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 14.88,
+        "balance_ratio": 0.29760000000000003,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_80_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 426,
+        "valid_regime_bars": "426",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 213,
+          "low_vol_bearish": 113,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 26.53,
+          "low_vol_bullish": 23.47
+        },
+        "entropy": 1.4986482735310636,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 23.47,
+        "balance_ratio": 0.4694,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_80_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 844,
+        "valid_regime_bars": "844",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 422,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 140
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 33.41,
+          "low_vol_bearish": 16.59
+        },
+        "entropy": 1.4583774314965334,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 16.59,
+        "balance_ratio": 0.3318,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_70_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 790,
+        "valid_regime_bars": "790",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 395,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 113
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 35.7,
+          "low_vol_bearish": 14.3
+        },
+        "entropy": 1.4317489869133453,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 14.3,
+        "balance_ratio": 0.28600000000000003,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_70_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 1036,
+        "valid_regime_bars": "1036",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 518,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 236
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 27.22,
+          "low_vol_bearish": 22.78
+        },
+        "entropy": 1.4971521790722293,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 22.78,
+        "balance_ratio": 0.4556,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_70_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 790,
+        "valid_regime_bars": "790",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 395,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 113
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 35.7,
+          "low_vol_bearish": 14.3
+        },
+        "entropy": 1.4317489869133453,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 14.3,
+        "balance_ratio": 0.28600000000000003,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_70_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 1036,
+        "valid_regime_bars": "1036",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 518,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 236
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 27.22,
+          "low_vol_bearish": 22.78
+        },
+        "entropy": 1.4971521790722293,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 22.78,
+        "balance_ratio": 0.4556,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_70_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 510,
+        "valid_regime_bars": "510",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 255,
+          "low_vol_bullish": 142,
+          "low_vol_bearish": 113
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 27.84,
+          "low_vol_bearish": 22.16
+        },
+        "entropy": 1.4953354565339385,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 22.16,
+        "balance_ratio": 0.4432,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_75_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 756,
+        "valid_regime_bars": "756",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 378,
+          "low_vol_bearish": 236,
+          "low_vol_bullish": 142
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 31.22,
+          "low_vol_bullish": 18.78
+        },
+        "entropy": 1.4774375372638429,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 18.78,
+        "balance_ratio": 0.37560000000000004,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_75_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 480,
+        "valid_regime_bars": "480",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 240,
+          "low_vol_bearish": 140,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 29.17,
+          "low_vol_bullish": 20.83
+        },
+        "entropy": 1.4899181908360597,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 20.83,
+        "balance_ratio": 0.41659999999999997,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_80_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 510,
+        "valid_regime_bars": "510",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 255,
+          "low_vol_bullish": 142,
+          "low_vol_bearish": 113
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 27.84,
+          "low_vol_bearish": 22.16
+        },
+        "entropy": 1.4953354565339385,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 22.16,
+        "balance_ratio": 0.4432,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_75_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 756,
+        "valid_regime_bars": "756",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 378,
+          "low_vol_bearish": 236,
+          "low_vol_bullish": 142
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 31.22,
+          "low_vol_bullish": 18.78
+        },
+        "entropy": 1.4774375372638429,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 18.78,
+        "balance_ratio": 0.37560000000000004,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_75_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 564,
+        "valid_regime_bars": "564",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 282,
+          "low_vol_bullish": 142,
+          "low_vol_bearish": 140
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 25.18,
+          "low_vol_bearish": 24.82
+        },
+        "entropy": 1.4999813025107218,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 24.82,
+        "balance_ratio": 0.4964,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_75_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 564,
+        "valid_regime_bars": "564",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 282,
+          "low_vol_bullish": 142,
+          "low_vol_bearish": 140
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 25.18,
+          "low_vol_bearish": 24.82
+        },
+        "entropy": 1.4999813025107218,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 24.82,
+        "balance_ratio": 0.4964,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_75_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 426,
+        "valid_regime_bars": "426",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 213,
+          "low_vol_bearish": 113,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 26.53,
+          "low_vol_bullish": 23.47
+        },
+        "entropy": 1.4986482735310636,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 23.47,
+        "balance_ratio": 0.4694,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_80_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 672,
+        "valid_regime_bars": "672",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 336,
+          "low_vol_bearish": 236,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 35.12,
+          "low_vol_bullish": 14.88
+        },
+        "entropy": 1.4391686707890319,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 14.88,
+        "balance_ratio": 0.29760000000000003,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_80_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 844,
+        "valid_regime_bars": "844",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 422,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 140
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 33.41,
+          "low_vol_bearish": 16.59
+        },
+        "entropy": 1.4583774314965334,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 16.59,
+        "balance_ratio": 0.3318,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_70_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 844,
+        "valid_regime_bars": "844",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 422,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 140
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 33.41,
+          "low_vol_bearish": 16.59
+        },
+        "entropy": 1.4583774314965334,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 16.59,
+        "balance_ratio": 0.3318,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_70_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 1036,
+        "valid_regime_bars": "1036",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 518,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 236
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 27.22,
+          "low_vol_bearish": 22.78
+        },
+        "entropy": 1.4971521790722293,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 22.78,
+        "balance_ratio": 0.4556,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_70_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 790,
+        "valid_regime_bars": "790",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 395,
+          "low_vol_bullish": 282,
+          "low_vol_bearish": 113
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 35.7,
+          "low_vol_bearish": 14.3
+        },
+        "entropy": 1.4317489869133453,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 14.3,
+        "balance_ratio": 0.28600000000000003,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_70_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 756,
+        "valid_regime_bars": "756",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 378,
+          "low_vol_bearish": 236,
+          "low_vol_bullish": 142
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 31.22,
+          "low_vol_bullish": 18.78
+        },
+        "entropy": 1.4774375372638429,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 18.78,
+        "balance_ratio": 0.37560000000000004,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_75_30",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 510,
+        "valid_regime_bars": "510",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 255,
+          "low_vol_bullish": 142,
+          "low_vol_bearish": 113
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bullish": 27.84,
+          "low_vol_bearish": 22.16
+        },
+        "entropy": 1.4953354565339385,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 22.16,
+        "balance_ratio": 0.4432,
+        "regime_states": [
+          "neutral",
+          "low_vol_bullish",
+          "low_vol_bearish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_20_75_20",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 480,
+        "valid_regime_bars": "480",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 240,
+          "low_vol_bearish": 140,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 29.17,
+          "low_vol_bullish": 20.83
+        },
+        "entropy": 1.4899181908360597,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 20.83,
+        "balance_ratio": 0.41659999999999997,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_12_80_25",
+        "classifier_type": "volatility_momentum_grid"
+      },
+      {
+        "total_bars": 480,
+        "valid_regime_bars": "480",
+        "unique_regimes": 3,
+        "regime_counts": {
+          "neutral": 240,
+          "low_vol_bearish": 140,
+          "low_vol_bullish": 100
+        },
+        "regime_percentages": {
+          "neutral": 50.0,
+          "low_vol_bearish": 29.17,
+          "low_vol_bullish": 20.83
+        },
+        "entropy": 1.4899181908360597,
+        "max_regime_pct": 50.0,
+        "min_regime_pct": 20.83,
+        "balance_ratio": 0.41659999999999997,
+        "regime_states": [
+          "neutral",
+          "low_vol_bearish",
+          "low_vol_bullish"
+        ],
+        "filename": "SPY_volatility_momentum_grid_16_80_25",
+        "classifier_type": "volatility_momentum_grid"
+      }
+    ]
+  }
+}

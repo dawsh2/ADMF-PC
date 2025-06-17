@@ -20,6 +20,7 @@ import json
 from ..types import Event, EventType
 from ..protocols import EventObserverProtocol
 from ..storage.temporal_sparse_storage import TemporalSparseStorage
+from .strategy_metadata_extractor import update_metadata_with_recursive_strategies
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,8 @@ class MultiStrategyTracer(EventObserverProtocol):
                  workflow_id: str,
                  managed_strategies: Optional[List[str]] = None,
                  managed_classifiers: Optional[List[str]] = None,
-                 data_source_config: Optional[Dict[str, Any]] = None):
+                 data_source_config: Optional[Dict[str, Any]] = None,
+                 full_config: Optional[Dict[str, Any]] = None):
         """
         Initialize multi-strategy tracer.
         
@@ -47,10 +49,12 @@ class MultiStrategyTracer(EventObserverProtocol):
             managed_strategies: Optional list of specific strategies to trace
             managed_classifiers: Optional list of specific classifiers to trace
             data_source_config: Configuration with data source info (symbols, timeframes, data_dir, etc.)
+            full_config: Full configuration dict containing strategy definitions for metadata extraction
         """
         self._workspace_path = Path(workspace_path)
         self._workflow_id = workflow_id
         self._data_source_config = data_source_config or {}
+        self._full_config = full_config or {}
         
         # If not specified, trace all
         self._managed_strategies = set(managed_strategies) if managed_strategies else None
@@ -85,17 +89,28 @@ class MultiStrategyTracer(EventObserverProtocol):
         """Process events from the root event bus."""
         if event.event_type == EventType.BAR.value:
             # Use original bar index from event payload for consistent sparse storage
-            if hasattr(event, 'payload') and 'original_bar_index' in event.payload:
+            has_payload = hasattr(event, 'payload')
+            has_original_index = has_payload and event.payload and 'original_bar_index' in event.payload
+            
+            if has_original_index:
                 self._current_bar_count = event.payload['original_bar_index']  # Keep 0-based indexing to match source
-                logger.debug(f"Bar count (original): {self._current_bar_count}")
+                logger.debug(f"📊 Bar count (original): {self._current_bar_count}")
             else:
+                # Debug why we're falling back
+                if not has_payload:
+                    logger.warning("⚠️  BAR event missing payload - using incremental count")
+                elif not event.payload:
+                    logger.warning("⚠️  BAR event payload is None - using incremental count")
+                else:
+                    logger.warning(f"⚠️  BAR event missing original_bar_index - payload keys: {list(event.payload.keys())} - using incremental count")
+                
                 # Fallback to incrementing for backward compatibility
                 # Start from -1 so first increment gives 0
                 if not hasattr(self, '_initialized_bar_count'):
                     self._current_bar_count = -1
                     self._initialized_bar_count = True
                 self._current_bar_count += 1
-                logger.debug(f"Bar count (incremented): {self._current_bar_count}")
+                logger.debug(f"📊 Bar count (incremented): {self._current_bar_count}")
             
         elif event.event_type == EventType.SIGNAL.value:
             logger.debug(f"MultiStrategyTracer received SIGNAL event")
@@ -136,7 +151,10 @@ class MultiStrategyTracer(EventObserverProtocol):
         else:
             # Fallback to event timestamp for backward compatibility
             timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
-        price = payload.get('price', 0.0)
+        
+        # Extract price from metadata where strategies put it
+        metadata = payload.get('metadata', {})
+        price = metadata.get('price', payload.get('price', 0.0))
         
         was_change = storage.process_signal(
             symbol=symbol,
@@ -317,6 +335,15 @@ class MultiStrategyTracer(EventObserverProtocol):
                 }
                 
                 logger.debug(f"Saved {component_id}: {len(storage._changes)} changes to {rel_path}")
+        
+        # Add recursive strategy metadata if full config was provided
+        if self._full_config:
+            try:
+                results = update_metadata_with_recursive_strategies(results, self._full_config)
+                logger.debug("Added recursive strategy metadata to results")
+            except Exception as e:
+                logger.error(f"Failed to extract recursive strategy metadata: {e}")
+                # Continue without recursive metadata rather than failing
         
         # Save metadata.json at workspace root for SQL catalog population
         metadata_path = self._workspace_path / 'metadata.json'
