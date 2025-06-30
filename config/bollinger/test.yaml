@@ -1,0 +1,19 @@
+name: bollinger
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      period: 10,
+      std_dev: 2.0
+    },
+    constraints: "intraday",
+    risk: {
+      stop_loss: 0.00075,      # 0.075% stop loss
+      take_profit: 0.001,      # 0.10% take profit target (matches notebook)
+#      trailing_stop: 0.0003  # 0.05% trailing stop
+    }
+  }
+]
+
+# Need to verify these are working identically to the original analysis 

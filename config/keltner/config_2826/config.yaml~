@@ -1,0 +1,32 @@
+# Keltner 2826-Signal Strategy Configuration
+# This config reproduces the best performing strategy with:
+# - 0.68 bps/trade (0.18 net after costs)
+# - 73.7% win rate
+# - 5.7 trades/day
+# - Volatility filter reducing signals by 18.8%
+
+name: keltner_2826_production
+data: SPY_5m
+
+strategy:
+  - keltner_bands:
+      # Exact parameters that produce 2826 signals (Strategy 3)
+      period: [30]      # This specific combination produces 2826 signals
+      multiplier: [1.0] # with the volatility filter
+      
+      # The volatility filter that creates the 2826-signal pattern
+      # MUST be a list of filter dictionaries (not a string)
+      filter:
+        - {volatility_above: {threshold: 0.8}}
+      
+      # Alternative: If you want to test slight variations
+      # period: [15, 20, 25]
+      # multiplier: [1.5, 2.0, 2.5]
+      # filter: {volatility_above: {threshold: [1.0, 1.1, 1.2]}}
+
+# Notes on implementation:
+# 1. This strategy has 18.8% signal reduction from baseline (3481 -> 2826)
+# 2. Volatility filter: Trades when ATR(14)/ATR(50) > 0.8 (was 1.1 in training)
+# 3. All 11 parameter combinations that produce 2826 signals are equivalent
+# 4. Strategy IDs with 2826 signals: [3, 28, 53, 78, 103, 128, 153, 178, 203, 228, 253]
+# 5. Expected annual return: ~2.6% net (9.7% gross before costs)

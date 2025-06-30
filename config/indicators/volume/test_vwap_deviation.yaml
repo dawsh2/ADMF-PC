@@ -1,0 +1,23 @@
+# Test configuration for VWAP Deviation strategy (Percentage bands)
+name: test_vwap_deviation_pct
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters - percentage bands
+strategy:
+  vwap_deviation:
+    params:
+      band_pct: 0.005       # 0.5% bands (50 basis points)
+      use_atr_bands: false  # Use percentage-based bands
+
+# Run with: python main.py --config config/indicators/test_vwap_deviation.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - Price > VWAP + 0.5%: SELL signal (-1) - expect reversion down
+# - Price < VWAP - 0.5%: BUY signal (1) - expect reversion up
+# - Price within bands: No signal (0)
+
+# This is a mean reversion strategy
+# VWAP acts as a "magnet" - prices tend to revert to it

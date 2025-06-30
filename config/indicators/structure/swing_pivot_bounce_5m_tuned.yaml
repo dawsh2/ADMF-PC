@@ -1,0 +1,27 @@
+# Swing Pivot Bounce Strategy - 5 Minute Timeframe (Tuned)
+# Parameters adjusted for 5-minute characteristics
+name: swing_pivot_bounce_5m_tuned
+mode: signal_generation
+symbols: ["SPY_5m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features - tuned for 5m timeframe
+feature_config:
+  support_resistance_24:  # Adjusted for 5m (2 hours)
+    type: support_resistance
+    lookback: 24         # 24 bars = 2 hours on 5m
+    min_touches: 3       # Require more touches for reliability
+
+# Strategy configuration - tuned for 5m
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 24           # Support/Resistance lookback (2 hours)
+      min_touches: 3          # More touches for 5m noise filtering
+      bounce_threshold: 0.0015 # 0.15% - tighter for 5m precision
+      exit_threshold: 0.0008   # 0.08% - quicker exits on 5m

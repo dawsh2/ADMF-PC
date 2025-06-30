@@ -1,0 +1,27 @@
+# Test configuration for MACD Crossover strategy
+name: test_macd_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# MACD crossover strategy
+strategy:
+  macd_crossover_strategy:
+    params:
+      fast_period: 12
+      slow_period: 26
+      signal_period: 9
+      min_threshold: 0.001  # Minimum histogram value for signal
+
+# Run with: python main.py --config config/indicators/momentum/test_macd_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - MACD histogram = MACD line - Signal line
+# - Histogram > min_threshold: BUY signal (1)
+# - Histogram < -min_threshold: SELL signal (-1)
+# - Between thresholds: No signal (0)
+
+# This is a momentum strategy that trades crossovers between
+# the MACD line and its signal line. The histogram shows
+# the difference and indicates crossover strength.

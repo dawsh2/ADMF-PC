@@ -78,46 +78,63 @@ class SyncExecutionEngine:
             
             # For market orders, execute immediately using price from order
             if order.order_type.value.upper() == 'MARKET':
-                # Use price from order (set by portfolio) or fallback to broker's market data
-                market_price = float(order.price) if order.price else self.broker._get_market_price(order.symbol)
+                # Check if this is an exit order with a specific price
+                exit_type = order.metadata.get('exit_type')
                 
-                if market_price:
+                if exit_type in ['stop_loss', 'take_profit', 'trailing_stop'] and order.price and float(order.price) > 0:
+                    # Use the exact exit price specified in the order
+                    execution_price = float(order.price)
+                    self.logger.info(f"✅ Using exact {exit_type} price: ${execution_price:.4f}")
+                else:
+                    # Regular market order - use market price with slippage
+                    market_price = float(order.price) if order.price else self.broker._get_market_price(order.symbol)
+                    
+                    if not market_price:
+                        self.logger.warning(f"No market price available for {order.symbol}, order rejected")
+                        self.order_manager.reject_order(order.order_id, f"No market price available for {order.symbol}")
+                        self.stats.orders_rejected += 1
+                        return None
+                    
                     # Apply slippage
                     slippage = self.broker.slippage_model.calculate_slippage(
                         order, market_price
                     )
                     execution_price = market_price + slippage
-                    
-                    # Calculate commission
-                    commission = self.broker.commission_model.calculate_commission(
-                        order.quantity, execution_price
-                    )
-                    
-                    # Create fill
-                    fill = Fill(
-                        fill_id=f"FILL_{order.order_id}_{datetime.now().strftime('%H%M%S')}",
-                        order_id=order.order_id,
-                        symbol=order.symbol,
-                        side=order.side,
-                        quantity=order.quantity,
-                        price=Decimal(str(execution_price)),
-                        commission=Decimal(str(commission)),
-                        executed_at=datetime.now(),
-                        status=FillStatus.FILLED
-                    )
-                    
-                    # Store fill in broker
-                    self.broker._fills.append(fill)
-                    self.order_manager.process_fill(fill)
-                    self.stats.orders_filled += 1
-                    self.stats.total_commission += fill.commission
-                    self.logger.debug(f"Order filled: {order.order_id} -> {fill.fill_id}")
-                    return fill
-                else:
-                    self.logger.warning(f"No market price available for {order.symbol}, order rejected")
-                    self.order_manager.reject_order(order.order_id, f"No market price available for {order.symbol}")
-                    self.stats.orders_rejected += 1
-                    return None
+                
+                # Calculate commission
+                commission = self.broker.commission_model.calculate_commission(
+                    order.quantity, execution_price
+                )
+                
+                # Get execution timestamp from order metadata or use current time
+                execution_timestamp = order.created_at if hasattr(order, 'created_at') else datetime.now()
+                if order.metadata and 'bar_timestamp' in order.metadata:
+                    try:
+                        execution_timestamp = datetime.fromisoformat(order.metadata['bar_timestamp'])
+                    except:
+                        pass
+                
+                # Create fill
+                fill = Fill(
+                    fill_id=f"FILL_{order.order_id}_{execution_timestamp.strftime('%H%M%S')}",
+                    order_id=order.order_id,
+                    symbol=order.symbol,
+                    side=order.side,
+                    quantity=order.quantity,
+                    price=Decimal(str(execution_price)),
+                    commission=Decimal(str(commission)),
+                    executed_at=execution_timestamp,
+                    status=FillStatus.FILLED,
+                    metadata=order.metadata  # Preserve order metadata (includes strategy_id)
+                )
+                
+                # Store fill in broker
+                self.broker._fills.append(fill)
+                self.order_manager.process_fill(fill)
+                self.stats.orders_filled += 1
+                self.stats.total_commission += fill.commission
+                self.logger.debug(f"Order filled: {order.order_id} -> {fill.fill_id}")
+                return fill
             else:
                 # Limit/stop orders - track as pending
                 self.order_manager.track_pending_order(order, broker_order_id)
@@ -182,9 +199,16 @@ class SyncExecutionEngine:
         
         This is the event handler called when portfolio publishes ORDER events.
         """
+        self.logger.debug(f"🔍 on_order called with event type: {type(event).__name__}")
+        
         from ...core.events.types import Event
         
-        if not isinstance(event, Event) or event.event_type != "ORDER":
+        if not isinstance(event, Event):
+            self.logger.warning(f"⚠️ on_order received non-Event object: {type(event)}")
+            return
+            
+        if event.event_type != "ORDER":
+            self.logger.warning(f"⚠️ on_order received wrong event type: {event.event_type}")
             return
         
         payload = event.payload
@@ -219,7 +243,8 @@ class SyncExecutionEngine:
             quantity=Decimal(str(payload['quantity'])),
             order_type=order_type,
             price=price,
-            created_at=datetime.fromisoformat(payload['created_at'])
+            created_at=datetime.fromisoformat(payload['created_at']),
+            metadata=payload.get('metadata', {})  # Preserve metadata from portfolio
         )
         
         # Execute the order
@@ -240,12 +265,15 @@ class SyncExecutionEngine:
                 )
                 self._container.publish_event(fill_event, target_scope="parent")
                 self.logger.info(f"  📮 Fill event published to portfolio")
+            else:
+                self.logger.warning(f"  ⚠️ Cannot publish FILL event - no container reference set")
         else:
             self.logger.warning(f"  ❌ Order execution failed")
     
     def set_container(self, container: Any) -> None:
         """Set container reference for event publishing."""
         self._container = container
+        self.logger.info(f"Execution engine container reference set to: {container.name if hasattr(container, 'name') else container}")
     
     def get_execution_stats(self) -> ExecutionStats:
         """Get execution statistics."""

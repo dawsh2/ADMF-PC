@@ -5,6 +5,7 @@ Simple RSI-based strategy that trades on oversold/overbought conditions.
 """
 
 import logging
+from src.core.features.feature_spec import FeatureSpec
 from typing import Dict, Any, Optional
 
 from ...core.components.discovery import strategy
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rsi_strategy',
-    feature_config=['rsi']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})]  # Topology builder infers parameters from strategy logic
 )
 def rsi_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

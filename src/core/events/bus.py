@@ -140,6 +140,12 @@ class EventBus:
             wildcard_handlers = self._subscribers.get('*', [])
             all_handlers = handlers + wildcard_handlers
             
+            # Debug: log FILL event handling
+            if event.event_type == "FILL":
+                logger.info(f"🔍 Publishing FILL event: {len(handlers)} handlers, {len(wildcard_handlers)} wildcard handlers")
+                logger.info(f"   All event types with handlers: {list(self._subscribers.keys())}")
+                logger.info(f"   Event type in publish: '{event.event_type}'")
+            
             # CHANGE: Deliver to handlers that pass their filters
             for handler, filter_func in all_handlers:  # Now unpacking tuples
                 try:
@@ -147,6 +153,10 @@ class EventBus:
                     if filter_func is not None and not filter_func(event):
                         self._filtered_count += 1
                         continue  # Skip this handler
+                    
+                    # Debug: log handler calls for FILL events
+                    if event.event_type == "FILL":
+                        logger.debug(f"🔍 Calling handler {handler.__name__} for FILL event")
                     
                     handler(event)
                     
@@ -216,6 +226,11 @@ class EventBus:
         with self._lock:
             # CHANGE: Store handler with its filter
             self._subscribers[event_type].append((handler, filter_func))
+            
+            # Debug: log FILL subscriptions
+            if event_type == "FILL":
+                logger.info(f"📝 FILL subscription added: handler={handler.__name__}, filter={filter_func is not None}")
+                logger.info(f"   Total FILL handlers now: {len(self._subscribers.get('FILL', []))}")
         
         filter_desc = f" with filter" if filter_func else ""
         logger.debug(f"Subscribed {handler} to {event_type}{filter_desc} on bus {self.bus_id}")

@@ -1,0 +1,20 @@
+name: test_simple_bollinger
+data: SPY_5m
+
+# Simple single strategy test
+strategy: [
+  {
+    bollinger_bands: {
+      period: 20,
+      std_dev: 2.0
+    }
+  }
+]
+
+# Enable sparse storage for signal tracing
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces

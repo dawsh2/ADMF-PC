@@ -1,0 +1,10 @@
+name: ensemble_with_threshold
+data: SPY_5m
+
+# Simple ensemble with threshold logic
+strategy: [
+  {keltner_bands: {period: 20, multiplier: 1.5, weight: "1/n"}},
+  {bollinger_bands: {period: 20, std_dev: 2.0, weight: "1/n"}},
+  {rsi_bands: {rsi_period: 14, oversold: 30, overbought: 70, weight: "1/n"}},
+  {threshold: "abs(signal) > 0.5 AND volume > sma(20) * 1.2"}
+]

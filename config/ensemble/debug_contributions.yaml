@@ -1,0 +1,11 @@
+name: debug_contributions
+data: SPY_5m
+
+# Three different volatility strategies to see which contributes
+strategy: [
+  {keltner_bands: {period: 20, multiplier: 1.5, weight: "1/n"}},    # Aggressive
+  {keltner_bands: {period: 20, multiplier: 2.0, weight: "1/n"}},    # Normal
+  {bollinger_bands: {period: 20, std_dev: 2.0, weight: "1/n"}},     # Standard
+]
+
+# No threshold - we want to see all signals to understand contributions

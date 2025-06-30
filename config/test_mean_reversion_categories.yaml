@@ -1,0 +1,44 @@
+# Test mean reversion strategies by category using wildcard discovery
+name: test_mean_reversion_categories
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Wildcard discovery for mean reversion strategies by category
+parameter_space:
+  indicators:
+    # Categories that contain mean reversion strategies
+    oscillator: "*"     # RSI bands, CCI bands, Williams %R, etc.
+    volatility: "*"     # Bollinger bands, Keltner bands, etc.
+    structure: "*"      # Pivot bounces, trendline bounces, etc.
+    volume: "*"         # VWAP deviation, MFI bands, etc.
+
+# Control optimization granularity (number of parameter samples)
+optimization:
+  granularity: 3  # Lower for faster testing, higher for more thorough
+
+
+# Run with:
+# python main.py --config config/test_mean_reversion_categories.yaml --signal-generation --bars 200 --optimize
+
+# This will:
+# 1. Discover all strategies in the specified categories
+# 2. Many of these are mean reversion strategies
+# 3. Extract their parameter spaces from @strategy decorators
+# 4. Generate parameter combinations based on range specifications
+# 5. Run signal generation for each combination
+
+# Expected mean reversion strategies:
+# Oscillator: rsi_bands, cci_bands, williams_r, stochastic_rsi, ultimate_oscillator
+# Volatility: bollinger_bands, keltner_bands, donchian_bands
+# Structure: pivot_bounces, swing_pivot_bounce, trendline_bounces, diagonal_channel_reversion
+# Volume: vwap_deviation, mfi_bands

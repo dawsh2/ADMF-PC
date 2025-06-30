@@ -21,6 +21,7 @@ NO LOOK-AHEAD BIAS: All decisions can be made in real-time
 """
 
 import logging
+from src.core.features.feature_spec import FeatureSpec
 from typing import Dict, Any, Optional, List
 
 from ...core.components.discovery import strategy
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rsi_composite',
-    feature_config=['rsi', 'mean_reversion_exit', 'slow_rsi_exit', 'other_strategy_exit', 'position', 'bars_in_position', 'unrealized_pnl_pct']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('rsi', {'period': params.get('rsi_period', 14)}), FeatureSpec('mean_reversion_exit', {}), FeatureSpec('slow_rsi_exit', {}), FeatureSpec('other_strategy_exit', {}), FeatureSpec('position', {}), FeatureSpec('bars_in_position', {}), FeatureSpec('unrealized_pnl_pct', {})]  # Topology builder infers parameters from strategy logic
 )
 def rsi_composite_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

@@ -1,0 +1,84 @@
+name: keltner_5m_optimized
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+# Optimized Keltner Bands strategy based on 5m analysis
+strategies:
+  # Best performer: 0.93 bps edge, 6.38% annual return
+  - type: keltner_bands
+    params:
+      period: 50
+      multiplier: 0.60
+    
+  # Alternative high-frequency variant
+  - type: keltner_bands
+    params:
+      period: 50
+      multiplier: 0.55
+    
+  # With selective VWAP filter
+  - type: keltner_bands
+    params:
+      period: 50
+      multiplier: 0.60
+    filter: |
+      signal == 0 or 
+      abs(vwap_distance()) > 0.003
+  
+  # With volume confirmation
+  - type: keltner_bands
+    params:
+      period: 50
+      multiplier: 0.60
+    filter: |
+      signal == 0 or 
+      volume > volume_sma_20 * 1.2
+  
+  # Combined filter for highest conviction
+  - type: keltner_bands
+    params:
+      period: 50
+      multiplier: 0.60
+    filter: |
+      signal == 0 or 
+      (abs(vwap_distance()) > 0.003 and 
+       volume > volume_sma_20 * 1.2)
+
+# Required features
+feature_configs:
+  vwap:
+    type: vwap
+  
+  volume_sma_20:
+    type: sma
+    params:
+      period: 20
+      column: volume
+
+# Data configuration
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}_5m.csv"
+
+timeframe: "5m"
+
+# Enable signal persistence for analysis
+signal_persistence:
+  enabled: true
+  compression: sparse
+
+# Risk management (optional - for live trading)
+risk_management:
+  position_sizing:
+    type: fixed_fractional
+    fraction: 0.20  # Kelly criterion suggests ~20% for 76.7% win rate
+  
+  stop_loss:
+    type: percentage
+    value: 0.003  # 0.3% stop loss (previous analysis showed 3x improvement)
+  
+  max_positions: 1
+  max_exposure: 0.20

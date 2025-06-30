@@ -1,0 +1,31 @@
+# Test configuration for Linear Regression Slope strategy
+name: test_linear_regression_slope
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Linear regression slope trend strategy
+strategy:
+  linear_regression_slope:
+    params:
+      period: 20
+      threshold: 0.0  # Slope threshold (0 = any positive/negative slope)
+
+# Run with: python main.py --config config/indicators/trend/test_linear_regression_slope.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Fits a linear regression line to the last 'period' prices
+# - Uses the slope to determine trend direction
+#
+# - Slope > threshold: BUY signal (1) - uptrend
+# - Slope < -threshold: SELL signal (-1) - downtrend
+# - |Slope| < threshold: No signal (0) - flat/ranging
+
+# The R-squared value (in metadata) indicates how well
+# the linear model fits the data. Higher R² means more
+# consistent trend, lower R² suggests choppy price action.
+
+# Setting threshold > 0 filters out weak trends.
+# For example, threshold=0.1 only signals when slope
+# indicates at least 0.1 point change per bar.

@@ -1,0 +1,32 @@
+# Test configuration for trendline-based strategies using compositional syntax
+name: trendline_strategies_test
+mode: backtest
+symbols: ["SPY"]
+timeframe: ["1m"]
+
+# Compositional strategy syntax - array = composite with weighted vote
+strategy:
+  - weight: 0.34
+    trendline_bounces:
+      params:
+        pivot_lookback: 20
+        min_touches: 3
+        tolerance: 0.002
+        bounce_threshold: 0.003
+    
+  - weight: 0.33
+    trendline_breaks:
+      params:
+        pivot_lookback: 20
+        min_touches: 2
+        tolerance: 0.002
+    
+  - weight: 0.33
+    pivot_channel_bounces:
+      params:
+        sr_period: 20
+        min_touches: 2
+        bounce_threshold: 0.002
+
+weight_threshold: 0.5
+

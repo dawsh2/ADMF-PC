@@ -1,0 +1,8 @@
+name: basic_ensemble_eod_outer
+data: SPY_5m
+
+strategy: 
+  filter: "bar_of_day < 78"  # Apply filter at composite level
+  strategies: [
+    {bollinger_bands: {period: 23, std_dev: 1.5}}
+  ]

@@ -1,0 +1,2919 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/bollinger/results/20250624_193501",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 16614,
+  "total_signals": 16591,
+  "total_classifications": 0,
+  "stored_changes": 1686,
+  "compression_ratio": 10.162136097884396,
+  "components": {
+    "SPY_5m_bollinger_bands_20_20": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "bollinger_bands"
+      },
+      "strategy_hash": "a2cd50f59ab7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "bollinger_bands"
+        }
+      }
+    }
+  },
+  "timestamp": "2025-06-24T19:35:13.339547",
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands_10_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_10",
+        "params": {
+          "period": 10,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_15",
+        "params": {
+          "period": 10,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_20",
+        "params": {
+          "period": 10,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_25",
+        "params": {
+          "period": 10,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_30",
+        "params": {
+          "period": 10,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_35",
+        "params": {
+          "period": 10,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_40",
+        "params": {
+          "period": 10,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_10",
+        "params": {
+          "period": 11,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_15",
+        "params": {
+          "period": 11,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_20",
+        "params": {
+          "period": 11,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_25",
+        "params": {
+          "period": 11,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_30",
+        "params": {
+          "period": 11,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_35",
+        "params": {
+          "period": 11,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_40",
+        "params": {
+          "period": 11,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_10",
+        "params": {
+          "period": 12,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_15",
+        "params": {
+          "period": 12,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_20",
+        "params": {
+          "period": 12,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_25",
+        "params": {
+          "period": 12,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_30",
+        "params": {
+          "period": 12,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_35",
+        "params": {
+          "period": 12,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_40",
+        "params": {
+          "period": 12,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_10",
+        "params": {
+          "period": 13,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_15",
+        "params": {
+          "period": 13,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_20",
+        "params": {
+          "period": 13,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_25",
+        "params": {
+          "period": 13,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_30",
+        "params": {
+          "period": 13,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_35",
+        "params": {
+          "period": 13,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_40",
+        "params": {
+          "period": 13,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_10",
+        "params": {
+          "period": 14,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_15",
+        "params": {
+          "period": 14,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_20",
+        "params": {
+          "period": 14,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_25",
+        "params": {
+          "period": 14,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_30",
+        "params": {
+          "period": 14,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_35",
+        "params": {
+          "period": 14,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_40",
+        "params": {
+          "period": 14,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_10",
+        "params": {
+          "period": 15,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_15",
+        "params": {
+          "period": 15,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_20",
+        "params": {
+          "period": 15,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_25",
+        "params": {
+          "period": 15,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_30",
+        "params": {
+          "period": 15,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_35",
+        "params": {
+          "period": 15,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_40",
+        "params": {
+          "period": 15,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_10",
+        "params": {
+          "period": 16,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_15",
+        "params": {
+          "period": 16,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_20",
+        "params": {
+          "period": 16,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_25",
+        "params": {
+          "period": 16,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_30",
+        "params": {
+          "period": 16,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_35",
+        "params": {
+          "period": 16,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_40",
+        "params": {
+          "period": 16,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_10",
+        "params": {
+          "period": 17,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_15",
+        "params": {
+          "period": 17,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_20",
+        "params": {
+          "period": 17,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_25",
+        "params": {
+          "period": 17,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_30",
+        "params": {
+          "period": 17,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_35",
+        "params": {
+          "period": 17,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_40",
+        "params": {
+          "period": 17,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_10",
+        "params": {
+          "period": 18,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_15",
+        "params": {
+          "period": 18,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_20",
+        "params": {
+          "period": 18,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_25",
+        "params": {
+          "period": 18,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_30",
+        "params": {
+          "period": 18,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_35",
+        "params": {
+          "period": 18,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_40",
+        "params": {
+          "period": 18,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_10",
+        "params": {
+          "period": 19,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_15",
+        "params": {
+          "period": 19,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_20",
+        "params": {
+          "period": 19,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_25",
+        "params": {
+          "period": 19,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_30",
+        "params": {
+          "period": 19,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_35",
+        "params": {
+          "period": 19,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_40",
+        "params": {
+          "period": 19,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_10",
+        "params": {
+          "period": 20,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_15",
+        "params": {
+          "period": 20,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_20",
+        "params": {
+          "period": 20,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_25",
+        "params": {
+          "period": 20,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_30",
+        "params": {
+          "period": 20,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_35",
+        "params": {
+          "period": 20,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_40",
+        "params": {
+          "period": 20,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_10",
+        "params": {
+          "period": 21,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_15",
+        "params": {
+          "period": 21,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_20",
+        "params": {
+          "period": 21,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_25",
+        "params": {
+          "period": 21,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_30",
+        "params": {
+          "period": 21,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_35",
+        "params": {
+          "period": 21,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_40",
+        "params": {
+          "period": 21,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_10",
+        "params": {
+          "period": 22,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_15",
+        "params": {
+          "period": 22,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_20",
+        "params": {
+          "period": 22,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_25",
+        "params": {
+          "period": 22,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_30",
+        "params": {
+          "period": 22,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_35",
+        "params": {
+          "period": 22,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_40",
+        "params": {
+          "period": 22,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_10",
+        "params": {
+          "period": 23,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_15",
+        "params": {
+          "period": 23,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_20",
+        "params": {
+          "period": 23,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_25",
+        "params": {
+          "period": 23,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_30",
+        "params": {
+          "period": 23,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_35",
+        "params": {
+          "period": 23,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_40",
+        "params": {
+          "period": 23,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_10",
+        "params": {
+          "period": 24,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_15",
+        "params": {
+          "period": 24,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_20",
+        "params": {
+          "period": 24,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_25",
+        "params": {
+          "period": 24,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_30",
+        "params": {
+          "period": 24,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_35",
+        "params": {
+          "period": 24,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_40",
+        "params": {
+          "period": 24,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_10",
+        "params": {
+          "period": 25,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_15",
+        "params": {
+          "period": 25,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_20",
+        "params": {
+          "period": 25,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_25",
+        "params": {
+          "period": 25,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_30",
+        "params": {
+          "period": 25,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_35",
+        "params": {
+          "period": 25,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_40",
+        "params": {
+          "period": 25,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_10",
+        "params": {
+          "period": 26,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_15",
+        "params": {
+          "period": 26,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_20",
+        "params": {
+          "period": 26,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_25",
+        "params": {
+          "period": 26,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_30",
+        "params": {
+          "period": 26,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_35",
+        "params": {
+          "period": 26,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_40",
+        "params": {
+          "period": 26,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_10",
+        "params": {
+          "period": 27,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_15",
+        "params": {
+          "period": 27,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_20",
+        "params": {
+          "period": 27,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_25",
+        "params": {
+          "period": 27,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_30",
+        "params": {
+          "period": 27,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_35",
+        "params": {
+          "period": 27,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_40",
+        "params": {
+          "period": 27,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_10",
+        "params": {
+          "period": 28,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_15",
+        "params": {
+          "period": 28,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_20",
+        "params": {
+          "period": 28,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_25",
+        "params": {
+          "period": 28,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_30",
+        "params": {
+          "period": 28,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_35",
+        "params": {
+          "period": 28,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_40",
+        "params": {
+          "period": 28,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_10",
+        "params": {
+          "period": 29,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_15",
+        "params": {
+          "period": 29,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_20",
+        "params": {
+          "period": 29,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_25",
+        "params": {
+          "period": 29,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_30",
+        "params": {
+          "period": 29,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_35",
+        "params": {
+          "period": 29,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_40",
+        "params": {
+          "period": 29,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_10",
+        "params": {
+          "period": 30,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_15",
+        "params": {
+          "period": 30,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_20",
+        "params": {
+          "period": 30,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_25",
+        "params": {
+          "period": 30,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_30",
+        "params": {
+          "period": 30,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_35",
+        "params": {
+          "period": 30,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_40",
+        "params": {
+          "period": 30,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_10",
+        "params": {
+          "period": 31,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_15",
+        "params": {
+          "period": 31,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_20",
+        "params": {
+          "period": 31,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_25",
+        "params": {
+          "period": 31,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_30",
+        "params": {
+          "period": 31,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_35",
+        "params": {
+          "period": 31,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_40",
+        "params": {
+          "period": 31,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_10",
+        "params": {
+          "period": 32,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_15",
+        "params": {
+          "period": 32,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_20",
+        "params": {
+          "period": 32,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_25",
+        "params": {
+          "period": 32,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_30",
+        "params": {
+          "period": 32,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_35",
+        "params": {
+          "period": 32,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_40",
+        "params": {
+          "period": 32,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_10",
+        "params": {
+          "period": 33,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_15",
+        "params": {
+          "period": 33,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_20",
+        "params": {
+          "period": 33,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_25",
+        "params": {
+          "period": 33,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_30",
+        "params": {
+          "period": 33,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_35",
+        "params": {
+          "period": 33,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_40",
+        "params": {
+          "period": 33,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_10",
+        "params": {
+          "period": 34,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_15",
+        "params": {
+          "period": 34,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_20",
+        "params": {
+          "period": 34,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_25",
+        "params": {
+          "period": 34,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_30",
+        "params": {
+          "period": 34,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_35",
+        "params": {
+          "period": 34,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_40",
+        "params": {
+          "period": 34,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_10",
+        "params": {
+          "period": 35,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_15",
+        "params": {
+          "period": 35,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_20",
+        "params": {
+          "period": 35,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_25",
+        "params": {
+          "period": 35,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_30",
+        "params": {
+          "period": 35,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_35",
+        "params": {
+          "period": 35,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_40",
+        "params": {
+          "period": 35,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_10",
+        "params": {
+          "period": 36,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_15",
+        "params": {
+          "period": 36,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_20",
+        "params": {
+          "period": 36,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_25",
+        "params": {
+          "period": 36,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_30",
+        "params": {
+          "period": 36,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_35",
+        "params": {
+          "period": 36,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_40",
+        "params": {
+          "period": 36,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_10",
+        "params": {
+          "period": 37,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_15",
+        "params": {
+          "period": 37,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_20",
+        "params": {
+          "period": 37,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_25",
+        "params": {
+          "period": 37,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_30",
+        "params": {
+          "period": 37,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_35",
+        "params": {
+          "period": 37,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_40",
+        "params": {
+          "period": 37,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_10",
+        "params": {
+          "period": 38,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_15",
+        "params": {
+          "period": 38,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_20",
+        "params": {
+          "period": 38,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_25",
+        "params": {
+          "period": 38,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_30",
+        "params": {
+          "period": 38,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_35",
+        "params": {
+          "period": 38,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_40",
+        "params": {
+          "period": 38,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_10",
+        "params": {
+          "period": 39,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_15",
+        "params": {
+          "period": 39,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_20",
+        "params": {
+          "period": 39,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_25",
+        "params": {
+          "period": 39,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_30",
+        "params": {
+          "period": 39,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_35",
+        "params": {
+          "period": 39,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_40",
+        "params": {
+          "period": 39,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_10",
+        "params": {
+          "period": 40,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_15",
+        "params": {
+          "period": 40,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_20",
+        "params": {
+          "period": 40,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_25",
+        "params": {
+          "period": 40,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_30",
+        "params": {
+          "period": 40,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_35",
+        "params": {
+          "period": 40,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_40",
+        "params": {
+          "period": 40,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_10",
+        "params": {
+          "period": 41,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_15",
+        "params": {
+          "period": 41,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_20",
+        "params": {
+          "period": 41,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_25",
+        "params": {
+          "period": 41,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_30",
+        "params": {
+          "period": 41,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_35",
+        "params": {
+          "period": 41,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_40",
+        "params": {
+          "period": 41,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_10",
+        "params": {
+          "period": 42,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_15",
+        "params": {
+          "period": 42,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_20",
+        "params": {
+          "period": 42,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_25",
+        "params": {
+          "period": 42,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_30",
+        "params": {
+          "period": 42,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_35",
+        "params": {
+          "period": 42,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_40",
+        "params": {
+          "period": 42,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_10",
+        "params": {
+          "period": 43,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_15",
+        "params": {
+          "period": 43,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_20",
+        "params": {
+          "period": 43,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_25",
+        "params": {
+          "period": 43,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_30",
+        "params": {
+          "period": 43,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_35",
+        "params": {
+          "period": 43,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_40",
+        "params": {
+          "period": 43,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_10",
+        "params": {
+          "period": 44,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_15",
+        "params": {
+          "period": 44,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_20",
+        "params": {
+          "period": 44,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_25",
+        "params": {
+          "period": 44,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_30",
+        "params": {
+          "period": 44,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_35",
+        "params": {
+          "period": 44,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_40",
+        "params": {
+          "period": 44,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_10",
+        "params": {
+          "period": 45,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_15",
+        "params": {
+          "period": 45,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_20",
+        "params": {
+          "period": 45,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_25",
+        "params": {
+          "period": 45,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_30",
+        "params": {
+          "period": 45,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_35",
+        "params": {
+          "period": 45,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_40",
+        "params": {
+          "period": 45,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_10",
+        "params": {
+          "period": 46,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_15",
+        "params": {
+          "period": 46,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_20",
+        "params": {
+          "period": 46,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_25",
+        "params": {
+          "period": 46,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_30",
+        "params": {
+          "period": 46,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_35",
+        "params": {
+          "period": 46,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_40",
+        "params": {
+          "period": 46,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_10",
+        "params": {
+          "period": 47,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_15",
+        "params": {
+          "period": 47,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_20",
+        "params": {
+          "period": 47,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_25",
+        "params": {
+          "period": 47,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_30",
+        "params": {
+          "period": 47,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_35",
+        "params": {
+          "period": 47,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_40",
+        "params": {
+          "period": 47,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_10",
+        "params": {
+          "period": 48,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_15",
+        "params": {
+          "period": 48,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_20",
+        "params": {
+          "period": 48,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_25",
+        "params": {
+          "period": 48,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_30",
+        "params": {
+          "period": 48,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_35",
+        "params": {
+          "period": 48,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_40",
+        "params": {
+          "period": 48,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_10",
+        "params": {
+          "period": 49,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_15",
+        "params": {
+          "period": 49,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_20",
+        "params": {
+          "period": 49,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_25",
+        "params": {
+          "period": 49,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_30",
+        "params": {
+          "period": 49,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_35",
+        "params": {
+          "period": 49,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_40",
+        "params": {
+          "period": 49,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_10",
+        "params": {
+          "period": 50,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_15",
+        "params": {
+          "period": 50,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_20",
+        "params": {
+          "period": 50,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_25",
+        "params": {
+          "period": 50,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_30",
+        "params": {
+          "period": 50,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_35": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_35",
+        "params": {
+          "period": 50,
+          "std_dev": 3.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_40": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_40",
+        "params": {
+          "period": 50,
+          "std_dev": 4.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 287,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 287,
+      "max_nesting_depth": 0
+    }
+  }
+}

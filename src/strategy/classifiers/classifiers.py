@@ -28,6 +28,11 @@ class MarketRegime(Enum):
     param_feature_mapping={
         'fast_period': 'sma_{fast_period}',
         'slow_period': 'sma_{slow_period}'
+    },
+    parameter_space={
+        'trend_threshold': {'type': 'float', 'range': (0.005, 0.05), 'default': 0.02},
+        'fast_period': {'type': 'int', 'range': (5, 20), 'default': 10},
+        'slow_period': {'type': 'int', 'range': (20, 50), 'default': 20}
     }
 )
 def trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
@@ -113,6 +118,11 @@ def trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[s
     param_feature_mapping={
         'atr_period': 'atr_{atr_period}',
         'lookback_period': 'atr_{lookback_period}'
+    },
+    parameter_space={
+        'high_vol_threshold': {'type': 'float', 'range': (1.2, 2.0), 'default': 1.5},
+        'low_vol_threshold': {'type': 'float', 'range': (0.3, 0.7), 'default': 0.5},
+        'atr_period': {'type': 'int', 'range': (10, 30), 'default': 14}
     }
 )
 def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
@@ -201,6 +211,13 @@ def volatility_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> D
         'macd_fast': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
         'macd_slow': 'macd_{macd_fast}_{macd_slow}_{macd_signal}',
         'macd_signal': 'macd_{macd_fast}_{macd_slow}_{macd_signal}'
+    },
+    parameter_space={
+        'rsi_overbought': {'type': 'float', 'range': (60, 80), 'default': 70},
+        'rsi_oversold': {'type': 'float', 'range': (20, 40), 'default': 30},
+        'momentum_threshold': {'type': 'float', 'range': (0.01, 0.05), 'default': 0.02},
+        'rsi_period': {'type': 'int', 'range': (7, 21), 'default': 14},
+        'momentum_period': {'type': 'int', 'range': (5, 20), 'default': 10}
     }
 )
 def momentum_regime_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:

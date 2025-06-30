@@ -1,0 +1,25 @@
+# Test configuration using new data field syntax
+name: test_data_field
+mode: signal_generation
+
+# New clean data field syntax
+data: SPY_5m
+
+# Date range
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+
+# Simple strategy for testing
+strategies:
+  - name: keltner_test
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+
+# Execution settings
+execution:
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces

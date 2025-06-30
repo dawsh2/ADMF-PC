@@ -154,21 +154,41 @@ def strategy(
     name: Optional[str] = None,
     features: Optional[List[str]] = None,
     feature_config: Optional[Dict[str, Any]] = None,
+    required_features: Optional[List['FeatureSpec']] = None,  # Static feature requirements
+    feature_discovery: Optional[Callable[[Dict[str, Any]], List['FeatureSpec']]] = None,  # Dynamic discovery
+    parameter_space: Optional[Dict[str, Any]] = None,  # Parameter space for optimization
     validate_features: bool = True,
     **metadata
 ):
     """
     Decorator to register a strategy function or class.
     
-    Example:
+    Supports both static and dynamic feature requirements:
+    
+    Example (static):
         @strategy(
-            features=['sma', 'rsi'],
-            feature_config={
-                'sma': {'params': ['sma_period'], 'default': 20},
-                'rsi': {'params': ['rsi_period'], 'default': 14}
+            name='rsi_oversold',
+            required_features=[
+                FeatureSpec('rsi', {'period': 14})
+            ]
+        )
+        def rsi_oversold(features, bar, params):
+            # Strategy logic
+            return signal
+            
+    Example (dynamic):
+        @strategy(
+            name='adaptive_sma',
+            feature_discovery=lambda params: [
+                FeatureSpec('sma', {'period': params['fast_period']}),
+                FeatureSpec('sma', {'period': params['slow_period']})
+            ],
+            parameter_space={
+                'fast_period': {'type': 'int', 'range': [5, 50], 'default': 10},
+                'slow_period': {'type': 'int', 'range': [20, 200], 'default': 30}
             }
         )
-        def momentum_strategy(features, bar, params):
+        def adaptive_sma(features, bar, params):
             # Strategy logic
             return signal
     """
@@ -207,6 +227,9 @@ def strategy(
         
         factory = func_or_class if callable(func_or_class) else lambda: func_or_class
         
+        # Get module name for categorization
+        module_name = getattr(func_or_class, '__module__', '')
+        
         info = ComponentInfo(
             name=component_name,
             component_type='strategy',
@@ -215,7 +238,11 @@ def strategy(
             metadata={
                 'features': features_list,
                 'feature_config': features_meta,
+                'required_features': required_features,  # Static requirements
+                'feature_discovery': feature_discovery,  # Dynamic discovery function
+                'parameter_space': parameter_space,      # Parameter space for optimization
                 'validate_features': validate_features,
+                'module': module_name,  # Add module name for wildcard discovery
                 **metadata
             }
         )
@@ -227,8 +254,12 @@ def strategy(
             func_or_class._component_info = info
             # Also add strategy-specific metadata for strategy state to use
             func_or_class._strategy_metadata = {
+                'name': component_name,  # Ensure name is included
                 'features': features_list,
                 'feature_config': features_meta,
+                'required_features': required_features,
+                'feature_discovery': feature_discovery,
+                'parameter_space': parameter_space,
                 'validate_features': validate_features,
                 **metadata
             }
@@ -248,6 +279,7 @@ def classifier(
     features: Optional[List[str]] = None,
     feature_config: Optional[List[str]] = None,
     param_feature_mapping: Optional[Dict[str, str]] = None,
+    parameter_space: Optional[Dict[str, Any]] = None,  # Parameter space for optimization
     validate_features: bool = False,  # Disabled by default - ComponentState handles validation
     **metadata
 ):
@@ -284,6 +316,9 @@ def classifier(
         
         factory = func_or_class if callable(func_or_class) else lambda: func_or_class
         
+        # Get module name for categorization
+        module_name = getattr(func_or_class, '__module__', '')
+        
         info = ComponentInfo(
             name=component_name,
             component_type='classifier',
@@ -294,7 +329,9 @@ def classifier(
                 'features': features_list,
                 'feature_config': feature_config,
                 'param_feature_mapping': param_feature_mapping,
+                'parameter_space': parameter_space,  # Add parameter space for optimization
                 'validate_features': validate_features,
+                'module': module_name,  # Add module name for wildcard discovery
                 **metadata
             }
         )

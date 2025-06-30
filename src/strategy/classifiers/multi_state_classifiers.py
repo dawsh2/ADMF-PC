@@ -17,6 +17,13 @@ from ...core.components.discovery import classifier
         'sma_short': 'sma_{sma_short}',
         'sma_medium': 'sma_{sma_medium}',
         'sma_long': 'sma_{sma_long}'
+    },
+    parameter_space={
+        'strong_threshold': {'type': 'float', 'range': (0.005, 0.02), 'default': 0.01},
+        'weak_threshold': {'type': 'float', 'range': (0.001, 0.005), 'default': 0.002},
+        'sma_short': {'type': 'int', 'range': (5, 15), 'default': 10},
+        'sma_medium': {'type': 'int', 'range': (15, 30), 'default': 20},
+        'sma_long': {'type': 'int', 'range': (30, 100), 'default': 50}
     }
 )
 def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
@@ -122,6 +129,14 @@ def multi_timeframe_trend_classifier(features: Dict[str, Any], params: Dict[str,
         'atr_period': 'atr_{atr_period}',
         'rsi_period': 'rsi_{rsi_period}',
         'sma_period': 'sma_{sma_period}'
+    },
+    parameter_space={
+        'vol_threshold': {'type': 'float', 'range': (0.5, 2.0), 'default': 1.0},
+        'rsi_overbought': {'type': 'float', 'range': (55, 70), 'default': 60},
+        'rsi_oversold': {'type': 'float', 'range': (30, 45), 'default': 40},
+        'atr_period': {'type': 'int', 'range': (10, 20), 'default': 14},
+        'rsi_period': {'type': 'int', 'range': (10, 20), 'default': 14},
+        'sma_period': {'type': 'int', 'range': (15, 30), 'default': 20}
     }
 )
 def volatility_momentum_classifier(features: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:

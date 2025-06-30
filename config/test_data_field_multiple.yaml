@@ -1,0 +1,25 @@
+# Test configuration using new data field syntax with multiple files
+name: test_data_field_multiple
+mode: signal_generation
+
+# Multiple data files
+data: [SPY_5m, QQQ_5m]
+
+# Date range
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+
+# Strategy that works on both symbols
+strategies:
+  - name: momentum_multi
+    type: momentum
+    params:
+      period: 14
+      threshold: 0.02
+
+# Execution settings
+execution:
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces

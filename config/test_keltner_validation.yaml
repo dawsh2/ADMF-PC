@@ -1,0 +1,29 @@
+name: test_keltner_validation
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-11-30"
+
+# Match the workspace we analyzed
+dataset: train
+
+# Single Keltner bands strategy with default parameters
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+
+# Data source
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+# 1-minute timeframe
+timeframe: "1m"
+
+# Enable detailed signal tracking
+signal_persistence: 
+  enabled: true
+  compression: sparse

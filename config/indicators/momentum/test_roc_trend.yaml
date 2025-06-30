@@ -1,0 +1,25 @@
+# Test configuration for ROC Trend strategy
+name: test_roc_trend
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Rate of Change trend following strategy
+strategy:
+  roc_trend:
+    params:
+      roc_period: 12
+      trend_threshold: 1.0  # 1% ROC threshold
+
+# Run with: python main.py --config config/indicators/momentum/test_roc_trend.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - ROC measures percentage change over roc_period bars
+# - ROC > 1%: BUY signal (1) - uptrend acceleration
+# - ROC < -1%: SELL signal (-1) - downtrend acceleration
+# - Between thresholds: No signal (0)
+
+# This is a trend-following strategy that identifies
+# acceleration in price movement using percentage change.
+# ROC = (Current Price - Price N periods ago) / Price N periods ago * 100

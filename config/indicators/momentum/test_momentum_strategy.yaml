@@ -1,0 +1,15 @@
+# Test configuration for Momentum strategy
+name: test_momentum_strategy
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Basic momentum strategy
+strategy:
+  momentum_strategy:
+    params:
+      momentum_period: 10
+      threshold: 0.0
+
+# Run with: python main.py --config config/indicators/momentum/test_momentum_strategy.yaml --signal-generation --bars 100

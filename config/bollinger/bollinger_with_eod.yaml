@@ -1,0 +1,34 @@
+# Bollinger Bands with EOD Closing
+# 
+# Standard Bollinger strategy with end-of-day position closing
+# to prevent overnight risk
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces
+  # Enable EOD closing
+  close_eod: true
+
+data:
+  sources:
+    csv:
+      type: csv
+      path: ./data/SPY_5m.csv
+  symbols: [SPY]
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+strategy:
+  bollinger_bands:
+    - period: 20
+      std_dev: 2.0
+      # Additional time-based filter (optional - EOD is handled automatically)
+      # This example shows manual time filtering if needed
+      filter: |
+        signal != 0 and (
+          # Optional: Even more conservative - no entries after 3:00 PM
+          bar_of_day < 66  # 66 * 5 min = 330 min = 5.5 hours after 9:30 AM
+        )

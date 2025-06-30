@@ -10,6 +10,7 @@ Uses SMA crossover to demonstrate event-driven pipeline.
 """
 
 from __future__ import annotations
+from src.core.features.feature_spec import FeatureSpec
 from typing import Dict, Any, Optional
 from datetime import datetime
 import uuid
@@ -246,7 +247,7 @@ class SimpleTrendStrategy:
 # Pure function version for EVENT_FLOW_ARCHITECTURE
 @strategy(
     name='simple_trend',
-    feature_config=['sma']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def simple_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

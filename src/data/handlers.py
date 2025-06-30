@@ -173,15 +173,11 @@ class SimpleHistoricalDataHandler:
         while self.has_more_data() and bars_streamed < max_bars:
             if self.update_bars():
                 bars_streamed += 1
-                # Add emoji progress indicator for every bar (small datasets) or every 10 bars
-                show_progress = (max_bars <= 50 and bars_streamed % 1 == 0) or (bars_streamed % max(1, max_bars // 20) == 0)
-                if show_progress or bars_streamed == max_bars:
-                    percentage = (bars_streamed / max_bars) * 100
-                    print(f"\r📊 Streaming: {bars_streamed}/{max_bars} bars ({percentage:.1f}%) {'█' * int(percentage/5)}", end='', flush=True)
+                # Progress is now handled by _report_progress() in update_bars()
             else:
                 break
         
-        print()  # New line after progress
+        # New line already printed by _report_progress() when complete
         logger.info(f"✅ Data handler completed: streamed {bars_streamed:,} bars")
     
     # Implements BarStreamer protocol
@@ -667,28 +663,15 @@ class SimpleHistoricalDataHandler:
         if self._total_bars == 0:
             return
             
-        # Simple progress reporting every 100 bars for small datasets, 
-        # or at percentage intervals for larger ones
-        if self._total_bars <= 1000:
-            # For small datasets, report every 100 bars
-            if self._bars_processed % 100 == 0 or self._bars_processed == self._total_bars:
-                progress_pct = (self._bars_processed / self._total_bars) * 100
-                logger.info(f"Progress: {self._bars_processed:,}/{self._total_bars:,} bars ({progress_pct:.1f}%)")
-        else:
-            # For larger datasets, report at percentage intervals
-            progress_pct = (self._bars_processed / self._total_bars) * 100
-            
-            # Calculate reporting interval
-            if self._total_bars < 10000:
-                report_interval = 5  # Every 5%
-            else:
-                report_interval = 1  # Every 1%
-            
-            # Check if we should report
-            current_interval = int(progress_pct / report_interval)
-            if current_interval > self._last_progress_report:
-                self._last_progress_report = current_interval
-                logger.info(f"Progress: {self._bars_processed:,}/{self._total_bars:,} bars ({progress_pct:.1f}%)")
+        progress_pct = (self._bars_processed / self._total_bars) * 100
+        
+        # Always update progress bar in place
+        progress_bar = '█' * int(progress_pct / 5)
+        print(f"\r📊 Streaming: {self._bars_processed}/{self._total_bars} bars ({progress_pct:.1f}%) {progress_bar}", end='', flush=True)
+        
+        # Print newline when complete
+        if self._bars_processed == self._total_bars:
+            print()  # New line after completion
     
     def _get_original_bar_index(self, symbol: str, split_index: int) -> int:
         """
@@ -777,6 +760,244 @@ class StreamingDataHandler:
         # In real implementation, would close connections
 
 
+class SignalReplayHandler:
+    """
+    Signal replay handler - NO INHERITANCE!
+    Reads pre-computed signal traces and publishes them as events.
+    """
+    
+    def __init__(self, handler_id: str = "signal_replay", traces_dir: str = "traces"):
+        self.handler_id = handler_id
+        self.traces_dir = Path(traces_dir)
+        
+        # Signal storage
+        self.signals: Dict[str, pd.DataFrame] = {}  # symbol -> signal dataframe
+        self.current_indices: Dict[str, int] = {}
+        
+        # Configuration
+        self.symbols: List[str] = []
+        self.strategy_configs: List[Dict[str, Any]] = []
+        
+        # Timeline for multi-symbol synchronization
+        self._timeline: List[Tuple[datetime, str]] = []
+        self._timeline_idx = 0
+        
+        # State
+        self._running = False
+        
+        # Event bus and container - set by container
+        self.event_bus = None
+        self.container = None
+        
+        logger.info(f"SignalReplayHandler initialized with traces_dir={traces_dir}")
+    
+    @property
+    def name(self) -> str:
+        """Component name for identification."""
+        return self.handler_id
+    
+    def set_event_bus(self, event_bus) -> None:
+        """Set the event bus for publishing events."""
+        self.event_bus = event_bus
+    
+    def set_container(self, container) -> None:
+        """Set the container reference for parent publishing."""
+        self.container = container
+    
+    def load_signals(self, symbols: List[str], strategy_configs: List[Dict[str, Any]]) -> bool:
+        """
+        Load signal traces for specified symbols and strategies.
+        
+        Args:
+            symbols: List of symbols to load
+            strategy_configs: List of strategy configurations from clean syntax parser
+            
+        Returns:
+            True if signals loaded successfully
+        """
+        self.symbols = symbols
+        self.strategy_configs = strategy_configs
+        
+        try:
+            # Import trace store for loading signals
+            from ..analytics.storage.trace_store import TraceStore
+            trace_store = TraceStore(str(self.traces_dir))
+            
+            for symbol in symbols:
+                # For signal replay, we need to load and merge all strategy signals
+                all_signals = []
+                
+                for strategy_config in strategy_configs:
+                    strategy_type = strategy_config.get('type')
+                    strategy_name = strategy_config.get('name', strategy_type)
+                    
+                    # Load trace for this strategy/symbol combination
+                    try:
+                        trace_path = trace_store.get_trace_path(strategy_type, strategy_name)
+                        if trace_path.exists():
+                            df = pd.read_parquet(trace_path)
+                            # Filter for this symbol
+                            symbol_df = df[df['symbol'] == symbol].copy()
+                            if not symbol_df.empty:
+                                # Add strategy identifier to distinguish signals
+                                symbol_df['strategy_id'] = strategy_name
+                                symbol_df['strategy_type'] = strategy_type
+                                symbol_df['strategy_params'] = str(strategy_config.get('param_overrides', {}))
+                                all_signals.append(symbol_df)
+                                logger.info(f"Loaded {len(symbol_df)} signals for {symbol} from {strategy_name}")
+                        else:
+                            logger.warning(f"No trace found at {trace_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to load trace for {strategy_name}: {e}")
+                        raise ValueError(f"Signal trace not found for strategy '{strategy_name}'. "
+                                       f"Please run signal generation first with: "
+                                       f"python main.py --config <config> --signal-generation")
+                
+                if all_signals:
+                    # Combine all signals for this symbol
+                    combined_df = pd.concat(all_signals, ignore_index=True)
+                    # Sort by timestamp to maintain chronological order
+                    combined_df = combined_df.sort_values('timestamp').reset_index(drop=True)
+                    self.signals[symbol] = combined_df
+                    self.current_indices[symbol] = 0
+                    logger.info(f"Combined {len(combined_df)} total signals for {symbol}")
+                else:
+                    logger.warning(f"No signals found for {symbol}")
+                    return False
+            
+            # Build synchronized timeline
+            self._build_timeline()
+            
+            logger.info(f"✅ Signal replay ready: {len(self._timeline)} signal events across {len(symbols)} symbols")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to load signals: {e}")
+            return False
+    
+    def execute(self) -> None:
+        """
+        Execute signal replay - streams pre-computed signals as events.
+        """
+        logger.info(f"Signal replay execute() called for symbols: {self.symbols}")
+        
+        # Load signals if not already loaded
+        if not self.signals and self.symbols and self.strategy_configs:
+            logger.info(f"📊 Loading signals for {len(self.symbols)} symbols and {len(self.strategy_configs)} strategies...")
+            if not self.load_signals(self.symbols, self.strategy_configs):
+                logger.error("Failed to load signals - cannot proceed with replay")
+                return
+        
+        if not self._running:
+            self.start()
+        
+        # Stream all signals
+        signals_streamed = 0
+        
+        while self.has_more_data():
+            if self.publish_next_signal():
+                signals_streamed += 1
+            else:
+                break
+        
+        logger.info(f"✅ Signal replay completed: streamed {signals_streamed} signal events")
+    
+    def publish_next_signal(self) -> bool:
+        """Publish next signal event."""
+        if not self._running or self._timeline_idx >= len(self._timeline):
+            return False
+        
+        # Get next signal
+        timestamp, symbol = self._timeline[self._timeline_idx]
+        self._timeline_idx += 1
+        
+        # Get signal data
+        symbol_signals = self.signals[symbol]
+        idx = self.current_indices[symbol]
+        
+        if idx < len(symbol_signals):
+            # Get signal row
+            signal_row = symbol_signals.iloc[idx]
+            self.current_indices[symbol] = idx + 1
+            
+            # Publish SIGNAL event
+            if self.container and self.container.event_bus:
+                from ..core.events.types import Event, EventType
+                
+                # Extract signal value and metadata
+                signal_value = signal_row['signal']
+                strategy_id = signal_row['strategy_id']
+                strategy_type = signal_row['strategy_type']
+                
+                # Build signal payload
+                payload = {
+                    'symbol': symbol,
+                    'timestamp': timestamp,
+                    'signal': signal_value,
+                    'strategy_id': strategy_id,
+                    'strategy_type': strategy_type,
+                    'strategy_params': signal_row.get('strategy_params', '{}'),
+                    'bar_index': signal_row.get('bar_index', idx),
+                    'is_replay': True  # Flag to indicate this is replayed signal
+                }
+                
+                # Add any additional metadata from the trace
+                for col in signal_row.index:
+                    if col not in ['symbol', 'timestamp', 'signal', 'strategy_id', 
+                                  'strategy_type', 'strategy_params', 'bar_index']:
+                        payload[col] = signal_row[col]
+                
+                event = Event(
+                    event_type=EventType.SIGNAL.value,
+                    payload=payload,
+                    source_id=f"signal_replay_{strategy_id}",
+                    container_id=self.container.container_id
+                )
+                
+                logger.debug(f"📈 Publishing SIGNAL event for {symbol} at {timestamp}: "
+                           f"signal={signal_value}, strategy={strategy_id}")
+                self.container.event_bus.publish(event)
+                
+                return True
+        
+        return False
+    
+    def has_more_data(self) -> bool:
+        """Check if more signals are available."""
+        return any(
+            self.current_indices.get(symbol, 0) < len(self.signals.get(symbol, []))
+            for symbol in self.symbols
+        )
+    
+    def reset(self) -> None:
+        """Reset to beginning of signals."""
+        for symbol in self.symbols:
+            self.current_indices[symbol] = 0
+        self._timeline_idx = 0
+    
+    def start(self) -> None:
+        """Start the signal replay handler."""
+        self._running = True
+        logger.info("Signal replay handler started")
+    
+    def stop(self) -> None:
+        """Stop the signal replay handler."""
+        self._running = False
+        logger.info("Signal replay handler stopped")
+    
+    def _build_timeline(self) -> None:
+        """Build synchronized timeline across all symbols."""
+        self._timeline = []
+        
+        for symbol, df in self.signals.items():
+            for _, row in df.iterrows():
+                self._timeline.append((row['timestamp'], symbol))
+        
+        # Sort by timestamp
+        self._timeline.sort(key=lambda x: x[0])
+        logger.info(f"Built timeline with {len(self._timeline)} signal events")
+
+
 class SimpleDataValidator:
     """
     Simple data validator - NO INHERITANCE!
@@ -842,7 +1063,8 @@ def create_data_handler(handler_type: str, **config) -> Any:
     """
     handlers = {
         'historical': SimpleHistoricalDataHandler,
-        'streaming': StreamingDataHandler
+        'streaming': StreamingDataHandler,
+        'signal_replay': SignalReplayHandler
     }
     
     handler_class = handlers.get(handler_type)

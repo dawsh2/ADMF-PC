@@ -7,37 +7,41 @@ and volume-price relationships.
 
 from typing import Dict, Any, Optional
 from ....core.components.discovery import strategy
+from ....core.features.feature_spec import FeatureSpec
 
 
 @strategy(
     name='obv_trend',
-    feature_config=['obv', 'obv_sma'],  # Need OBV and SMA of OBV
-    param_feature_mapping={
-        'obv_sma_period': 'obv_sma_{obv_sma_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('obv', {})
+    ],
+    parameter_space={
+        'obv_threshold': {'type': 'float', 'range': (0, 1000000), 'default': 0}
     }
 )
 def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     On-Balance Volume trend strategy.
     
-    Returns sustained signal based on OBV vs its moving average:
-    - 1: OBV > OBV_SMA (accumulation)
-    - -1: OBV < OBV_SMA (distribution)
-    - 0: Equal
+    For now, returns signal based on OBV direction:
+    - 1: OBV > threshold (accumulation)
+    - -1: OBV < -threshold (distribution)
+    - 0: Between thresholds
+    
+    TODO: Add SMA comparison when composite features are supported
     """
-    obv_sma_period = params.get('obv_sma_period', 20)
+    obv_threshold = params.get('obv_threshold', 0)
     
     # Get features
     obv = features.get('obv')
-    obv_sma = features.get(f'obv_sma_{obv_sma_period}')
     
-    if obv is None or obv_sma is None:
+    if obv is None:
         return None
     
-    # Determine signal
-    if obv > obv_sma:
+    # Determine signal based on OBV value
+    if obv > obv_threshold:
         signal_value = 1  # Accumulation
-    elif obv < obv_sma:
+    elif obv < -obv_threshold:
         signal_value = -1  # Distribution
     else:
         signal_value = 0
@@ -52,10 +56,9 @@ def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
         'strategy_id': 'obv_trend',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'obv_sma_period': obv_sma_period,         # Parameters for sparse storage separation
+            'obv_threshold': obv_threshold,         # Parameters for sparse storage separation
             'obv': obv,                               # Values for analysis
-            'obv_sma': obv_sma,
-            'divergence': (obv - obv_sma) / abs(obv_sma) * 100 if obv_sma != 0 else 0,
+            'signal': 'accumulation' if signal_value == 1 else 'distribution' if signal_value == -1 else 'neutral',
             'price': bar.get('close', 0)
         }
     }
@@ -63,10 +66,15 @@ def obv_trend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='mfi_bands',
-    feature_config=['mfi'],  # Simple: just declare we need MFI features
-    param_feature_mapping={
-        'mfi_period': 'mfi_{mfi_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('mfi', {'period': params.get('mfi_period', 14)})
+    ],
+    parameter_space={
+        'mfi_period': {'type': 'int', 'range': (7, 30), 'default': 14},
+        'overbought': {'type': 'float', 'range': (60, 90), 'default': 80},
+        'oversold': {'type': 'float', 'range': (10, 40), 'default': 20}
+    },
+    strategy_type='mean_reversion'
 )
 def mfi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -117,18 +125,32 @@ def mfi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='vwap_deviation',
-    feature_config=['vwap']  # Simple: just declare we need VWAP features (no parameters needed)
+    feature_discovery=lambda params: [
+        FeatureSpec('vwap', {})
+    ] + ([FeatureSpec('atr', {'period': params.get('atr_period', 14)})] if params.get('use_atr_bands', False) else []),
+    parameter_space={
+        'band_pct': {'type': 'float', 'range': (0.002, 0.02), 'default': 0.005},  # 0.2% to 2%, default 0.5%
+        'atr_multiplier': {'type': 'float', 'range': (0.5, 2.0), 'default': 1.0},  # ATR multiplier for bands
+        'use_atr_bands': {'type': 'bool', 'default': False},  # Use ATR-based bands instead of percentage
+        'atr_period': {'type': 'int', 'range': (10, 30), 'default': 14}
+    },
+    strategy_type='mean_reversion',
+    tags=['mean_reversion', 'vwap', 'intraday']
 )
 def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    VWAP deviation strategy.
+    VWAP deviation strategy with percentage or ATR-based bands.
     
     Returns sustained signal based on price vs VWAP with deviation bands:
     - -1: Price > upper_band (mean reversion short)
     - 1: Price < lower_band (mean reversion long) 
     - 0: Price within bands
+    
+    Supports two band calculation methods:
+    1. Percentage-based: Fixed percentage from VWAP
+    2. ATR-based: Adaptive bands based on volatility
     """
-    std_multiplier = params.get('std_multiplier', 2.0)
+    use_atr_bands = params.get('use_atr_bands', False)
     
     # Get features
     vwap = features.get('vwap')
@@ -137,11 +159,27 @@ def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
     if vwap is None:
         return None
     
-    # Calculate VWAP bands using percentage-based approach
-    # Since VWAP doesn't have standard deviation bands built-in, use percentage bands
-    band_pct = params.get('band_pct', 0.02)  # 2% default bands
-    vwap_upper = vwap * (1 + band_pct)
-    vwap_lower = vwap * (1 - band_pct)
+    # Calculate bands based on method
+    atr = None  # Initialize for metadata
+    if use_atr_bands:
+        # ATR-based bands (adaptive to volatility)
+        atr_period = params.get('atr_period', 14)
+        atr = features.get(f'atr_{atr_period}') or features.get('atr')
+        
+        if atr is None:
+            return None
+            
+        atr_multiplier = params.get('atr_multiplier', 1.0)
+        band_width = atr * atr_multiplier
+        vwap_upper = vwap + band_width
+        vwap_lower = vwap - band_width
+        band_parameter = atr_multiplier
+    else:
+        # Percentage-based bands (fixed percentage)
+        band_pct = params.get('band_pct', 0.005)  # 0.5% default bands
+        vwap_upper = vwap * (1 + band_pct)
+        vwap_lower = vwap * (1 - band_pct)
+        band_parameter = band_pct
     
     # Determine signal based on deviation
     if price > vwap_upper:
@@ -161,21 +199,26 @@ def vwap_deviation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
         'strategy_id': 'vwap_deviation',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'std_multiplier': std_multiplier,         # Parameters for sparse storage separation
+            'band_method': 'atr' if use_atr_bands else 'percentage',  # Band calculation method
+            'band_parameter': atr_multiplier if use_atr_bands else band_pct,  # Relevant parameter
             'price': price,                           # Values for analysis
             'vwap': vwap,
             'upper_band': vwap_upper,
             'lower_band': vwap_lower,
-            'deviation_pct': (price - vwap) / vwap * 100 if vwap != 0 else 0
+            'deviation_pct': (price - vwap) / vwap * 100 if vwap != 0 else 0,
+            'atr': atr if use_atr_bands else None    # Include ATR if used
         }
     }
 
 
 @strategy(
     name='chaikin_money_flow',
-    feature_config=['cmf'],  # Simple: just declare we need CMF features
-    param_feature_mapping={
-        'period': 'cmf_{period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('cmf', {'period': params.get('period', 20)})
+    ],
+    parameter_space={
+        'period': {'type': 'int', 'range': (10, 50), 'default': 20},
+        'threshold': {'type': 'float', 'range': (0.0, 0.2), 'default': 0.05}
     }
 )
 def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -225,33 +268,34 @@ def chaikin_money_flow(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='accumulation_distribution',
-    feature_config=['ad', 'ad_ema'],  # Need A/D and EMA of A/D
-    param_feature_mapping={
-        'ad_ema_period': 'ad_ema_{ad_ema_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('ad', {})
+    ],
+    parameter_space={
+        'ema_period': {'type': 'int', 'range': (10, 50), 'default': 20}
     }
 )
 def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Accumulation/Distribution Line crossover strategy.
+    Accumulation/Distribution Line trend strategy.
     
-    Returns sustained signal based on A/D line vs its EMA:
-    - 1: A/D > EMA (accumulation phase)
-    - -1: A/D < EMA (distribution phase)
-    - 0: Equal
+    For now, returns signal based on A/D line direction:
+    - 1: A/D > 0 (accumulation phase)
+    - -1: A/D < 0 (distribution phase)
+    - 0: A/D = 0
+    
+    TODO: Add EMA comparison when composite features are supported
     """
-    ad_ema_period = params.get('ad_ema_period', 20)
-    
     # Get features
     ad_line = features.get('ad')
-    ad_ema = features.get(f'ad_ema_{ad_ema_period}')
     
-    if ad_line is None or ad_ema is None:
+    if ad_line is None:
         return None
     
-    # Determine signal
-    if ad_line > ad_ema:
+    # Determine signal based on A/D line value
+    if ad_line > 0:
         signal_value = 1   # Accumulation
-    elif ad_line < ad_ema:
+    elif ad_line < 0:
         signal_value = -1  # Distribution
     else:
         signal_value = 0
@@ -266,10 +310,8 @@ def accumulation_distribution(features: Dict[str, Any], bar: Dict[str, Any], par
         'strategy_id': 'accumulation_distribution',
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
-            'ad_ema_period': ad_ema_period,           # Parameters for sparse storage separation
             'ad_line': ad_line,                       # Values for analysis
-            'ad_ema': ad_ema,
-            'divergence': ad_line - ad_ema,
+            'signal': 'accumulation' if signal_value == 1 else 'distribution' if signal_value == -1 else 'neutral',
             'price': bar.get('close', 0),
             'volume': bar.get('volume', 0)
         }

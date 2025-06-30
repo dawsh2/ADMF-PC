@@ -1,0 +1,197 @@
+# Configuration to replicate high-value pattern findings
+# Based on performance analysis showing 4.49 bps edge with specific filters
+
+workflow: signal_generation
+dataset: ./data/SPY_5m.csv
+split_ratio: 0.8
+dataset_type: train
+
+symbols:
+  - SPY
+
+execution:
+  max_workers: 8
+  cache_bars: true
+  
+analytics:
+  save_signals: true
+  save_metadata: true
+
+# Feature calculations needed for filters
+features:
+  # Volatility percentile
+  volatility_20:
+    type: atr
+    params:
+      period: 20
+  
+  # VWAP and distance
+  vwap:
+    type: vwap
+    params:
+      period: 390  # Full day
+  
+  # SMA for extension
+  sma_20:
+    type: sma
+    params:
+      period: 20
+  
+  # Volume metrics
+  volume_sma_20:
+    type: volume_analysis
+    params:
+      period: 20
+      metrics: ['ratio', 'zscore']
+  
+  # Range metrics
+  range_pct:
+    type: custom
+    params:
+      formula: "(high - low) / close * 100"
+  
+  # Market structure
+  trend_sma_50:
+    type: sma
+    params:
+      period: 50
+
+strategies:
+  # 1. High Vol + Far from VWAP (4.49 bps edge, 0.81 trades/day)
+  high_vol_vwap_distance:
+    type: mean_reversion_filtered
+    params:
+      # Base mean reversion parameters
+      lookback: 20
+      entry_threshold: 2.0
+      exit_threshold: 0.5
+      
+      # Filters matching the high-value pattern
+      filters:
+        - expression: "volatility_percentile(20) > 85 and abs(vwap_distance()) > 0.002"
+          description: "High vol + far from VWAP (>0.2%)"
+        
+        # Time filter for best hour
+        - expression: "hour >= 20 and hour <= 21"
+          description: "Best performing hour 20:00-21:00"
+        
+        # Only allow shorts in uptrends (best performance)
+        - expression: "signal == 0 or (signal < 0 and close > sma(50))"
+          description: "Shorts in uptrends only"
+  
+  # 2. Extended from SMA20 + High Vol (3.36 bps edge, 0.32 trades/day)
+  extended_sma_high_vol:
+    type: mean_reversion_filtered
+    params:
+      lookback: 20
+      entry_threshold: 2.0
+      exit_threshold: 0.5
+      
+      filters:
+        - expression: "volatility_percentile(20) > 85 and abs((close - sma(20))/sma(20)) > 0.003"
+          description: "Extended >0.3% from SMA20 + high vol"
+        
+        # Range filter for high conviction
+        - expression: "range_pct > 0.1"
+          description: "High range bars (>0.1%)"
+        
+        # Volume spike
+        - expression: "volume_ratio(20) > 1.5"
+          description: "Volume spike confirmation"
+  
+  # 3. Relaxed Vol Filter (Vol>70) - Best overall
+  vol_70_filter:
+    type: mean_reversion_filtered
+    params:
+      lookback: 20
+      entry_threshold: 2.0
+      exit_threshold: 0.5
+      
+      filters:
+        - expression: "volatility_percentile(20) > 70"
+          description: "Vol>70 filter (2.18 bps, 2.8 trades/day)"
+        
+        # VWAP distance as secondary confirmation
+        - expression: "abs(vwap_distance()) > 0.001"
+          description: "VWAP distance >0.1% confirmation"
+        
+        # Afternoon focus
+        - expression: "hour >= 14"
+          description: "Afternoon sessions only"
+  
+  # 4. Higher frequency option (Vol>60)
+  vol_60_filter:
+    type: mean_reversion_filtered
+    params:
+      lookback: 20
+      entry_threshold: 2.0
+      exit_threshold: 0.5
+      
+      filters:
+        - expression: "volatility_percentile(20) > 60"
+          description: "Vol>60 (1.61 bps, 3.7 trades/day)"
+        
+        # Quick exit preference
+        - expression: "bars_in_position < 6 or close_to_exit_threshold"
+          description: "Prefer quick exits (<30 min)"
+  
+  # 5. Volume-based pattern
+  volume_spike_pattern:
+    type: mean_reversion_filtered
+    params:
+      lookback: 20
+      entry_threshold: 2.0
+      exit_threshold: 0.5
+      
+      filters:
+        - expression: "volume_ratio(20) > 1.2"
+          description: "Volume >1.2x average"
+        
+        - expression: "volatility_percentile(20) > 50"
+          description: "Moderate volatility requirement"
+  
+  # 6. Combined best patterns
+  combined_best_patterns:
+    type: mean_reversion_filtered
+    params:
+      lookback: 20
+      entry_threshold: 2.0
+      exit_threshold: 0.5
+      
+      filters:
+        # Primary: Vol>70 with VWAP
+        - expression: "(volatility_percentile(20) > 70 and abs(vwap_distance()) > 0.001) or (volatility_percentile(20) > 85 and abs(vwap_distance()) > 0.002)"
+          description: "Combined vol and VWAP patterns"
+        
+        # Prefer shorts
+        - expression: "signal == 0 or signal < 0"
+          description: "Exit signals or shorts only"
+        
+        # Best times
+        - expression: "hour >= 14 or (hour >= 20 and hour <= 21)"
+          description: "Afternoon or evening sessions"
+
+# Parameter sweep for optimization
+parameter_expansion:
+  strategies:
+    pattern_optimization:
+      base_type: mean_reversion_filtered
+      base_params:
+        lookback: 20
+        exit_threshold: 0.5
+      
+      expansions:
+        # Entry thresholds
+        entry_threshold: [1.5, 2.0, 2.5]
+        
+        # Volatility thresholds
+        vol_threshold: [60, 65, 70, 75, 80, 85]
+        
+        # VWAP distances
+        vwap_dist: [0.001, 0.0015, 0.002, 0.0025]
+        
+        # Generate combinations
+        filters:
+          - template: "volatility_percentile(20) > {vol_threshold}"
+          - template: "abs(vwap_distance()) > {vwap_dist}"
+          - template: "signal == 0 or signal < 0"  # Shorts preference

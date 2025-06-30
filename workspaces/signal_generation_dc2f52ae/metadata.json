@@ -1,0 +1,175 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_dc2f52ae",
+  "total_bars": 99,
+  "total_signals": 1054,
+  "total_classifications": 0,
+  "stored_changes": 95,
+  "compression_ratio": 9.013282732447818,
+  "components": {
+    "SPY_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_0.parquet",
+      "total_bars": 91,
+      "signal_changes": 25,
+      "compression_ratio": 0.27472527472527475,
+      "signal_frequency": 0.27472527472527475,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.103388"
+    },
+    "SPY_compiled_strategy_1": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_1.parquet",
+      "total_bars": 62,
+      "signal_changes": 11,
+      "compression_ratio": 0.1774193548387097,
+      "signal_frequency": 0.1774193548387097,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.103500"
+    },
+    "SPY_compiled_strategy_2": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_2.parquet",
+      "total_bars": 14,
+      "signal_changes": 1,
+      "compression_ratio": 0.07142857142857142,
+      "signal_frequency": 0.07142857142857142,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.103588"
+    },
+    "SPY_compiled_strategy_13": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_13.parquet",
+      "total_bars": 14,
+      "signal_changes": 1,
+      "compression_ratio": 0.07142857142857142,
+      "signal_frequency": 0.07142857142857142,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.103670"
+    },
+    "SPY_compiled_strategy_3": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_3.parquet",
+      "total_bars": 92,
+      "signal_changes": 17,
+      "compression_ratio": 0.18478260869565216,
+      "signal_frequency": 0.18478260869565216,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.115774"
+    },
+    "SPY_compiled_strategy_4": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_4.parquet",
+      "total_bars": 89,
+      "signal_changes": 9,
+      "compression_ratio": 0.10112359550561797,
+      "signal_frequency": 0.10112359550561797,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.115847"
+    },
+    "SPY_compiled_strategy_5": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_5.parquet",
+      "total_bars": 62,
+      "signal_changes": 3,
+      "compression_ratio": 0.04838709677419355,
+      "signal_frequency": 0.04838709677419355,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.115914"
+    },
+    "SPY_compiled_strategy_14": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_14.parquet",
+      "total_bars": 24,
+      "signal_changes": 1,
+      "compression_ratio": 0.041666666666666664,
+      "signal_frequency": 0.041666666666666664,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.116037"
+    },
+    "SPY_compiled_strategy_16": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_16.parquet",
+      "total_bars": 29,
+      "signal_changes": 1,
+      "compression_ratio": 0.034482758620689655,
+      "signal_frequency": 0.034482758620689655,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.122968"
+    },
+    "SPY_compiled_strategy_17": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_17.parquet",
+      "total_bars": 29,
+      "signal_changes": 1,
+      "compression_ratio": 0.034482758620689655,
+      "signal_frequency": 0.034482758620689655,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.123042"
+    },
+    "SPY_compiled_strategy_6": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_6.parquet",
+      "total_bars": 93,
+      "signal_changes": 12,
+      "compression_ratio": 0.12903225806451613,
+      "signal_frequency": 0.12903225806451613,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.130249"
+    },
+    "SPY_compiled_strategy_7": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_7.parquet",
+      "total_bars": 91,
+      "signal_changes": 9,
+      "compression_ratio": 0.0989010989010989,
+      "signal_frequency": 0.0989010989010989,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.130317"
+    },
+    "SPY_compiled_strategy_8": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_8.parquet",
+      "total_bars": 62,
+      "signal_changes": 3,
+      "compression_ratio": 0.04838709677419355,
+      "signal_frequency": 0.04838709677419355,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.130381"
+    },
+    "SPY_compiled_strategy_15": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_15.parquet",
+      "total_bars": 34,
+      "signal_changes": 1,
+      "compression_ratio": 0.029411764705882353,
+      "signal_frequency": 0.029411764705882353,
+      "parameters": {},
+      "created_at": "2025-06-19T15:17:55.130530"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

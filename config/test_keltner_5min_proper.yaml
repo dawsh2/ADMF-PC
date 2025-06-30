@@ -1,0 +1,172 @@
+name: test_keltner_5min_proper
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+
+# Define all features needed for filters
+feature_configs:
+  rsi_14:
+    type: rsi
+    period: 14
+  atr_14:
+    type: atr
+    period: 14
+  volume_sma_20:
+    type: volume_sma
+    period: 20
+  vwap:
+    type: vwap
+  sma_200:
+    type: sma
+    period: 200
+
+# Test on ACTUAL 5-minute timeframe
+strategies:
+  # Baseline - no filter
+  - name: kb5m_baseline
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+      
+  # RSI filters with different thresholds
+  - name: kb5m_rsi30
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or rsi(14) < 30"
+    
+  - name: kb5m_rsi40
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or rsi(14) < 40"
+    
+  - name: kb5m_rsi50
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or rsi(14) < 50"
+    
+  - name: kb5m_rsi60
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or rsi(14) < 60"
+    
+  - name: kb5m_rsi70
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or rsi(14) < 70"
+    
+  # Directional RSI filters
+  - name: kb5m_dir30
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (signal > 0 and rsi(14) < 30) or (signal < 0 and rsi(14) > 70)"
+    
+  - name: kb5m_dir40
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (signal > 0 and rsi(14) < 40) or (signal < 0 and rsi(14) > 60)"
+    
+  # Volume filters - using volume > average volume
+  - name: kb5m_vol1_2
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or volume > volume_sma_20 * 1.2"
+    
+  - name: kb5m_vol1_5
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or volume > volume_sma_20 * 1.5"
+    
+  - name: kb5m_vol2_0
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or volume > volume_sma_20 * 2.0"
+    
+  # Combined filters
+  - name: kb5m_best_combo
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (rsi(14) < 50 and volume > volume_sma_20)"
+    
+  # Parameter variations
+  - name: kb5m_tight15
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 1.5
+      
+  - name: kb5m_wide25
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.5
+      
+  - name: kb5m_fast15
+    type: keltner_bands
+    params:
+      period: 15
+      multiplier: 2.0
+      
+  - name: kb5m_slow30
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 2.0
+      
+  # Optimized parameters with best filter
+  - name: kb5m_optimized
+    type: keltner_bands
+    params:
+      period: 15
+      multiplier: 1.8
+    filter: "signal == 0 or (rsi(14) < 45 and volume > volume_sma_20 * 1.1)"
+    
+  # Trend filter - only trade with trend
+  - name: kb5m_trend_long
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (signal > 0 and price > sma(200))"
+    
+  - name: kb5m_trend_short
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (signal < 0 and price < sma(200))"
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "5m"  # CRITICAL: This must be 5m for 5-minute bars!
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

@@ -1,0 +1,53 @@
+# Example configuration using the new data field formats
+
+# Example 1: Single data file
+name: example_single_data_file
+mode: signal_generation
+data: SPY_5m  # New format: symbol_timeframe
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+strategies:
+  - name: ma_crossover
+    type: ma_crossover
+    params:
+      fast_period: 10
+      slow_period: 20
+
+---
+
+# Example 2: Multiple data files
+name: example_multiple_data_files
+mode: signal_generation
+data: [SPY_5m, QQQ_5m, AAPL_5m]  # New format: list of symbol_timeframe
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+strategies:
+  - name: momentum
+    type: momentum
+    params:
+      lookback: 20
+
+---
+
+# Example 3: Fallback to existing format
+name: example_fallback_format
+mode: signal_generation
+symbols: [SPY, QQQ]  # Traditional format
+timeframe: 1h
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+data:  # Traditional data source config
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+
+strategies:
+  - name: rsi_strategy
+    type: rsi
+    params:
+      period: 14
+      oversold: 30
+      overbought: 70

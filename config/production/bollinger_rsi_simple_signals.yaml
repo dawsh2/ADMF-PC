@@ -1,0 +1,28 @@
+# Bollinger Band + RSI Simple Signals
+# Generates signals based on current conditions only - no position tracking
+name: bollinger_rsi_simple_signals
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features - just the basics
+feature_config:
+  bollinger_bands:
+    - period: 20
+      std_dev: 2.0
+  rsi:
+    - period: 14
+
+# Strategy configuration
+strategy:
+  bollinger_rsi_simple_signals:
+    params:
+      bb_period: 20
+      bb_std: 2.0
+      rsi_period: 14
+      rsi_threshold: 10  # RSI must be 10+ points away from extreme (30/70)

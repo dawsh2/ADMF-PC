@@ -1,0 +1,64 @@
+# Test all strategies tagged with 'mean_reversion' using wildcard discovery
+name: test_mean_reversion_tag_wildcard
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Wildcard discovery using tag-based filtering
+parameter_space:
+  # This will find all strategies tagged with 'mean_reversion'
+  indicators:
+    mean_reversion: "*"
+    exclude: ["diagonal_channel_reversion"]
+  
+  # Classifiers would be useful here but aren't currently supported in optimization mode
+  # TODO: Add classifier support to optimization workflow
+  # Useful classifiers for mean reversion:
+  # - market_state_classifier      # Identifies ranging markets (good for mean reversion)
+  # - volatility_classifier        # High volatility can enhance mean reversion profits
+  # - momentum_regime_classifier   # Identifies momentum exhaustion points
+
+# Control optimization granularity (number of parameter samples)
+optimization:
+  granularity: 3  # Lower for faster testing, higher for more thorough
+
+
+# Run with:
+# python main.py --config config/test_mean_reversion_tag_wildcard.yaml --signal-generation --bars 200 --optimize
+
+# Classifiers enhance mean reversion strategies by:
+# - market_state_classifier: Identifies 'ranging_low_vol' and 'ranging_high_vol' regimes where mean reversion works best
+# - volatility_classifier: High volatility often leads to overshoots that revert to mean
+# - momentum_regime_classifier: Detects when momentum is exhausted, signaling potential reversals
+
+# This will:
+# 1. Search all registered strategies for those with 'mean_reversion' in their tags
+# 2. Extract their parameter spaces from @strategy decorators
+# 3. Generate parameter combinations based on range specifications
+# 4. Run signal generation for each combination
+# 5. Store results for analysis
+
+# Expected strategies (those tagged with 'mean_reversion'):
+# - rsi_bands (oscillator, mean_reversion)
+# - bollinger_bands (volatility, mean_reversion) 
+# - keltner_bands (volatility, mean_reversion)
+# - donchian_bands (volatility, mean_reversion)
+# - vwap_deviation (volume, mean_reversion)
+# - mfi_bands (volume, mean_reversion)
+# - cci_bands (oscillator, mean_reversion)
+# - williams_r (oscillator, mean_reversion)
+# - stochastic_rsi (oscillator, mean_reversion)
+# - ultimate_oscillator (oscillator, mean_reversion)
+# - pivot_bounces (structure, mean_reversion)
+# - swing_pivot_bounce (structure, mean_reversion)
+# - trendline_bounces (structure, mean_reversion)
+# - diagonal_channel_reversion (structure, mean_reversion) - excluded via config

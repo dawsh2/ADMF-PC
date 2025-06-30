@@ -56,7 +56,7 @@ containers:
       - name: portfolio_default
         type: portfolio
         config:
-          components: ['portfolio_manager']
+          components: ['portfolio_state']
           initial_capital:
             from_config: portfolio.initial_capital
             default: 100000

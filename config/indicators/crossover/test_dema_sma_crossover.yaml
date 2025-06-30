@@ -1,0 +1,23 @@
+# Test configuration for DEMA vs SMA Crossover strategy
+name: test_dema_sma_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# DEMA vs SMA crossover strategy
+strategy:
+  dema_sma_crossover:
+    params:
+      dema_period: 10
+      sma_period: 20
+
+# Run with: python main.py --config config/indicators/crossover/test_dema_sma_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - DEMA > SMA: BUY signal (1)
+# - DEMA < SMA: SELL signal (-1)
+# - DEMA = SMA: No signal (0)
+
+# DEMA (Double Exponential MA) is even more responsive than EMA
+# Reduces lag further by applying EMA calculation twice

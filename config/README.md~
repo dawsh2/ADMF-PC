@@ -1,0 +1,414 @@
+# Configuration Guide
+
+This directory contains configuration files for the ADMF-PC (Adaptive Decision Making Framework - Protocol Components) system. Configurations define strategies, data sources, execution parameters, and workflow patterns.
+
+## Table of Contents
+- [Quick Start](#quick-start)
+- [Configuration Structure](#configuration-structure)
+- [Strategy Syntax](#strategy-syntax)
+- [Signal Filtering](#signal-filtering)
+- [Feature Configuration](#feature-configuration)
+- [Execution Modes](#execution-modes)
+- [Examples](#examples)
+
+## Quick Start
+
+Basic configuration example:
+```yaml
+name: my_strategy
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+initial_capital: 100000
+
+# Simple moving average crossover
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+
+# Required features (auto-discovered from strategy)
+features:
+  - sma
+```
+
+Run with:
+```bash
+python main.py --config config/my_strategy.yaml --signal-generation --dataset test
+```
+
+## Configuration Structure
+
+### Top-Level Fields
+
+| Field | Type | Description | Required |
+|-------|------|-------------|----------|
+| `name` | string | Configuration name | Yes |
+| `mode` | string | Execution mode: `backtest`, `signal_generation`, `universal` | Yes |
+| `symbols` | list | Trading symbols (e.g., ["SPY", "QQQ"]) | Yes |
+| `start_date` | string | Start date (YYYY-MM-DD) | Yes |
+| `end_date` | string | End date (YYYY-MM-DD) | Yes |
+| `initial_capital` | number | Starting capital for backtesting | For backtest |
+| `strategy` | object/list | Strategy configuration (see below) | Yes |
+| `features` | list | Required features (often auto-discovered) | Optional |
+| `classifiers` | list | Market regime classifiers | Optional |
+| `dataset` | string | Data split: `full`, `train`, `test` | Optional |
+
+## Strategy Syntax
+
+The framework supports a powerful compositional strategy syntax with four main patterns:
+
+### 1. Atom (Single Strategy)
+
+Simple strategy with parameters:
+```yaml
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+```
+
+With signal filter:
+```yaml
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+    filter: "signal > 0 and price > vwap()"  # Only long signals above VWAP
+```
+
+### 2. List Composition (Multiple Strategies)
+
+Combine multiple strategies with weights:
+```yaml
+strategy: [
+  {
+    weight: 0.5
+    sma_crossover:
+      params: {fast_period: 10, slow_period: 30}
+  },
+  {
+    weight: 0.5
+    rsi_bands:
+      params: {rsi_period: 14, oversold: 30, overbought: 70}
+  }
+]
+```
+
+With combination method:
+```yaml
+strategy:
+  combination: weighted_vote  # or: majority, unanimous
+  weight_threshold: 0.6      # Minimum weight for signal
+  strategies: [
+    {momentum: {weight: 0.4, params: {period: 14}}},
+    {rsi_bands: {weight: 0.6, params: {period: 14}}}
+  ]
+```
+
+### 3. Conditional Strategies
+
+Execute strategies based on market conditions:
+```yaml
+strategy:
+  condition: volatility_percentile(20) > 70
+  bollinger_breakout:
+    params: {period: 20, std_dev: 2.5}
+```
+
+### 4. Complex Compositions
+
+Nested strategies with conditions:
+```yaml
+strategy: [
+  {
+    # High volatility regime
+    condition: volatility_regime(20) == 'high'
+    weight: 0.4
+    strategy: [
+      {bollinger_breakout: {weight: 0.6, params: {period: 20}}},
+      {keltner_breakout: {weight: 0.4, params: {period: 20}}}
+    ]
+  },
+  {
+    # Low volatility regime
+    condition: volatility_regime(20) == 'low'
+    weight: 0.4
+    mean_reversion:
+      params: {period: 20, threshold: 2.0}
+  },
+  {
+    # Always-on baseline
+    weight: 0.2
+    vwap_deviation:
+      params: {std_multiplier: 2.0}
+  }
+]
+```
+
+## Signal Filtering
+
+Strategies can include filters that evaluate after signal generation:
+
+### Simple Filters
+```yaml
+strategy:
+  sma_crossover:
+    params: {fast_period: 10, slow_period: 30}
+    filter: "signal > 0"  # Only accept long signals
+```
+
+### Complex Filters
+```yaml
+strategy:
+  momentum:
+    params: {period: 14}
+    filter: "signal != 0 and rsi(14) > 30 and rsi(14) < 70 and volume > sma(20)"
+```
+
+### Parameterized Filters (for optimization)
+```yaml
+strategy:
+  macd_crossover:
+    params: {fast_period: 12, slow_period: 26}
+    filter: "abs(signal) > ${threshold} and volume > ma(${vol_period})"
+    filter_params:
+      threshold: 0.5      # Can be optimized
+      vol_period: 20      # Can be optimized
+```
+
+### Filter Expression Reference
+
+Available variables:
+- `signal` - The signal value from strategy (-1, 0, 1)
+- `price`, `open`, `high`, `low`, `close` - Current bar data
+- `volume` - Current volume
+- All computed features from FeatureHub
+
+Available functions:
+- `ma(period)` - Moving average (SMA or EMA)
+- `sma(period)` - Simple moving average
+- `ema(period)` - Exponential moving average
+- `vwap()` - Volume weighted average price
+- `session_vwap()` - Session-based VWAP (resets at market open)
+- `rsi(period)` - Relative strength index
+- `atr(period)` - Average true range
+- `abs()`, `min()`, `max()` - Math functions
+
+## Feature Configuration
+
+### Automatic Discovery
+Most features are auto-discovered from strategies:
+```yaml
+strategy:
+  sma_crossover:
+    params: {fast_period: 10, slow_period: 30}
+# Features sma_10 and sma_30 will be auto-discovered
+```
+
+### Explicit Features
+Add features not discovered automatically:
+```yaml
+features:
+  - vwap
+  - session_vwap
+  - atr
+  - volume_sma
+```
+
+### Feature Parameters
+Some features require parameters:
+```yaml
+features:
+  - name: bollinger_bands
+    params: {period: 20, std_dev: 2}
+  - name: rsi
+    params: {period: 14}
+```
+
+## Execution Modes
+
+### Signal Generation
+Generate and store signals for analysis:
+```bash
+python main.py --config config/my_strategy.yaml --signal-generation --dataset test
+```
+
+### Backtesting
+Run full backtest with portfolio simulation:
+```bash
+python main.py --config config/my_strategy.yaml --backtest
+```
+
+### Optimization
+Optimize parameters with grid search:
+```bash
+python main.py --config config/my_strategy.yaml --optimize
+```
+
+Add parameter space for optimization:
+```yaml
+parameter_space:
+  strategies:
+    - type: sma_crossover
+      param_overrides:
+        fast_period: [5, 10, 15, 20]
+        slow_period: [20, 30, 40, 50]
+```
+
+#### Wildcard Discovery
+
+Use wildcards to automatically discover and test all strategies and classifiers:
+
+##### Strategy Discovery
+```yaml
+parameter_space:
+  # Test all indicator strategies
+  indicators: "*"
+  
+  # Test specific indicator categories
+  indicators:
+    crossover: "*"      # All crossover strategies (sma_crossover, ema_crossover, etc.)
+    momentum: "*"       # All momentum strategies (rsi, macd, roc, etc.)
+    oscillator: "*"     # All oscillator strategies (cci, stochastic, williams_r, etc.)
+    trend: "*"          # All trend strategies (adx, aroon, supertrend, etc.)
+    volatility: "*"     # All volatility strategies (bollinger, keltner, donchian, etc.)
+    volume: "*"         # All volume strategies (obv, vwap, mfi, chaikin, etc.)
+    structure: "*"      # All structure strategies (pivot, trendline, support/resistance, etc.)
+```
+
+##### Classifier Discovery
+```yaml
+parameter_space:
+  # Test all classifiers
+  classifiers: "*"
+  
+  # Or test specific classifiers
+  classifiers: [
+    "trend_classifier",
+    "volatility_classifier",
+    "momentum_regime_classifier",
+    "multi_timeframe_trend_classifier",
+    "volatility_momentum_classifier"
+  ]
+```
+
+##### Mixed Discovery
+```yaml
+parameter_space:
+  # Discover all indicators
+  indicators: "*"
+  
+  # Discover all classifiers
+  classifiers: "*"
+  
+  # Add custom strategies with overrides
+  strategies:
+    - type: custom_ensemble
+      param_overrides:
+        weight_threshold: [0.5, 0.6, 0.7]
+```
+
+The system will automatically:
+- Discover all strategies in `src/strategy/strategies/indicators/`
+- Discover all classifiers in `src/strategy/classifiers/`
+- Extract their parameter spaces from the `@strategy` and `@classifier` decorators
+- Generate parameter combinations based on range specifications (using tuples for ranges)
+- Run optimization across all discovered components
+
+##### Granularity Control
+Control the number of samples for parameter ranges:
+```yaml
+optimization:
+  granularity: 5  # Default: 5 samples per range
+                  # Higher = more parameter combinations
+                  # Lower = faster optimization
+```
+
+## Examples
+
+### Directory Structure
+```
+config/
+├── README.md                          # This file
+├── examples/                          # Example configurations
+│   ├── compositional-strategies.yaml  # Strategy composition examples
+│   └── signal_filtering_example.yaml  # Filter examples
+├── patterns/                          # Reusable workflow patterns
+│   ├── topologies/                    # Execution topologies
+│   └── workflows/                     # Workflow definitions
+└── [your configs].yaml               # Your strategy configurations
+```
+
+### Key Examples
+
+1. **Simple Moving Average** - `test_ma_crossover.yaml`
+   - Basic SMA crossover strategy
+
+2. **Volatility Regimes** - `volatility_momentum_three_regimes.yaml`
+   - Complex multi-regime adaptive strategy
+
+3. **Signal Filtering** - `examples/signal_filtering_example.yaml`
+   - Demonstrates various filter patterns
+
+4. **Compositional Strategies** - `examples/compositional-strategies.yaml`
+   - Shows all composition patterns
+
+### Creating Your Own
+
+1. Start with a simple example
+2. Add your strategy type and parameters
+3. Configure data range and symbols
+4. Add filters if needed
+5. Test with small dataset first
+
+```yaml
+# my_first_strategy.yaml
+name: my_first_strategy
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+initial_capital: 100000
+
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+    filter: "volume > 50000000"  # Min 50M volume
+
+features:
+  - rsi
+  - volume
+```
+
+## Best Practices
+
+1. **Start Simple** - Test single strategies before compositions
+2. **Use Filters** - Filter out low-quality signals
+3. **Test Data Split** - Use `--dataset test` for out-of-sample testing
+4. **Small Date Ranges** - Test with 1-month ranges first
+5. **Version Control** - Keep configs in git for reproducibility
+6. **Descriptive Names** - Use clear, descriptive configuration names
+7. **Comments** - Document your strategy logic with comments
+
+## Troubleshooting
+
+Common issues:
+
+1. **Missing Features** - Add required features to `features:` section
+2. **Filter Syntax** - Keep filters on single line or use proper YAML multiline
+3. **Parameter Types** - Ensure parameters match expected types (int vs float)
+4. **Date Formats** - Use YYYY-MM-DD format for dates
+5. **Symbol Names** - Use standard ticker symbols
+
+For more help, see the main project documentation or run:
+```bash
+python main.py --help
+```

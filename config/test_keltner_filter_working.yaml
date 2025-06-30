@@ -1,0 +1,32 @@
+name: test_keltner_filter_working
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-11-30"
+dataset: train
+
+# Use strategies list format which supports filters
+strategies:
+  - name: keltner_filtered
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal != 0 and rsi(14) < 30"  # Only when RSI < 30
+
+# Features needed for filter
+features:
+  - name: rsi
+    params: {period: 14}
+
+# Data source
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

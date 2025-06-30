@@ -1,0 +1,27 @@
+# Test configuration for Supertrend strategy
+name: test_supertrend
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Supertrend indicator strategy
+strategy:
+  supertrend:
+    params:
+      period: 10
+      multiplier: 3.0  # ATR multiplier
+
+# Run with: python main.py --config config/indicators/trend/test_supertrend.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Supertrend is a trend-following indicator based on ATR
+# - Uses average true range to create dynamic support/resistance
+#
+# - Price > Supertrend: BUY signal (1) - uptrend
+# - Price < Supertrend: SELL signal (-1) - downtrend
+# - Price = Supertrend: No signal (0) - rare
+
+# Supertrend is popular for its ability to stay with trends
+# and filter out noise. The multiplier controls sensitivity -
+# higher values = fewer but more reliable signals.

@@ -1,0 +1,26 @@
+# Test configuration for Aroon Crossover strategy
+name: test_aroon_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Aroon indicator crossover strategy
+strategy:
+  aroon_crossover:
+    params:
+      period: 25
+
+# Run with: python main.py --config config/indicators/trend/test_aroon_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Aroon Up: Time since highest high (0-100)
+# - Aroon Down: Time since lowest low (0-100)
+#
+# - Aroon Up > Aroon Down: BUY signal (1) - uptrend
+# - Aroon Up < Aroon Down: SELL signal (-1) - downtrend
+# - Aroon Up = Aroon Down: No signal (0)
+
+# This is simpler than aroon_oscillator strategy - it just
+# compares the two lines directly without calculating
+# the oscillator or using thresholds.

@@ -31,7 +31,7 @@ from .rsi_tuned import rsi_tuned_strategy
 
 # Import new composable indicator strategies
 from . import indicators
-from . import ensemble
+# from . import ensemble  # Commented out - broken imports
 # from .core import *  # Keep commented if still causing issues
 
 # Lazy imports for strategies with external dependencies

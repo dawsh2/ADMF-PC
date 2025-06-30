@@ -1,0 +1,7 @@
+{
+  "backtest": {
+    "success": false,
+    "phase_name": "backtest",
+    "error": "'combo_id'"
+  }
+}

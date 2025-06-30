@@ -1,0 +1,16 @@
+# Test global threshold for multiple strategies
+name: test_global_threshold
+mode: signal_generation
+symbols: ["SPY"]
+
+# Multiple strategies with global threshold
+strategy: [
+  {bollinger_bands: {period: 20, std_dev: 2.5}},
+  {rsi_strategy: {period: 14, oversold: 30, overbought: 70}},
+  {
+    threshold: "intraday and (volume > sma(volume, 20) * 1.3 or volatility_percentile(50) > 0.4)"
+  }
+]
+
+# Run with:
+# python main.py --config config/test_global_threshold.yaml --signal-generation

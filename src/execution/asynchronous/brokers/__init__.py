@@ -1,7 +1,8 @@
 """Async broker implementations for real trading."""
 
 from .base import BrokerConfig, RateLimiter, CacheManager, ConnectionManager, OrderValidator
-from .alpaca import AlpacaBroker
+from .alpaca_clean import CleanAlpacaBroker, create_alpaca_broker
+from .alpaca_trade_stream import AlpacaTradeStream, TradeUpdate, TradeUpdateType
 
 __all__ = [
     'BrokerConfig',
@@ -9,5 +10,9 @@ __all__ = [
     'CacheManager',
     'ConnectionManager',
     'OrderValidator',
-    'AlpacaBroker'
+    'CleanAlpacaBroker',
+    'create_alpaca_broker',
+    'AlpacaTradeStream',
+    'TradeUpdate',
+    'TradeUpdateType'
 ]

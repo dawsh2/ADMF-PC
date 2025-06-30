@@ -1,0 +1,9 @@
+name: keltner_test_expression_filter
+data: SPY_5m
+
+strategy:
+  - keltner_bands:
+      period: [30]
+      multiplier: [1.0]
+      # Expression-based filter
+      filter: "atr(14) / atr(50) > 0.8"

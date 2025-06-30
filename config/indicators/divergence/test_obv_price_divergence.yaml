@@ -1,0 +1,25 @@
+# Test configuration for OBV Price Divergence strategy
+name: test_obv_price_divergence
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# OBV price divergence reversal strategy
+strategy:
+  obv_price_divergence:
+    params:
+      obv_sma_period: 20
+      swing_lookback: 5
+
+# Run with: python main.py --config config/indicators/divergence/test_obv_price_divergence.yaml --signal-generation --bars 100
+
+# Expected behavior (REVERSAL):
+# - At swing low with OBV > OBV_SMA: Accumulation -> BUY (1)
+# - At swing high with OBV < OBV_SMA: Distribution -> SELL (-1)
+# - Otherwise: No signal (0)
+
+# OBV divergences reveal:
+# - Hidden accumulation at lows (smart money buying)
+# - Hidden distribution at highs (smart money selling)
+# - Volume not confirming price moves

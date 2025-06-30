@@ -1,0 +1,47 @@
+{
+  "run_info": {
+    "run_id": "20250627_092633",
+    "config_name": "bollinger",
+    "generated_at": "2025-06-27T09:26:50.444212",
+    "total_strategies": 1,
+    "strategies_analyzed": 1,
+    "execution_cost_bps": 1.0
+  },
+  "best_individual": {
+    "strategy_hash": "3bee7e1ff576",
+    "strategy_type": "bollinger_bands",
+    "sharpe_ratio": -1.125324158569896,
+    "total_return": -0.07571702398381341,
+    "max_drawdown": -0.09038139981121096,
+    "win_rate": 0.5551224944320713,
+    "avg_return_per_trade": -4.295037252213081e-05,
+    "num_trades": 1796,
+    "total_execution_cost": 0.17960000000000004,
+    "parameters": {
+      "period": 10,
+      "std_dev": 1.5
+    }
+  },
+  "best_by_type": {
+    "bollinger_bands": {
+      "strategy_hash": "3bee7e1ff576",
+      "sharpe_ratio": -1.125324158569896,
+      "total_return": -0.07571702398381341,
+      "win_rate": 0.5551224944320713,
+      "avg_return_per_trade": -4.295037252213081e-05
+    }
+  },
+  "ensemble": [],
+  "stop_loss_recommendations": {
+    "conservative": 0.25,
+    "balanced": 0.5,
+    "aggressive": 1.0
+  },
+  "stop_loss_analysis": {
+    "3bee7e1f": {
+      "optimal_stop_loss_pct": 0.4,
+      "optimal_total_return": -0.07060417654955817,
+      "improvement_pct": 19.939115723179587
+    }
+  }
+}

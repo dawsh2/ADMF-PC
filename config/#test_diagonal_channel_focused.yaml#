@@ -1,0 +1,35 @@
+# Test diagonal channel reversion with focused parameter space
+name: test_diagonal_channel_focused
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy
+strategy:
+  diagonal_channel_reversion:
+    params:
+      lookback: 20
+      min_points: 3
+      channel_tolerance: 0.02
+      entry_mode: "boundary"
+
+# Focused parameter space for diagonal channel reversion
+parameter_space:
+  diagonal_channel_reversion:
+    # Reduce from 10 parameters to the most important ones
+    lookback: [20, 30]  # Just 2 values instead of full range
+    min_points: [3]     # Fix at 3
+    min_bounces: [0]    # Fix at 0
+    channel_tolerance: [0.02]  # Fix at default
+    parallel_tolerance: [0.1]  # Fix at default
+    entry_mode: ["boundary", "midline"]  # 2 values
+    boundary_threshold: [0.003]  # Fix at default
+    midline_distance: [0.25]     # Fix at default
+    target_mode: ["opposite", "midline"]  # 2 values
+    target_percent: [0.5]  # Fix at default
+
+# This creates only 2 × 2 × 2 = 8 combinations instead of 11,664!
+
+# Run with:
+# python main.py --config config/test_diagonal_channel_focused.yaml --optimize --bars 1000

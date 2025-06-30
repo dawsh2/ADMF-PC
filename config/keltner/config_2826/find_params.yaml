@@ -1,0 +1,16 @@
+# Parameter sweep to find exact combination that produces 2826 signals
+name: keltner_find_2826_params
+data: SPY_5m
+
+strategy:
+  - keltner_bands:
+      # Test all combinations to find which produces 2826 signals
+      period: [10, 15, 20, 30, 50]
+      multiplier: [1.0, 1.5, 2.0, 2.5, 3.0]
+      
+      # The volatility filter
+      filter: {volatility_above: {threshold: 1.1}}
+
+# Run all combinations
+optimization:
+  granularity: 25  # Run all parameter combinations

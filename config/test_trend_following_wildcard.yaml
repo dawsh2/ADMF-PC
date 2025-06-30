@@ -1,0 +1,28 @@
+# Test all strategies tagged with 'trend_following' using wildcard discovery
+name: test_trend_following_wildcard
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+
+# Wildcard discovery using tag-based filtering
+parameter_space:
+  indicators:
+    trend_following: "*"
+
+# Control optimization granularity
+optimization:
+  granularity: 3
+
+
+# Run with:
+# python main.py --config config/test_trend_following_wildcard.yaml --signal-generation --bars 200 --optimize
+
+# This will discover all strategies tagged with 'trend_following'

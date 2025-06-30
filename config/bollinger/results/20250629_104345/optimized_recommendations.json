@@ -1,0 +1,117 @@
+{
+  "run_info": {
+    "run_id": "20250629_104345",
+    "config_name": "bollinger",
+    "generated_at": "2025-06-29T10:55:53.588538",
+    "total_strategies": 205,
+    "strategies_analyzed": 205,
+    "strategies_optimized": 204,
+    "execution_cost_bps": 1.0
+  },
+  "best_optimized": {
+    "strategy_hash": "80e0a9bfbbe3",
+    "strategy_type": "bollinger_bands",
+    "optimal_stop_pct": 0.2,
+    "optimal_target_pct": 0.4,
+    "optimal_sharpe": 0.6237131691288874,
+    "optimal_return": 0.005094127825815864,
+    "original_sharpe": 0.5095358758685852,
+    "sharpe_improvement": 0.11417729326030224,
+    "parameters": {
+      "period": 11.0,
+      "std_dev": 3.0
+    }
+  },
+  "top_10_optimized": [
+    {
+      "rank": 1,
+      "strategy_hash": "80e0a9bfbbe3",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.2,
+      "optimal_target_pct": 0.4,
+      "optimal_sharpe": 0.6237131691288874,
+      "optimal_return": 0.005094127825815864
+    },
+    {
+      "rank": 2,
+      "strategy_hash": "f211c3bbe899",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.3,
+      "optimal_target_pct": 0.6,
+      "optimal_sharpe": 0.5561405393315915,
+      "optimal_return": 0.005895430001712443
+    },
+    {
+      "rank": 3,
+      "strategy_hash": "e5cc63fb508c",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.2,
+      "optimal_target_pct": 0.4,
+      "optimal_sharpe": 0.0004196676722044745,
+      "optimal_return": -9.902904925263023e-05
+    },
+    {
+      "rank": 4,
+      "strategy_hash": "66b838920d84",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.0,
+      "optimal_target_pct": 0.0,
+      "optimal_sharpe": -0.12048191967180386,
+      "optimal_return": -0.0022380652054786454
+    },
+    {
+      "rank": 5,
+      "strategy_hash": "f3ee8435d51b",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.0,
+      "optimal_target_pct": 0.0,
+      "optimal_sharpe": -0.1810589683700485,
+      "optimal_return": -0.0030840452144840214
+    },
+    {
+      "rank": 6,
+      "strategy_hash": "b1b13ffa7fb6",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.3,
+      "optimal_target_pct": 0.6,
+      "optimal_sharpe": -0.2348504969734495,
+      "optimal_return": -0.0032643486888843665
+    },
+    {
+      "rank": 7,
+      "strategy_hash": "7d826e7e1670",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.0,
+      "optimal_target_pct": 0.0,
+      "optimal_sharpe": -0.3706333172101839,
+      "optimal_return": -0.006434306300638237
+    },
+    {
+      "rank": 8,
+      "strategy_hash": "72706250c433",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.0,
+      "optimal_target_pct": 0.0,
+      "optimal_sharpe": -0.38502493037072527,
+      "optimal_return": -0.00650113951594089
+    },
+    {
+      "rank": 9,
+      "strategy_hash": "d3ced64f1e75",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.3,
+      "optimal_target_pct": 0.6,
+      "optimal_sharpe": -0.39376679916841345,
+      "optimal_return": -0.004951242928473931
+    },
+    {
+      "rank": 10,
+      "strategy_hash": "3d1cbefd6106",
+      "strategy_type": "bollinger_bands",
+      "optimal_stop_pct": 0.15,
+      "optimal_target_pct": 0.3,
+      "optimal_sharpe": -0.3979078235794612,
+      "optimal_return": -0.009925038440122269
+    }
+  ]
+}

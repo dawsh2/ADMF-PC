@@ -1,0 +1,47 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_bd799db9",
+  "total_bars": 99,
+  "total_signals": 94,
+  "total_classifications": 0,
+  "stored_changes": 3,
+  "compression_ratio": 3.1914893617021276,
+  "components": {
+    "SPY_kb_test": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/SPY_1m/signals/mean_reversion/SPY_kb_test.parquet",
+      "total_bars": 62,
+      "signal_changes": 3,
+      "compression_ratio": 0.04838709677419355,
+      "signal_frequency": 0.04838709677419355,
+      "parameters": {
+        "period": 20,
+        "multiplier": 2.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-21T21:26:10.734833"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "kb_test": {
+        "type": "keltner_bands",
+        "name": "kb_test",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

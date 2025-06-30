@@ -7,6 +7,7 @@ All strategies follow the stateless pattern required by the architecture.
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ...core.components.discovery import strategy
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rule10_rsi_threshold',
-    feature_config=['rsi']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})]  # Topology builder infers parameters from strategy logic
 )
 def rule10_rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -83,7 +84,7 @@ def rule10_rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: 
 
 @strategy(
     name='rule11_cci_threshold',
-    feature_config=['cci']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('cci', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule11_cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -151,7 +152,7 @@ def rule11_cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: 
 
 @strategy(
     name='rule12_rsi_bands',
-    feature_config=['rsi']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})]  # Topology builder infers parameters from strategy logic
 )
 def rule12_rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -250,7 +251,7 @@ def rule12_rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
 
 @strategy(
     name='rule13_cci_bands',
-    feature_config=['cci']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('cci', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule13_cci_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

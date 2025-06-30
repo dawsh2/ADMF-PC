@@ -7,9 +7,30 @@ This ensures that all sub-strategies are properly documented in metadata.json.
 
 from typing import Dict, Any, List, Optional, Set
 import logging
+import json
+import hashlib
 from ....core.components.discovery import get_component_registry
 
 logger = logging.getLogger(__name__)
+
+
+def compute_strategy_hash(strategy_config: Any) -> str:
+    """
+    Compute a deterministic hash for a strategy configuration.
+    
+    This creates a unique identifier for each unique strategy configuration,
+    allowing us to identify identical strategies across different runs.
+    
+    Args:
+        strategy_config: Complete strategy configuration (can be nested)
+        
+    Returns:
+        12-character hash string
+    """
+    # Ensure deterministic JSON encoding
+    config_str = json.dumps(strategy_config, sort_keys=True, separators=(',', ':'))
+    # Create SHA256 hash and take first 12 characters
+    return hashlib.sha256(config_str.encode()).hexdigest()[:12]
 
 
 def extract_recursive_strategy_metadata(
@@ -188,7 +209,29 @@ def extract_all_strategies_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dict with metadata for each strategy including all nested sub-strategies
     """
+    # Handle both 'strategies' and 'strategy' fields
     strategies = config.get('strategies', [])
+    logger.debug(f"[METADATA] Initial strategies from config: {strategies}")
+    if not strategies and 'strategy' in config:
+        # Handle clean syntax where strategy is a list
+        strategy_list = config['strategy']
+        logger.info(f"[METADATA] Found strategy field: {strategy_list}")
+        if isinstance(strategy_list, list):
+            # Convert clean syntax to internal format
+            strategies = []
+            for i, item in enumerate(strategy_list):
+                if isinstance(item, dict):
+                    # Extract strategy type and params
+                    for strategy_type, params in item.items():
+                        if strategy_type != 'threshold':
+                            strategy_item = {
+                                'type': strategy_type,
+                                'name': f"{strategy_type}_{i}",
+                                'params': params if isinstance(params, dict) else {}
+                            }
+                            strategies.append(strategy_item)
+                            logger.info(f"[METADATA] Converted strategy item: {strategy_item}")
+    
     classifiers = config.get('classifiers', [])
     
     metadata = {
@@ -203,8 +246,20 @@ def extract_all_strategies_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
     }
     
     # Process strategies
-    for strategy_config in strategies:
-        strategy_name = strategy_config.get('name', 'unnamed')
+    for i, strategy_config in enumerate(strategies):
+        # Handle param_overrides format (from expanded config)
+        if 'param_overrides' in strategy_config and 'params' not in strategy_config:
+            strategy_config['params'] = strategy_config['param_overrides']
+            logger.debug(f"[METADATA] Converting param_overrides to params: {strategy_config['params']}")
+        
+        # Generate a meaningful name if not provided
+        strategy_name = strategy_config.get('name')
+        if not strategy_name:
+            strategy_type = strategy_config.get('type', 'unknown')
+            strategy_name = f"{strategy_type}_{i}"
+            logger.debug(f"[METADATA] Generated strategy name: {strategy_name}")
+        
+        logger.debug(f"[METADATA] Processing strategy with name: {strategy_name}, config: {strategy_config}")
         strategy_metadata = extract_recursive_strategy_metadata(strategy_config)
         metadata['strategies'][strategy_name] = strategy_metadata
         

@@ -1,0 +1,25 @@
+# Test configuration for MFI Bands strategy
+name: test_mfi_bands
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Money Flow Index mean reversion strategy
+strategy:
+  mfi_bands:
+    params:
+      mfi_period: 14
+      overbought: 80
+      oversold: 20
+
+# Run with: python main.py --config config/indicators/volume/test_mfi_bands.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - MFI > 80: SELL signal (-1) - overbought
+# - MFI < 20: BUY signal (1) - oversold
+# - MFI between 20-80: No signal (0)
+
+# MFI is like RSI but includes volume
+# Called the "volume-weighted RSI"
+# More reliable than RSI for volume-driven markets

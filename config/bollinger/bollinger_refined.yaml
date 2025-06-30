@@ -1,0 +1,14 @@
+name: bollinger_refined
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      # Focus on the optimal period range found
+      period: "range(38, 48, 1)",
+      # Explore finer granularity around std_dev = 1.0
+      std_dev: "range(0.7, 1.5, 0.1)"
+    },
+    constraints: "intraday"
+  }
+]

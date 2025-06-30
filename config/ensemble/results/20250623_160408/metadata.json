@@ -1,0 +1,45 @@
+{
+  "workflow_id": "ensemble",
+  "workspace_path": "config/ensemble/results/20250623_160408",
+  "total_bars": 16614,
+  "total_signals": 19154,
+  "total_classifications": 0,
+  "stored_changes": 5975,
+  "compression_ratio": 31.194528558003547,
+  "components": {
+    "SPY_5m_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "ensemble",
+      "signal_file_path": "traces/ensemble/SPY_5m_compiled_strategy_0.parquet",
+      "total_bars": 16602,
+      "signal_changes": 5975,
+      "compression_ratio": 0.35989639802433443,
+      "signal_frequency": 0.35989639802433443,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_0"
+      },
+      "created_at": "2025-06-23T16:04:08.755640"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands_0": {
+        "type": "bollinger_bands",
+        "name": "",
+        "params": {
+          "period": 23,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

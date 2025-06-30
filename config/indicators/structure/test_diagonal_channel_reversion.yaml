@@ -1,0 +1,50 @@
+# Test configuration for Diagonal Channel Reversion strategy
+name: test_diagonal_channel_reversion
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Configurable channel strategy
+strategy:
+  diagonal_channel_reversion:
+    params:
+      lookback: 20
+      min_points: 3
+      min_bounces: 0
+      channel_tolerance: 0.02
+      parallel_tolerance: 0.1
+      
+      # Entry configuration
+      entry_mode: boundary  # boundary, midline, or both
+      boundary_threshold: 0.003
+      midline_distance: 0.25
+      
+      # Target configuration  
+      target_mode: midline  # opposite, midline, or percent
+      target_percent: 0.5
+
+# Run with: python main.py --config config/indicators/structure/test_diagonal_channel_reversion.yaml --signal-generation --bars 100
+
+# Entry modes:
+# - boundary: Enter at channel boundaries (classic channel trading)
+# - midline: Enter when far from midline (range mean reversion)
+# - both: Combine both entry types
+
+# Target modes:
+# - opposite: Target the opposite channel boundary
+# - midline: Target the channel midline
+# - percent: Target a percentage of channel width
+
+# Example variations:
+# 1. Classic channel bounce (boundary to opposite):
+#    entry_mode: boundary, target_mode: opposite
+#
+# 2. Midline reversion (extremes to middle):
+#    entry_mode: midline, target_mode: midline
+#
+# 3. Conservative (boundary to midline):
+#    entry_mode: boundary, target_mode: midline
+
+# Can also use filters:
+# filter: "diagonal_channel_lower_bounces >= 3 and diagonal_channel_channel_strength > 0.7"

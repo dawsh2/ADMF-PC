@@ -1,0 +1,26 @@
+# Test parameter expansion for bollinger bands using clean syntax
+name: bollinger_parameter_test
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      period: "range(10, 15, 1)",  # 10, 11, 12, 13, 14 = 5 values
+      std_dev: "range(1.0, 2.5, 0.5)"  # 1.0, 1.5, 2.0 = 3 values
+    },
+    constraints: "intraday"
+  }
+]
+
+# Minimal execution config for signal generation
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces
+
+# Add portfolio for validation
+portfolio:
+  initial_capital: 100000
+  allocation: 1.0

@@ -1,0 +1,81 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/bollinger/results/20250627_124604",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 16614,
+  "total_signals": 16601,
+  "total_classifications": 0,
+  "total_orders": 2866,
+  "total_fills": 2866,
+  "total_positions": 2866,
+  "stored_changes": 2762,
+  "compression_ratio": 16.637551954701525,
+  "components": {
+    "SPY_5m_strategy_0": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_0",
+        "period": 10,
+        "std_dev": 1.5,
+        "_risk": {
+          "stop_loss": 0.001,
+          "take_profit": 0.0015,
+          "trailing_stop": 0.0003
+        }
+      },
+      "strategy_hash": "ffb7402464ba",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_0",
+          "period": 10,
+          "std_dev": 1.5,
+          "_risk": {
+            "stop_loss": 0.001,
+            "take_profit": 0.0015,
+            "trailing_stop": 0.0003
+          }
+        }
+      }
+    }
+  },
+  "timestamp": "2025-06-27T12:46:11.224234",
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands",
+        "params": {
+          "period": 10,
+          "std_dev": 1.5,
+          "_risk": {
+            "stop_loss": 0.001,
+            "take_profit": 0.0015,
+            "trailing_stop": 0.0003
+          }
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

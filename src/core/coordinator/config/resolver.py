@@ -7,7 +7,7 @@ Coordinator, Sequencer, and TopologyBuilder.
 
 import re
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class ConfigResolver:
     
     def __init__(self):
         """Initialize config resolver."""
-        pass
+        self.config = {}  # Store config for reference
     
     def resolve_value(self, spec: Any, context: Dict[str, Any]) -> Any:
         """
@@ -188,3 +188,42 @@ class ConfigResolver:
         merged = base_config.copy()
         merged.update(overrides)
         return merged
+    
+    def parse_data_field(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Parse the 'data' field from configs to support multiple formats.
+        
+        Supports:
+        1. `data: SPY_5m` - single file
+        2. `data: [SPY_5m, QQQ_5m]` - multiple files
+        3. Current format with `symbols: [SPY]` as fallback
+        
+        Returns:
+            Dict with 'symbols', 'timeframes', 'data_specs' keys
+        """
+        from .data_parser import parse_data_field as parse_data
+        
+        # Get parsed data specs
+        data_specs = parse_data(config)
+        
+        # Log for debugging
+        if data_specs:
+            logger.debug(f"Data parser returned {len(data_specs)} specs: {data_specs}")
+        else:
+            logger.debug(f"Data parser returned empty specs for config: {config.get('data', 'NO DATA FIELD')}")
+        
+        # Extract unique symbols and timeframes
+        symbols = list(set(spec['symbol'] for spec in data_specs))
+        timeframes = list(set(spec.get('timeframe', '1m') for spec in data_specs))
+        
+        # Add data_source field
+        data_source = config.get('data_source', 'file')
+        
+        # Return parsed information
+        return {
+            'symbols': symbols,
+            'timeframes': timeframes,
+            'data_specs': data_specs,
+            'original_data': config.get('data'),
+            'data_source': data_source
+        }

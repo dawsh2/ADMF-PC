@@ -1,0 +1,24 @@
+# Test configuration for Pivot Bounces strategy
+name: test_pivot_bounces
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  pivot_bounces:
+    params:
+      pivot_type: standard  # standard, fibonacci, or woodie
+      timeframe: 1m  # 1m, 5m, 15m, 30m, 1h, 4h, D
+      touch_threshold: 0.0005  # 0.05% - how close price must be to pivot level
+
+# Run with: python main.py --config config/indicators/structure/test_pivot_bounces.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - Price near S1 or S2 support: BUY signal (1) - expect bounce up
+# - Price near R1 or R2 resistance: SELL signal (-1) - expect bounce down
+# - Price away from key levels: No signal (0)
+
+# This is opposite of pivot_points which trades breakouts
+# pivot_bounces expects price to reverse at support/resistance levels

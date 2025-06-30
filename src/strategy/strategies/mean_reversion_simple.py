@@ -6,6 +6,7 @@ of the mean reversion strategy to support the unified architecture transition.
 """
 
 from typing import Dict, Any, List, Optional, Set
+from src.core.features.feature_spec import FeatureSpec
 from datetime import datetime
 import logging
 
@@ -317,7 +318,7 @@ def create_mean_reversion_strategy(config: Dict[str, Any] = None) -> MeanReversi
 # Pure function version for EVENT_FLOW_ARCHITECTURE
 @strategy(
     name='mean_reversion',
-    feature_config=['bollinger', 'rsi']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('bollinger', {}), FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})]  # Topology builder infers parameters from strategy logic
 )
 def mean_reversion_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

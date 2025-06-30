@@ -1,0 +1,3596 @@
+{
+  "workflow_id": "keltner",
+  "workspace_path": "config/keltner/results/20250622_170248",
+  "total_bars": 7,
+  "total_signals": 605,
+  "total_classifications": 0,
+  "stored_changes": 275,
+  "compression_ratio": 45.45454545454545,
+  "components": {
+    "SPY_5m_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_0.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_0"
+      },
+      "created_at": "2025-06-22T17:02:49.473251"
+    },
+    "SPY_5m_compiled_strategy_1": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_1.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_1"
+      },
+      "created_at": "2025-06-22T17:02:49.473348"
+    },
+    "SPY_5m_compiled_strategy_2": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_2.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_2"
+      },
+      "created_at": "2025-06-22T17:02:49.473415"
+    },
+    "SPY_5m_compiled_strategy_3": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_3.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_3"
+      },
+      "created_at": "2025-06-22T17:02:49.473468"
+    },
+    "SPY_5m_compiled_strategy_4": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_4.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_4"
+      },
+      "created_at": "2025-06-22T17:02:49.473518"
+    },
+    "SPY_5m_compiled_strategy_5": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_5.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_5"
+      },
+      "created_at": "2025-06-22T17:02:49.473566"
+    },
+    "SPY_5m_compiled_strategy_6": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_6.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_6"
+      },
+      "created_at": "2025-06-22T17:02:49.473614"
+    },
+    "SPY_5m_compiled_strategy_7": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_7.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_7"
+      },
+      "created_at": "2025-06-22T17:02:49.473659"
+    },
+    "SPY_5m_compiled_strategy_8": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_8.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_8"
+      },
+      "created_at": "2025-06-22T17:02:49.473704"
+    },
+    "SPY_5m_compiled_strategy_9": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_9.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_9"
+      },
+      "created_at": "2025-06-22T17:02:49.473749"
+    },
+    "SPY_5m_compiled_strategy_350": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_350.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_350"
+      },
+      "created_at": "2025-06-22T17:02:49.473925"
+    },
+    "SPY_5m_compiled_strategy_351": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_351.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_351"
+      },
+      "created_at": "2025-06-22T17:02:49.473997"
+    },
+    "SPY_5m_compiled_strategy_352": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_352.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_352"
+      },
+      "created_at": "2025-06-22T17:02:49.474061"
+    },
+    "SPY_5m_compiled_strategy_353": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_353.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_353"
+      },
+      "created_at": "2025-06-22T17:02:49.474121"
+    },
+    "SPY_5m_compiled_strategy_354": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_354.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_354"
+      },
+      "created_at": "2025-06-22T17:02:49.474181"
+    },
+    "SPY_5m_compiled_strategy_355": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_355.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_355"
+      },
+      "created_at": "2025-06-22T17:02:49.474240"
+    },
+    "SPY_5m_compiled_strategy_356": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_356.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_356"
+      },
+      "created_at": "2025-06-22T17:02:49.474298"
+    },
+    "SPY_5m_compiled_strategy_357": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_357.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_357"
+      },
+      "created_at": "2025-06-22T17:02:49.474355"
+    },
+    "SPY_5m_compiled_strategy_358": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_358.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_358"
+      },
+      "created_at": "2025-06-22T17:02:49.474413"
+    },
+    "SPY_5m_compiled_strategy_359": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_359.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_359"
+      },
+      "created_at": "2025-06-22T17:02:49.474471"
+    },
+    "SPY_5m_compiled_strategy_775": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_775.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_775"
+      },
+      "created_at": "2025-06-22T17:02:49.474538"
+    },
+    "SPY_5m_compiled_strategy_776": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_776.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_776"
+      },
+      "created_at": "2025-06-22T17:02:49.474600"
+    },
+    "SPY_5m_compiled_strategy_777": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_777.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_777"
+      },
+      "created_at": "2025-06-22T17:02:49.474659"
+    },
+    "SPY_5m_compiled_strategy_778": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_778.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_778"
+      },
+      "created_at": "2025-06-22T17:02:49.474717"
+    },
+    "SPY_5m_compiled_strategy_779": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_779.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_779"
+      },
+      "created_at": "2025-06-22T17:02:49.474776"
+    },
+    "SPY_5m_compiled_strategy_780": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_780.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_780"
+      },
+      "created_at": "2025-06-22T17:02:49.474834"
+    },
+    "SPY_5m_compiled_strategy_781": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_781.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_781"
+      },
+      "created_at": "2025-06-22T17:02:49.474893"
+    },
+    "SPY_5m_compiled_strategy_782": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_782.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_782"
+      },
+      "created_at": "2025-06-22T17:02:49.474952"
+    },
+    "SPY_5m_compiled_strategy_783": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_783.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_783"
+      },
+      "created_at": "2025-06-22T17:02:49.475009"
+    },
+    "SPY_5m_compiled_strategy_784": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_784.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_784"
+      },
+      "created_at": "2025-06-22T17:02:49.475068"
+    },
+    "SPY_5m_compiled_strategy_800": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_800.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_800"
+      },
+      "created_at": "2025-06-22T17:02:49.475137"
+    },
+    "SPY_5m_compiled_strategy_801": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_801.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_801"
+      },
+      "created_at": "2025-06-22T17:02:49.475195"
+    },
+    "SPY_5m_compiled_strategy_802": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_802.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_802"
+      },
+      "created_at": "2025-06-22T17:02:49.475251"
+    },
+    "SPY_5m_compiled_strategy_803": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_803.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_803"
+      },
+      "created_at": "2025-06-22T17:02:49.475309"
+    },
+    "SPY_5m_compiled_strategy_804": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_804.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_804"
+      },
+      "created_at": "2025-06-22T17:02:49.475365"
+    },
+    "SPY_5m_compiled_strategy_805": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_805.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_805"
+      },
+      "created_at": "2025-06-22T17:02:49.475422"
+    },
+    "SPY_5m_compiled_strategy_806": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_806.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_806"
+      },
+      "created_at": "2025-06-22T17:02:49.475479"
+    },
+    "SPY_5m_compiled_strategy_807": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_807.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_807"
+      },
+      "created_at": "2025-06-22T17:02:49.475535"
+    },
+    "SPY_5m_compiled_strategy_808": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_808.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_808"
+      },
+      "created_at": "2025-06-22T17:02:49.475593"
+    },
+    "SPY_5m_compiled_strategy_809": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_809.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_809"
+      },
+      "created_at": "2025-06-22T17:02:49.475650"
+    },
+    "SPY_5m_compiled_strategy_825": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_825.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_825"
+      },
+      "created_at": "2025-06-22T17:02:49.475709"
+    },
+    "SPY_5m_compiled_strategy_826": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_826.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_826"
+      },
+      "created_at": "2025-06-22T17:02:49.475765"
+    },
+    "SPY_5m_compiled_strategy_827": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_827.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_827"
+      },
+      "created_at": "2025-06-22T17:02:49.475823"
+    },
+    "SPY_5m_compiled_strategy_828": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_828.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_828"
+      },
+      "created_at": "2025-06-22T17:02:49.475880"
+    },
+    "SPY_5m_compiled_strategy_829": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_829.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_829"
+      },
+      "created_at": "2025-06-22T17:02:49.475944"
+    },
+    "SPY_5m_compiled_strategy_830": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_830.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_830"
+      },
+      "created_at": "2025-06-22T17:02:49.476004"
+    },
+    "SPY_5m_compiled_strategy_831": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_831.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_831"
+      },
+      "created_at": "2025-06-22T17:02:49.476061"
+    },
+    "SPY_5m_compiled_strategy_832": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_832.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_832"
+      },
+      "created_at": "2025-06-22T17:02:49.476118"
+    },
+    "SPY_5m_compiled_strategy_833": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_833.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_833"
+      },
+      "created_at": "2025-06-22T17:02:49.476175"
+    },
+    "SPY_5m_compiled_strategy_834": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_834.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_834"
+      },
+      "created_at": "2025-06-22T17:02:49.476231"
+    },
+    "SPY_5m_compiled_strategy_850": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_850.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_850"
+      },
+      "created_at": "2025-06-22T17:02:49.476289"
+    },
+    "SPY_5m_compiled_strategy_851": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_851.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_851"
+      },
+      "created_at": "2025-06-22T17:02:49.476347"
+    },
+    "SPY_5m_compiled_strategy_852": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_852.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_852"
+      },
+      "created_at": "2025-06-22T17:02:49.476411"
+    },
+    "SPY_5m_compiled_strategy_853": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_853.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_853"
+      },
+      "created_at": "2025-06-22T17:02:49.476468"
+    },
+    "SPY_5m_compiled_strategy_854": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_854.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_854"
+      },
+      "created_at": "2025-06-22T17:02:49.476525"
+    },
+    "SPY_5m_compiled_strategy_855": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_855.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_855"
+      },
+      "created_at": "2025-06-22T17:02:49.476582"
+    },
+    "SPY_5m_compiled_strategy_856": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_856.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_856"
+      },
+      "created_at": "2025-06-22T17:02:49.476639"
+    },
+    "SPY_5m_compiled_strategy_857": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_857.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_857"
+      },
+      "created_at": "2025-06-22T17:02:49.476697"
+    },
+    "SPY_5m_compiled_strategy_858": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_858.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_858"
+      },
+      "created_at": "2025-06-22T17:02:49.476755"
+    },
+    "SPY_5m_compiled_strategy_859": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_859.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_859"
+      },
+      "created_at": "2025-06-22T17:02:49.476812"
+    },
+    "SPY_5m_compiled_strategy_875": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_875.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_875"
+      },
+      "created_at": "2025-06-22T17:02:49.476871"
+    },
+    "SPY_5m_compiled_strategy_876": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_876.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_876"
+      },
+      "created_at": "2025-06-22T17:02:49.476927"
+    },
+    "SPY_5m_compiled_strategy_877": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_877.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_877"
+      },
+      "created_at": "2025-06-22T17:02:49.476983"
+    },
+    "SPY_5m_compiled_strategy_878": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_878.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_878"
+      },
+      "created_at": "2025-06-22T17:02:49.477040"
+    },
+    "SPY_5m_compiled_strategy_879": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_879.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_879"
+      },
+      "created_at": "2025-06-22T17:02:49.477096"
+    },
+    "SPY_5m_compiled_strategy_880": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_880.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_880"
+      },
+      "created_at": "2025-06-22T17:02:49.477156"
+    },
+    "SPY_5m_compiled_strategy_881": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_881.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_881"
+      },
+      "created_at": "2025-06-22T17:02:49.477214"
+    },
+    "SPY_5m_compiled_strategy_882": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_882.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_882"
+      },
+      "created_at": "2025-06-22T17:02:49.477272"
+    },
+    "SPY_5m_compiled_strategy_883": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_883.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_883"
+      },
+      "created_at": "2025-06-22T17:02:49.477329"
+    },
+    "SPY_5m_compiled_strategy_884": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_884.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_884"
+      },
+      "created_at": "2025-06-22T17:02:49.477386"
+    },
+    "SPY_5m_compiled_strategy_900": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_900.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_900"
+      },
+      "created_at": "2025-06-22T17:02:49.477447"
+    },
+    "SPY_5m_compiled_strategy_901": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_901.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_901"
+      },
+      "created_at": "2025-06-22T17:02:49.477504"
+    },
+    "SPY_5m_compiled_strategy_902": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_902.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_902"
+      },
+      "created_at": "2025-06-22T17:02:49.477560"
+    },
+    "SPY_5m_compiled_strategy_903": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_903.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_903"
+      },
+      "created_at": "2025-06-22T17:02:49.477617"
+    },
+    "SPY_5m_compiled_strategy_904": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_904.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_904"
+      },
+      "created_at": "2025-06-22T17:02:49.477677"
+    },
+    "SPY_5m_compiled_strategy_905": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_905.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_905"
+      },
+      "created_at": "2025-06-22T17:02:49.477734"
+    },
+    "SPY_5m_compiled_strategy_906": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_906.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_906"
+      },
+      "created_at": "2025-06-22T17:02:49.477791"
+    },
+    "SPY_5m_compiled_strategy_907": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_907.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_907"
+      },
+      "created_at": "2025-06-22T17:02:49.477848"
+    },
+    "SPY_5m_compiled_strategy_908": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_908.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_908"
+      },
+      "created_at": "2025-06-22T17:02:49.477905"
+    },
+    "SPY_5m_compiled_strategy_909": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_909.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_909"
+      },
+      "created_at": "2025-06-22T17:02:49.477961"
+    },
+    "SPY_5m_compiled_strategy_925": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_925.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_925"
+      },
+      "created_at": "2025-06-22T17:02:49.478019"
+    },
+    "SPY_5m_compiled_strategy_926": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_926.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_926"
+      },
+      "created_at": "2025-06-22T17:02:49.478075"
+    },
+    "SPY_5m_compiled_strategy_927": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_927.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_927"
+      },
+      "created_at": "2025-06-22T17:02:49.478132"
+    },
+    "SPY_5m_compiled_strategy_928": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_928.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_928"
+      },
+      "created_at": "2025-06-22T17:02:49.478192"
+    },
+    "SPY_5m_compiled_strategy_929": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_929.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_929"
+      },
+      "created_at": "2025-06-22T17:02:49.478247"
+    },
+    "SPY_5m_compiled_strategy_930": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_930.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_930"
+      },
+      "created_at": "2025-06-22T17:02:49.478305"
+    },
+    "SPY_5m_compiled_strategy_931": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_931.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_931"
+      },
+      "created_at": "2025-06-22T17:02:49.478362"
+    },
+    "SPY_5m_compiled_strategy_932": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_932.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_932"
+      },
+      "created_at": "2025-06-22T17:02:49.478419"
+    },
+    "SPY_5m_compiled_strategy_933": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_933.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_933"
+      },
+      "created_at": "2025-06-22T17:02:49.478475"
+    },
+    "SPY_5m_compiled_strategy_934": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_934.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_934"
+      },
+      "created_at": "2025-06-22T17:02:49.478695"
+    },
+    "SPY_5m_compiled_strategy_950": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_950.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_950"
+      },
+      "created_at": "2025-06-22T17:02:49.478761"
+    },
+    "SPY_5m_compiled_strategy_951": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_951.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_951"
+      },
+      "created_at": "2025-06-22T17:02:49.478819"
+    },
+    "SPY_5m_compiled_strategy_952": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_952.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_952"
+      },
+      "created_at": "2025-06-22T17:02:49.478877"
+    },
+    "SPY_5m_compiled_strategy_953": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_953.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_953"
+      },
+      "created_at": "2025-06-22T17:02:49.478934"
+    },
+    "SPY_5m_compiled_strategy_954": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_954.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_954"
+      },
+      "created_at": "2025-06-22T17:02:49.478991"
+    },
+    "SPY_5m_compiled_strategy_955": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_955.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_955"
+      },
+      "created_at": "2025-06-22T17:02:49.479047"
+    },
+    "SPY_5m_compiled_strategy_956": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_956.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_956"
+      },
+      "created_at": "2025-06-22T17:02:49.479104"
+    },
+    "SPY_5m_compiled_strategy_957": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_957.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_957"
+      },
+      "created_at": "2025-06-22T17:02:49.479160"
+    },
+    "SPY_5m_compiled_strategy_958": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_958.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_958"
+      },
+      "created_at": "2025-06-22T17:02:49.479216"
+    },
+    "SPY_5m_compiled_strategy_959": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_959.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_959"
+      },
+      "created_at": "2025-06-22T17:02:49.479272"
+    },
+    "SPY_5m_compiled_strategy_975": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_975.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_975"
+      },
+      "created_at": "2025-06-22T17:02:49.479330"
+    },
+    "SPY_5m_compiled_strategy_976": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_976.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_976"
+      },
+      "created_at": "2025-06-22T17:02:49.479386"
+    },
+    "SPY_5m_compiled_strategy_977": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_977.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_977"
+      },
+      "created_at": "2025-06-22T17:02:49.479443"
+    },
+    "SPY_5m_compiled_strategy_978": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_978.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_978"
+      },
+      "created_at": "2025-06-22T17:02:49.479499"
+    },
+    "SPY_5m_compiled_strategy_979": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_979.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_979"
+      },
+      "created_at": "2025-06-22T17:02:49.479555"
+    },
+    "SPY_5m_compiled_strategy_980": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_980.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_980"
+      },
+      "created_at": "2025-06-22T17:02:49.479611"
+    },
+    "SPY_5m_compiled_strategy_981": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_981.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_981"
+      },
+      "created_at": "2025-06-22T17:02:49.479668"
+    },
+    "SPY_5m_compiled_strategy_982": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_982.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_982"
+      },
+      "created_at": "2025-06-22T17:02:49.479725"
+    },
+    "SPY_5m_compiled_strategy_983": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_983.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_983"
+      },
+      "created_at": "2025-06-22T17:02:49.479782"
+    },
+    "SPY_5m_compiled_strategy_984": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_984.parquet",
+      "total_bars": 5,
+      "signal_changes": 1,
+      "compression_ratio": 0.2,
+      "signal_frequency": 0.2,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_984"
+      },
+      "created_at": "2025-06-22T17:02:49.479839"
+    },
+    "SPY_5m_compiled_strategy_10": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_10.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_10"
+      },
+      "created_at": "2025-06-22T17:02:49.577781"
+    },
+    "SPY_5m_compiled_strategy_11": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_11.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_11"
+      },
+      "created_at": "2025-06-22T17:02:49.577833"
+    },
+    "SPY_5m_compiled_strategy_12": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_12.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_12"
+      },
+      "created_at": "2025-06-22T17:02:49.577882"
+    },
+    "SPY_5m_compiled_strategy_13": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_13.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_13"
+      },
+      "created_at": "2025-06-22T17:02:49.577928"
+    },
+    "SPY_5m_compiled_strategy_14": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_14.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_14"
+      },
+      "created_at": "2025-06-22T17:02:49.577974"
+    },
+    "SPY_5m_compiled_strategy_15": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_15.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_15"
+      },
+      "created_at": "2025-06-22T17:02:49.578020"
+    },
+    "SPY_5m_compiled_strategy_16": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_16.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_16"
+      },
+      "created_at": "2025-06-22T17:02:49.578065"
+    },
+    "SPY_5m_compiled_strategy_17": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_17.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_17"
+      },
+      "created_at": "2025-06-22T17:02:49.578110"
+    },
+    "SPY_5m_compiled_strategy_18": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_18.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_18"
+      },
+      "created_at": "2025-06-22T17:02:49.578154"
+    },
+    "SPY_5m_compiled_strategy_19": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_19.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_19"
+      },
+      "created_at": "2025-06-22T17:02:49.578199"
+    },
+    "SPY_5m_compiled_strategy_360": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_360.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_360"
+      },
+      "created_at": "2025-06-22T17:02:49.578670"
+    },
+    "SPY_5m_compiled_strategy_361": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_361.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_361"
+      },
+      "created_at": "2025-06-22T17:02:49.578728"
+    },
+    "SPY_5m_compiled_strategy_362": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_362.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_362"
+      },
+      "created_at": "2025-06-22T17:02:49.578784"
+    },
+    "SPY_5m_compiled_strategy_363": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_363.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_363"
+      },
+      "created_at": "2025-06-22T17:02:49.578840"
+    },
+    "SPY_5m_compiled_strategy_364": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_364.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_364"
+      },
+      "created_at": "2025-06-22T17:02:49.578897"
+    },
+    "SPY_5m_compiled_strategy_365": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_365.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_365"
+      },
+      "created_at": "2025-06-22T17:02:49.578953"
+    },
+    "SPY_5m_compiled_strategy_366": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_366.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_366"
+      },
+      "created_at": "2025-06-22T17:02:49.579013"
+    },
+    "SPY_5m_compiled_strategy_367": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_367.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_367"
+      },
+      "created_at": "2025-06-22T17:02:49.579069"
+    },
+    "SPY_5m_compiled_strategy_368": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_368.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_368"
+      },
+      "created_at": "2025-06-22T17:02:49.579125"
+    },
+    "SPY_5m_compiled_strategy_369": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_369.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_369"
+      },
+      "created_at": "2025-06-22T17:02:49.579180"
+    },
+    "SPY_5m_compiled_strategy_785": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_785.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_785"
+      },
+      "created_at": "2025-06-22T17:02:49.579662"
+    },
+    "SPY_5m_compiled_strategy_786": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_786.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_786"
+      },
+      "created_at": "2025-06-22T17:02:49.579722"
+    },
+    "SPY_5m_compiled_strategy_787": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_787.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_787"
+      },
+      "created_at": "2025-06-22T17:02:49.579781"
+    },
+    "SPY_5m_compiled_strategy_788": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_788.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_788"
+      },
+      "created_at": "2025-06-22T17:02:49.579842"
+    },
+    "SPY_5m_compiled_strategy_789": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_789.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_789"
+      },
+      "created_at": "2025-06-22T17:02:49.579900"
+    },
+    "SPY_5m_compiled_strategy_790": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_790.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_790"
+      },
+      "created_at": "2025-06-22T17:02:49.579958"
+    },
+    "SPY_5m_compiled_strategy_791": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_791.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_791"
+      },
+      "created_at": "2025-06-22T17:02:49.580016"
+    },
+    "SPY_5m_compiled_strategy_792": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_792.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_792"
+      },
+      "created_at": "2025-06-22T17:02:49.580075"
+    },
+    "SPY_5m_compiled_strategy_793": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_793.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_793"
+      },
+      "created_at": "2025-06-22T17:02:49.580132"
+    },
+    "SPY_5m_compiled_strategy_794": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_794.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_794"
+      },
+      "created_at": "2025-06-22T17:02:49.580189"
+    },
+    "SPY_5m_compiled_strategy_810": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_810.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_810"
+      },
+      "created_at": "2025-06-22T17:02:49.580668"
+    },
+    "SPY_5m_compiled_strategy_811": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_811.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_811"
+      },
+      "created_at": "2025-06-22T17:02:49.580727"
+    },
+    "SPY_5m_compiled_strategy_812": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_812.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_812"
+      },
+      "created_at": "2025-06-22T17:02:49.580784"
+    },
+    "SPY_5m_compiled_strategy_813": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_813.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_813"
+      },
+      "created_at": "2025-06-22T17:02:49.580840"
+    },
+    "SPY_5m_compiled_strategy_814": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_814.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_814"
+      },
+      "created_at": "2025-06-22T17:02:49.580898"
+    },
+    "SPY_5m_compiled_strategy_815": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_815.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_815"
+      },
+      "created_at": "2025-06-22T17:02:49.580954"
+    },
+    "SPY_5m_compiled_strategy_816": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_816.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_816"
+      },
+      "created_at": "2025-06-22T17:02:49.581011"
+    },
+    "SPY_5m_compiled_strategy_817": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_817.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_817"
+      },
+      "created_at": "2025-06-22T17:02:49.581068"
+    },
+    "SPY_5m_compiled_strategy_818": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_818.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_818"
+      },
+      "created_at": "2025-06-22T17:02:49.581124"
+    },
+    "SPY_5m_compiled_strategy_819": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_819.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_819"
+      },
+      "created_at": "2025-06-22T17:02:49.581181"
+    },
+    "SPY_5m_compiled_strategy_835": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_835.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_835"
+      },
+      "created_at": "2025-06-22T17:02:49.581668"
+    },
+    "SPY_5m_compiled_strategy_836": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_836.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_836"
+      },
+      "created_at": "2025-06-22T17:02:49.581727"
+    },
+    "SPY_5m_compiled_strategy_837": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_837.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_837"
+      },
+      "created_at": "2025-06-22T17:02:49.581786"
+    },
+    "SPY_5m_compiled_strategy_838": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_838.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_838"
+      },
+      "created_at": "2025-06-22T17:02:49.581844"
+    },
+    "SPY_5m_compiled_strategy_839": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_839.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_839"
+      },
+      "created_at": "2025-06-22T17:02:49.581901"
+    },
+    "SPY_5m_compiled_strategy_840": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_840.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_840"
+      },
+      "created_at": "2025-06-22T17:02:49.581957"
+    },
+    "SPY_5m_compiled_strategy_841": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_841.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_841"
+      },
+      "created_at": "2025-06-22T17:02:49.582015"
+    },
+    "SPY_5m_compiled_strategy_842": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_842.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_842"
+      },
+      "created_at": "2025-06-22T17:02:49.582071"
+    },
+    "SPY_5m_compiled_strategy_843": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_843.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_843"
+      },
+      "created_at": "2025-06-22T17:02:49.582132"
+    },
+    "SPY_5m_compiled_strategy_844": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_844.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_844"
+      },
+      "created_at": "2025-06-22T17:02:49.582189"
+    },
+    "SPY_5m_compiled_strategy_860": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_860.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_860"
+      },
+      "created_at": "2025-06-22T17:02:49.582666"
+    },
+    "SPY_5m_compiled_strategy_861": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_861.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_861"
+      },
+      "created_at": "2025-06-22T17:02:49.582724"
+    },
+    "SPY_5m_compiled_strategy_862": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_862.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_862"
+      },
+      "created_at": "2025-06-22T17:02:49.582781"
+    },
+    "SPY_5m_compiled_strategy_863": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_863.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_863"
+      },
+      "created_at": "2025-06-22T17:02:49.582839"
+    },
+    "SPY_5m_compiled_strategy_864": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_864.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_864"
+      },
+      "created_at": "2025-06-22T17:02:49.582896"
+    },
+    "SPY_5m_compiled_strategy_865": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_865.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_865"
+      },
+      "created_at": "2025-06-22T17:02:49.582953"
+    },
+    "SPY_5m_compiled_strategy_866": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_866.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_866"
+      },
+      "created_at": "2025-06-22T17:02:49.583010"
+    },
+    "SPY_5m_compiled_strategy_867": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_867.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_867"
+      },
+      "created_at": "2025-06-22T17:02:49.583067"
+    },
+    "SPY_5m_compiled_strategy_868": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_868.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_868"
+      },
+      "created_at": "2025-06-22T17:02:49.583124"
+    },
+    "SPY_5m_compiled_strategy_869": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_869.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_869"
+      },
+      "created_at": "2025-06-22T17:02:49.583182"
+    },
+    "SPY_5m_compiled_strategy_885": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_885.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_885"
+      },
+      "created_at": "2025-06-22T17:02:49.583666"
+    },
+    "SPY_5m_compiled_strategy_886": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_886.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_886"
+      },
+      "created_at": "2025-06-22T17:02:49.583725"
+    },
+    "SPY_5m_compiled_strategy_887": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_887.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_887"
+      },
+      "created_at": "2025-06-22T17:02:49.583783"
+    },
+    "SPY_5m_compiled_strategy_888": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_888.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_888"
+      },
+      "created_at": "2025-06-22T17:02:49.583840"
+    },
+    "SPY_5m_compiled_strategy_889": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_889.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_889"
+      },
+      "created_at": "2025-06-22T17:02:49.583897"
+    },
+    "SPY_5m_compiled_strategy_890": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_890.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_890"
+      },
+      "created_at": "2025-06-22T17:02:49.583955"
+    },
+    "SPY_5m_compiled_strategy_891": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_891.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_891"
+      },
+      "created_at": "2025-06-22T17:02:49.584012"
+    },
+    "SPY_5m_compiled_strategy_892": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_892.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_892"
+      },
+      "created_at": "2025-06-22T17:02:49.584071"
+    },
+    "SPY_5m_compiled_strategy_893": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_893.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_893"
+      },
+      "created_at": "2025-06-22T17:02:49.584129"
+    },
+    "SPY_5m_compiled_strategy_894": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_894.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_894"
+      },
+      "created_at": "2025-06-22T17:02:49.584186"
+    },
+    "SPY_5m_compiled_strategy_910": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_910.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_910"
+      },
+      "created_at": "2025-06-22T17:02:49.584828"
+    },
+    "SPY_5m_compiled_strategy_911": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_911.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_911"
+      },
+      "created_at": "2025-06-22T17:02:49.584889"
+    },
+    "SPY_5m_compiled_strategy_912": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_912.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_912"
+      },
+      "created_at": "2025-06-22T17:02:49.584948"
+    },
+    "SPY_5m_compiled_strategy_913": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_913.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_913"
+      },
+      "created_at": "2025-06-22T17:02:49.585007"
+    },
+    "SPY_5m_compiled_strategy_914": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_914.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_914"
+      },
+      "created_at": "2025-06-22T17:02:49.585066"
+    },
+    "SPY_5m_compiled_strategy_915": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_915.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_915"
+      },
+      "created_at": "2025-06-22T17:02:49.585123"
+    },
+    "SPY_5m_compiled_strategy_916": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_916.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_916"
+      },
+      "created_at": "2025-06-22T17:02:49.585180"
+    },
+    "SPY_5m_compiled_strategy_917": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_917.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_917"
+      },
+      "created_at": "2025-06-22T17:02:49.585237"
+    },
+    "SPY_5m_compiled_strategy_918": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_918.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_918"
+      },
+      "created_at": "2025-06-22T17:02:49.585294"
+    },
+    "SPY_5m_compiled_strategy_919": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_919.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_919"
+      },
+      "created_at": "2025-06-22T17:02:49.585351"
+    },
+    "SPY_5m_compiled_strategy_935": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_935.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_935"
+      },
+      "created_at": "2025-06-22T17:02:49.585837"
+    },
+    "SPY_5m_compiled_strategy_936": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_936.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_936"
+      },
+      "created_at": "2025-06-22T17:02:49.585895"
+    },
+    "SPY_5m_compiled_strategy_937": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_937.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_937"
+      },
+      "created_at": "2025-06-22T17:02:49.585958"
+    },
+    "SPY_5m_compiled_strategy_938": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_938.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_938"
+      },
+      "created_at": "2025-06-22T17:02:49.586014"
+    },
+    "SPY_5m_compiled_strategy_939": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_939.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_939"
+      },
+      "created_at": "2025-06-22T17:02:49.586071"
+    },
+    "SPY_5m_compiled_strategy_940": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_940.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_940"
+      },
+      "created_at": "2025-06-22T17:02:49.586127"
+    },
+    "SPY_5m_compiled_strategy_941": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_941.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_941"
+      },
+      "created_at": "2025-06-22T17:02:49.586183"
+    },
+    "SPY_5m_compiled_strategy_942": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_942.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_942"
+      },
+      "created_at": "2025-06-22T17:02:49.586240"
+    },
+    "SPY_5m_compiled_strategy_943": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_943.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_943"
+      },
+      "created_at": "2025-06-22T17:02:49.586299"
+    },
+    "SPY_5m_compiled_strategy_944": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_944.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_944"
+      },
+      "created_at": "2025-06-22T17:02:49.586356"
+    },
+    "SPY_5m_compiled_strategy_960": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_960.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_960"
+      },
+      "created_at": "2025-06-22T17:02:49.586847"
+    },
+    "SPY_5m_compiled_strategy_961": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_961.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_961"
+      },
+      "created_at": "2025-06-22T17:02:49.586907"
+    },
+    "SPY_5m_compiled_strategy_962": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_962.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_962"
+      },
+      "created_at": "2025-06-22T17:02:49.586965"
+    },
+    "SPY_5m_compiled_strategy_963": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_963.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_963"
+      },
+      "created_at": "2025-06-22T17:02:49.587023"
+    },
+    "SPY_5m_compiled_strategy_964": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_964.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_964"
+      },
+      "created_at": "2025-06-22T17:02:49.587079"
+    },
+    "SPY_5m_compiled_strategy_965": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_965.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_965"
+      },
+      "created_at": "2025-06-22T17:02:49.587136"
+    },
+    "SPY_5m_compiled_strategy_966": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_966.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_966"
+      },
+      "created_at": "2025-06-22T17:02:49.587193"
+    },
+    "SPY_5m_compiled_strategy_967": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_967.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_967"
+      },
+      "created_at": "2025-06-22T17:02:49.587250"
+    },
+    "SPY_5m_compiled_strategy_968": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_968.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_968"
+      },
+      "created_at": "2025-06-22T17:02:49.587306"
+    },
+    "SPY_5m_compiled_strategy_969": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_969.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_969"
+      },
+      "created_at": "2025-06-22T17:02:49.587363"
+    },
+    "SPY_5m_compiled_strategy_985": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_985.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_985"
+      },
+      "created_at": "2025-06-22T17:02:49.587840"
+    },
+    "SPY_5m_compiled_strategy_986": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_986.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_986"
+      },
+      "created_at": "2025-06-22T17:02:49.587898"
+    },
+    "SPY_5m_compiled_strategy_987": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_987.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_987"
+      },
+      "created_at": "2025-06-22T17:02:49.587955"
+    },
+    "SPY_5m_compiled_strategy_988": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_988.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_988"
+      },
+      "created_at": "2025-06-22T17:02:49.588012"
+    },
+    "SPY_5m_compiled_strategy_989": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_989.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_989"
+      },
+      "created_at": "2025-06-22T17:02:49.588072"
+    },
+    "SPY_5m_compiled_strategy_990": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_990.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_990"
+      },
+      "created_at": "2025-06-22T17:02:49.588130"
+    },
+    "SPY_5m_compiled_strategy_991": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_991.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_991"
+      },
+      "created_at": "2025-06-22T17:02:49.588186"
+    },
+    "SPY_5m_compiled_strategy_992": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_992.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_992"
+      },
+      "created_at": "2025-06-22T17:02:49.588243"
+    },
+    "SPY_5m_compiled_strategy_993": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_993.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_993"
+      },
+      "created_at": "2025-06-22T17:02:49.588300"
+    },
+    "SPY_5m_compiled_strategy_994": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_994.parquet",
+      "total_bars": 6,
+      "signal_changes": 1,
+      "compression_ratio": 0.16666666666666666,
+      "signal_frequency": 0.16666666666666666,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_994"
+      },
+      "created_at": "2025-06-22T17:02:49.588357"
+    },
+    "SPY_5m_compiled_strategy_20": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_20.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_20"
+      },
+      "created_at": "2025-06-22T17:02:49.685826"
+    },
+    "SPY_5m_compiled_strategy_21": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_21.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_21"
+      },
+      "created_at": "2025-06-22T17:02:49.685890"
+    },
+    "SPY_5m_compiled_strategy_22": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_22.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_22"
+      },
+      "created_at": "2025-06-22T17:02:49.685955"
+    },
+    "SPY_5m_compiled_strategy_23": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_23.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_23"
+      },
+      "created_at": "2025-06-22T17:02:49.686003"
+    },
+    "SPY_5m_compiled_strategy_24": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_24.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_24"
+      },
+      "created_at": "2025-06-22T17:02:49.686049"
+    },
+    "SPY_5m_compiled_strategy_370": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_370.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_370"
+      },
+      "created_at": "2025-06-22T17:02:49.686954"
+    },
+    "SPY_5m_compiled_strategy_371": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_371.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_371"
+      },
+      "created_at": "2025-06-22T17:02:49.687028"
+    },
+    "SPY_5m_compiled_strategy_372": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_372.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_372"
+      },
+      "created_at": "2025-06-22T17:02:49.687088"
+    },
+    "SPY_5m_compiled_strategy_373": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_373.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_373"
+      },
+      "created_at": "2025-06-22T17:02:49.687145"
+    },
+    "SPY_5m_compiled_strategy_374": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_374.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_374"
+      },
+      "created_at": "2025-06-22T17:02:49.687199"
+    },
+    "SPY_5m_compiled_strategy_795": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_795.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_795"
+      },
+      "created_at": "2025-06-22T17:02:49.688135"
+    },
+    "SPY_5m_compiled_strategy_796": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_796.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_796"
+      },
+      "created_at": "2025-06-22T17:02:49.688197"
+    },
+    "SPY_5m_compiled_strategy_797": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_797.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_797"
+      },
+      "created_at": "2025-06-22T17:02:49.688269"
+    },
+    "SPY_5m_compiled_strategy_798": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_798.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_798"
+      },
+      "created_at": "2025-06-22T17:02:49.688335"
+    },
+    "SPY_5m_compiled_strategy_799": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_799.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_799"
+      },
+      "created_at": "2025-06-22T17:02:49.688396"
+    },
+    "SPY_5m_compiled_strategy_820": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_820.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_820"
+      },
+      "created_at": "2025-06-22T17:02:49.689380"
+    },
+    "SPY_5m_compiled_strategy_821": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_821.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_821"
+      },
+      "created_at": "2025-06-22T17:02:49.689440"
+    },
+    "SPY_5m_compiled_strategy_822": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_822.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_822"
+      },
+      "created_at": "2025-06-22T17:02:49.689498"
+    },
+    "SPY_5m_compiled_strategy_823": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_823.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_823"
+      },
+      "created_at": "2025-06-22T17:02:49.689555"
+    },
+    "SPY_5m_compiled_strategy_824": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_824.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_824"
+      },
+      "created_at": "2025-06-22T17:02:49.689613"
+    },
+    "SPY_5m_compiled_strategy_845": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_845.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_845"
+      },
+      "created_at": "2025-06-22T17:02:49.690510"
+    },
+    "SPY_5m_compiled_strategy_846": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_846.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_846"
+      },
+      "created_at": "2025-06-22T17:02:49.690568"
+    },
+    "SPY_5m_compiled_strategy_847": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_847.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_847"
+      },
+      "created_at": "2025-06-22T17:02:49.690626"
+    },
+    "SPY_5m_compiled_strategy_848": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_848.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_848"
+      },
+      "created_at": "2025-06-22T17:02:49.690683"
+    },
+    "SPY_5m_compiled_strategy_849": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_849.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_849"
+      },
+      "created_at": "2025-06-22T17:02:49.690739"
+    },
+    "SPY_5m_compiled_strategy_870": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_870.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_870"
+      },
+      "created_at": "2025-06-22T17:02:49.691633"
+    },
+    "SPY_5m_compiled_strategy_871": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_871.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_871"
+      },
+      "created_at": "2025-06-22T17:02:49.691692"
+    },
+    "SPY_5m_compiled_strategy_872": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_872.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_872"
+      },
+      "created_at": "2025-06-22T17:02:49.691749"
+    },
+    "SPY_5m_compiled_strategy_873": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_873.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_873"
+      },
+      "created_at": "2025-06-22T17:02:49.691806"
+    },
+    "SPY_5m_compiled_strategy_874": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_874.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_874"
+      },
+      "created_at": "2025-06-22T17:02:49.691863"
+    },
+    "SPY_5m_compiled_strategy_895": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_895.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_895"
+      },
+      "created_at": "2025-06-22T17:02:49.692763"
+    },
+    "SPY_5m_compiled_strategy_896": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_896.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_896"
+      },
+      "created_at": "2025-06-22T17:02:49.692820"
+    },
+    "SPY_5m_compiled_strategy_897": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_897.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_897"
+      },
+      "created_at": "2025-06-22T17:02:49.692879"
+    },
+    "SPY_5m_compiled_strategy_898": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_898.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_898"
+      },
+      "created_at": "2025-06-22T17:02:49.692936"
+    },
+    "SPY_5m_compiled_strategy_899": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_899.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_899"
+      },
+      "created_at": "2025-06-22T17:02:49.692993"
+    },
+    "SPY_5m_compiled_strategy_920": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_920.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_920"
+      },
+      "created_at": "2025-06-22T17:02:49.693889"
+    },
+    "SPY_5m_compiled_strategy_921": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_921.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_921"
+      },
+      "created_at": "2025-06-22T17:02:49.693947"
+    },
+    "SPY_5m_compiled_strategy_922": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_922.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_922"
+      },
+      "created_at": "2025-06-22T17:02:49.694004"
+    },
+    "SPY_5m_compiled_strategy_923": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_923.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_923"
+      },
+      "created_at": "2025-06-22T17:02:49.694062"
+    },
+    "SPY_5m_compiled_strategy_924": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_924.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_924"
+      },
+      "created_at": "2025-06-22T17:02:49.694119"
+    },
+    "SPY_5m_compiled_strategy_945": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_945.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_945"
+      },
+      "created_at": "2025-06-22T17:02:49.695010"
+    },
+    "SPY_5m_compiled_strategy_946": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_946.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_946"
+      },
+      "created_at": "2025-06-22T17:02:49.695068"
+    },
+    "SPY_5m_compiled_strategy_947": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_947.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_947"
+      },
+      "created_at": "2025-06-22T17:02:49.695125"
+    },
+    "SPY_5m_compiled_strategy_948": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_948.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_948"
+      },
+      "created_at": "2025-06-22T17:02:49.695182"
+    },
+    "SPY_5m_compiled_strategy_949": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_949.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_949"
+      },
+      "created_at": "2025-06-22T17:02:49.695238"
+    },
+    "SPY_5m_compiled_strategy_970": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_970.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_970"
+      },
+      "created_at": "2025-06-22T17:02:49.696137"
+    },
+    "SPY_5m_compiled_strategy_971": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_971.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_971"
+      },
+      "created_at": "2025-06-22T17:02:49.696195"
+    },
+    "SPY_5m_compiled_strategy_972": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_972.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_972"
+      },
+      "created_at": "2025-06-22T17:02:49.696251"
+    },
+    "SPY_5m_compiled_strategy_973": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_973.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_973"
+      },
+      "created_at": "2025-06-22T17:02:49.696308"
+    },
+    "SPY_5m_compiled_strategy_974": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_974.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_974"
+      },
+      "created_at": "2025-06-22T17:02:49.696563"
+    },
+    "SPY_5m_compiled_strategy_995": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_995.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_995"
+      },
+      "created_at": "2025-06-22T17:02:49.697483"
+    },
+    "SPY_5m_compiled_strategy_996": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_996.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_996"
+      },
+      "created_at": "2025-06-22T17:02:49.697542"
+    },
+    "SPY_5m_compiled_strategy_997": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_997.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_997"
+      },
+      "created_at": "2025-06-22T17:02:49.697603"
+    },
+    "SPY_5m_compiled_strategy_998": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_998.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_998"
+      },
+      "created_at": "2025-06-22T17:02:49.697660"
+    },
+    "SPY_5m_compiled_strategy_999": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/keltner_bands/SPY_5m_compiled_strategy_999.parquet",
+      "total_bars": 7,
+      "signal_changes": 1,
+      "compression_ratio": 0.14285714285714285,
+      "signal_frequency": 0.14285714285714285,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_999"
+      },
+      "created_at": "2025-06-22T17:02:49.697716"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

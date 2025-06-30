@@ -1,0 +1,272 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/bollinger/results/20250624_201146",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 49,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "timestamp": "2025-06-24T20:11:47.542108",
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands_10_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_10",
+        "params": {
+          "period": 10,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_15",
+        "params": {
+          "period": 10,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_20",
+        "params": {
+          "period": 10,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_25",
+        "params": {
+          "period": 10,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_10",
+        "params": {
+          "period": 11,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_15",
+        "params": {
+          "period": 11,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_20",
+        "params": {
+          "period": 11,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_25",
+        "params": {
+          "period": 11,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_10",
+        "params": {
+          "period": 12,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_15",
+        "params": {
+          "period": 12,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_20",
+        "params": {
+          "period": 12,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_25",
+        "params": {
+          "period": 12,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_10",
+        "params": {
+          "period": 13,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_15",
+        "params": {
+          "period": 13,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_20",
+        "params": {
+          "period": 13,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_25",
+        "params": {
+          "period": 13,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_10",
+        "params": {
+          "period": 14,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_15",
+        "params": {
+          "period": 14,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_20",
+        "params": {
+          "period": 14,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_25",
+        "params": {
+          "period": 14,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_10",
+        "params": {
+          "period": 15,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_15",
+        "params": {
+          "period": 15,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_20",
+        "params": {
+          "period": 15,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_25",
+        "params": {
+          "period": 15,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 24,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 24,
+      "max_nesting_depth": 0
+    }
+  }
+}

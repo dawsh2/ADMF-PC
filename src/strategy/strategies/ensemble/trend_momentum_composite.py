@@ -6,6 +6,7 @@ to create more sophisticated trading signals.
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ....core.components.discovery import strategy
 
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='trend_momentum_composite',
-    feature_config=['sma', 'rsi']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)}), FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})]  # Topology builder infers parameters from strategy logic
 )
 def trend_momentum_composite(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -116,7 +117,7 @@ def _get_rsi_filter(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[
 # Alternative: Voting-based ensemble strategy
 @strategy(
     name='multi_indicator_voting',
-    feature_config=['sma', 'rsi', 'bollinger']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)}), FeatureSpec('rsi', {'period': params.get('rsi_period', 14)}), FeatureSpec('bollinger', {})]  # Topology builder infers parameters from strategy logic
 )
 def multi_indicator_voting(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

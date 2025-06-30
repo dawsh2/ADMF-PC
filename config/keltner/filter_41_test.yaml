@@ -1,0 +1,39 @@
+name: filter_41_test
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-07-01"
+end_date: "2024-12-31"
+dataset: test
+
+# Define features needed for filters
+feature_configs:
+  rsi_14:
+    type: rsi
+    period: 14
+  volume_ratio_20:
+    type: volume_ratio
+    period: 20
+
+# Strategy with Filter ID 41
+# Based on the parameter sweep, Filter 41 would be in the RSI filter range
+# Filter IDs 25-48 are RSI filters: kb_rsi{threshold}_p{period}_m{multiplier}
+# Filter 41 = 25 + 16 = 41st position
+# This corresponds to RSI threshold 60, period 20, multiplier 2.0
+strategies:
+  - name: kb_winner_filter41
+    type: keltner_bands
+    params:
+      period: 50  # The winning config used period 50
+      multiplier: 1.0  # The winning config used multiplier 1.0
+    filter: "signal == 0 or rsi(14) < 60"  # Filter 41 configuration
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "5m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

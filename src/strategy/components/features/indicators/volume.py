@@ -385,6 +385,177 @@ class VolumeMomentum:
         self._volume_buffer.clear()
 
 
+class VWAP:
+    """Volume Weighted Average Price (VWAP) with O(1) updates.
+    
+    Standard VWAP that accumulates throughout the entire data series.
+    For session-based VWAP, use SessionVWAP instead.
+    """
+    
+    def __init__(self, name: str = "vwap"):
+        self._state = FeatureState(name)
+        self._cumulative_pv = 0.0  # Cumulative price * volume
+        self._cumulative_volume = 0.0  # Cumulative volume
+    
+    @property
+    def name(self) -> str:
+        return self._state.name
+    
+    @property
+    def value(self) -> Optional[float]:
+        return self._state.value
+    
+    @property
+    def is_ready(self) -> bool:
+        return self._state.is_ready
+    
+    def update(self, price: float, volume: Optional[float] = None, **kwargs) -> Optional[float]:
+        if volume is None:
+            raise ValueError("VWAP requires volume data")
+        
+        # Use typical price if high/low available
+        high = kwargs.get('high', price)
+        low = kwargs.get('low', price)
+        typical_price = (high + low + price) / 3
+        
+        # Accumulate price * volume and volume
+        self._cumulative_pv += typical_price * volume
+        self._cumulative_volume += volume
+        
+        if self._cumulative_volume > 0:
+            vwap = self._cumulative_pv / self._cumulative_volume
+            self._state.set_value(vwap)
+        
+        return self._state.value
+    
+    def reset(self) -> None:
+        self._state.reset()
+        self._cumulative_pv = 0.0
+        self._cumulative_volume = 0.0
+
+
+class SessionVWAP:
+    """Session-based Volume Weighted Average Price with O(1) updates.
+    
+    Resets at the beginning of each trading session (market open).
+    Detects session boundaries based on timestamp gaps or explicit session times.
+    """
+    
+    def __init__(self, session_start_hour: int = 9, session_start_minute: int = 30,
+                 reset_on_gap_minutes: int = 60, name: str = "session_vwap"):
+        """
+        Initialize SessionVWAP.
+        
+        Args:
+            session_start_hour: Hour when trading session starts (default: 9 for 9:30 AM)
+            session_start_minute: Minute when trading session starts (default: 30)
+            reset_on_gap_minutes: Reset if time gap exceeds this many minutes (default: 60)
+            name: Feature name
+        """
+        self._state = FeatureState(name)
+        self.session_start_hour = session_start_hour
+        self.session_start_minute = session_start_minute
+        self.reset_on_gap_minutes = reset_on_gap_minutes
+        
+        self._cumulative_pv = 0.0  # Cumulative price * volume for current session
+        self._cumulative_volume = 0.0  # Cumulative volume for current session
+        self._last_timestamp = None
+        self._current_session_date = None
+    
+    @property
+    def name(self) -> str:
+        return self._state.name
+    
+    @property
+    def value(self) -> Optional[float]:
+        return self._state.value
+    
+    @property
+    def is_ready(self) -> bool:
+        return self._state.is_ready
+    
+    def update(self, price: float, volume: Optional[float] = None, 
+               timestamp: Optional[Any] = None, **kwargs) -> Optional[float]:
+        if volume is None:
+            raise ValueError("SessionVWAP requires volume data")
+        
+        # Check if we need to reset for a new session
+        if timestamp is not None:
+            if self._should_reset_session(timestamp):
+                self._reset_session()
+        
+        # Use typical price if high/low available
+        high = kwargs.get('high', price)
+        low = kwargs.get('low', price)
+        typical_price = (high + low + price) / 3
+        
+        # Accumulate price * volume and volume for current session
+        self._cumulative_pv += typical_price * volume
+        self._cumulative_volume += volume
+        
+        if self._cumulative_volume > 0:
+            vwap = self._cumulative_pv / self._cumulative_volume
+            self._state.set_value(vwap)
+        
+        self._last_timestamp = timestamp
+        return self._state.value
+    
+    def _should_reset_session(self, timestamp) -> bool:
+        """Determine if we should reset for a new trading session."""
+        if self._last_timestamp is None:
+            return False
+        
+        # Handle different timestamp formats
+        import datetime
+        import pandas as pd
+        
+        # Convert to datetime if needed
+        if isinstance(timestamp, str):
+            current_dt = pd.to_datetime(timestamp)
+        elif isinstance(timestamp, (int, float)):
+            current_dt = pd.to_datetime(timestamp, unit='s')
+        else:
+            current_dt = timestamp
+        
+        if isinstance(self._last_timestamp, str):
+            last_dt = pd.to_datetime(self._last_timestamp)
+        elif isinstance(self._last_timestamp, (int, float)):
+            last_dt = pd.to_datetime(self._last_timestamp, unit='s')
+        else:
+            last_dt = self._last_timestamp
+        
+        # Check for new trading day
+        if current_dt.date() != last_dt.date():
+            return True
+        
+        # Check if we're at session start time
+        if (current_dt.hour == self.session_start_hour and 
+            current_dt.minute == self.session_start_minute and
+            last_dt.hour < self.session_start_hour):
+            return True
+        
+        # Check for large time gaps (e.g., between sessions)
+        time_diff = (current_dt - last_dt).total_seconds() / 60  # Minutes
+        if time_diff > self.reset_on_gap_minutes:
+            return True
+        
+        return False
+    
+    def _reset_session(self) -> None:
+        """Reset accumulations for a new session."""
+        self._cumulative_pv = 0.0
+        self._cumulative_volume = 0.0
+        # Don't reset the state value - let it update with new session data
+    
+    def reset(self) -> None:
+        """Full reset of the indicator."""
+        self._state.reset()
+        self._cumulative_pv = 0.0
+        self._cumulative_volume = 0.0
+        self._last_timestamp = None
+        self._current_session_date = None
+
+
 # Volume feature registry for the FeatureHub factory
 VOLUME_FEATURES = {
     "volume": Volume,  # Raw volume from bar data
@@ -400,4 +571,6 @@ VOLUME_FEATURES = {
     "vroc": VROC,
     "volume_roc": VROC,  # Alias
     "volume_momentum": VolumeMomentum,
+    "vwap": VWAP,
+    "session_vwap": SessionVWAP,
 }

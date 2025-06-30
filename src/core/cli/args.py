@@ -102,7 +102,15 @@ def load_yaml_config(config_path: str) -> Dict[str, Any]:
     
     with open(config_file, 'r') as f:
         try:
-            return yaml.safe_load(f)
+            config_dict = yaml.safe_load(f)
+            
+            # Check if this uses the clean syntax
+            if 'strategy' in config_dict:
+                # Parse clean syntax
+                from src.core.coordinator.config.clean_syntax_parser import parse_clean_config
+                config_dict = parse_clean_config(config_dict)
+                
+            return config_dict
         except yaml.YAMLError as e:
             raise yaml.YAMLError(f"Invalid YAML in config file {config_path}: {e}")
 

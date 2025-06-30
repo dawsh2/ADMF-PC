@@ -1,0 +1,41 @@
+# Test mean reversion strategies excluding diagonal channel
+name: test_mean_reversion_no_diagonal
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Use wildcard discovery but exclude specific strategies
+parameter_space:
+  # Specific mean reversion strategies (excluding diagonal_channel_reversion)
+  bollinger_bands: "*"
+  keltner_bands: "*"
+  donchian_bands: "*"
+  vwap_deviation: "*"
+  pivot_bounces: "*"
+  swing_pivot_bounce: "*"
+  rsi_bands: "*"
+  cci_bands: "*"
+  williams_r: "*"
+  stochastic_rsi: "*"
+  ultimate_oscillator: "*"
+  mfi_bands: "*"
+  trendline_bounces: "*"
+  # NOTE: diagonal_channel_reversion is intentionally excluded
+
+# Control optimization granularity
+optimization:
+  granularity: 3
+
+# Run with:
+# python main.py --config config/test_mean_reversion_no_diagonal.yaml --optimize --bars 1000
+
+# This will discover all mean reversion strategies except diagonal_channel_reversion

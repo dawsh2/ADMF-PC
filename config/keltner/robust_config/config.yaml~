@@ -1,0 +1,26 @@
+name: keltner_robust
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+
+# Using the most robust parameters from analysis
+# Period=10, Multiplier=3.0 worked well with 100% of filters
+strategies:
+  - name: kb_robust_p10_m3
+    type: keltner_bands
+    params:
+      period: 10
+      multiplier: 3.0
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "5m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

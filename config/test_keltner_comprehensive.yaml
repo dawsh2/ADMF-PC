@@ -1,0 +1,127 @@
+name: test_keltner_comprehensive
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-03-26"
+end_date: "2024-06-30"
+dataset: train
+
+# Define all features needed for filters
+feature_configs:
+  rsi_14:
+    type: rsi
+    period: 14
+  atr_14:
+    type: atr
+    period: 14
+  volume_ratio_20:
+    type: volume_ratio
+    period: 20
+  volatility_percentile_50:
+    type: volatility_percentile
+    period: 50
+  vwap_distance:
+    type: vwap_distance
+
+# Test comprehensive filter combinations
+strategies:
+  # Baseline - no filter
+  - name: kb_baseline
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+      
+  # RSI filter - only on entry
+  - name: kb_rsi_entry
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or rsi(14) < 70"
+    
+  # Volume filter - high volume entries
+  - name: kb_volume
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or volume_ratio(20) > 1.2"
+    
+  # Volatility filter - high volatility
+  - name: kb_volatility
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or volatility_percentile(50) > 0.6"
+    
+  # VWAP filter - price near VWAP
+  - name: kb_vwap
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or abs(vwap_distance()) < 0.002"
+    
+  # Combined filter 1: RSI + Volume
+  - name: kb_rsi_volume
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (rsi(14) < 70 and volume_ratio(20) > 1.1)"
+    
+  # Combined filter 2: RSI + Volatility  
+  - name: kb_rsi_volatility
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (rsi(14) < 70 and volatility_percentile(50) > 0.5)"
+    
+  # Combined filter 3: All filters (strict)
+  - name: kb_all_strict
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (rsi(14) < 50 and volume_ratio(20) > 1.5 and volatility_percentile(50) > 0.7)"
+    
+  # Parameter variations - tighter bands
+  - name: kb_tight_1p5
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 1.5
+      
+  # Parameter variations - wider bands
+  - name: kb_wide_2p5
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.5
+      
+  # Parameter variations - shorter period
+  - name: kb_fast_10
+    type: keltner_bands
+    params:
+      period: 10
+      multiplier: 2.0
+      
+  # Parameter variations - longer period
+  - name: kb_slow_50
+    type: keltner_bands
+    params:
+      period: 50
+      multiplier: 2.0
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

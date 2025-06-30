@@ -1,0 +1,15 @@
+# Test Keltner Channel strategies
+name: test_keltner_strategies
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-03-01"
+end_date: "2024-03-31"
+
+# Explicitly test both Keltner strategies
+parameter_space:
+  indicators:
+    - keltner_bands      # Mean reversion version
+    - keltner_breakout   # Trend following version
+
+# Run with:
+# python3 main.py --config config/test_keltner_strategies.yaml --optimize --bars 100 --signal-generation

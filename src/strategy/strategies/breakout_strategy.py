@@ -5,6 +5,7 @@ Trades breakouts from recent price ranges with volume confirmation.
 """
 
 import logging
+from src.core.features.feature_spec import FeatureSpec
 from typing import Dict, Any, Optional
 
 from ...core.components.discovery import strategy
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='breakout_strategy',
-    feature_config=['high', 'low', 'volume', 'atr']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('high', {}), FeatureSpec('low', {}), FeatureSpec('volume', {}), FeatureSpec('atr', {})]  # Topology builder infers parameters from strategy logic
 )
 def breakout_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

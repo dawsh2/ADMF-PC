@@ -1,0 +1,14 @@
+name: basic_ensemble_eod_time
+data: SPY_5m
+
+strategy: 
+  # Use hour-based filter that works with extended hours data
+  filter: |
+    hour < 15 or 
+    (hour == 15 and minute < 50) or
+    signal == 0
+  strategies: [
+    {bollinger_bands: {period: 23, std_dev: 1.5}}
+  ]
+
+# This should force all signals to 0 after 3:50 PM (15:50)

@@ -1,0 +1,35 @@
+# Test configuration for Trendline Acceleration (using slope and branches)
+name: test_trendline_acceleration
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Strategy that uses trendline slope to detect acceleration
+strategy:
+  trendline_breaks:
+    params:
+      pivot_lookback: 20
+      min_touches: 2
+      tolerance: 0.002
+    # Filter for accelerating uptrends (steep slope + branches)
+    filter: |
+      (signal_value == 1 and trendlines_support_angle > 15) or
+      (signal_value == -1 and trendlines_resistance_angle < -15)
+
+# Alternative: Only trade when branches are detected (momentum acceleration)
+# filter: "trendlines_uptrend_branches > 0 or trendlines_downtrend_branches > 0"
+
+# Run with: python main.py --config config/indicators/structure/test_trendline_acceleration.yaml --signal-generation --bars 100
+
+# New trendline features:
+# - trendlines_support_slope: Slope of nearest support line
+# - trendlines_resistance_slope: Slope of nearest resistance line
+# - trendlines_support_angle: Angle in degrees (positive = upward)
+# - trendlines_resistance_angle: Angle in degrees (negative = downward)
+# - trendlines_uptrend_branches: Count of steeper uptrends branching off
+# - trendlines_downtrend_branches: Count of steeper downtrends branching off
+
+# Branching patterns indicate acceleration:
+# - New steeper trendline forming = potential momentum increase
+# - Multiple branches = strong directional move developing

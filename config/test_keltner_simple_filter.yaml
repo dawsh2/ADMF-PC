@@ -1,0 +1,34 @@
+name: test_keltner_simple_filter
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-11-30"
+dataset: train
+
+# Keltner bands with simple RSI filter
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+    # Only take signals when RSI < 50 (aligned with mean reversion)
+    filter: "signal != 0 and rsi(14) < 50"
+
+# Features needed for filter
+features:
+  - name: rsi
+    params: {period: 14}
+
+# Data source
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+# 1-minute timeframe
+timeframe: "1m"
+
+# Enable detailed signal tracking
+signal_persistence: 
+  enabled: true
+  compression: sparse

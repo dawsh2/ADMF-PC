@@ -8,16 +8,22 @@ direction, and changes.
 from typing import Dict, Any, Optional
 import logging
 from ....core.components.discovery import strategy
+from ....core.features.feature_spec import FeatureSpec
 
 logger = logging.getLogger(__name__)
 
 
 @strategy(
     name='adx_trend_strength',
-    feature_config=['adx'],  # Simple: just declare we need ADX features (includes DI)
-    param_feature_mapping={
-        'adx_period': 'adx_{adx_period}',
-        'di_period': 'adx_{di_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('adx', {'period': params.get('adx_period', 14)}, 'adx'),
+        FeatureSpec('adx', {'period': params.get('adx_period', 14)}, 'di_plus'),
+        FeatureSpec('adx', {'period': params.get('adx_period', 14)}, 'di_minus')
+    ],
+    parameter_space={
+        'adx_period': {'type': 'int', 'range': (10, 50), 'default': 14},
+        'adx_threshold': {'type': 'float', 'range': (15, 40), 'default': 25},
+        'di_period': {'type': 'int', 'range': (10, 50), 'default': 14}
     }
 )
 def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -76,10 +82,15 @@ def adx_trend_strength(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='parabolic_sar',
-    feature_config=['psar'],  # Simple: just declare we need Parabolic SAR features
-    param_feature_mapping={
-        'af_start': 'psar_{af_start}_{af_max}',
-        'af_max': 'psar_{af_start}_{af_max}'
+    feature_discovery=lambda params: [
+        FeatureSpec('psar', {
+            'af_start': params.get('af_start', 0.02),
+            'af_max': params.get('af_max', 0.2)
+        })
+    ],
+    parameter_space={
+        'af_max': {'type': 'float', 'range': (0.1, 0.5), 'default': 0.2},
+        'af_start': {'type': 'float', 'range': (0.01, 0.1), 'default': 0.02}
     }
 )
 def parabolic_sar(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -131,9 +142,12 @@ def parabolic_sar(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='aroon_crossover',
-    feature_config=['aroon'],  # Simple: just declare we need Aroon features
-    param_feature_mapping={
-        'period': 'aroon_{period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('aroon', {'period': params.get('period', 25)}, 'up'),
+        FeatureSpec('aroon', {'period': params.get('period', 25)}, 'down')
+    ],
+    parameter_space={
+        'period': {'type': 'int', 'range': (10, 50), 'default': 25}
     }
 )
 def aroon_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -183,10 +197,15 @@ def aroon_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[
 
 @strategy(
     name='supertrend',
-    feature_config=['supertrend'],  # Simple: just declare we need Supertrend features
-    param_feature_mapping={
-        'period': 'supertrend_{period}_{multiplier}',
-        'multiplier': 'supertrend_{period}_{multiplier}'
+    feature_discovery=lambda params: [
+        FeatureSpec('supertrend', {
+            'period': params.get('period', 10),
+            'multiplier': params.get('multiplier', 3.0)
+        })
+    ],
+    parameter_space={
+        'multiplier': {'type': 'float', 'range': (1.0, 5.0), 'default': 3.0},
+        'period': {'type': 'int', 'range': (5, 30), 'default': 10}
     }
 )
 def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -243,9 +262,12 @@ def supertrend(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
 
 @strategy(
     name='linear_regression_slope',
-    feature_config=['linear_regression'],  # Simple: just declare we need Linear Regression features
-    param_feature_mapping={
-        'period': 'linear_regression_{period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('linear_regression', {'period': params.get('period', 20)}, 'slope')
+    ],
+    parameter_space={
+        'period': {'type': 'int', 'range': (10, 50), 'default': 20},
+        'threshold': {'type': 'float', 'range': (-0.5, 0.5), 'default': 0.0}
     }
 )
 def linear_regression_slope(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -258,7 +280,7 @@ def linear_regression_slope(features: Dict[str, Any], bar: Dict[str, Any], param
     - 0: Flat (abs(slope) < threshold)
     """
     lr_period = params.get('period', 20)
-    slope_threshold = params.get('slope_threshold', 0.0)
+    slope_threshold = params.get('threshold', 0.0)
     
     # Get features
     lr_slope = features.get(f'linear_regression_{lr_period}_slope')
@@ -287,7 +309,7 @@ def linear_regression_slope(features: Dict[str, Any], bar: Dict[str, Any], param
         'symbol_timeframe': f"{symbol}_{timeframe}",
         'metadata': {
             'period': lr_period,                       # Parameters for sparse storage separation
-            'slope_threshold': slope_threshold,
+            'threshold': slope_threshold,
             'slope': lr_slope,                         # Values for analysis
             'intercept': lr_intercept if lr_intercept is not None else 0,
             'r_squared': lr_r2 if lr_r2 is not None else 0,

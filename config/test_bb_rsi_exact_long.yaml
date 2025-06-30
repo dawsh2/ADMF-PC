@@ -1,0 +1,14 @@
+# Test config for Bollinger RSI Divergence Exact - longer run
+name: test_bb_rsi_exact_long
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+
+# Strategy configuration
+strategy:
+  bollinger_rsi_divergence_exact:
+    params: {}
+
+# Run with:
+# python main.py --config config/test_bb_rsi_exact_long.yaml --signal-generation --bars 50000

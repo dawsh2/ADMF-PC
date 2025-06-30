@@ -1,0 +1,10 @@
+# Alpaca Live Trading Dependencies for ADMF-PC
+
+# WebSocket support for Alpaca streaming
+websockets>=10.0
+
+# Optional: Alpaca Python SDK for REST API (pre-warming)
+alpaca-trade-api>=3.0.0
+
+# Async support (should already be installed)
+asyncio

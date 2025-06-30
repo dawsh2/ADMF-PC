@@ -1,0 +1,23 @@
+# Test configuration for ATR Channel Breakout strategy
+name: test_atr_channel_breakout
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# ATR-based channel breakout strategy
+strategy:
+  atr_channel_breakout:
+    params:
+      atr_period: 14
+      channel_period: 20
+      atr_multiplier: 2.0
+
+# Run with: python main.py --config config/indicators/structure/test_atr_channel_breakout.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Uses SMA for channel middle
+# - Upper channel = SMA + (ATR * multiplier)
+# - Lower channel = SMA - (ATR * multiplier)
+# - BUY signal when price > upper channel
+# - SELL signal when price < lower channel

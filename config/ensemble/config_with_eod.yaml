@@ -1,0 +1,13 @@
+name: basic_ensemble_eod
+data: SPY_5m
+
+strategy: [
+  {bollinger_bands: {period: 23, std_dev: 1.5}, 
+   threshold: "bar_of_day < 78"}  # Only allow signals before 3:50 PM (78 bars * 5 min = 390 min after 9:30 AM)
+]
+
+# Alternative approach using filter instead of threshold:
+# strategy: [
+#   {bollinger_bands: {period: 23, std_dev: 1.5}, 
+#    filter: "bar_of_day < 78 or signal == 0"}  # Force exit at 3:50 PM
+# ]

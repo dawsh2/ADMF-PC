@@ -10,6 +10,7 @@ Shows detailed information about:
 """
 
 from typing import Dict, Any, Optional, List
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ....core.components.discovery import strategy, get_component_registry
 
@@ -39,23 +40,7 @@ _debug_state = {
 
 @strategy(
     name='two_layer_ensemble_enhanced_debug',
-    feature_config=[
-        # Baseline strategy features
-        'sma',      # sma_crossover, macd_crossover  
-        'ema',      # ema_crossover, macd_crossover
-        'macd',     # macd_crossover
-        
-        # Booster strategy features  
-        'stochastic',   # stochastic_crossover
-        'dema',         # dema_crossover, dema_sma_crossover
-        'vortex',       # vortex_crossover
-        'tema',         # tema_sma_crossover
-        'ichimoku',     # ichimoku_cloud_position
-        
-        # Classifier features
-        'rsi',      # market_regime_classifier
-        'atr'       # market_regime_classifier
-    ],
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)}), FeatureSpec('ema', {'period': params.get('ema_period', 20)}), FeatureSpec('macd', {'fast_period': params.get('fast_period', 12), 'slow_period': params.get('slow_period', 26), 'signal_period': params.get('signal_period', 9)}), FeatureSpec('stochastic', {}), FeatureSpec('dema', {}), FeatureSpec('vortex', {}), FeatureSpec('tema', {}), FeatureSpec('ichimoku', {}), FeatureSpec('rsi', {'period': params.get('rsi_period', 14)}), FeatureSpec('atr', {})],
     param_feature_mapping={
         # Baseline strategies
         'fast_period': 'sma_{fast_period}',

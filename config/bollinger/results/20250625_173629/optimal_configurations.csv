@@ -1,0 +1,2 @@
+strategy,period,std_dev,trades,trades_per_day,base_sharpe,base_return,best_config,best_sharpe,best_return,improvement
+bollinger_bands_3bee7e1f,10,1.5,416,1.625,-3.061749713596656,-5.3652164349285325,"Stop=0.075%, Target=0.1%",12.809583674333169,20.735063869136063,15.871333387929825

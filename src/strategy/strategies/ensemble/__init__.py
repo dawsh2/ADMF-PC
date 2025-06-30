@@ -30,6 +30,7 @@ from .two_layer_ensemble_enhanced_debug import (
     two_layer_ensemble_enhanced_debug,
     reset_enhanced_debug_state
 )
+from .simple_ensemble import SimpleEnsemble
 
 __all__ = [
     'trend_momentum_composite',
@@ -46,5 +47,6 @@ __all__ = [
     'two_layer_ensemble_debug',
     'reset_debug_state',
     'two_layer_ensemble_enhanced_debug',
-    'reset_enhanced_debug_state'
+    'reset_enhanced_debug_state',
+    'SimpleEnsemble'
 ]

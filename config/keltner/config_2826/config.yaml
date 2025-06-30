@@ -1,0 +1,8 @@
+# Keltner 2826-Signal Strategy Configuration
+name: keltner_2826_production
+data: SPY_5m
+
+strategy:
+  - keltner_bands:
+      period: [30]
+      multiplier: [1.0]

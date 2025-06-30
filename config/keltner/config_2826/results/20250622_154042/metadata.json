@@ -1,0 +1,39 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/keltner/config_2826/results/20250622_154042",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 20768,
+  "total_signals": 1600,
+  "total_classifications": 0,
+  "stored_changes": 1,
+  "compression_ratio": 0.0625,
+  "components": {
+    "SPY_5m_compiled_strategy_0": {
+      "type": "strategy",
+      "strategy_type": "keltner_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {}
+    }
+  },
+  "timestamp": "2025-06-22T15:40:44.142439",
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

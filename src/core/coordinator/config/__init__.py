@@ -7,6 +7,7 @@ Consolidated utilities for pattern loading, configuration resolution, and valida
 from .pattern_loader import PatternLoader
 from .resolver import ConfigResolver
 from .validator import ConfigValidator, ValidationResult, validate_workflow, check_required_fields
+from .clean_syntax_parser import CleanSyntaxParser, parse_clean_config
 from .component_schemas import (
     ComponentSchema,
     get_component_schema,
@@ -59,6 +60,8 @@ __all__ = [
     'ValidationResult',
     'validate_workflow',
     'check_required_fields',
+    'CleanSyntaxParser',
+    'parse_clean_config',
     # Legacy component schemas
     'ComponentSchema',
     'get_component_schema',

@@ -1,0 +1,44 @@
+# Configuration for Strategy 1029 - Top Performer
+# 16.97% annualized return, 401 trades over 212 days
+
+mode: backtest
+
+data:
+  type: file
+  source: ../../../data/SPY_5m_full.parquet
+  start: "2024-01-01"
+  end: "2024-12-31"
+
+strategies:
+  - type: keltner_bands
+    id: strategy_1029
+    params:
+      # Based on grid analysis: strategy 1029 = base combo 9, filter variant 29
+      # Base combo 9 = period index 1, multiplier index 4
+      period: 15  # EMA period (2nd option in [10, 15, 20, 30, 50])
+      multiplier: 3.0  # ATR multiplier (5th option in [1.0, 1.5, 2.0, 2.5, 3.0])
+      atr_period: 20  # Default ATR calculation period
+      
+      # Filter variant 29 would be one of the mid-complexity filters
+      # Likely a combined filter or regime-specific filter
+      # Exact filter TBD from compilation mapping
+      
+execution:
+  initial_capital: 100000
+  position_size: 0.95  # 95% of capital per trade
+  commission: 0.001  # 0.1% per trade
+  slippage: 0.0005  # 0.05% slippage
+
+output:
+  results_dir: results
+  save_signals: true
+  save_trades: true
+  save_metrics: true
+  
+# Performance Stats from backtest:
+# - Total Return: 14.09%
+# - Annualized Return: 16.97%
+# - Trades: 401
+# - Trading Days: 212
+# - Trades per Day: 1.89
+# - Avg Return per Trade: 0.0334%

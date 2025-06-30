@@ -7,13 +7,17 @@ that oscillate between fixed ranges (typically 0-100).
 
 from typing import Dict, Any, Optional
 from ....core.components.discovery import strategy
+from ....core.features.feature_spec import FeatureSpec
 
 
 @strategy(
     name='rsi_threshold',
-    feature_config=['rsi'],  # Simple: just declare we need RSI features
-    param_feature_mapping={
-        'rsi_period': 'rsi_{rsi_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})
+    ],
+    parameter_space={
+        'rsi_period': {'type': 'int', 'range': (7, 30), 'default': 14},
+        'threshold': {'type': 'float', 'range': (0, 100), 'default': 50}
     }
 )
 def rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -62,10 +66,16 @@ def rsi_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='rsi_bands',
-    feature_config=['rsi'],  # Simple: just declare we need RSI features
-    param_feature_mapping={
-        'rsi_period': 'rsi_{rsi_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})
+    ],
+    parameter_space={
+        'overbought': {'type': 'float', 'range': (60, 90), 'default': 70, 'granularity': 4},
+        'oversold': {'type': 'float', 'range': (10, 40), 'default': 30, 'granularity': 4},
+        'rsi_period': {'type': 'int', 'range': (7, 30), 'default': 14, 'granularity': 3}
+    },
+    strategy_type='mean_reversion',
+    tags=['mean_reversion', 'oscillator', 'rsi', 'overbought_oversold']
 )
 def rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -115,9 +125,12 @@ def rsi_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='cci_threshold',
-    feature_config=['cci'],  # Simple: just declare we need CCI features
-    param_feature_mapping={
-        'cci_period': 'cci_{cci_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('cci', {'period': params.get('cci_period', 20)})
+    ],
+    parameter_space={
+        'cci_period': {'type': 'int', 'range': (5, 100), 'default': 20},
+        'threshold': {'type': 'float', 'range': (-200, 200), 'default': 0}
     }
 )
 def cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -166,10 +179,15 @@ def cci_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='cci_bands',
-    feature_config=['cci'],  # Simple: just declare we need CCI features
-    param_feature_mapping={
-        'cci_period': 'cci_{cci_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('cci', {'period': params.get('cci_period', 20)})
+    ],
+    parameter_space={
+        'cci_period': {'type': 'int', 'range': (5, 100), 'default': 20},
+        'overbought': {'type': 'float', 'range': (50, 200), 'default': 100},
+        'oversold': {'type': 'float', 'range': (-200, -50), 'default': -100}
+    },
+    strategy_type='mean_reversion'
 )
 def cci_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -219,11 +237,21 @@ def cci_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, A
 
 @strategy(
     name='stochastic_rsi',
-    feature_config=['stochastic_rsi'],  # Simple: just declare we need stochastic RSI features
-    param_feature_mapping={
-        'rsi_period': 'stochastic_rsi_{rsi_period}_{stoch_period}',
-        'stoch_period': 'stochastic_rsi_{rsi_period}_{stoch_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('stochastic_rsi', {
+            'rsi_period': params.get('rsi_period', 14),
+            'stoch_period': params.get('stoch_period', 14),
+            'd_period': params.get('d_period', 3)
+        })
+    ],
+    parameter_space={
+        'overbought': {'type': 'float', 'range': (60, 90), 'default': 80},
+        'oversold': {'type': 'float', 'range': (10, 40), 'default': 20},
+        'rsi_period': {'type': 'int', 'range': (7, 30), 'default': 14},
+        'stoch_period': {'type': 'int', 'range': (5, 30), 'default': 14},
+        'd_period': {'type': 'int', 'range': (1, 10), 'default': 3}
+    },
+    strategy_type='mean_reversion'
 )
 def stochastic_rsi(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -280,10 +308,15 @@ def stochastic_rsi(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='williams_r',
-    feature_config=['williams_r'],  # Simple: just declare we need Williams %R features
-    param_feature_mapping={
-        'williams_period': 'williams_r_{williams_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('williams_r', {'period': params.get('williams_period', 14)})
+    ],
+    parameter_space={
+        'overbought': {'type': 'float', 'range': (-40, 0), 'default': -20},
+        'oversold': {'type': 'float', 'range': (-100, -60), 'default': -80},
+        'williams_period': {'type': 'int', 'range': (5, 50), 'default': 14}
+    },
+    strategy_type='mean_reversion'
 )
 def williams_r(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -335,9 +368,12 @@ def williams_r(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, 
 
 @strategy(
     name='roc_threshold',
-    feature_config=['roc'],  # Simple: just declare we need ROC features
-    param_feature_mapping={
-        'roc_period': 'roc_{roc_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('roc', {'period': params.get('roc_period', 10)})
+    ],
+    parameter_space={
+        'roc_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'threshold': {'type': 'float', 'range': (0.5, 10.0), 'default': 2.0}
     }
 )
 def roc_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -387,12 +423,21 @@ def roc_threshold(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='ultimate_oscillator',
-    feature_config=['ultimate_oscillator'],  # Simple: just declare we need Ultimate Oscillator features
-    param_feature_mapping={
-        'period1': 'ultimate_oscillator_{period1}_{period2}_{period3}',
-        'period2': 'ultimate_oscillator_{period1}_{period2}_{period3}',
-        'period3': 'ultimate_oscillator_{period1}_{period2}_{period3}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('ultimate_oscillator', {
+            'period1': params.get('period1', 7),
+            'period2': params.get('period2', 14),
+            'period3': params.get('period3', 28)
+        })
+    ],
+    parameter_space={
+        'overbought': {'type': 'float', 'range': (60, 90), 'default': 70},
+        'oversold': {'type': 'float', 'range': (10, 40), 'default': 30},
+        'period1': {'type': 'int', 'range': (5, 15), 'default': 7},
+        'period2': {'type': 'int', 'range': (10, 30), 'default': 14},
+        'period3': {'type': 'int', 'range': (20, 50), 'default': 28}
+    },
+    strategy_type='mean_reversion'
 )
 def ultimate_oscillator(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

@@ -1,0 +1,18 @@
+# Test config for new workspace structure
+# Traces will be stored in: configs/test_new_workspace_structure/<timestamp>/
+
+data: SPY_5m
+
+strategies:
+  - type: momentum
+    name: simple_ma
+    params:
+      fast_period: 10
+      slow_period: 20
+
+# Optional trace settings override
+execution:
+  trace_settings:
+    storage:
+      # Can override the base directory if needed
+      # base_dir: ./configs  # This is now the default

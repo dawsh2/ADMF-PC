@@ -1,0 +1,12 @@
+name: basic_ensemble_eod_explicit
+data: SPY_5m
+
+# Simple non-composite structure to ensure filter is applied
+strategy:
+  type: bollinger_bands
+  params:
+    period: 23
+    std_dev: 1.5
+  # Only allow signals during regular market hours
+  # bar_of_day < 78 means before 3:50 PM (78 * 5 = 390 minutes after 9:30)
+  filter: "bar_of_day >= 0 and bar_of_day < 78"

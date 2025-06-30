@@ -1,0 +1,28 @@
+# Test configuration for Trendline Breaks strategy
+name: test_trendline_breaks
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  trendline_breaks:
+    params:
+      pivot_lookback: 20  # Lookback period for pivot detection
+      min_touches: 2  # Minimum touches to validate trendline
+      tolerance: 0.002  # 0.2% breakout tolerance
+
+# Run with: python main.py --config config/indicators/structure/test_trendline_breaks.yaml --signal-generation --bars 100
+
+# Expected behavior (TREND FOLLOWING/BREAKOUT):
+# - Price breaks above downtrend resistance: BUY signal (1) - bullish breakout
+# - Price breaks below uptrend support: SELL signal (-1) - bearish breakdown
+# - Price within trendlines: No signal (0)
+
+# Trendlines are drawn from swing highs/lows
+# Requires minimum touches to be considered valid
+# Trades breakouts from these dynamic trendlines
+
+# Note: Future enhancement - trendlines feature could track bounce counts
+# to enable filtering like: filter: "trendlines_support_bounces >= 3"

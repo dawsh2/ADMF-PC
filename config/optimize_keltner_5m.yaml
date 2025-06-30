@@ -1,0 +1,50 @@
+name: optimize_keltner_5m
+data: SPY_5m
+
+# Parameter space for 5-minute optimization
+parameter_space:
+  strategies:
+    # Baseline - no filter
+    - type: keltner_bands
+      param_overrides:
+        period: [10, 15, 20, 30]
+        multiplier: [1.5, 2.0, 2.5]
+    
+    # RSI filter - fewer combinations for 5m
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: "signal == 0 or rsi(14) < ${rsi_threshold}"
+      filter_params:
+        rsi_threshold: [30, 40, 50, 60, 70]
+        
+    # Directional RSI - most promising for 5m
+    - type: keltner_bands
+      param_overrides:
+        period: [15, 20]
+        multiplier: [1.8, 2.0, 2.2]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and rsi(14) < ${rsi_long}) or 
+        (signal < 0 and rsi(14) > ${rsi_short})
+      filter_params:
+        rsi_long: [30, 35, 40]
+        rsi_short: [60, 65, 70]
+        
+    # Volume spike filter for 5m
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: "signal == 0 or volume > volume_sma_20 * ${volume_spike}"
+      filter_params:
+        volume_spike: [1.5, 2.0, 3.0]
+
+
+# This generates:
+# - 12 baseline (4 periods × 3 multipliers)
+# - 5 RSI filter 
+# - 54 directional RSI (2 periods × 3 multipliers × 3 long × 3 short)
+# - 3 volume spike
+# Total: 74 variations

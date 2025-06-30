@@ -1,0 +1,2127 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_903566e9",
+  "total_bars": 5673,
+  "total_signals": 909063,
+  "total_classifications": 0,
+  "stored_changes": 175752,
+  "compression_ratio": 19.333313532725455,
+  "components": {
+    "SPY_15m_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_0.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1217,
+      "compression_ratio": 0.21456276445698166,
+      "signal_frequency": 0.21456276445698166,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_0"
+      },
+      "created_at": "2025-06-20T21:47:45.909982"
+    },
+    "SPY_15m_compiled_strategy_1": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_1.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1185,
+      "compression_ratio": 0.2089210155148096,
+      "signal_frequency": 0.2089210155148096,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_1"
+      },
+      "created_at": "2025-06-20T21:47:45.910069"
+    },
+    "SPY_15m_compiled_strategy_2": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_2.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1149,
+      "compression_ratio": 0.202574047954866,
+      "signal_frequency": 0.202574047954866,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_2"
+      },
+      "created_at": "2025-06-20T21:47:45.910133"
+    },
+    "SPY_15m_compiled_strategy_3": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_3.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1132,
+      "compression_ratio": 0.1995768688293371,
+      "signal_frequency": 0.1995768688293371,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_3"
+      },
+      "created_at": "2025-06-20T21:47:45.910188"
+    },
+    "SPY_15m_compiled_strategy_4": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_4.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1107,
+      "compression_ratio": 0.19516925246826516,
+      "signal_frequency": 0.19516925246826516,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_4"
+      },
+      "created_at": "2025-06-20T21:47:45.910241"
+    },
+    "SPY_15m_compiled_strategy_5": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_5.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1062,
+      "compression_ratio": 0.18723554301833567,
+      "signal_frequency": 0.18723554301833567,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_5"
+      },
+      "created_at": "2025-06-20T21:47:45.910291"
+    },
+    "SPY_15m_compiled_strategy_6": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_6.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1028,
+      "compression_ratio": 0.18124118476727785,
+      "signal_frequency": 0.18124118476727785,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_6"
+      },
+      "created_at": "2025-06-20T21:47:45.910339"
+    },
+    "SPY_15m_compiled_strategy_7": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_7.parquet",
+      "total_bars": 5672,
+      "signal_changes": 988,
+      "compression_ratio": 0.17418899858956277,
+      "signal_frequency": 0.17418899858956277,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_7"
+      },
+      "created_at": "2025-06-20T21:47:45.910386"
+    },
+    "SPY_15m_compiled_strategy_8": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_8.parquet",
+      "total_bars": 5672,
+      "signal_changes": 961,
+      "compression_ratio": 0.16942877291960506,
+      "signal_frequency": 0.16942877291960506,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_8"
+      },
+      "created_at": "2025-06-20T21:47:45.910434"
+    },
+    "SPY_15m_compiled_strategy_18": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_18.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1217,
+      "compression_ratio": 0.21456276445698166,
+      "signal_frequency": 0.21456276445698166,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_18"
+      },
+      "created_at": "2025-06-20T21:47:45.910482"
+    },
+    "SPY_15m_compiled_strategy_19": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_19.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1185,
+      "compression_ratio": 0.2089210155148096,
+      "signal_frequency": 0.2089210155148096,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_19"
+      },
+      "created_at": "2025-06-20T21:47:45.910531"
+    },
+    "SPY_15m_compiled_strategy_20": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_20.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1149,
+      "compression_ratio": 0.202574047954866,
+      "signal_frequency": 0.202574047954866,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_20"
+      },
+      "created_at": "2025-06-20T21:47:45.910579"
+    },
+    "SPY_15m_compiled_strategy_21": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_21.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1132,
+      "compression_ratio": 0.1995768688293371,
+      "signal_frequency": 0.1995768688293371,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_21"
+      },
+      "created_at": "2025-06-20T21:47:45.910702"
+    },
+    "SPY_15m_compiled_strategy_22": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_22.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1107,
+      "compression_ratio": 0.19516925246826516,
+      "signal_frequency": 0.19516925246826516,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_22"
+      },
+      "created_at": "2025-06-20T21:47:45.910753"
+    },
+    "SPY_15m_compiled_strategy_23": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_23.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1062,
+      "compression_ratio": 0.18723554301833567,
+      "signal_frequency": 0.18723554301833567,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_23"
+      },
+      "created_at": "2025-06-20T21:47:45.910800"
+    },
+    "SPY_15m_compiled_strategy_24": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_24.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1028,
+      "compression_ratio": 0.18124118476727785,
+      "signal_frequency": 0.18124118476727785,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_24"
+      },
+      "created_at": "2025-06-20T21:47:45.910846"
+    },
+    "SPY_15m_compiled_strategy_25": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_25.parquet",
+      "total_bars": 5672,
+      "signal_changes": 988,
+      "compression_ratio": 0.17418899858956277,
+      "signal_frequency": 0.17418899858956277,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_25"
+      },
+      "created_at": "2025-06-20T21:47:45.910892"
+    },
+    "SPY_15m_compiled_strategy_26": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_26.parquet",
+      "total_bars": 5672,
+      "signal_changes": 961,
+      "compression_ratio": 0.16942877291960506,
+      "signal_frequency": 0.16942877291960506,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_26"
+      },
+      "created_at": "2025-06-20T21:47:45.910938"
+    },
+    "SPY_15m_compiled_strategy_36": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_36.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1217,
+      "compression_ratio": 0.21456276445698166,
+      "signal_frequency": 0.21456276445698166,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_36"
+      },
+      "created_at": "2025-06-20T21:47:45.910984"
+    },
+    "SPY_15m_compiled_strategy_37": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_37.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1185,
+      "compression_ratio": 0.2089210155148096,
+      "signal_frequency": 0.2089210155148096,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_37"
+      },
+      "created_at": "2025-06-20T21:47:45.911029"
+    },
+    "SPY_15m_compiled_strategy_38": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_38.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1149,
+      "compression_ratio": 0.202574047954866,
+      "signal_frequency": 0.202574047954866,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_38"
+      },
+      "created_at": "2025-06-20T21:47:45.911074"
+    },
+    "SPY_15m_compiled_strategy_39": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_39.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1132,
+      "compression_ratio": 0.1995768688293371,
+      "signal_frequency": 0.1995768688293371,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_39"
+      },
+      "created_at": "2025-06-20T21:47:45.911119"
+    },
+    "SPY_15m_compiled_strategy_40": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_40.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1107,
+      "compression_ratio": 0.19516925246826516,
+      "signal_frequency": 0.19516925246826516,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_40"
+      },
+      "created_at": "2025-06-20T21:47:45.911166"
+    },
+    "SPY_15m_compiled_strategy_41": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_41.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1062,
+      "compression_ratio": 0.18723554301833567,
+      "signal_frequency": 0.18723554301833567,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_41"
+      },
+      "created_at": "2025-06-20T21:47:45.911210"
+    },
+    "SPY_15m_compiled_strategy_42": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_42.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1028,
+      "compression_ratio": 0.18124118476727785,
+      "signal_frequency": 0.18124118476727785,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_42"
+      },
+      "created_at": "2025-06-20T21:47:45.911254"
+    },
+    "SPY_15m_compiled_strategy_43": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_43.parquet",
+      "total_bars": 5672,
+      "signal_changes": 988,
+      "compression_ratio": 0.17418899858956277,
+      "signal_frequency": 0.17418899858956277,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_43"
+      },
+      "created_at": "2025-06-20T21:47:45.911299"
+    },
+    "SPY_15m_compiled_strategy_44": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_44.parquet",
+      "total_bars": 5672,
+      "signal_changes": 961,
+      "compression_ratio": 0.16942877291960506,
+      "signal_frequency": 0.16942877291960506,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_44"
+      },
+      "created_at": "2025-06-20T21:47:45.911345"
+    },
+    "SPY_15m_compiled_strategy_54": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_54.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1205,
+      "compression_ratio": 0.21244710860366714,
+      "signal_frequency": 0.21244710860366714,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_54"
+      },
+      "created_at": "2025-06-20T21:47:45.911391"
+    },
+    "SPY_15m_compiled_strategy_55": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_55.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1173,
+      "compression_ratio": 0.20680535966149508,
+      "signal_frequency": 0.20680535966149508,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_55"
+      },
+      "created_at": "2025-06-20T21:47:45.911435"
+    },
+    "SPY_15m_compiled_strategy_56": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_56.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1138,
+      "compression_ratio": 0.20063469675599435,
+      "signal_frequency": 0.20063469675599435,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_56"
+      },
+      "created_at": "2025-06-20T21:47:45.911481"
+    },
+    "SPY_15m_compiled_strategy_57": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_57.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1121,
+      "compression_ratio": 0.19763751763046544,
+      "signal_frequency": 0.19763751763046544,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_57"
+      },
+      "created_at": "2025-06-20T21:47:45.911525"
+    },
+    "SPY_15m_compiled_strategy_58": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_58.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1098,
+      "compression_ratio": 0.19358251057827927,
+      "signal_frequency": 0.19358251057827927,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_58"
+      },
+      "created_at": "2025-06-20T21:47:45.911570"
+    },
+    "SPY_15m_compiled_strategy_59": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_59.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1053,
+      "compression_ratio": 0.18564880112834978,
+      "signal_frequency": 0.18564880112834978,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_59"
+      },
+      "created_at": "2025-06-20T21:47:45.911614"
+    },
+    "SPY_15m_compiled_strategy_60": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_60.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1020,
+      "compression_ratio": 0.17983074753173484,
+      "signal_frequency": 0.17983074753173484,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_60"
+      },
+      "created_at": "2025-06-20T21:47:45.911658"
+    },
+    "SPY_15m_compiled_strategy_61": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_61.parquet",
+      "total_bars": 5672,
+      "signal_changes": 980,
+      "compression_ratio": 0.17277856135401976,
+      "signal_frequency": 0.17277856135401976,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_61"
+      },
+      "created_at": "2025-06-20T21:47:45.911702"
+    },
+    "SPY_15m_compiled_strategy_62": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_62.parquet",
+      "total_bars": 5672,
+      "signal_changes": 954,
+      "compression_ratio": 0.16819464033850492,
+      "signal_frequency": 0.16819464033850492,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_62"
+      },
+      "created_at": "2025-06-20T21:47:45.911746"
+    },
+    "SPY_15m_compiled_strategy_72": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_72.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1205,
+      "compression_ratio": 0.21244710860366714,
+      "signal_frequency": 0.21244710860366714,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_72"
+      },
+      "created_at": "2025-06-20T21:47:45.911793"
+    },
+    "SPY_15m_compiled_strategy_73": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_73.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1173,
+      "compression_ratio": 0.20680535966149508,
+      "signal_frequency": 0.20680535966149508,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_73"
+      },
+      "created_at": "2025-06-20T21:47:45.911839"
+    },
+    "SPY_15m_compiled_strategy_74": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_74.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1138,
+      "compression_ratio": 0.20063469675599435,
+      "signal_frequency": 0.20063469675599435,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_74"
+      },
+      "created_at": "2025-06-20T21:47:45.911888"
+    },
+    "SPY_15m_compiled_strategy_75": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_75.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1121,
+      "compression_ratio": 0.19763751763046544,
+      "signal_frequency": 0.19763751763046544,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_75"
+      },
+      "created_at": "2025-06-20T21:47:45.911935"
+    },
+    "SPY_15m_compiled_strategy_76": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_76.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1098,
+      "compression_ratio": 0.19358251057827927,
+      "signal_frequency": 0.19358251057827927,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_76"
+      },
+      "created_at": "2025-06-20T21:47:45.911980"
+    },
+    "SPY_15m_compiled_strategy_77": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_77.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1053,
+      "compression_ratio": 0.18564880112834978,
+      "signal_frequency": 0.18564880112834978,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_77"
+      },
+      "created_at": "2025-06-20T21:47:45.912026"
+    },
+    "SPY_15m_compiled_strategy_78": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_78.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1020,
+      "compression_ratio": 0.17983074753173484,
+      "signal_frequency": 0.17983074753173484,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_78"
+      },
+      "created_at": "2025-06-20T21:47:45.912071"
+    },
+    "SPY_15m_compiled_strategy_79": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_79.parquet",
+      "total_bars": 5672,
+      "signal_changes": 980,
+      "compression_ratio": 0.17277856135401976,
+      "signal_frequency": 0.17277856135401976,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_79"
+      },
+      "created_at": "2025-06-20T21:47:45.912116"
+    },
+    "SPY_15m_compiled_strategy_80": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_80.parquet",
+      "total_bars": 5672,
+      "signal_changes": 954,
+      "compression_ratio": 0.16819464033850492,
+      "signal_frequency": 0.16819464033850492,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_80"
+      },
+      "created_at": "2025-06-20T21:47:45.912160"
+    },
+    "SPY_15m_compiled_strategy_90": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_90.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1205,
+      "compression_ratio": 0.21244710860366714,
+      "signal_frequency": 0.21244710860366714,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_90"
+      },
+      "created_at": "2025-06-20T21:47:45.912204"
+    },
+    "SPY_15m_compiled_strategy_91": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_91.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1173,
+      "compression_ratio": 0.20680535966149508,
+      "signal_frequency": 0.20680535966149508,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_91"
+      },
+      "created_at": "2025-06-20T21:47:45.912249"
+    },
+    "SPY_15m_compiled_strategy_92": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_92.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1138,
+      "compression_ratio": 0.20063469675599435,
+      "signal_frequency": 0.20063469675599435,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_92"
+      },
+      "created_at": "2025-06-20T21:47:45.912293"
+    },
+    "SPY_15m_compiled_strategy_93": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_93.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1121,
+      "compression_ratio": 0.19763751763046544,
+      "signal_frequency": 0.19763751763046544,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_93"
+      },
+      "created_at": "2025-06-20T21:47:45.912339"
+    },
+    "SPY_15m_compiled_strategy_94": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_94.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1098,
+      "compression_ratio": 0.19358251057827927,
+      "signal_frequency": 0.19358251057827927,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_94"
+      },
+      "created_at": "2025-06-20T21:47:45.912384"
+    },
+    "SPY_15m_compiled_strategy_95": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_95.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1053,
+      "compression_ratio": 0.18564880112834978,
+      "signal_frequency": 0.18564880112834978,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_95"
+      },
+      "created_at": "2025-06-20T21:47:45.912429"
+    },
+    "SPY_15m_compiled_strategy_96": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_96.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1020,
+      "compression_ratio": 0.17983074753173484,
+      "signal_frequency": 0.17983074753173484,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_96"
+      },
+      "created_at": "2025-06-20T21:47:45.912473"
+    },
+    "SPY_15m_compiled_strategy_97": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_97.parquet",
+      "total_bars": 5672,
+      "signal_changes": 980,
+      "compression_ratio": 0.17277856135401976,
+      "signal_frequency": 0.17277856135401976,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_97"
+      },
+      "created_at": "2025-06-20T21:47:45.912518"
+    },
+    "SPY_15m_compiled_strategy_98": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_98.parquet",
+      "total_bars": 5672,
+      "signal_changes": 954,
+      "compression_ratio": 0.16819464033850492,
+      "signal_frequency": 0.16819464033850492,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_98"
+      },
+      "created_at": "2025-06-20T21:47:45.912562"
+    },
+    "SPY_15m_compiled_strategy_108": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_108.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1202,
+      "compression_ratio": 0.2119181946403385,
+      "signal_frequency": 0.2119181946403385,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_108"
+      },
+      "created_at": "2025-06-20T21:47:45.912607"
+    },
+    "SPY_15m_compiled_strategy_109": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_109.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1170,
+      "compression_ratio": 0.20627644569816644,
+      "signal_frequency": 0.20627644569816644,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_109"
+      },
+      "created_at": "2025-06-20T21:47:45.912651"
+    },
+    "SPY_15m_compiled_strategy_110": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_110.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1135,
+      "compression_ratio": 0.20010578279266572,
+      "signal_frequency": 0.20010578279266572,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_110"
+      },
+      "created_at": "2025-06-20T21:47:45.912696"
+    },
+    "SPY_15m_compiled_strategy_111": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_111.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1119,
+      "compression_ratio": 0.1972849083215797,
+      "signal_frequency": 0.1972849083215797,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_111"
+      },
+      "created_at": "2025-06-20T21:47:45.912741"
+    },
+    "SPY_15m_compiled_strategy_112": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_112.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1096,
+      "compression_ratio": 0.19322990126939352,
+      "signal_frequency": 0.19322990126939352,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_112"
+      },
+      "created_at": "2025-06-20T21:47:45.912786"
+    },
+    "SPY_15m_compiled_strategy_113": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_113.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1051,
+      "compression_ratio": 0.18529619181946402,
+      "signal_frequency": 0.18529619181946402,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_113"
+      },
+      "created_at": "2025-06-20T21:47:45.912832"
+    },
+    "SPY_15m_compiled_strategy_114": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_114.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1018,
+      "compression_ratio": 0.17947813822284908,
+      "signal_frequency": 0.17947813822284908,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_114"
+      },
+      "created_at": "2025-06-20T21:47:45.912877"
+    },
+    "SPY_15m_compiled_strategy_115": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_115.parquet",
+      "total_bars": 5672,
+      "signal_changes": 979,
+      "compression_ratio": 0.17260225669957688,
+      "signal_frequency": 0.17260225669957688,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_115"
+      },
+      "created_at": "2025-06-20T21:47:45.912921"
+    },
+    "SPY_15m_compiled_strategy_116": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_116.parquet",
+      "total_bars": 5672,
+      "signal_changes": 951,
+      "compression_ratio": 0.1676657263751763,
+      "signal_frequency": 0.1676657263751763,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_116"
+      },
+      "created_at": "2025-06-20T21:47:45.912966"
+    },
+    "SPY_15m_compiled_strategy_126": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_126.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1202,
+      "compression_ratio": 0.2119181946403385,
+      "signal_frequency": 0.2119181946403385,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_126"
+      },
+      "created_at": "2025-06-20T21:47:45.913011"
+    },
+    "SPY_15m_compiled_strategy_127": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_127.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1170,
+      "compression_ratio": 0.20627644569816644,
+      "signal_frequency": 0.20627644569816644,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_127"
+      },
+      "created_at": "2025-06-20T21:47:45.913055"
+    },
+    "SPY_15m_compiled_strategy_128": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_128.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1135,
+      "compression_ratio": 0.20010578279266572,
+      "signal_frequency": 0.20010578279266572,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_128"
+      },
+      "created_at": "2025-06-20T21:47:45.913099"
+    },
+    "SPY_15m_compiled_strategy_129": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_129.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1119,
+      "compression_ratio": 0.1972849083215797,
+      "signal_frequency": 0.1972849083215797,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_129"
+      },
+      "created_at": "2025-06-20T21:47:45.913143"
+    },
+    "SPY_15m_compiled_strategy_130": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_130.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1096,
+      "compression_ratio": 0.19322990126939352,
+      "signal_frequency": 0.19322990126939352,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_130"
+      },
+      "created_at": "2025-06-20T21:47:45.913189"
+    },
+    "SPY_15m_compiled_strategy_131": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_131.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1051,
+      "compression_ratio": 0.18529619181946402,
+      "signal_frequency": 0.18529619181946402,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_131"
+      },
+      "created_at": "2025-06-20T21:47:45.913233"
+    },
+    "SPY_15m_compiled_strategy_132": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_132.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1018,
+      "compression_ratio": 0.17947813822284908,
+      "signal_frequency": 0.17947813822284908,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_132"
+      },
+      "created_at": "2025-06-20T21:47:45.913278"
+    },
+    "SPY_15m_compiled_strategy_133": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_133.parquet",
+      "total_bars": 5672,
+      "signal_changes": 979,
+      "compression_ratio": 0.17260225669957688,
+      "signal_frequency": 0.17260225669957688,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_133"
+      },
+      "created_at": "2025-06-20T21:47:45.913322"
+    },
+    "SPY_15m_compiled_strategy_134": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_134.parquet",
+      "total_bars": 5672,
+      "signal_changes": 951,
+      "compression_ratio": 0.1676657263751763,
+      "signal_frequency": 0.1676657263751763,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_134"
+      },
+      "created_at": "2025-06-20T21:47:45.913383"
+    },
+    "SPY_15m_compiled_strategy_144": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_144.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1202,
+      "compression_ratio": 0.2119181946403385,
+      "signal_frequency": 0.2119181946403385,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_144"
+      },
+      "created_at": "2025-06-20T21:47:45.913430"
+    },
+    "SPY_15m_compiled_strategy_145": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_145.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1170,
+      "compression_ratio": 0.20627644569816644,
+      "signal_frequency": 0.20627644569816644,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_145"
+      },
+      "created_at": "2025-06-20T21:47:45.913477"
+    },
+    "SPY_15m_compiled_strategy_146": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_146.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1135,
+      "compression_ratio": 0.20010578279266572,
+      "signal_frequency": 0.20010578279266572,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_146"
+      },
+      "created_at": "2025-06-20T21:47:45.913520"
+    },
+    "SPY_15m_compiled_strategy_147": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_147.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1119,
+      "compression_ratio": 0.1972849083215797,
+      "signal_frequency": 0.1972849083215797,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_147"
+      },
+      "created_at": "2025-06-20T21:47:45.913564"
+    },
+    "SPY_15m_compiled_strategy_148": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_148.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1096,
+      "compression_ratio": 0.19322990126939352,
+      "signal_frequency": 0.19322990126939352,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_148"
+      },
+      "created_at": "2025-06-20T21:47:45.913609"
+    },
+    "SPY_15m_compiled_strategy_149": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_149.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1051,
+      "compression_ratio": 0.18529619181946402,
+      "signal_frequency": 0.18529619181946402,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_149"
+      },
+      "created_at": "2025-06-20T21:47:45.913654"
+    },
+    "SPY_15m_compiled_strategy_150": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_150.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1018,
+      "compression_ratio": 0.17947813822284908,
+      "signal_frequency": 0.17947813822284908,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_150"
+      },
+      "created_at": "2025-06-20T21:47:45.913699"
+    },
+    "SPY_15m_compiled_strategy_151": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_151.parquet",
+      "total_bars": 5672,
+      "signal_changes": 979,
+      "compression_ratio": 0.17260225669957688,
+      "signal_frequency": 0.17260225669957688,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_151"
+      },
+      "created_at": "2025-06-20T21:47:45.913743"
+    },
+    "SPY_15m_compiled_strategy_152": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_152.parquet",
+      "total_bars": 5672,
+      "signal_changes": 951,
+      "compression_ratio": 0.1676657263751763,
+      "signal_frequency": 0.1676657263751763,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_152"
+      },
+      "created_at": "2025-06-20T21:47:45.913789"
+    },
+    "SPY_15m_compiled_strategy_9": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_9.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1217,
+      "compression_ratio": 0.21456276445698166,
+      "signal_frequency": 0.21456276445698166,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_9"
+      },
+      "created_at": "2025-06-20T21:47:45.937533"
+    },
+    "SPY_15m_compiled_strategy_10": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_10.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1185,
+      "compression_ratio": 0.2089210155148096,
+      "signal_frequency": 0.2089210155148096,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_10"
+      },
+      "created_at": "2025-06-20T21:47:45.937583"
+    },
+    "SPY_15m_compiled_strategy_11": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_11.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1149,
+      "compression_ratio": 0.202574047954866,
+      "signal_frequency": 0.202574047954866,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_11"
+      },
+      "created_at": "2025-06-20T21:47:45.937632"
+    },
+    "SPY_15m_compiled_strategy_12": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_12.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1132,
+      "compression_ratio": 0.1995768688293371,
+      "signal_frequency": 0.1995768688293371,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_12"
+      },
+      "created_at": "2025-06-20T21:47:45.937679"
+    },
+    "SPY_15m_compiled_strategy_13": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_13.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1107,
+      "compression_ratio": 0.19516925246826516,
+      "signal_frequency": 0.19516925246826516,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_13"
+      },
+      "created_at": "2025-06-20T21:47:45.937724"
+    },
+    "SPY_15m_compiled_strategy_14": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_14.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1062,
+      "compression_ratio": 0.18723554301833567,
+      "signal_frequency": 0.18723554301833567,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_14"
+      },
+      "created_at": "2025-06-20T21:47:45.937771"
+    },
+    "SPY_15m_compiled_strategy_15": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_15.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1028,
+      "compression_ratio": 0.18124118476727785,
+      "signal_frequency": 0.18124118476727785,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_15"
+      },
+      "created_at": "2025-06-20T21:47:45.937817"
+    },
+    "SPY_15m_compiled_strategy_16": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_16.parquet",
+      "total_bars": 5672,
+      "signal_changes": 988,
+      "compression_ratio": 0.17418899858956277,
+      "signal_frequency": 0.17418899858956277,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_16"
+      },
+      "created_at": "2025-06-20T21:47:45.937862"
+    },
+    "SPY_15m_compiled_strategy_17": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_17.parquet",
+      "total_bars": 5672,
+      "signal_changes": 961,
+      "compression_ratio": 0.16942877291960506,
+      "signal_frequency": 0.16942877291960506,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_17"
+      },
+      "created_at": "2025-06-20T21:47:45.937907"
+    },
+    "SPY_15m_compiled_strategy_27": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_27.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1217,
+      "compression_ratio": 0.21456276445698166,
+      "signal_frequency": 0.21456276445698166,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_27"
+      },
+      "created_at": "2025-06-20T21:47:45.938206"
+    },
+    "SPY_15m_compiled_strategy_28": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_28.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1185,
+      "compression_ratio": 0.2089210155148096,
+      "signal_frequency": 0.2089210155148096,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_28"
+      },
+      "created_at": "2025-06-20T21:47:45.938253"
+    },
+    "SPY_15m_compiled_strategy_29": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_29.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1149,
+      "compression_ratio": 0.202574047954866,
+      "signal_frequency": 0.202574047954866,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_29"
+      },
+      "created_at": "2025-06-20T21:47:45.938297"
+    },
+    "SPY_15m_compiled_strategy_30": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_30.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1132,
+      "compression_ratio": 0.1995768688293371,
+      "signal_frequency": 0.1995768688293371,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_30"
+      },
+      "created_at": "2025-06-20T21:47:45.938343"
+    },
+    "SPY_15m_compiled_strategy_31": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_31.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1107,
+      "compression_ratio": 0.19516925246826516,
+      "signal_frequency": 0.19516925246826516,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_31"
+      },
+      "created_at": "2025-06-20T21:47:45.938387"
+    },
+    "SPY_15m_compiled_strategy_32": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_32.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1062,
+      "compression_ratio": 0.18723554301833567,
+      "signal_frequency": 0.18723554301833567,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_32"
+      },
+      "created_at": "2025-06-20T21:47:45.938431"
+    },
+    "SPY_15m_compiled_strategy_33": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_33.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1028,
+      "compression_ratio": 0.18124118476727785,
+      "signal_frequency": 0.18124118476727785,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_33"
+      },
+      "created_at": "2025-06-20T21:47:45.938474"
+    },
+    "SPY_15m_compiled_strategy_34": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_34.parquet",
+      "total_bars": 5672,
+      "signal_changes": 988,
+      "compression_ratio": 0.17418899858956277,
+      "signal_frequency": 0.17418899858956277,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_34"
+      },
+      "created_at": "2025-06-20T21:47:45.938518"
+    },
+    "SPY_15m_compiled_strategy_35": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_35.parquet",
+      "total_bars": 5672,
+      "signal_changes": 961,
+      "compression_ratio": 0.16942877291960506,
+      "signal_frequency": 0.16942877291960506,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_35"
+      },
+      "created_at": "2025-06-20T21:47:45.938561"
+    },
+    "SPY_15m_compiled_strategy_45": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_45.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1217,
+      "compression_ratio": 0.21456276445698166,
+      "signal_frequency": 0.21456276445698166,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_45"
+      },
+      "created_at": "2025-06-20T21:47:45.938859"
+    },
+    "SPY_15m_compiled_strategy_46": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_46.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1185,
+      "compression_ratio": 0.2089210155148096,
+      "signal_frequency": 0.2089210155148096,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_46"
+      },
+      "created_at": "2025-06-20T21:47:45.938905"
+    },
+    "SPY_15m_compiled_strategy_47": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_47.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1149,
+      "compression_ratio": 0.202574047954866,
+      "signal_frequency": 0.202574047954866,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_47"
+      },
+      "created_at": "2025-06-20T21:47:45.938949"
+    },
+    "SPY_15m_compiled_strategy_48": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_48.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1132,
+      "compression_ratio": 0.1995768688293371,
+      "signal_frequency": 0.1995768688293371,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_48"
+      },
+      "created_at": "2025-06-20T21:47:45.938993"
+    },
+    "SPY_15m_compiled_strategy_49": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_49.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1107,
+      "compression_ratio": 0.19516925246826516,
+      "signal_frequency": 0.19516925246826516,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_49"
+      },
+      "created_at": "2025-06-20T21:47:45.939037"
+    },
+    "SPY_15m_compiled_strategy_50": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_50.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1062,
+      "compression_ratio": 0.18723554301833567,
+      "signal_frequency": 0.18723554301833567,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_50"
+      },
+      "created_at": "2025-06-20T21:47:45.939081"
+    },
+    "SPY_15m_compiled_strategy_51": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_51.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1028,
+      "compression_ratio": 0.18124118476727785,
+      "signal_frequency": 0.18124118476727785,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_51"
+      },
+      "created_at": "2025-06-20T21:47:45.939126"
+    },
+    "SPY_15m_compiled_strategy_52": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_52.parquet",
+      "total_bars": 5672,
+      "signal_changes": 988,
+      "compression_ratio": 0.17418899858956277,
+      "signal_frequency": 0.17418899858956277,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_52"
+      },
+      "created_at": "2025-06-20T21:47:45.939171"
+    },
+    "SPY_15m_compiled_strategy_53": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_53.parquet",
+      "total_bars": 5672,
+      "signal_changes": 961,
+      "compression_ratio": 0.16942877291960506,
+      "signal_frequency": 0.16942877291960506,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_53"
+      },
+      "created_at": "2025-06-20T21:47:45.939215"
+    },
+    "SPY_15m_compiled_strategy_63": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_63.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1205,
+      "compression_ratio": 0.21244710860366714,
+      "signal_frequency": 0.21244710860366714,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_63"
+      },
+      "created_at": "2025-06-20T21:47:45.939518"
+    },
+    "SPY_15m_compiled_strategy_64": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_64.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1173,
+      "compression_ratio": 0.20680535966149508,
+      "signal_frequency": 0.20680535966149508,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_64"
+      },
+      "created_at": "2025-06-20T21:47:45.939564"
+    },
+    "SPY_15m_compiled_strategy_65": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_65.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1138,
+      "compression_ratio": 0.20063469675599435,
+      "signal_frequency": 0.20063469675599435,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_65"
+      },
+      "created_at": "2025-06-20T21:47:45.939611"
+    },
+    "SPY_15m_compiled_strategy_66": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_66.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1121,
+      "compression_ratio": 0.19763751763046544,
+      "signal_frequency": 0.19763751763046544,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_66"
+      },
+      "created_at": "2025-06-20T21:47:45.939658"
+    },
+    "SPY_15m_compiled_strategy_67": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_67.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1098,
+      "compression_ratio": 0.19358251057827927,
+      "signal_frequency": 0.19358251057827927,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_67"
+      },
+      "created_at": "2025-06-20T21:47:45.939703"
+    },
+    "SPY_15m_compiled_strategy_68": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_68.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1053,
+      "compression_ratio": 0.18564880112834978,
+      "signal_frequency": 0.18564880112834978,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_68"
+      },
+      "created_at": "2025-06-20T21:47:45.939747"
+    },
+    "SPY_15m_compiled_strategy_69": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_69.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1020,
+      "compression_ratio": 0.17983074753173484,
+      "signal_frequency": 0.17983074753173484,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_69"
+      },
+      "created_at": "2025-06-20T21:47:45.939791"
+    },
+    "SPY_15m_compiled_strategy_70": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_70.parquet",
+      "total_bars": 5672,
+      "signal_changes": 980,
+      "compression_ratio": 0.17277856135401976,
+      "signal_frequency": 0.17277856135401976,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_70"
+      },
+      "created_at": "2025-06-20T21:47:45.939834"
+    },
+    "SPY_15m_compiled_strategy_71": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_71.parquet",
+      "total_bars": 5672,
+      "signal_changes": 954,
+      "compression_ratio": 0.16819464033850492,
+      "signal_frequency": 0.16819464033850492,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_71"
+      },
+      "created_at": "2025-06-20T21:47:45.939879"
+    },
+    "SPY_15m_compiled_strategy_81": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_81.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1205,
+      "compression_ratio": 0.21244710860366714,
+      "signal_frequency": 0.21244710860366714,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_81"
+      },
+      "created_at": "2025-06-20T21:47:45.940180"
+    },
+    "SPY_15m_compiled_strategy_82": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_82.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1173,
+      "compression_ratio": 0.20680535966149508,
+      "signal_frequency": 0.20680535966149508,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_82"
+      },
+      "created_at": "2025-06-20T21:47:45.940225"
+    },
+    "SPY_15m_compiled_strategy_83": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_83.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1138,
+      "compression_ratio": 0.20063469675599435,
+      "signal_frequency": 0.20063469675599435,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_83"
+      },
+      "created_at": "2025-06-20T21:47:45.940269"
+    },
+    "SPY_15m_compiled_strategy_84": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_84.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1121,
+      "compression_ratio": 0.19763751763046544,
+      "signal_frequency": 0.19763751763046544,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_84"
+      },
+      "created_at": "2025-06-20T21:47:45.940313"
+    },
+    "SPY_15m_compiled_strategy_85": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_85.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1098,
+      "compression_ratio": 0.19358251057827927,
+      "signal_frequency": 0.19358251057827927,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_85"
+      },
+      "created_at": "2025-06-20T21:47:45.940359"
+    },
+    "SPY_15m_compiled_strategy_86": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_86.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1053,
+      "compression_ratio": 0.18564880112834978,
+      "signal_frequency": 0.18564880112834978,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_86"
+      },
+      "created_at": "2025-06-20T21:47:45.940404"
+    },
+    "SPY_15m_compiled_strategy_87": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_87.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1020,
+      "compression_ratio": 0.17983074753173484,
+      "signal_frequency": 0.17983074753173484,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_87"
+      },
+      "created_at": "2025-06-20T21:47:45.940448"
+    },
+    "SPY_15m_compiled_strategy_88": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_88.parquet",
+      "total_bars": 5672,
+      "signal_changes": 980,
+      "compression_ratio": 0.17277856135401976,
+      "signal_frequency": 0.17277856135401976,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_88"
+      },
+      "created_at": "2025-06-20T21:47:45.940492"
+    },
+    "SPY_15m_compiled_strategy_89": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_89.parquet",
+      "total_bars": 5672,
+      "signal_changes": 954,
+      "compression_ratio": 0.16819464033850492,
+      "signal_frequency": 0.16819464033850492,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_89"
+      },
+      "created_at": "2025-06-20T21:47:45.940536"
+    },
+    "SPY_15m_compiled_strategy_99": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_99.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1205,
+      "compression_ratio": 0.21244710860366714,
+      "signal_frequency": 0.21244710860366714,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_99"
+      },
+      "created_at": "2025-06-20T21:47:45.940841"
+    },
+    "SPY_15m_compiled_strategy_100": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_100.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1173,
+      "compression_ratio": 0.20680535966149508,
+      "signal_frequency": 0.20680535966149508,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_100"
+      },
+      "created_at": "2025-06-20T21:47:45.940886"
+    },
+    "SPY_15m_compiled_strategy_101": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_101.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1138,
+      "compression_ratio": 0.20063469675599435,
+      "signal_frequency": 0.20063469675599435,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_101"
+      },
+      "created_at": "2025-06-20T21:47:45.940931"
+    },
+    "SPY_15m_compiled_strategy_102": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_102.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1121,
+      "compression_ratio": 0.19763751763046544,
+      "signal_frequency": 0.19763751763046544,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_102"
+      },
+      "created_at": "2025-06-20T21:47:45.940976"
+    },
+    "SPY_15m_compiled_strategy_103": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_103.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1098,
+      "compression_ratio": 0.19358251057827927,
+      "signal_frequency": 0.19358251057827927,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_103"
+      },
+      "created_at": "2025-06-20T21:47:45.941020"
+    },
+    "SPY_15m_compiled_strategy_104": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_104.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1053,
+      "compression_ratio": 0.18564880112834978,
+      "signal_frequency": 0.18564880112834978,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_104"
+      },
+      "created_at": "2025-06-20T21:47:45.941063"
+    },
+    "SPY_15m_compiled_strategy_105": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_105.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1020,
+      "compression_ratio": 0.17983074753173484,
+      "signal_frequency": 0.17983074753173484,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_105"
+      },
+      "created_at": "2025-06-20T21:47:45.941107"
+    },
+    "SPY_15m_compiled_strategy_106": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_106.parquet",
+      "total_bars": 5672,
+      "signal_changes": 980,
+      "compression_ratio": 0.17277856135401976,
+      "signal_frequency": 0.17277856135401976,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_106"
+      },
+      "created_at": "2025-06-20T21:47:45.941152"
+    },
+    "SPY_15m_compiled_strategy_107": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_107.parquet",
+      "total_bars": 5672,
+      "signal_changes": 954,
+      "compression_ratio": 0.16819464033850492,
+      "signal_frequency": 0.16819464033850492,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_107"
+      },
+      "created_at": "2025-06-20T21:47:45.941195"
+    },
+    "SPY_15m_compiled_strategy_117": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_117.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1202,
+      "compression_ratio": 0.2119181946403385,
+      "signal_frequency": 0.2119181946403385,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_117"
+      },
+      "created_at": "2025-06-20T21:47:45.941508"
+    },
+    "SPY_15m_compiled_strategy_118": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_118.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1170,
+      "compression_ratio": 0.20627644569816644,
+      "signal_frequency": 0.20627644569816644,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_118"
+      },
+      "created_at": "2025-06-20T21:47:45.941554"
+    },
+    "SPY_15m_compiled_strategy_119": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_119.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1135,
+      "compression_ratio": 0.20010578279266572,
+      "signal_frequency": 0.20010578279266572,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_119"
+      },
+      "created_at": "2025-06-20T21:47:45.941598"
+    },
+    "SPY_15m_compiled_strategy_120": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_120.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1119,
+      "compression_ratio": 0.1972849083215797,
+      "signal_frequency": 0.1972849083215797,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_120"
+      },
+      "created_at": "2025-06-20T21:47:45.941642"
+    },
+    "SPY_15m_compiled_strategy_121": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_121.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1096,
+      "compression_ratio": 0.19322990126939352,
+      "signal_frequency": 0.19322990126939352,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_121"
+      },
+      "created_at": "2025-06-20T21:47:45.941690"
+    },
+    "SPY_15m_compiled_strategy_122": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_122.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1051,
+      "compression_ratio": 0.18529619181946402,
+      "signal_frequency": 0.18529619181946402,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_122"
+      },
+      "created_at": "2025-06-20T21:47:45.941736"
+    },
+    "SPY_15m_compiled_strategy_123": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_123.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1018,
+      "compression_ratio": 0.17947813822284908,
+      "signal_frequency": 0.17947813822284908,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_123"
+      },
+      "created_at": "2025-06-20T21:47:45.941780"
+    },
+    "SPY_15m_compiled_strategy_124": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_124.parquet",
+      "total_bars": 5672,
+      "signal_changes": 979,
+      "compression_ratio": 0.17260225669957688,
+      "signal_frequency": 0.17260225669957688,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_124"
+      },
+      "created_at": "2025-06-20T21:47:45.941824"
+    },
+    "SPY_15m_compiled_strategy_125": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_125.parquet",
+      "total_bars": 5672,
+      "signal_changes": 951,
+      "compression_ratio": 0.1676657263751763,
+      "signal_frequency": 0.1676657263751763,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_125"
+      },
+      "created_at": "2025-06-20T21:47:45.941868"
+    },
+    "SPY_15m_compiled_strategy_135": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_135.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1202,
+      "compression_ratio": 0.2119181946403385,
+      "signal_frequency": 0.2119181946403385,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_135"
+      },
+      "created_at": "2025-06-20T21:47:45.942164"
+    },
+    "SPY_15m_compiled_strategy_136": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_136.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1170,
+      "compression_ratio": 0.20627644569816644,
+      "signal_frequency": 0.20627644569816644,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_136"
+      },
+      "created_at": "2025-06-20T21:47:45.942208"
+    },
+    "SPY_15m_compiled_strategy_137": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_137.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1135,
+      "compression_ratio": 0.20010578279266572,
+      "signal_frequency": 0.20010578279266572,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_137"
+      },
+      "created_at": "2025-06-20T21:47:45.942252"
+    },
+    "SPY_15m_compiled_strategy_138": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_138.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1119,
+      "compression_ratio": 0.1972849083215797,
+      "signal_frequency": 0.1972849083215797,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_138"
+      },
+      "created_at": "2025-06-20T21:47:45.942296"
+    },
+    "SPY_15m_compiled_strategy_139": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_139.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1096,
+      "compression_ratio": 0.19322990126939352,
+      "signal_frequency": 0.19322990126939352,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_139"
+      },
+      "created_at": "2025-06-20T21:47:45.942340"
+    },
+    "SPY_15m_compiled_strategy_140": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_140.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1051,
+      "compression_ratio": 0.18529619181946402,
+      "signal_frequency": 0.18529619181946402,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_140"
+      },
+      "created_at": "2025-06-20T21:47:45.942383"
+    },
+    "SPY_15m_compiled_strategy_141": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_141.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1018,
+      "compression_ratio": 0.17947813822284908,
+      "signal_frequency": 0.17947813822284908,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_141"
+      },
+      "created_at": "2025-06-20T21:47:45.942427"
+    },
+    "SPY_15m_compiled_strategy_142": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_142.parquet",
+      "total_bars": 5672,
+      "signal_changes": 979,
+      "compression_ratio": 0.17260225669957688,
+      "signal_frequency": 0.17260225669957688,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_142"
+      },
+      "created_at": "2025-06-20T21:47:45.942470"
+    },
+    "SPY_15m_compiled_strategy_143": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_143.parquet",
+      "total_bars": 5672,
+      "signal_changes": 951,
+      "compression_ratio": 0.1676657263751763,
+      "signal_frequency": 0.1676657263751763,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_143"
+      },
+      "created_at": "2025-06-20T21:47:45.942514"
+    },
+    "SPY_15m_compiled_strategy_153": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_153.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1202,
+      "compression_ratio": 0.2119181946403385,
+      "signal_frequency": 0.2119181946403385,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_153"
+      },
+      "created_at": "2025-06-20T21:47:45.942814"
+    },
+    "SPY_15m_compiled_strategy_154": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_154.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1170,
+      "compression_ratio": 0.20627644569816644,
+      "signal_frequency": 0.20627644569816644,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_154"
+      },
+      "created_at": "2025-06-20T21:47:45.942860"
+    },
+    "SPY_15m_compiled_strategy_155": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_155.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1135,
+      "compression_ratio": 0.20010578279266572,
+      "signal_frequency": 0.20010578279266572,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_155"
+      },
+      "created_at": "2025-06-20T21:47:45.942905"
+    },
+    "SPY_15m_compiled_strategy_156": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_156.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1119,
+      "compression_ratio": 0.1972849083215797,
+      "signal_frequency": 0.1972849083215797,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_156"
+      },
+      "created_at": "2025-06-20T21:47:45.942949"
+    },
+    "SPY_15m_compiled_strategy_157": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_157.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1096,
+      "compression_ratio": 0.19322990126939352,
+      "signal_frequency": 0.19322990126939352,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_157"
+      },
+      "created_at": "2025-06-20T21:47:45.942993"
+    },
+    "SPY_15m_compiled_strategy_158": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_158.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1051,
+      "compression_ratio": 0.18529619181946402,
+      "signal_frequency": 0.18529619181946402,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_158"
+      },
+      "created_at": "2025-06-20T21:47:45.943100"
+    },
+    "SPY_15m_compiled_strategy_159": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_159.parquet",
+      "total_bars": 5672,
+      "signal_changes": 1018,
+      "compression_ratio": 0.17947813822284908,
+      "signal_frequency": 0.17947813822284908,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_159"
+      },
+      "created_at": "2025-06-20T21:47:45.943164"
+    },
+    "SPY_15m_compiled_strategy_160": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_160.parquet",
+      "total_bars": 5672,
+      "signal_changes": 979,
+      "compression_ratio": 0.17260225669957688,
+      "signal_frequency": 0.17260225669957688,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_160"
+      },
+      "created_at": "2025-06-20T21:47:45.943209"
+    },
+    "SPY_15m_compiled_strategy_161": {
+      "component_type": "strategy",
+      "strategy_type": "swing_pivot_bounce",
+      "signal_file_path": "traces/SPY_15m_1m/signals/swing_pivot_bounce/SPY_15m_compiled_strategy_161.parquet",
+      "total_bars": 5672,
+      "signal_changes": 951,
+      "compression_ratio": 0.1676657263751763,
+      "signal_frequency": 0.1676657263751763,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_161"
+      },
+      "created_at": "2025-06-20T21:47:45.943253"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

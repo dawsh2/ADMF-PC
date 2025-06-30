@@ -1,0 +1,54 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/bollinger/results/20250624_185149",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 99,
+  "total_signals": 76,
+  "total_classifications": 0,
+  "stored_changes": 5,
+  "compression_ratio": 6.578947368421052,
+  "components": {
+    "SPY_5m_bollinger_bands_20_20": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "bollinger_bands_20_20",
+        "_actual_strategy_type": "bollinger_bands",
+        "period": 20,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "93c2a4024f9e",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "bollinger_bands_20_20",
+          "_actual_strategy_type": "bollinger_bands",
+          "period": 20,
+          "std_dev": 2.0
+        }
+      }
+    }
+  },
+  "timestamp": "2025-06-24T18:51:51.804310",
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

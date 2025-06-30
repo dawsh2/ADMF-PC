@@ -1,0 +1,23 @@
+# Test configuration for Keltner Bands with volatility filter
+# Demonstrates how to achieve filtered behavior using composition
+name: test_keltner_bands_filtered
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Keltner bands with volatility filter using config-level filtering
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+    # Only generate signals when ATR is less than 2% of price
+    filter: "atr(14) / price * 100 < 2.0"
+
+# Run with: python main.py --config config/indicators/volatility/test_keltner_bands_filtered.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# Same as keltner_bands but signals are suppressed during high volatility
+# This achieves the same result as the removed keltner_mean_reversion
+# but through composition rather than hardcoding

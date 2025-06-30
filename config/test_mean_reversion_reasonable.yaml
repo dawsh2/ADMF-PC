@@ -1,0 +1,87 @@
+# Test mean reversion strategies with reasonable parameter space
+name: test_mean_reversion_reasonable
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Manually specify reasonable parameter combinations
+parameter_space:
+  strategies:
+    - type: bollinger_bands
+      param_overrides:
+        period: [10, 20, 30]
+        std_dev: [1.5, 2.0, 2.5]
+    
+    - type: keltner_bands
+      param_overrides:
+        period: [10, 20]
+        multiplier: [1.5, 2.0]
+    
+    - type: donchian_bands
+      param_overrides:
+        period: [10, 20, 30]
+    
+    - type: vwap_deviation
+      param_overrides:
+        band_pct: [0.005, 0.01]
+        use_atr_bands: [false]  # Keep it simple
+        atr_period: [14]
+        atr_multiplier: [1.0]
+    
+    - type: pivot_bounces
+      param_overrides:
+        pivot_type: ["standard", "fibonacci"]
+        timeframe: ["5m", "15m"]
+        touch_threshold: [0.0005]
+    
+    - type: swing_pivot_bounce
+      param_overrides:
+        bounce_threshold: [0.002, 0.005]
+        min_touches: [2, 3]
+        sr_period: [20, 50]
+    
+    - type: rsi_bands
+      param_overrides:
+        rsi_period: [7, 14, 21]
+        oversold: [20, 30]
+        overbought: [70, 80]
+    
+    - type: williams_r
+      param_overrides:
+        williams_period: [14]
+        oversold: [-80]
+        overbought: [-20]
+    
+    - type: mfi_bands
+      param_overrides:
+        mfi_period: [14]
+        oversold: [20]
+        overbought: [80]
+
+# Control optimization granularity
+optimization:
+  granularity: 3
+
+# Run with:
+# python main.py --config config/test_mean_reversion_reasonable.yaml --optimize --bars 1000
+
+# This will generate approximately:
+# - bollinger_bands: 3 × 3 = 9 combinations
+# - keltner_bands: 2 × 2 = 4 combinations
+# - donchian_bands: 3 combinations
+# - vwap_deviation: 2 × 1 × 1 × 1 = 2 combinations
+# - pivot_bounces: 2 × 2 × 1 = 4 combinations
+# - swing_pivot_bounce: 2 × 2 × 2 = 8 combinations
+# - rsi_bands: 3 × 2 × 2 = 12 combinations
+# - williams_r: 1 × 1 × 1 = 1 combination
+# - mfi_bands: 1 × 1 × 1 = 1 combination
+# Total: ~44 parameter combinations (much more reasonable!)

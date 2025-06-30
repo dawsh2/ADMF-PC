@@ -1,0 +1,23 @@
+# Test configuration for Donchian Bands strategy
+name: test_donchian_bands
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Donchian channel bands (mean reversion) strategy
+strategy:
+  donchian_bands:
+    params:
+      period: 20
+
+# Run with: python main.py --config config/indicators/volatility/test_donchian_bands.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - Upper band = highest high over period
+# - Lower band = lowest low over period
+# - BUY signal when price touches lower band (oversold)
+# - SELL signal when price touches upper band (overbought)
+# - FLAT when price is between bands
+#
+# Note: This is opposite of donchian_breakout which trades breakouts

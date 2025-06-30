@@ -1,0 +1,26 @@
+# Test configuration for Swing Pivot Breakout strategy
+name: test_swing_pivot_breakout
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  swing_pivot_breakout:
+    params:
+      swing_period: 10  # Period for swing point detection
+      channel_multiplier: 1.0  # ATR multiplier for channel width
+      lookback: 40  # How far back to look for pivots
+
+# Run with: python main.py --config config/indicators/structure/test_swing_pivot_breakout.yaml --signal-generation --bars 100
+
+# Expected behavior (TREND FOLLOWING/BREAKOUT):
+# - Price breaks above upper channel: BUY signal (1) - bullish breakout
+# - Price breaks below lower channel: SELL signal (-1) - bearish breakdown
+# - Price within channels: No signal (0)
+
+# Based on Pine Script "Pivot Channel Breaks" logic:
+# - Uses swing highs/lows to create dynamic channels
+# - Channel width adjusts based on volatility (ATR)
+# - Trades breakouts from these dynamic levels

@@ -2,7 +2,16 @@
 
 ## Executive Summary
 
-This document outlines a complete redesign of the YAML-based trading strategy system to support regime-adaptive strategies and complex conditional logic. The design prioritizes clean architecture and maintainability over backward compatibility, requiring migration of existing strategies to eliminate technical debt and enable robust future development.
+This document outlines a complete redesign of the YAML-based trading strategy system to support regime-adaptive strategies and complex conditional logic. The design enables users to create sophisticated trading strategies entirely through YAML configuration without writing any Python code. 
+
+Key capabilities include:
+- **Composable ensembles**: Combine any strategies into weighted ensembles
+- **Regime-adaptive behavior**: Switch strategies based on market conditions
+- **Conditional logic**: If-then-else strategy selection
+- **Parameter optimization**: Automatic parameter space expansion with `--optimize` flag
+- **Nested composition**: Ensembles within ensembles, unlimited depth
+
+The goal is for users to express any trading logic declaratively in YAML, provided the underlying indicators and features exist in the system.
 
 ## Core Design Principles
 
@@ -17,6 +26,9 @@ The centralized computation system (where `sma(5)` is computed once and shared) 
 
 ### 4. **Progressive Enhancement**
 Users can start with simple indicator lists and gradually add regime detection, conditions, or decision trees only where needed. Configurations can evolve from simple to complex without structural rewrites.
+
+### 5. **Zero-Code Strategy Composition**
+**Users never need to write Python code to create new trading strategies.** All composition, regime adaptation, conditional logic, and ensemble creation is done purely through YAML configuration. If the required indicators and base strategies exist, any combination can be created declaratively.
 
 ## Strategy Type Hierarchy
 
@@ -372,6 +384,44 @@ class Strategy:
     def get_required_features(self) -> List[Feature]:
         """Returns all features needed by this strategy and its children"""
         pass
+    
+    def get_parameter_space(self) -> Dict[str, ParameterSpec]:
+        """Returns parameter specifications for optimization"""
+        pass
+```
+
+### Parameter Space Specification
+
+Each strategy defines its optimizable parameter space:
+
+```python
+@dataclass
+class ParameterSpec:
+    """Specification for an optimizable parameter."""
+    param_type: str  # 'int', 'float', 'categorical'
+    default: Any
+    range: Optional[Tuple[Any, Any]] = None  # For numeric types
+    choices: Optional[List[Any]] = None      # For categorical
+    constraint: Optional[str] = None         # e.g., "fast_period < slow_period"
+    description: Optional[str] = None
+
+# Example strategy implementation
+def get_parameter_space(self) -> Dict[str, ParameterSpec]:
+    return {
+        'fast_period': ParameterSpec(
+            param_type='int',
+            default=10,
+            range=(3, 50),
+            constraint='fast_period < slow_period',
+            description='Fast moving average period'
+        ),
+        'slow_period': ParameterSpec(
+            param_type='int',
+            default=30,
+            range=(10, 200),
+            description='Slow moving average period'
+        )
+    }
 ```
 
 ### Feature Registry Extension
@@ -414,6 +464,168 @@ class StrategyParser:
         elif strategy_type == 'pipeline':
             return self._parse_pipeline(config)
         # ... etc
+```
+
+### Recursive Parameter Extraction for Optimization
+
+The topology builder handles recursive parameter extraction for ensemble optimization:
+
+```python
+class EnsembleParameterExtractor:
+    """Extracts parameter spaces recursively from ensemble configurations."""
+    
+    def extract_parameter_space(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recursively extract all parameter spaces from ensemble configuration.
+        
+        Returns hierarchical parameter space that preserves ensemble structure
+        while allowing optimization of all nested strategies.
+        """
+        param_space = {}
+        
+        # Handle optimization space overrides from YAML
+        overrides = config.get('optimization_space', {})
+        
+        if config.get('type') == 'ensemble' or 'strategies' in config:
+            # Ensemble case - recurse into each strategy
+            for idx, strategy_config in enumerate(config.get('strategies', [])):
+                strategy_name = strategy_config.get('name', f'strategy_{idx}')
+                
+                if strategy_config.get('type') == 'ensemble':
+                    # Nested ensemble - recursive extraction
+                    param_space[strategy_name] = self.extract_parameter_space(strategy_config)
+                else:
+                    # Atomic strategy - get its parameter space
+                    param_space[strategy_name] = self._get_atomic_strategy_space(
+                        strategy_config, 
+                        overrides.get(strategy_name, {})
+                    )
+        else:
+            # Single strategy - get its parameter space
+            param_space = self._get_atomic_strategy_space(config, overrides)
+            
+        return param_space
+    
+    def _get_atomic_strategy_space(self, 
+                                   strategy_config: Dict[str, Any],
+                                   overrides: Dict[str, Any]) -> Dict[str, Any]:
+        """Get parameter space for atomic (non-ensemble) strategy."""
+        strategy_type = strategy_config['type']
+        
+        # Get default parameter space from strategy decorator metadata
+        strategy_info = get_component_registry().get_component(strategy_type)
+        default_space = strategy_info.metadata.get('parameter_space', {})
+        
+        # Apply YAML overrides
+        final_space = {}
+        for param_name, param_spec in default_space.items():
+            if param_name in overrides:
+                # Override can be a list (explicit values) or dict (spec override)
+                override_value = overrides[param_name]
+                if isinstance(override_value, list):
+                    # Explicit value list
+                    final_space[param_name] = override_value
+                elif isinstance(override_value, dict):
+                    # Spec override - merge with defaults
+                    final_space[param_name] = {**param_spec.__dict__, **override_value}
+                else:
+                    # Single value - treat as fixed parameter
+                    final_space[param_name] = [override_value]
+            elif overrides.get('use_defaults', True):
+                # Use default parameter space
+                final_space[param_name] = self._sample_from_spec(
+                    param_spec,
+                    overrides.get('sample_points', 5)
+                )
+                
+        return final_space
+```
+
+### YAML Configuration with Optimization Space Overrides
+
+```yaml
+# Ensemble with optimization configuration
+strategy:
+  type: ensemble
+  name: adaptive_ensemble
+  
+  # Optional: Override default parameter spaces for optimization
+  optimization_space:
+    # Strategy-specific overrides
+    trend_follower:
+      fast_period: [5, 10, 20, 30]  # Explicit values
+      slow_period: 
+        range: [20, 100]            # Override range
+        sample_points: 4            # Sample 4 points
+        
+    momentum_strategy:
+      use_defaults: true            # Use all defaults
+      sample_points: 3              # But only sample 3 points
+      
+    # For nested ensembles, use hierarchical paths
+    "mean_reversion_ensemble.rsi_bands":
+      rsi_period: [14, 21, 28]
+      
+  # The actual ensemble composition
+  strategies:
+    - name: trend_follower
+      type: sma_crossover
+      weight: 0.3
+      params:
+        fast_period: 10  # Current value
+        slow_period: 30
+        
+    - name: momentum_strategy  
+      type: momentum_breakout
+      weight: 0.3
+      params:
+        momentum_period: 14
+        breakout_threshold: 0.01
+        
+    - name: mean_reversion_ensemble
+      type: ensemble
+      weight: 0.4
+      strategies:
+        - name: rsi_bands
+          type: rsi_bands
+          weight: 0.6
+          params:
+            rsi_period: 14
+            oversold: 30
+            overbought: 70
+            
+        - name: bollinger
+          type: bollinger_bands
+          weight: 0.4
+          params:
+            period: 20
+            num_std: 2
+```
+
+### Topology Builder Integration
+
+The topology builder uses the parameter extractor during optimization workflows:
+
+```python
+class TopologyBuilder:
+    def __init__(self):
+        self.parameter_extractor = EnsembleParameterExtractor()
+        
+    def build_optimization_topology(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Build topology for parameter optimization workflow."""
+        # Extract full parameter space recursively
+        param_space = self.parameter_extractor.extract_parameter_space(
+            config['strategy']
+        )
+        
+        # Expand parameter combinations
+        expanded_configs = self._expand_parameter_combinations(
+            config['strategy'],
+            param_space
+        )
+        
+        # Build topology with all parameter variants
+        return self._build_expanded_topology(expanded_configs)
 ```
 
 ### Natural Composition Examples
@@ -646,7 +858,210 @@ strategy:
 ## Next Steps
 
 1. Prototype the parser extensions with regime_switch type
-2. Design the regime detector library interface
+2. Design the regime detector library interface  
 3. Create a test suite with progressively complex strategies
 4. Benchmark performance with deeply nested strategies
 5. Document best practices for strategy composition
+
+## Zero-Code Trading: Complete Examples
+
+### Example 1: Market-Adaptive Ensemble
+This sophisticated strategy adapts to market conditions without any Python code:
+
+```yaml
+strategy:
+  type: ensemble
+  name: market_adaptive_system
+  
+  strategies:
+    # Trend following component - active in trending markets
+    - name: trend_component
+      type: regime_switch
+      weight: 0.4
+      detector: trend_strength(50)
+      regimes:
+        strong_up:
+          type: ensemble
+          strategies:
+            - { type: sma_crossover, params: {fast: 10, slow: 30} }
+            - { type: momentum, params: {period: 14} }
+            - { type: breakout, params: {lookback: 20} }
+          combination: majority
+        strong_down:
+          type: inverse
+          base_strategy: { ref: trend_component.regimes.strong_up }
+        weak:
+          type: mean_reversion
+          params: {period: 20, threshold: 2.0}
+    
+    # Volatility harvesting - active in high volatility
+    - name: volatility_component  
+      type: conditional
+      weight: 0.3
+      condition: volatility_percentile(20) > 70
+      if_true:
+        type: ensemble
+        strategies:
+          - { type: bollinger_squeeze, params: {period: 20, num_std: 2} }
+          - { type: atr_breakout, params: {period: 14, multiplier: 1.5} }
+      if_false:
+        type: disabled  # No trading in low volatility
+    
+    # Time-based component
+    - name: time_component
+      type: decision_tree
+      weight: 0.3
+      root:
+        split: market_hours()
+        branches:
+          - condition: "== 'pre_market'"
+            strategy: { type: gap_fade, params: {threshold: 0.02} }
+          - condition: "== 'regular'"
+            node:
+              split: time_until_close()
+              branches:
+                - condition: "< 30"
+                  strategy: { type: close_positions }
+                - condition: ">= 30"
+                  strategy: { ref: strategies.intraday_momentum }
+          - condition: "== 'after_hours'"
+            strategy: { type: overnight_carry }
+```
+
+### Example 2: Self-Optimizing Strategy
+This configuration automatically adjusts parameters based on recent performance:
+
+```yaml
+strategy:
+  type: adaptive_ensemble
+  
+  # Base strategies with performance tracking
+  strategies:
+    - name: fast_momentum
+      type: momentum
+      params: {period: 7}
+      track_performance: true
+      
+    - name: medium_momentum  
+      type: momentum
+      params: {period: 14}
+      track_performance: true
+      
+    - name: slow_momentum
+      type: momentum  
+      params: {period: 28}
+      track_performance: true
+  
+  # Adaptive weight allocation
+  adaptive_weights:
+    method: sharpe_maximization
+    lookback: 30
+    update_frequency: daily
+    constraints:
+      min_weight: 0.1
+      max_weight: 0.6
+      sum_to_one: true
+  
+  # Regime override - in trending markets, prefer faster momentum
+  regime_overrides:
+    - detector: trend_strength(50)
+      condition: "> 0.7"
+      weight_adjustments:
+        fast_momentum: 1.5   # 50% weight boost
+        slow_momentum: 0.5   # 50% weight reduction
+```
+
+### Example 3: Complete Trading System
+A production-ready system combining multiple approaches:
+
+```yaml
+# Dual-purpose configuration
+name: complete_trading_system
+symbols: ["SPY", "QQQ", "IWM"]
+timeframes: ["5m"]
+
+# For optimization runs
+parameter_space:
+  indicators:
+    crossover: "*"
+    momentum: ["macd_crossover", "rsi_momentum", "roc_trend"]
+    oscillator: "*"
+    structure: ["pivot_points", "support_resistance_breakout"]
+  
+  classifiers:
+    - market_regime_classifier
+    - volatility_regime_classifier
+    - trend_strength_classifier
+
+# Production strategy
+strategy:
+  type: master_ensemble
+  
+  # Risk management wrapper
+  risk_management:
+    max_positions: 3
+    position_sizing: kelly_criterion
+    stop_loss: atr_based
+    take_profit: dynamic
+  
+  # Main strategy components  
+  strategies:
+    # Long-term trend follower
+    - name: strategic_trend
+      type: regime_switch
+      weight: 0.25
+      detector: market_regime_classifier(20, 1.5)
+      regimes:
+        bull_market:
+          type: buy_and_hold
+          filters: [above_sma(200)]
+        bear_market:
+          type: inverse
+          base_strategy: { type: trend_follow, params: {period: 50} }
+        neutral:
+          type: disabled
+    
+    # Tactical allocation
+    - name: tactical_trading
+      type: multi_regime
+      weight: 0.5
+      detectors:
+        - { name: trend, detector: trend_strength(20), weight: 0.6 }
+        - { name: volatility, detector: volatility_regime(20), weight: 0.4 }
+      strategies:
+        trend:
+          strong:
+            volatility:
+              low: { type: sma_crossover, params: {fast: 10, slow: 30} }
+              high: { type: breakout, params: {period: 20, confirm: true} }
+          weak:
+            volatility:
+              low: { type: mean_reversion, params: {period: 20} }
+              high: { type: straddle, params: {strikes: 2} }
+    
+    # Opportunistic trades
+    - name: opportunity_catcher
+      type: scanner
+      weight: 0.25
+      scan_for:
+        - { pattern: golden_cross, action: { type: momentum, params: {period: 14} } }
+        - { pattern: oversold_bounce, action: { type: rsi_reversal, params: {period: 14} } }
+        - { pattern: breakout_setup, action: { type: breakout, params: {confirm: true} } }
+      max_concurrent: 2
+  
+  # Performance-based rebalancing
+  rebalancing:
+    method: risk_parity
+    frequency: weekly
+    constraints:
+      turnover_limit: 0.2
+      min_weight: 0.1
+```
+
+These examples demonstrate that users can create arbitrarily complex trading systems without writing any code. The YAML configuration supports:
+- Unlimited nesting of strategies
+- Multiple types of regime detection
+- Conditional logic and decision trees
+- Performance-based adaptation
+- Risk management integration
+- Multi-timeframe and multi-asset strategies

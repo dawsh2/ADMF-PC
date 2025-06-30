@@ -1,0 +1,24 @@
+name: bollinger_high_frequency
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      # Shorter periods for more frequent signals
+      period: "range(10, 30, 2)",
+      # Tighter bands for more touches/crosses
+      std_dev: "range(1.0, 2.5, 0.25)"
+    },
+    constraints: "intraday"
+  }
+]
+
+# This configuration targets higher frequency trading by:
+# 1. Using shorter lookback periods (10-30 vs 38-48)
+# 2. Using tighter standard deviation bands (1.0-2.5 vs 0.7-1.5)
+# 3. Maintaining intraday constraint to avoid overnight risk
+#
+# Expected results:
+# - More trades per day (target: 2-10)
+# - Smaller moves per trade
+# - Better suited for stop loss strategies

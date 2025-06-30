@@ -82,18 +82,21 @@ containers:
       metadata:
         from_config: metadata
 
-  # Portfolio container - receives SIGNAL events, publishes ORDER events
-  - name: "portfolio"
+  # Portfolio containers - ONE PER STRATEGY NAME
+  # This creates a portfolio for each strategy name in strategy_names
+  - name_template: "portfolio_{strategy_name}"
     type: portfolio
-    components: ["portfolio_manager", "position_manager", "risk_manager"]
+    components: ["portfolio_state", "risk_manager"]
     parent: root
+    foreach:
+      strategy_name:
+        from_config: strategy_names
     config:
       initial_capital:
         from_config: initial_capital
         default: 100000
-      managed_strategies:
-        from_config: strategy_names
-        default: ["default"]
+      # Each portfolio manages only its corresponding strategy
+      managed_strategies: ["{strategy_name}"]
       risk_limits:
         from_config: risk_limits
         default:
@@ -115,6 +118,9 @@ containers:
       broker:
         from_config: broker
         default: alpaca
+      execution_mode:
+        from_config: execution.execution_mode
+        default: sync
       live_trading:
         from_config: live_trading
       execution_models:

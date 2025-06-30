@@ -1,0 +1,48 @@
+# Example of using wildcards for parameter space discovery
+name: optimization_wildcard_example
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-03-31"
+initial_capital: 100000
+
+# Basic production strategy (used when not optimizing)
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+
+# Parameter space for optimization (activated with --optimize flag)
+parameter_space:
+  # Example 1: Test all indicator strategies
+  indicators: "*"
+  
+  # Example 2: Test specific categories (uncomment to use)
+  # indicators:
+  #   crossover: "*"       # All crossover strategies
+  #   momentum: "*"        # All momentum strategies
+  #   oscillator: "*"      # All oscillator strategies
+  #   trend: "*"           # All trend strategies
+  #   volatility: "*"      # All volatility strategies
+  #   volume: "*"          # All volume strategies
+  #   structure: "*"       # All structure strategies
+  
+  # Example 3: Mix wildcards with specific strategies (uncomment to use)
+  # indicators:
+  #   crossover: "*"                           # All crossovers
+  #   momentum: ["rsi", "macd_crossover"]      # Specific momentum
+  # classifiers: ["volatility_regime"]         # Specific classifiers
+  # strategies:                                # Custom strategies
+  #   - type: custom_ensemble
+  #     param_overrides:
+  #       weight_threshold: [0.5, 0.6, 0.7]
+
+# Features will be auto-discovered from the strategies
+features:
+  - sma  # Basic features for production strategy
+
+# Optimization settings
+optimization:
+  metric: "sharpe_ratio"  # Metric to optimize
+  granularity: 5          # Number of samples for parameter ranges

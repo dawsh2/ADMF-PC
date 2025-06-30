@@ -593,10 +593,12 @@ class Sequencer:
             for container in reversed(initialized_containers):
                 try:
                     if hasattr(container, 'cleanup'):
+                        logger.debug(f"Attempting to clean up container: {getattr(container, 'container_id', 'unknown')}")
                         container.cleanup()
                         logger.debug(f"Cleaned up container: {container.container_id}")
                 except Exception as e:
-                    logger.error(f"Error cleaning up container: {e}")
+                    container_id = getattr(container, 'container_id', 'unknown')
+                    logger.error(f"Error cleaning up container {container_id}: {e}", exc_info=True)
     
     def _run_topology_execution(self, topology: Dict[str, Any],
                                phase_config: PhaseConfig,
@@ -665,7 +667,7 @@ class Sequencer:
                 
                 # Count portfolio containers
                 if hasattr(container, 'get_component'):
-                    if container.get_component('portfolio_manager'):
+                    if container.get_component('portfolio_state'):
                         metrics['portfolios_managed'] += 1
         
         return metrics
@@ -686,6 +688,10 @@ class Sequencer:
             tracer_results = finalize_multi_strategy_tracer(topology)
             if tracer_results:
                 results['tracer_results'] = tracer_results
+                # Add workspace path to results for notebook generation
+                if 'workspace_path' in tracer_results:
+                    results['results_directory'] = tracer_results['workspace_path']
+                    logger.info(f"Results directory: {results['results_directory']}")
                 logger.info(f"MultiStrategyTracer finalized with {len(tracer_results.get('components', {}))} components")
             else:
                 logger.warning("MultiStrategyTracer finalization returned None")
@@ -699,9 +705,9 @@ class Sequencer:
                 container_results = container.streaming_metrics.get_results()
                 results['container_results'][container_id] = container_results
                 
-                # Aggregate portfolio data - check for portfolio_manager component
+                # Aggregate portfolio data - check for portfolio_state component
                 if hasattr(container, 'get_component'):
-                    portfolio_mgr = container.get_component('portfolio_manager')
+                    portfolio_mgr = container.get_component('portfolio_state')
                     if portfolio_mgr:
                         portfolio_results.append(container_results)
                     
@@ -952,5 +958,12 @@ class Sequencer:
         result['start_time'] = start_time.isoformat()
         result['end_time'] = datetime.now().isoformat()
         result['duration_seconds'] = (datetime.now() - start_time).total_seconds()
+        
+        # Propagate results_directory from phase_results if present
+        if 'phase_results' in result and result['phase_results']:
+            phase_results = result['phase_results']
+            if 'results_directory' in phase_results:
+                result['results_directory'] = phase_results['results_directory']
+                logger.info(f"Propagated results_directory to top level: {result['results_directory']}")
         
         return result

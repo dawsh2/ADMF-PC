@@ -1,0 +1,10 @@
+name: keltner_2826_custom_filter
+data: SPY_5m
+strategy:
+- keltner_bands:
+    period:
+    - 30
+    multiplier:
+    - 1.0
+    filter: signal != 0 and features.get('atr_14', 0) / features.get('atr_50', 1)
+      > 0.8

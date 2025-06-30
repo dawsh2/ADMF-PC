@@ -1,0 +1,118 @@
+# Test configuration for all mean reversion strategies using wildcard expansion
+name: test_all_mean_reversion
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Wildcard parameter expansion for all mean reversion strategies
+parameter_space:
+  # RSI-based mean reversion
+  rsi_bands:
+    rsi_period: [7, 14, 21]
+    overbought: [70, 80]
+    oversold: [20, 30]
+  
+  # Bollinger Bands mean reversion
+  bollinger_bands:
+    period: [10, 20, 30]
+    std_dev: [1.5, 2.0, 2.5]
+  
+  # Keltner Bands mean reversion
+  keltner_bands:
+    period: [10, 20]
+    multiplier: [1.5, 2.0]
+  
+  # Donchian Bands mean reversion
+  donchian_bands:
+    period: [10, 20, 30]
+  
+  # VWAP Deviation
+  vwap_deviation:
+    band_pct: [0.005, 0.01]  # 0.5% and 1% bands
+    use_atr_bands: [false, true]
+    atr_period: [14]
+    atr_multiplier: [1.0, 1.5]
+  
+  # MFI Bands
+  mfi_bands:
+    mfi_period: [14, 21]
+    overbought: [70, 80]
+    oversold: [20, 30]
+  
+  # CCI Bands
+  cci_bands:
+    period: [14, 20]
+    upper_band: [100, 150]
+    lower_band: [-100, -150]
+  
+  # Williams %R
+  williams_r:
+    period: [14, 21]
+    overbought: [-20, -10]
+    oversold: [-80, -90]
+  
+  # Stochastic RSI
+  stochastic_rsi:
+    rsi_period: [14]
+    stoch_period: [14]
+    d_period: [3]
+    overbought: [70, 80]
+    oversold: [20, 30]
+  
+  # Ultimate Oscillator
+  ultimate_oscillator:
+    period1: [7]
+    period2: [14]
+    period3: [28]
+    overbought: [70]
+    oversold: [30]
+  
+  # Pivot Bounces
+  pivot_bounces:
+    pivot_type: ["standard", "fibonacci"]
+    timeframe: ["1m", "5m"]
+    touch_threshold: [0.0003, 0.0005]
+  
+  # Swing Pivot Bounce
+  swing_pivot_bounce:
+    bounce_threshold: [0.002, 0.003]
+    min_touches: [2]
+    sr_period: [20, 50]
+  
+  # Trendline Bounces
+  trendline_bounces:
+    bounce_threshold: [0.003, 0.005]
+    min_touches: [2, 3]
+    pivot_lookback: [20]
+    tolerance: [0.002]
+  
+  # Diagonal Channel Reversion
+  diagonal_channel_reversion:
+    lookback: [20, 30]
+    min_points: [3]
+    channel_tolerance: [0.02]
+    parallel_tolerance: [0.1]
+    entry_mode: ["boundary", "midline"]
+    boundary_threshold: [0.003]
+    midline_distance: [0.25]
+
+# Run with: python main.py --config config/test_all_mean_reversion.yaml --signal-generation --bars 200 --optimize
+
+# This will test all mean reversion strategies with parameter combinations:
+# - RSI Bands: 3 × 2 × 2 = 12 combinations
+# - Bollinger Bands: 3 × 3 = 9 combinations
+# - Keltner Bands: 2 × 2 = 4 combinations
+# - Donchian Bands: 3 combinations
+# - VWAP Deviation: 2 × 2 × 1 × 2 = 8 combinations
+# - MFI Bands: 2 × 2 × 2 = 8 combinations
+# - CCI Bands: 2 × 2 × 2 = 8 combinations
+# - Williams %R: 2 × 2 × 2 = 8 combinations
+# - Stochastic RSI: 1 × 1 × 1 × 2 × 2 = 4 combinations
+# - Ultimate Oscillator: 1 × 1 × 1 × 1 × 1 = 1 combination
+# - Pivot Bounces: 2 × 2 × 2 = 8 combinations
+# - Swing Pivot Bounce: 2 × 1 × 2 = 4 combinations
+# - Trendline Bounces: 2 × 2 × 1 × 1 = 4 combinations
+# - Diagonal Channel Reversion: 2 × 1 × 1 × 1 × 2 × 1 × 1 = 4 combinations
+#
+# Total: ~93 parameter combinations across 14 mean reversion strategies

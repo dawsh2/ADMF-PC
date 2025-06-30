@@ -1,0 +1,45 @@
+# Demonstration of signal filtering
+name: test_filter_demo
+mode: backtest
+symbols: ["SPY"]
+start_date: "2023-01-01" 
+end_date: "2023-01-31"
+initial_capital: 100000
+
+# Test different filtering scenarios
+strategies:
+  # 1. No filter - all signals pass
+  - name: no_filter
+    type: sma_crossover
+    params:
+      fast_period: 5
+      slow_period: 10
+      
+  # 2. Long only filter
+  - name: long_only
+    type: sma_crossover
+    params:
+      fast_period: 5
+      slow_period: 10
+    filter: "signal > 0"
+    
+  # 3. Short only filter  
+  - name: short_only
+    type: sma_crossover
+    params:
+      fast_period: 5
+      slow_period: 10
+    filter: "signal < 0"
+    
+  # 4. High volume filter
+  - name: high_volume
+    type: sma_crossover
+    params:
+      fast_period: 5
+      slow_period: 10
+    filter: "signal != 0 and volume > 100000000"  # 100M volume
+
+# Features
+features:
+  - sma
+  - volume

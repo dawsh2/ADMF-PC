@@ -1,0 +1,24 @@
+# Test configuration for ROC Threshold strategy
+name: test_roc_threshold
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Rate of Change threshold momentum strategy
+strategy:
+  roc_threshold:
+    params:
+      roc_period: 10
+      threshold: 2.0  # 2% threshold
+
+# Run with: python main.py --config config/indicators/oscillator/test_roc_threshold.yaml --signal-generation --bars 100
+
+# Expected behavior (MOMENTUM):
+# - ROC > 2%: BUY signal (1) - bullish momentum
+# - ROC < -2%: SELL signal (-1) - bearish momentum
+# - ROC between -2% and 2%: No signal (0)
+
+# ROC measures percentage change over N periods
+# Different from roc_trend strategy in momentum.py which uses 1% threshold
+# This oscillator version uses symmetric thresholds for momentum

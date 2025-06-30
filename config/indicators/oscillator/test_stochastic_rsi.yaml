@@ -1,0 +1,26 @@
+# Test configuration for Stochastic RSI strategy
+name: test_stochastic_rsi
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Stochastic RSI mean reversion strategy
+strategy:
+  stochastic_rsi:
+    params:
+      rsi_period: 14
+      stoch_period: 14
+      overbought: 80
+      oversold: 20
+
+# Run with: python main.py --config config/indicators/oscillator/test_stochastic_rsi.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - StochRSI > 80: SELL signal (-1) - overbought
+# - StochRSI < 20: BUY signal (1) - oversold
+# - StochRSI between 20-80: No signal (0)
+
+# Stochastic RSI applies stochastic calculation to RSI values
+# More sensitive than regular RSI, generates more signals
+# Values range from 0 to 100

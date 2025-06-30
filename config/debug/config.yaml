@@ -1,0 +1,44 @@
+# Debug config to test RSI filter functionality
+name: debug_rsi_filter
+data: SPY_5m
+
+# Features should be automatically inferred from filter usage
+# No explicit feature definitions needed!
+
+# Test with minimal strategy combinations
+strategy:
+  - keltner_bands:
+      period: [20]  # Single period
+      multiplier: [2.0]  # Single multiplier
+      filter: [
+        # Test 1: No filter (baseline)
+        null,
+        
+        # Test 2: Simple RSI filter with single threshold
+        {rsi_below: {threshold: 50}},
+        
+        # Test 3: RSI filter with multiple thresholds
+        {rsi_below: {threshold: [30, 50, 70]}},
+        
+        # Test 4: Direct filter expression (bypass clean syntax)
+        "signal == 0 or rsi_14 < 50",
+        
+        # Test 5: Volume filter for comparison
+        {volume_above: {multiplier: 1.2}},
+        
+        # Test 6: Combined for verification
+        [
+          {rsi_below: {threshold: 50}},
+          {volume_above: {multiplier: 1.2}}
+        ]
+      ]
+
+# Disable optimization for simpler testing
+optimization:
+  granularity: 1
+
+# Execution settings
+execution:
+  trace_settings:
+    storage:
+      base_dir: ./configs

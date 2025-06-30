@@ -44,6 +44,8 @@ class CLIArgs:
     parallel: Optional[int] = None
     checkpoint: Optional[str] = None
     output_dir: Optional[str] = None
+    close_eod: bool = False
+    force: bool = False
     
     # Study and WFV arguments
     results_dir: Optional[str] = None
@@ -67,6 +69,16 @@ class CLIArgs:
     dry_run: bool = False
     profile: bool = False
     schema_docs: bool = False
+    
+    # Strategy discovery arguments
+    list_strategies: bool = False
+    strategy_filter: Optional[str] = None
+    
+    # Notebook generation arguments
+    notebook: Optional[str] = None  # Path to existing results
+    launch_notebook: bool = False
+    notebook_template: Optional[str] = None
+    auto_notebook: bool = True  # Auto-generate notebook after runs
 
     def __post_init__(self):
         if self.log_events is None:
@@ -109,12 +121,6 @@ def parse_arguments() -> CLIArgs:
     )
     
     action_group.add_argument(
-        '--optimize', '-opt',
-        action='store_true',
-        help='Run parameter optimization'
-    )
-    
-    action_group.add_argument(
         '--alpaca', '-a',
         action='store_true',
         help='Run live trading with Alpaca WebSocket data'
@@ -138,6 +144,26 @@ def parse_arguments() -> CLIArgs:
         '--sequence', '-s',
         type=str,
         help='Apply sequence pattern (e.g., walk_forward, parameter_sweep)'
+    )
+    
+    # Optimization flag (not mutually exclusive - controls parameter expansion)
+    parser.add_argument(
+        '--optimize', '-opt',
+        action='store_true',
+        help='Run parameter optimization (expands parameter_space from config)'
+    )
+    
+    # List strategies
+    parser.add_argument(
+        '--list-strategies',
+        action='store_true',
+        help='List available strategies and exit'
+    )
+    
+    parser.add_argument(
+        '--strategy-filter',
+        type=str,
+        help='Filter strategies by category (e.g., oscillator, volatility, structure)'
     )
     
     # Data arguments
@@ -176,6 +202,18 @@ def parse_arguments() -> CLIArgs:
         type=str,
         default=None,
         help='Resume from checkpoint file'
+    )
+    
+    parser.add_argument(
+        '--close-eod',
+        action='store_true',
+        help='Force close all positions at end of day (prevents overnight holding)'
+    )
+    
+    parser.add_argument(
+        '--force',
+        action='store_true',
+        help='Force recomputation of strategies even if they already exist in traces'
     )
     
     parser.add_argument(
@@ -297,6 +335,30 @@ def parse_arguments() -> CLIArgs:
         help='Print configuration schema documentation and exit'
     )
     
+    # Notebook generation arguments
+    parser.add_argument(
+        '--notebook',
+        type=str,
+        help='Generate analysis notebook from existing results (e.g., --notebook config/bollinger/results/latest)'
+    )
+    
+    parser.add_argument(
+        '--launch-notebook',
+        action='store_true',
+        help='Execute notebook and launch Jupyter (implies --notebook, requires papermill)'
+    )
+    
+    parser.add_argument(
+        '--notebook-template',
+        type=str,
+        help='Use specific notebook template (optional)')
+    
+    parser.add_argument(
+        '--no-auto-notebook',
+        action='store_true',
+        help='Disable automatic notebook generation after runs'
+    )
+    
     args = parser.parse_args()
     
     # Convert to structured CLIArgs
@@ -316,6 +378,8 @@ def parse_arguments() -> CLIArgs:
         dataset=args.dataset,
         bars=args.bars,
         split_ratio=getattr(args, 'split_ratio', None),
+        close_eod=args.close_eod,
+        force=getattr(args, 'force', False),
         # Execution arguments
         parallel=args.parallel,
         checkpoint=args.checkpoint,
@@ -338,7 +402,15 @@ def parse_arguments() -> CLIArgs:
         # Development arguments
         dry_run=getattr(args, 'dry_run', False),
         profile=args.profile,
-        schema_docs=getattr(args, 'schema_docs', False)
+        schema_docs=getattr(args, 'schema_docs', False),
+        # Strategy discovery arguments
+        list_strategies=getattr(args, 'list_strategies', False),
+        strategy_filter=getattr(args, 'strategy_filter', None),
+        # Notebook generation arguments
+        notebook=args.notebook,
+        launch_notebook=getattr(args, 'launch_notebook', False),
+        notebook_template=getattr(args, 'notebook_template', None),
+        auto_notebook=not getattr(args, 'no_auto_notebook', False)
     )
 
 

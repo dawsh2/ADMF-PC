@@ -1,0 +1,25 @@
+name: test_keltner_final
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-11-30"
+dataset: train
+
+# Plain Keltner Bands - we'll apply filters in post-processing
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+
+# Data source
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

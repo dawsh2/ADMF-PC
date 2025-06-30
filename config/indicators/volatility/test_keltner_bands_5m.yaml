@@ -1,0 +1,26 @@
+# Keltner Bands test configuration for 5-minute data
+# Tests multiple parameter combinations on SPY 5m data
+
+dataset: SPY_5m
+mode: signal_generation
+
+# Single strategy for testing
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+
+# Parameter space for optimization
+parameter_space:
+  strategies:
+    - type: keltner_bands
+      param_overrides:
+        period: [10, 15, 20, 25, 30]
+        multiplier: [1.0, 1.5, 2.0, 2.5, 3.0]
+
+# Market hours only
+market_hours_only: true
+
+# Enable basic metrics
+enable_metrics: true

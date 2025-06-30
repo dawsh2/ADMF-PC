@@ -1,0 +1,13 @@
+# Simple test configuration for Keltner Bands
+name: test_keltner_bands_simple
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Basic Keltner bands strategy
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0

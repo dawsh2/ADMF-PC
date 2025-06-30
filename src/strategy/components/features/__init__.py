@@ -33,6 +33,7 @@ from .indicators import (
     VOLUME_FEATURES,
     MOMENTUM_FEATURES,
     STRUCTURE_FEATURES,
+    DIVERGENCE_FEATURES,
     ALL_INDICATOR_FEATURES,
     
     # Trend indicators
@@ -52,6 +53,9 @@ from .indicators import (
     
     # Structure indicators
     PivotPoints, SupportResistance, SwingPoints, LinearRegression, FibonacciRetracement, TrendLines,
+    
+    # Divergence indicators
+    BollingerRSIDivergence, RSIDivergence,
 )
 
 # Export everything needed
@@ -70,6 +74,7 @@ __all__ = [
     'VOLUME_FEATURES',
     'MOMENTUM_FEATURES',
     'STRUCTURE_FEATURES',
+    'DIVERGENCE_FEATURES',
     
     # Trend features
     'SMA', 'EMA', 'DEMA', 'TEMA', 'WMA', 'HMA', 'VWMA',
@@ -88,6 +93,9 @@ __all__ = [
     
     # Structure features
     'PivotPoints', 'SupportResistance', 'SwingPoints', 'LinearRegression', 'FibonacciRetracement', 'TrendLines',
+    
+    # Divergence features
+    'BollingerRSIDivergence', 'RSIDivergence',
     
     # Default configurations
     'DEFAULT_MOMENTUM_FEATURES',

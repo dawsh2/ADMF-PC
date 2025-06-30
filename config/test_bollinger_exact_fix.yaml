@@ -1,0 +1,16 @@
+name: bollinger_fix_test
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      period: 10,
+      std_dev: 1.5
+    },
+    constraints: "intraday",
+    risk: {
+      stop_loss: 0.00075,      # 0.075% stop loss
+      take_profit: 0.0015      # 0.15% take profit target
+    }
+  }
+]

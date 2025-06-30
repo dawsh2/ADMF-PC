@@ -1,0 +1,27 @@
+# Working test configuration for Keltner Bands with recent dates
+name: test_keltner_bands_latest
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-10-01"
+end_date: "2024-10-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Basic Keltner bands strategy
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+
+# Optional: add parameter space for optimization
+parameter_space:
+  strategies:
+    - type: keltner_bands
+      param_overrides:
+        period: [10, 20, 30]
+        multiplier: [1.5, 2.0, 2.5]
+
+# This generates 3 * 3 = 9 combinations

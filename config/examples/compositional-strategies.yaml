@@ -1,0 +1,325 @@
+# Example configurations demonstrating compositional strategy syntax
+# Based on docs/strategy-composition-design.md
+
+---
+# 1. Simple single strategy
+name: simple_momentum
+symbols: ["SPY"]
+timeframes: ["5m"]
+
+strategy:
+  momentum:
+    params: {period: 14}
+
+---
+# 2. Basic composition (array = composite)
+name: trend_and_momentum
+symbols: ["SPY", "QQQ"]
+timeframes: ["5m"]
+
+strategy: [
+  {sma_crossover: {weight: 0.5, params: {fast: 10, slow: 30}}},
+  {rsi_threshold: {weight: 0.5, params: {period: 14, threshold: 70}}}
+]
+
+---
+# 3. Composition with settings
+name: weighted_ensemble
+symbols: ["SPY"]
+timeframes: ["5m"]
+
+strategy:
+  combination: weighted_vote
+  weight_threshold: 0.6
+  strategies: [
+    {momentum: {weight: 0.4, params: {period: 14}}},
+    {rsi_bands: {weight: 0.3, params: {period: 14, oversold: 30, overbought: 70}}},
+    {bollinger_breakout: {weight: 0.3, params: {period: 20, std_dev: 2}}}
+  ]
+
+---
+# 4. Nested composition
+name: multi_timeframe_trend
+symbols: ["SPY"]
+timeframes: ["5m", "15m", "1h"]
+
+strategy: [
+  {
+    # Fast timeframe strategies
+    weight: 0.5
+    combination: majority
+    strategy: [
+      {sma_crossover: {weight: 0.5, params: {fast: 5, slow: 20}}},
+      {ema_crossover: {weight: 0.5, params: {fast: 9, slow: 21}}}
+    ]
+  },
+  {
+    # Slow timeframe confirmation
+    weight: 0.5
+    adx_trend_strength:
+      params: {adx_period: 14, threshold: 25}
+  }
+]
+
+---
+# 5. Conditional strategies
+name: volatility_adaptive
+symbols: ["SPY", "QQQ", "IWM"]
+timeframes: ["5m"]
+
+strategy: [
+  {
+    condition: volatility_percentile(20) > 70
+    weight: 0.5
+    strategy: [
+      {bollinger_squeeze: {weight: 0.6}},
+      {keltner_breakout: {weight: 0.4}}
+    ]
+  },
+  {
+    condition: volatility_percentile(20) < 30
+    weight: 0.5
+    mean_reversion:
+      params: {period: 20, threshold: 2.0}
+  },
+  {
+    # Always active base strategy
+    weight: 0.2
+    vwap_deviation:
+      params: {std_multiplier: 2.0}
+  }
+]
+
+---
+# 6. Market regime adaptation
+name: regime_adaptive_system
+symbols: ["SPY"]
+timeframes: ["5m"]
+
+strategy: [
+  # Trending market strategies
+  {
+    condition: adx(14) > 25 and trend_strength(50) > 0.5
+    weight: 0.4
+    strategy: [
+      {momentum: {weight: 0.6, params: {period: 14}}},
+      {parabolic_sar: {weight: 0.4}}
+    ]
+  },
+  # Ranging market strategies  
+  {
+    condition: adx(14) < 20
+    weight: 0.4
+    strategy: [
+      {rsi_bands: {weight: 0.5, params: {period: 14, oversold: 30, overbought: 70}}},
+      {bollinger_mean_reversion: {weight: 0.5, params: {period: 20, num_std: 2}}}
+    ]
+  },
+  # Breakout detection (always on)
+  {
+    weight: 0.2
+    strategy: [
+      {support_resistance_breakout: {weight: 0.5, params: {lookback: 20}}},
+      {pivot_breakout: {weight: 0.5, params: {pivot_type: 'standard'}}}
+    ]
+  }
+]
+
+---
+# 7. Time-based strategies
+name: intraday_time_based
+symbols: ["SPY", "QQQ"]
+timeframes: ["1m", "5m"]
+
+strategy: [
+  {
+    condition: market_hours() == 'pre_market'
+    gap_fade:
+      params: {min_gap: 0.02, fade_percent: 0.5}
+  },
+  {
+    condition: market_hours() == 'regular' and time_until_close() > 60
+    weight: 0.7
+    strategy: [
+      {momentum: {weight: 0.4, params: {period: 14}}},
+      {vwap_cross: {weight: 0.3}},
+      {trend_follow: {weight: 0.3, params: {period: 20}}}
+    ]
+  },
+  {
+    condition: time_until_close() <= 60 and time_until_close() > 30
+    weight: 0.2
+    mean_reversion:
+      params: {period: 10, threshold: 1.5}
+  },
+  {
+    condition: time_until_close() <= 30
+    close_positions: {}
+  }
+]
+
+---
+# 8. Complex nested with multiple conditions
+name: advanced_adaptive_system
+symbols: ["SPY", "QQQ", "IWM"]
+timeframes: ["5m"]
+
+strategy: [
+  {
+    # High volatility + trending = momentum
+    condition: volatility_percentile(20) > 60 and trend_strength(50) > 0.5
+    weight: 0.3
+    strategy: [
+      {
+        condition: volume_ratio(20) > 1.5
+        volume_breakout:
+          params: {volume_multiplier: 1.5}
+      },
+      {
+        momentum:
+          params: {period: 14}
+      }
+    ]
+  },
+  {
+    # Low volatility + ranging = mean reversion
+    condition: volatility_percentile(20) < 40 and adx(14) < 20
+    weight: 0.3
+    strategy: [
+      {rsi_bands: {weight: 0.4, params: {period: 14}}},
+      {bollinger_bands: {weight: 0.3, params: {period: 20}}},
+      {keltner_mean_reversion: {weight: 0.3, params: {period: 20}}}
+    ]
+  },
+  {
+    # Structure-based strategies (always active)
+    weight: 0.4
+    strategy: [
+      {
+        weight: 0.5
+        combination: unanimous
+        strategy: [
+          {pivot_channel_bounces: {params: {sr_period: 20}}},
+          {trendline_bounces: {params: {pivot_lookback: 20}}}
+        ]
+      },
+      {
+        weight: 0.5
+        trendline_breaks:
+          params: {pivot_lookback: 20, min_touches: 3}
+      }
+    ]
+  }
+]
+
+---
+# 9. Parameter optimization example
+name: optimization_ready
+symbols: ["SPY"]
+timeframes: ["5m"]
+
+# When --optimize flag is used, this section expands
+parameter_space:
+  indicators:
+    crossover: "*"  # All crossover strategies
+    momentum: ["momentum", "rsi_momentum", "macd_crossover"]
+    structure: ["pivot_breakout", "trendline_breaks"]
+
+# Production strategy (when no --optimize flag)
+strategy: [
+  {sma_crossover: {weight: 0.5, params: {fast: 10, slow: 30}}},
+  {momentum: {weight: 0.5, params: {period: 14}}}
+]
+
+---
+# 10. Multi-state regime with cases
+name: regime_based_trading
+symbols: ["SPY", "QQQ"]
+timeframes: ["5m"]
+
+strategy:
+  regime: market_regime_classifier()
+  cases:
+    trending_up:
+      momentum:
+        params: {period: 14}
+    trending_down:
+      mean_reversion:
+        params: {period: 20, threshold: 2.0}
+    ranging: [
+      {rsi_bands: {weight: 0.5, params: {period: 14, oversold: 30, overbought: 70}}},
+      {bollinger_mean_reversion: {weight: 0.5, params: {period: 20, num_std: 2}}}
+    ]
+
+---
+# 11. Multi-condition with different weights
+name: volatility_weighted_strategy
+symbols: ["SPY"]
+timeframes: ["5m"]
+
+strategy: [
+  {
+    conditions:
+      - {condition: volatility_regime(20) == 'low', weight: 0.3}
+      - {condition: volatility_regime(20) == 'medium', weight: 0.5}
+      - {condition: volatility_regime(20) == 'high', weight: 0.7}
+    strategy:
+      atr_breakout:
+        params: {period: 14, multiplier: 2.0}
+  },
+  {
+    # Base strategy always active
+    weight: 0.3
+    vwap_deviation:
+      params: {std_multiplier: 2.0}
+  }
+]
+
+---
+# 12. Nested multi-regime classifiers
+name: two_dimensional_regime
+symbols: ["SPY", "QQQ", "IWM"]
+timeframes: ["5m", "15m"]
+
+strategy:
+  regimes:
+    volatility: volatility_regime_classifier()
+    trend: trend_strength_classifier()
+  cases:
+    volatility:
+      low:
+        trend:
+          strong: 
+            momentum:
+              params: {period: 14}
+          moderate: [
+            {sma_crossover: {weight: 0.5, params: {fast: 10, slow: 30}}},
+            {ema_crossover: {weight: 0.5, params: {fast: 12, slow: 26}}}
+          ]
+          weak:
+            mean_reversion:
+              params: {period: 20}
+      medium:
+        trend:
+          strong:
+            breakout:
+              params: {period: 20, confirmation: true}
+          moderate:
+            balanced_ensemble: [
+              {momentum: {weight: 0.3}},
+              {mean_reversion: {weight: 0.3}},
+              {vwap_cross: {weight: 0.4}}
+            ]
+          weak:
+            range_trading:
+              params: {lookback: 20}
+      high:
+        trend:
+          strong:
+            atr_stop:
+              params: {period: 14, multiplier: 3.0}
+          moderate:
+            volatility_squeeze:
+              params: {bb_period: 20, kc_period: 20}
+          weak:
+            close_positions: {}

@@ -1,0 +1,6183 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/bollinger/results/20250625_132925",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 16614,
+  "total_signals": 3399105,
+  "total_classifications": 0,
+  "stored_changes": 315880,
+  "compression_ratio": 9.293034489961329,
+  "components": {
+    "SPY_5m_strategy_0": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_0",
+        "period": 10,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "08ff2a4b9ccc",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_0",
+          "period": 10,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_1": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_1",
+        "period": 10,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "c8ef2635d823",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_1",
+          "period": 10,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_2": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_2",
+        "period": 10,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "e6fbf7282411",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_2",
+          "period": 10,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_3": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_3",
+        "period": 10,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "edd81c3d4719",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_3",
+          "period": 10,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_4": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_4",
+        "period": 10,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "f5306852e6d8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_4",
+          "period": 10,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_5": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_5",
+        "period": 11,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "4ff1906782e3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_5",
+          "period": 11,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_6": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_6",
+        "period": 11,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "dcf4bec3604d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_6",
+          "period": 11,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_7": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_7",
+        "period": 11,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "1474ef641929",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_7",
+          "period": 11,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_8": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_8",
+        "period": 11,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "61cb9743bb0b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_8",
+          "period": 11,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_9": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_9",
+        "period": 11,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "09fee7d64721",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_9",
+          "period": 11,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_10": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_10",
+        "period": 12,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "54c94b8df132",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_10",
+          "period": 12,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_11": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_11",
+        "period": 12,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "bbc3f7a27dcf",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_11",
+          "period": 12,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_12": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_12",
+        "period": 12,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "39acb12f6b5f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_12",
+          "period": 12,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_13": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_13",
+        "period": 12,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "60e1a59d0c67",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_13",
+          "period": 12,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_14": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_14",
+        "period": 12,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "b1b8210f64f0",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_14",
+          "period": 12,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_15": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_15",
+        "period": 13,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "288240dd7539",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_15",
+          "period": 13,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_16": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_16",
+        "period": 13,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "97fe5dba7e0b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_16",
+          "period": 13,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_17": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_17",
+        "period": 13,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "a00fb78aad9d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_17",
+          "period": 13,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_18": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_18",
+        "period": 13,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "cdd90841557d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_18",
+          "period": 13,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_19": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_19",
+        "period": 13,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "79dd4d82841f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_19",
+          "period": 13,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_20": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_20",
+        "period": 14,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "1e3584b850ff",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_20",
+          "period": 14,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_21": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_21",
+        "period": 14,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "7972cd36df6d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_21",
+          "period": 14,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_22": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_22",
+        "period": 14,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "681a51840ee4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_22",
+          "period": 14,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_23": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_23",
+        "period": 14,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "5cd79e0d97c8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_23",
+          "period": 14,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_24": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_24",
+        "period": 14,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "bfbe03a0cd14",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_24",
+          "period": 14,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_25": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_25",
+        "period": 15,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "41abd1534e58",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_25",
+          "period": 15,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_26": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_26",
+        "period": 15,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "1061a365d76f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_26",
+          "period": 15,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_27": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_27",
+        "period": 15,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "4cd08dde2299",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_27",
+          "period": 15,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_28": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_28",
+        "period": 15,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "aa69af984604",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_28",
+          "period": 15,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_29": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_29",
+        "period": 15,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "9823b27f44da",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_29",
+          "period": 15,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_30": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_30",
+        "period": 16,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "901f6cfc9ad3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_30",
+          "period": 16,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_31": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_31",
+        "period": 16,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "5ec70e3ebf77",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_31",
+          "period": 16,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_32": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_32",
+        "period": 16,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "f4e1b36c634f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_32",
+          "period": 16,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_33": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_33",
+        "period": 16,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "9d5bc8711fe9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_33",
+          "period": 16,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_34": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_34",
+        "period": 16,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "a1d80890b49a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_34",
+          "period": 16,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_35": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_35",
+        "period": 17,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "5e32361c6b84",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_35",
+          "period": 17,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_36": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_36",
+        "period": 17,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "06404a8a971f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_36",
+          "period": 17,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_37": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_37",
+        "period": 17,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "3813628c5cfd",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_37",
+          "period": 17,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_38": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_38",
+        "period": 17,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "a27fd1fc50b3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_38",
+          "period": 17,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_39": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_39",
+        "period": 17,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "cc2744f23721",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_39",
+          "period": 17,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_40": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_40",
+        "period": 18,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "cd720d9bab1d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_40",
+          "period": 18,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_41": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_41",
+        "period": 18,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "a01df205cb1a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_41",
+          "period": 18,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_42": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_42",
+        "period": 18,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "7b1e9f0349d3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_42",
+          "period": 18,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_43": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_43",
+        "period": 18,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "648b5c88b4a8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_43",
+          "period": 18,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_44": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_44",
+        "period": 18,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "d9c279144973",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_44",
+          "period": 18,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_45": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_45",
+        "period": 19,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "691c1b23049c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_45",
+          "period": 19,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_46": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_46",
+        "period": 19,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "de4fd7d51066",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_46",
+          "period": 19,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_47": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_47",
+        "period": 19,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "d1337316a07f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_47",
+          "period": 19,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_48": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_48",
+        "period": 19,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "5ecfaefb1e2a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_48",
+          "period": 19,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_49": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_49",
+        "period": 19,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "a93c141f8ba7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_49",
+          "period": 19,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_50": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_50",
+        "period": 20,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "1ac4bec80343",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_50",
+          "period": 20,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_51": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_51",
+        "period": 20,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "aa8c2f15c202",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_51",
+          "period": 20,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_52": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_52",
+        "period": 20,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "ffcaed422c19",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_52",
+          "period": 20,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_53": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_53",
+        "period": 20,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "00253434db06",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_53",
+          "period": 20,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_54": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_54",
+        "period": 20,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "21957cfffd90",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_54",
+          "period": 20,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_55": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_55",
+        "period": 21,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "17f537976e5c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_55",
+          "period": 21,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_56": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_56",
+        "period": 21,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "8b21b8360008",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_56",
+          "period": 21,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_57": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_57",
+        "period": 21,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "abed42763b26",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_57",
+          "period": 21,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_58": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_58",
+        "period": 21,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "f96f2bfc1c89",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_58",
+          "period": 21,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_59": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_59",
+        "period": 21,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "f2457ed16fe8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_59",
+          "period": 21,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_60": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_60",
+        "period": 22,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "a776786f77dc",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_60",
+          "period": 22,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_61": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_61",
+        "period": 22,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "e36a414f86b3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_61",
+          "period": 22,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_62": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_62",
+        "period": 22,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "8d3d5a83c3ad",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_62",
+          "period": 22,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_63": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_63",
+        "period": 22,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "b0a8d585a480",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_63",
+          "period": 22,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_64": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_64",
+        "period": 22,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "d3195da4ed3c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_64",
+          "period": 22,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_65": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_65",
+        "period": 23,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "a7edf2478953",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_65",
+          "period": 23,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_66": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_66",
+        "period": 23,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "481d453d0379",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_66",
+          "period": 23,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_67": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_67",
+        "period": 23,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "5b4f6716626d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_67",
+          "period": 23,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_68": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_68",
+        "period": 23,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "d7250f3a9ea2",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_68",
+          "period": 23,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_69": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_69",
+        "period": 23,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "c639a91e9979",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_69",
+          "period": 23,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_70": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_70",
+        "period": 24,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "4f593d4d409a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_70",
+          "period": 24,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_71": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_71",
+        "period": 24,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "1c1044d08b12",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_71",
+          "period": 24,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_72": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_72",
+        "period": 24,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "ded195c06aea",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_72",
+          "period": 24,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_73": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_73",
+        "period": 24,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "cbb30a705d13",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_73",
+          "period": 24,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_74": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_74",
+        "period": 24,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "2ce0425645e7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_74",
+          "period": 24,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_75": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_75",
+        "period": 25,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "b4561f50f3c3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_75",
+          "period": 25,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_76": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_76",
+        "period": 25,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "dd6115d86684",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_76",
+          "period": 25,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_77": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_77",
+        "period": 25,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "ed846d31500a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_77",
+          "period": 25,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_78": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_78",
+        "period": 25,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "4221104836e8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_78",
+          "period": 25,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_79": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_79",
+        "period": 25,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "743d84e39f3d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_79",
+          "period": 25,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_80": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_80",
+        "period": 26,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "51de1990fb3b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_80",
+          "period": 26,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_81": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_81",
+        "period": 26,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "2c1e566126a5",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_81",
+          "period": 26,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_82": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_82",
+        "period": 26,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "a6b4febf4d4b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_82",
+          "period": 26,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_83": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_83",
+        "period": 26,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "67a66ad883c4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_83",
+          "period": 26,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_84": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_84",
+        "period": 26,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "55b773159ad5",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_84",
+          "period": 26,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_85": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_85",
+        "period": 27,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "8463322f4807",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_85",
+          "period": 27,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_86": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_86",
+        "period": 27,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "a7363ac92ac8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_86",
+          "period": 27,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_87": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_87",
+        "period": 27,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "6caa4344c28d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_87",
+          "period": 27,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_88": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_88",
+        "period": 27,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "9436d153282b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_88",
+          "period": 27,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_89": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_89",
+        "period": 27,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "a8fb67fce4e7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_89",
+          "period": 27,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_90": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_90",
+        "period": 28,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "95659f3d6d4b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_90",
+          "period": 28,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_91": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_91",
+        "period": 28,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "f896132fde22",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_91",
+          "period": 28,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_92": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_92",
+        "period": 28,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "5257d602a9f9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_92",
+          "period": 28,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_93": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_93",
+        "period": 28,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "96a40f848377",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_93",
+          "period": 28,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_94": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_94",
+        "period": 28,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "0122d6f542df",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_94",
+          "period": 28,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_95": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_95",
+        "period": 29,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "7c32bc36c061",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_95",
+          "period": 29,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_96": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_96",
+        "period": 29,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "df161e3810fa",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_96",
+          "period": 29,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_97": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_97",
+        "period": 29,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "c9299f38a9af",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_97",
+          "period": 29,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_98": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_98",
+        "period": 29,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "a09ee84d762c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_98",
+          "period": 29,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_99": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_99",
+        "period": 29,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "2ca6bf3f1339",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_99",
+          "period": 29,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_100": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_100",
+        "period": 30,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "03c5c07b6ec7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_100",
+          "period": 30,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_101": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_101",
+        "period": 30,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "34813048d208",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_101",
+          "period": 30,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_102": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_102",
+        "period": 30,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "c75465ccc531",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_102",
+          "period": 30,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_103": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_103",
+        "period": 30,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "b555210dba0d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_103",
+          "period": 30,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_104": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_104",
+        "period": 30,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "96c19c9ae7d4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_104",
+          "period": 30,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_105": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_105",
+        "period": 31,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "968053363191",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_105",
+          "period": 31,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_106": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_106",
+        "period": 31,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "646adfff5aa2",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_106",
+          "period": 31,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_107": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_107",
+        "period": 31,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "4bfbc43485a3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_107",
+          "period": 31,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_108": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_108",
+        "period": 31,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "e1ed6a4f6a3a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_108",
+          "period": 31,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_109": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_109",
+        "period": 31,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "01230053a32e",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_109",
+          "period": 31,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_110": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_110",
+        "period": 32,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "01f92fbc1b64",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_110",
+          "period": 32,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_111": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_111",
+        "period": 32,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "62b8784e4c44",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_111",
+          "period": 32,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_112": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_112",
+        "period": 32,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "2d6ef8bf5aae",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_112",
+          "period": 32,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_113": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_113",
+        "period": 32,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "cfbaaddc3e07",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_113",
+          "period": 32,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_114": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_114",
+        "period": 32,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "0bbaf7ef6ed3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_114",
+          "period": 32,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_115": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_115",
+        "period": 33,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "cd61de01a2bf",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_115",
+          "period": 33,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_116": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_116",
+        "period": 33,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "407e6ecfd6f9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_116",
+          "period": 33,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_117": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_117",
+        "period": 33,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "fa78af09f782",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_117",
+          "period": 33,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_118": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_118",
+        "period": 33,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "a7f8215e60e8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_118",
+          "period": 33,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_119": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_119",
+        "period": 33,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "332ca947683f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_119",
+          "period": 33,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_120": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_120",
+        "period": 34,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "07c17d6379bd",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_120",
+          "period": 34,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_121": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_121",
+        "period": 34,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "09b1fe42b00d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_121",
+          "period": 34,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_122": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_122",
+        "period": 34,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "9ee29c17e4a5",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_122",
+          "period": 34,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_123": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_123",
+        "period": 34,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "04a495655b6f",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_123",
+          "period": 34,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_124": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_124",
+        "period": 34,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "3e17a2f0a860",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_124",
+          "period": 34,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_125": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_125",
+        "period": 35,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "22c6d56373ac",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_125",
+          "period": 35,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_126": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_126",
+        "period": 35,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "6253bd4c9346",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_126",
+          "period": 35,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_127": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_127",
+        "period": 35,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "38030e2e9392",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_127",
+          "period": 35,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_128": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_128",
+        "period": 35,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "803d2d9e2c3b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_128",
+          "period": 35,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_129": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_129",
+        "period": 35,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "b785e526c19b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_129",
+          "period": 35,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_130": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_130",
+        "period": 36,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "de78ad7b87f3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_130",
+          "period": 36,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_131": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_131",
+        "period": 36,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "a70ca949e97c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_131",
+          "period": 36,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_132": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_132",
+        "period": 36,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "593b78ea46e9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_132",
+          "period": 36,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_133": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_133",
+        "period": 36,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "eba2dd776b00",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_133",
+          "period": 36,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_134": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_134",
+        "period": 36,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "f19a1a735bbd",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_134",
+          "period": 36,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_135": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_135",
+        "period": 37,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "e121b821e582",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_135",
+          "period": 37,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_136": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_136",
+        "period": 37,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "0a20366dc17e",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_136",
+          "period": 37,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_137": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_137",
+        "period": 37,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "dc0623439bd8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_137",
+          "period": 37,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_138": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_138",
+        "period": 37,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "3ae92871fe4c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_138",
+          "period": 37,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_139": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_139",
+        "period": 37,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "e1792ebe71e3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_139",
+          "period": 37,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_140": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_140",
+        "period": 38,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "7f070c4b9321",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_140",
+          "period": 38,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_141": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_141",
+        "period": 38,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "d76155b1dff2",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_141",
+          "period": 38,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_142": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_142",
+        "period": 38,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "733535398092",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_142",
+          "period": 38,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_143": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_143",
+        "period": 38,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "e61c60730b45",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_143",
+          "period": 38,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_144": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_144",
+        "period": 38,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "936f23f351f4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_144",
+          "period": 38,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_145": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_145",
+        "period": 39,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "d744fe00009b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_145",
+          "period": 39,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_146": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_146",
+        "period": 39,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "3e5806d2d224",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_146",
+          "period": 39,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_147": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_147",
+        "period": 39,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "c1ee9549143a",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_147",
+          "period": 39,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_148": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_148",
+        "period": 39,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "2bd3a067bade",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_148",
+          "period": 39,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_149": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_149",
+        "period": 39,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "070c6b39fa06",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_149",
+          "period": 39,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_150": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_150",
+        "period": 40,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "9f1aa97c07ef",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_150",
+          "period": 40,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_151": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_151",
+        "period": 40,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "1bdcc9a4eede",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_151",
+          "period": 40,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_152": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_152",
+        "period": 40,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "57737d0e0ce7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_152",
+          "period": 40,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_153": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_153",
+        "period": 40,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "e6f3b432f806",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_153",
+          "period": 40,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_154": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_154",
+        "period": 40,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "3ce82cca1850",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_154",
+          "period": 40,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_155": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_155",
+        "period": 41,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "58075720855e",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_155",
+          "period": 41,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_156": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_156",
+        "period": 41,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "2fe0104fae1b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_156",
+          "period": 41,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_157": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_157",
+        "period": 41,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "de321d9a2911",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_157",
+          "period": 41,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_158": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_158",
+        "period": 41,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "dd389d9d87fb",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_158",
+          "period": 41,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_159": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_159",
+        "period": 41,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "b2dc8e896d56",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_159",
+          "period": 41,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_160": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_160",
+        "period": 42,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "e650041f7c59",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_160",
+          "period": 42,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_161": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_161",
+        "period": 42,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "5b3e4bd6cfc9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_161",
+          "period": 42,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_162": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_162",
+        "period": 42,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "cbfae13e75f5",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_162",
+          "period": 42,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_163": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_163",
+        "period": 42,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "d9f5d5b5ba33",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_163",
+          "period": 42,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_164": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_164",
+        "period": 42,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "49a1e525dab7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_164",
+          "period": 42,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_165": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_165",
+        "period": 43,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "aeddd8e118fb",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_165",
+          "period": 43,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_166": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_166",
+        "period": 43,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "14a8821989c9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_166",
+          "period": 43,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_167": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_167",
+        "period": 43,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "1e0e0d8bb649",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_167",
+          "period": 43,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_168": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_168",
+        "period": 43,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "2cd905070d7b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_168",
+          "period": 43,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_169": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_169",
+        "period": 43,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "06e51106178d",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_169",
+          "period": 43,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_170": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_170",
+        "period": 44,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "acc45ec84ee4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_170",
+          "period": 44,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_171": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_171",
+        "period": 44,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "c9ebb8ad4b26",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_171",
+          "period": 44,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_172": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_172",
+        "period": 44,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "5371ebb76d1b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_172",
+          "period": 44,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_173": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_173",
+        "period": 44,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "404959b12527",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_173",
+          "period": 44,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_174": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_174",
+        "period": 44,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "00301aef7d55",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_174",
+          "period": 44,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_175": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_175",
+        "period": 45,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "02d7ebffdfe2",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_175",
+          "period": 45,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_176": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_176",
+        "period": 45,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "2fa5cc7568f8",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_176",
+          "period": 45,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_177": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_177",
+        "period": 45,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "790b68941e26",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_177",
+          "period": 45,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_178": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_178",
+        "period": 45,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "6e3c56bc05a7",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_178",
+          "period": 45,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_179": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_179",
+        "period": 45,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "fefba9f7ac2b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_179",
+          "period": 45,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_180": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_180",
+        "period": 46,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "a5fb9d398256",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_180",
+          "period": 46,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_181": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_181",
+        "period": 46,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "d802feb65c40",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_181",
+          "period": 46,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_182": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_182",
+        "period": 46,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "cc7bef73a263",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_182",
+          "period": 46,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_183": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_183",
+        "period": 46,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "4c641dc8a4b2",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_183",
+          "period": 46,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_184": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_184",
+        "period": 46,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "bcdfa492c2f4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_184",
+          "period": 46,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_185": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_185",
+        "period": 47,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "d4fb0719cb29",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_185",
+          "period": 47,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_186": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_186",
+        "period": 47,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "2b9b7f90e6cd",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_186",
+          "period": 47,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_187": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_187",
+        "period": 47,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "c6066e4cb441",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_187",
+          "period": 47,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_188": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_188",
+        "period": 47,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "4f32d5970364",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_188",
+          "period": 47,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_189": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_189",
+        "period": 47,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "5944bfdb8fc3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_189",
+          "period": 47,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_190": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_190",
+        "period": 48,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "a89252037202",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_190",
+          "period": 48,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_191": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_191",
+        "period": 48,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "68a52750bc77",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_191",
+          "period": 48,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_192": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_192",
+        "period": 48,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "e04aa021a899",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_192",
+          "period": 48,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_193": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_193",
+        "period": 48,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "8c5077cd64f3",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_193",
+          "period": 48,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_194": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_194",
+        "period": 48,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "6aba5d883135",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_194",
+          "period": 48,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_195": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_195",
+        "period": 49,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "a2e0a5e446f9",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_195",
+          "period": 49,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_196": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_196",
+        "period": 49,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "9a49e8ac1e1b",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_196",
+          "period": 49,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_197": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_197",
+        "period": 49,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "8a6eb7eccba4",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_197",
+          "period": 49,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_198": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_198",
+        "period": 49,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "e9b8b489ed65",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_198",
+          "period": 49,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_199": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_199",
+        "period": 49,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "4e403d8c4436",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_199",
+          "period": 49,
+          "std_dev": 3.0
+        }
+      }
+    },
+    "SPY_5m_strategy_200": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_200",
+        "period": 50,
+        "std_dev": 1.0
+      },
+      "strategy_hash": "cfb5174530c6",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_200",
+          "period": 50,
+          "std_dev": 1.0
+        }
+      }
+    },
+    "SPY_5m_strategy_201": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_201",
+        "period": 50,
+        "std_dev": 1.5
+      },
+      "strategy_hash": "f0f5699f1791",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_201",
+          "period": 50,
+          "std_dev": 1.5
+        }
+      }
+    },
+    "SPY_5m_strategy_202": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_202",
+        "period": 50,
+        "std_dev": 2.0
+      },
+      "strategy_hash": "fb03df2bf4c0",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_202",
+          "period": 50,
+          "std_dev": 2.0
+        }
+      }
+    },
+    "SPY_5m_strategy_203": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_203",
+        "period": 50,
+        "std_dev": 2.5
+      },
+      "strategy_hash": "4065c6ba5485",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_203",
+          "period": 50,
+          "std_dev": 2.5
+        }
+      }
+    },
+    "SPY_5m_strategy_204": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_204",
+        "period": 50,
+        "std_dev": 3.0
+      },
+      "strategy_hash": "740a5070135c",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_204",
+          "period": 50,
+          "std_dev": 3.0
+        }
+      }
+    }
+  },
+  "timestamp": "2025-06-25T13:31:41.510365",
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands_10_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_10",
+        "params": {
+          "period": 10,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_15",
+        "params": {
+          "period": 10,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_20",
+        "params": {
+          "period": 10,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_25",
+        "params": {
+          "period": 10,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_10_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_10_30",
+        "params": {
+          "period": 10,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_10",
+        "params": {
+          "period": 11,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_15",
+        "params": {
+          "period": 11,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_20",
+        "params": {
+          "period": 11,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_25",
+        "params": {
+          "period": 11,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_11_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_11_30",
+        "params": {
+          "period": 11,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_10",
+        "params": {
+          "period": 12,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_15",
+        "params": {
+          "period": 12,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_20",
+        "params": {
+          "period": 12,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_25",
+        "params": {
+          "period": 12,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_12_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_12_30",
+        "params": {
+          "period": 12,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_10",
+        "params": {
+          "period": 13,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_15",
+        "params": {
+          "period": 13,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_20",
+        "params": {
+          "period": 13,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_25",
+        "params": {
+          "period": 13,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_13_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_13_30",
+        "params": {
+          "period": 13,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_10",
+        "params": {
+          "period": 14,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_15",
+        "params": {
+          "period": 14,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_20",
+        "params": {
+          "period": 14,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_25",
+        "params": {
+          "period": 14,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_14_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_14_30",
+        "params": {
+          "period": 14,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_10",
+        "params": {
+          "period": 15,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_15",
+        "params": {
+          "period": 15,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_20",
+        "params": {
+          "period": 15,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_25",
+        "params": {
+          "period": 15,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_15_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_15_30",
+        "params": {
+          "period": 15,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_10",
+        "params": {
+          "period": 16,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_15",
+        "params": {
+          "period": 16,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_20",
+        "params": {
+          "period": 16,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_25",
+        "params": {
+          "period": 16,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_16_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_16_30",
+        "params": {
+          "period": 16,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_10",
+        "params": {
+          "period": 17,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_15",
+        "params": {
+          "period": 17,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_20",
+        "params": {
+          "period": 17,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_25",
+        "params": {
+          "period": 17,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_17_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_17_30",
+        "params": {
+          "period": 17,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_10",
+        "params": {
+          "period": 18,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_15",
+        "params": {
+          "period": 18,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_20",
+        "params": {
+          "period": 18,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_25",
+        "params": {
+          "period": 18,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_18_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_18_30",
+        "params": {
+          "period": 18,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_10",
+        "params": {
+          "period": 19,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_15",
+        "params": {
+          "period": 19,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_20",
+        "params": {
+          "period": 19,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_25",
+        "params": {
+          "period": 19,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_19_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_19_30",
+        "params": {
+          "period": 19,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_10",
+        "params": {
+          "period": 20,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_15",
+        "params": {
+          "period": 20,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_20",
+        "params": {
+          "period": 20,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_25",
+        "params": {
+          "period": 20,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_20_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_20_30",
+        "params": {
+          "period": 20,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_10",
+        "params": {
+          "period": 21,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_15",
+        "params": {
+          "period": 21,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_20",
+        "params": {
+          "period": 21,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_25",
+        "params": {
+          "period": 21,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_21_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_21_30",
+        "params": {
+          "period": 21,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_10",
+        "params": {
+          "period": 22,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_15",
+        "params": {
+          "period": 22,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_20",
+        "params": {
+          "period": 22,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_25",
+        "params": {
+          "period": 22,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_22_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_22_30",
+        "params": {
+          "period": 22,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_10",
+        "params": {
+          "period": 23,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_15",
+        "params": {
+          "period": 23,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_20",
+        "params": {
+          "period": 23,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_25",
+        "params": {
+          "period": 23,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_23_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_23_30",
+        "params": {
+          "period": 23,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_10",
+        "params": {
+          "period": 24,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_15",
+        "params": {
+          "period": 24,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_20",
+        "params": {
+          "period": 24,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_25",
+        "params": {
+          "period": 24,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_24_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_24_30",
+        "params": {
+          "period": 24,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_10",
+        "params": {
+          "period": 25,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_15",
+        "params": {
+          "period": 25,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_20",
+        "params": {
+          "period": 25,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_25",
+        "params": {
+          "period": 25,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_25_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_25_30",
+        "params": {
+          "period": 25,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_10",
+        "params": {
+          "period": 26,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_15",
+        "params": {
+          "period": 26,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_20",
+        "params": {
+          "period": 26,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_25",
+        "params": {
+          "period": 26,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_26_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_26_30",
+        "params": {
+          "period": 26,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_10",
+        "params": {
+          "period": 27,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_15",
+        "params": {
+          "period": 27,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_20",
+        "params": {
+          "period": 27,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_25",
+        "params": {
+          "period": 27,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_27_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_27_30",
+        "params": {
+          "period": 27,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_10",
+        "params": {
+          "period": 28,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_15",
+        "params": {
+          "period": 28,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_20",
+        "params": {
+          "period": 28,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_25",
+        "params": {
+          "period": 28,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_28_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_28_30",
+        "params": {
+          "period": 28,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_10",
+        "params": {
+          "period": 29,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_15",
+        "params": {
+          "period": 29,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_20",
+        "params": {
+          "period": 29,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_25",
+        "params": {
+          "period": 29,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_29_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_29_30",
+        "params": {
+          "period": 29,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_10",
+        "params": {
+          "period": 30,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_15",
+        "params": {
+          "period": 30,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_20",
+        "params": {
+          "period": 30,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_25",
+        "params": {
+          "period": 30,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_30_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_30_30",
+        "params": {
+          "period": 30,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_10",
+        "params": {
+          "period": 31,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_15",
+        "params": {
+          "period": 31,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_20",
+        "params": {
+          "period": 31,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_25",
+        "params": {
+          "period": 31,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_31_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_31_30",
+        "params": {
+          "period": 31,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_10",
+        "params": {
+          "period": 32,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_15",
+        "params": {
+          "period": 32,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_20",
+        "params": {
+          "period": 32,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_25",
+        "params": {
+          "period": 32,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_32_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_32_30",
+        "params": {
+          "period": 32,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_10",
+        "params": {
+          "period": 33,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_15",
+        "params": {
+          "period": 33,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_20",
+        "params": {
+          "period": 33,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_25",
+        "params": {
+          "period": 33,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_33_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_33_30",
+        "params": {
+          "period": 33,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_10",
+        "params": {
+          "period": 34,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_15",
+        "params": {
+          "period": 34,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_20",
+        "params": {
+          "period": 34,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_25",
+        "params": {
+          "period": 34,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_34_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_34_30",
+        "params": {
+          "period": 34,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_10",
+        "params": {
+          "period": 35,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_15",
+        "params": {
+          "period": 35,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_20",
+        "params": {
+          "period": 35,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_25",
+        "params": {
+          "period": 35,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_35_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_35_30",
+        "params": {
+          "period": 35,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_10",
+        "params": {
+          "period": 36,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_15",
+        "params": {
+          "period": 36,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_20",
+        "params": {
+          "period": 36,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_25",
+        "params": {
+          "period": 36,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_36_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_36_30",
+        "params": {
+          "period": 36,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_10",
+        "params": {
+          "period": 37,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_15",
+        "params": {
+          "period": 37,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_20",
+        "params": {
+          "period": 37,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_25",
+        "params": {
+          "period": 37,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_37_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_37_30",
+        "params": {
+          "period": 37,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_10",
+        "params": {
+          "period": 38,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_15",
+        "params": {
+          "period": 38,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_20",
+        "params": {
+          "period": 38,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_25",
+        "params": {
+          "period": 38,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_38_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_38_30",
+        "params": {
+          "period": 38,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_10",
+        "params": {
+          "period": 39,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_15",
+        "params": {
+          "period": 39,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_20",
+        "params": {
+          "period": 39,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_25",
+        "params": {
+          "period": 39,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_39_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_39_30",
+        "params": {
+          "period": 39,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_10",
+        "params": {
+          "period": 40,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_15",
+        "params": {
+          "period": 40,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_20",
+        "params": {
+          "period": 40,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_25",
+        "params": {
+          "period": 40,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_40_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_40_30",
+        "params": {
+          "period": 40,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_10",
+        "params": {
+          "period": 41,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_15",
+        "params": {
+          "period": 41,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_20",
+        "params": {
+          "period": 41,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_25",
+        "params": {
+          "period": 41,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_41_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_41_30",
+        "params": {
+          "period": 41,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_10",
+        "params": {
+          "period": 42,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_15",
+        "params": {
+          "period": 42,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_20",
+        "params": {
+          "period": 42,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_25",
+        "params": {
+          "period": 42,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_42_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_42_30",
+        "params": {
+          "period": 42,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_10",
+        "params": {
+          "period": 43,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_15",
+        "params": {
+          "period": 43,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_20",
+        "params": {
+          "period": 43,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_25",
+        "params": {
+          "period": 43,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_43_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_43_30",
+        "params": {
+          "period": 43,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_10",
+        "params": {
+          "period": 44,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_15",
+        "params": {
+          "period": 44,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_20",
+        "params": {
+          "period": 44,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_25",
+        "params": {
+          "period": 44,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_44_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_44_30",
+        "params": {
+          "period": 44,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_10",
+        "params": {
+          "period": 45,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_15",
+        "params": {
+          "period": 45,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_20",
+        "params": {
+          "period": 45,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_25",
+        "params": {
+          "period": 45,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_45_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_45_30",
+        "params": {
+          "period": 45,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_10",
+        "params": {
+          "period": 46,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_15",
+        "params": {
+          "period": 46,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_20",
+        "params": {
+          "period": 46,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_25",
+        "params": {
+          "period": 46,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_46_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_46_30",
+        "params": {
+          "period": 46,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_10",
+        "params": {
+          "period": 47,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_15",
+        "params": {
+          "period": 47,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_20",
+        "params": {
+          "period": 47,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_25",
+        "params": {
+          "period": 47,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_47_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_47_30",
+        "params": {
+          "period": 47,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_10",
+        "params": {
+          "period": 48,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_15",
+        "params": {
+          "period": 48,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_20",
+        "params": {
+          "period": 48,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_25",
+        "params": {
+          "period": 48,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_48_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_48_30",
+        "params": {
+          "period": 48,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_10",
+        "params": {
+          "period": 49,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_15",
+        "params": {
+          "period": 49,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_20",
+        "params": {
+          "period": 49,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_25",
+        "params": {
+          "period": 49,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_49_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_49_30",
+        "params": {
+          "period": 49,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_10": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_10",
+        "params": {
+          "period": 50,
+          "std_dev": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_15": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_15",
+        "params": {
+          "period": 50,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_20": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_20",
+        "params": {
+          "period": 50,
+          "std_dev": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_25": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_25",
+        "params": {
+          "period": 50,
+          "std_dev": 2.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "bollinger_bands_50_30": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_50_30",
+        "params": {
+          "period": 50,
+          "std_dev": 3.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 205,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 205,
+      "max_nesting_depth": 0
+    }
+  }
+}

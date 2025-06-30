@@ -1,0 +1,165 @@
+# Test configuration for all trend-following strategies using wildcard expansion
+name: test_all_trend_following
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Wildcard parameter expansion for all trend-following strategies
+parameter_space:
+  # Moving Average Crossovers
+  sma_crossover:
+    fast_period: [5, 10, 20]
+    slow_period: [20, 50, 100]
+  
+  ema_crossover:
+    fast_period: [8, 12, 20]
+    slow_period: [21, 26, 50]
+  
+  dema_crossover:
+    fast_period: [10, 15]
+    slow_period: [20, 30]
+  
+  tema_sma_crossover:
+    tema_period: [10, 15]
+    sma_period: [20, 30]
+  
+  ma_crossover:
+    fast_period: [10, 20]
+    slow_period: [50, 100]
+    ma_type: ["sma", "ema"]
+  
+  # MACD Crossover
+  macd_crossover:
+    fast_period: [12]
+    slow_period: [26]
+    signal_period: [9]
+  
+  # Trend Indicators
+  supertrend:
+    period: [10, 14]
+    multiplier: [2.0, 3.0]
+  
+  parabolic_sar:
+    af_start: [0.02]
+    af_max: [0.2]
+  
+  # Channel Breakouts
+  bollinger_breakout:
+    period: [20, 30]
+    std_dev: [2.0, 2.5]
+  
+  keltner_breakout:
+    period: [20]
+    multiplier: [2.0, 2.5]
+  
+  donchian_breakout:
+    period: [20, 50]
+  
+  atr_channel_breakout:
+    atr_period: [14]
+    channel_period: [20, 50]
+    atr_multiplier: [2.0, 3.0]
+  
+  diagonal_channel_breakout:
+    lookback: [20, 30]
+    min_points: [3]
+    channel_tolerance: [0.02]
+    parallel_tolerance: [0.1]
+    breakout_threshold: [0.002, 0.003]
+    exit_mode: ["channel_touch", "midline"]
+  
+  # Momentum Breakouts
+  momentum_breakout:
+    momentum_period: [10, 20]
+    breakout_threshold: [0.0, 0.01]
+  
+  roc_trend:
+    roc_period: [10, 20]
+    threshold: [0.0, 2.0]
+  
+  # ADX Trend Strength
+  adx_trend_strength:
+    adx_period: [14]
+    trend_strength_threshold: [20, 25]
+    di_spread_threshold: [2, 5]
+  
+  # Structure Breakouts
+  pivot_points:
+    pivot_type: ["standard", "fibonacci"]
+    timeframe: ["5m", "15m"]
+  
+  support_resistance_breakout:
+    period: [20, 50]
+    threshold: [0.01, 0.02]
+  
+  swing_pivot_breakout:
+    swing_period: [10, 20]
+    channel_multiplier: [1.0, 1.5]
+    lookback: [40]
+  
+  trendline_breaks:
+    min_touches: [2, 3]
+    pivot_lookback: [20]
+    tolerance: [0.002, 0.003]
+  
+  # Ichimoku Cloud
+  ichimoku_cloud_position:
+    conversion_period: [9]
+    base_period: [26]
+    lagging_span_period: [52]
+    displacement: [26]
+  
+  # Linear Regression Slope
+  linear_regression_slope:
+    period: [20, 50]
+    slope_threshold: [0.0, 0.001]
+  
+  # Aroon
+  aroon_crossover:
+    period: [14, 25]
+    threshold: [50, 70]
+  
+  aroon_oscillator:
+    period: [14, 25]
+    threshold: [50, 70]
+  
+  # Vortex
+  vortex_crossover:
+    period: [14, 21]
+  
+  vortex_trend:
+    period: [14, 21]
+    threshold: [0.05, 0.1]
+
+# Run with: python main.py --config config/test_all_trend_following.yaml --signal-generation --bars 200 --optimize
+
+# This will test all trend-following strategies with parameter combinations:
+# - SMA Crossover: 3 × 3 = 9 combinations
+# - EMA Crossover: 3 × 3 = 9 combinations
+# - DEMA Crossover: 2 × 2 = 4 combinations
+# - TEMA/SMA Crossover: 2 × 2 = 4 combinations
+# - MA Crossover: 2 × 2 × 2 = 8 combinations
+# - MACD Crossover: 1 × 1 × 1 = 1 combination
+# - Supertrend: 2 × 2 = 4 combinations
+# - Parabolic SAR: 1 × 1 = 1 combination
+# - Bollinger Breakout: 2 × 2 = 4 combinations
+# - Keltner Breakout: 1 × 2 = 2 combinations
+# - Donchian Breakout: 2 combinations
+# - ATR Channel Breakout: 1 × 2 × 2 = 4 combinations
+# - Diagonal Channel Breakout: 2 × 1 × 1 × 1 × 2 × 2 = 8 combinations
+# - Momentum Breakout: 2 × 2 = 4 combinations
+# - ROC Trend: 2 × 2 = 4 combinations
+# - ADX Trend Strength: 1 × 2 × 2 = 4 combinations
+# - Pivot Points: 2 × 2 = 4 combinations
+# - Support/Resistance Breakout: 2 × 2 = 4 combinations
+# - Swing Pivot Breakout: 2 × 2 × 1 = 4 combinations
+# - Trendline Breaks: 2 × 1 × 2 = 4 combinations
+# - Ichimoku Cloud: 1 × 1 × 1 × 1 = 1 combination
+# - Linear Regression Slope: 2 × 2 = 4 combinations
+# - Aroon Crossover: 2 × 2 = 4 combinations
+# - Aroon Oscillator: 2 × 2 = 4 combinations
+# - Vortex Crossover: 2 combinations
+# - Vortex Trend: 2 × 2 = 4 combinations
+#
+# Total: ~107 parameter combinations across 26 trend-following strategies

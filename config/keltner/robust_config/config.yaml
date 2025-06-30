@@ -1,0 +1,13 @@
+name: keltner_robust
+data: SPY_5m
+
+
+# Using the most robust parameters from analysis
+# Period=10, Multiplier=3.0 worked well with 100% of filters
+strategies:
+  - name: kb_robust_p10_m3
+    type: keltner_bands
+    params:
+      period: 10
+      multiplier: 0.5
+

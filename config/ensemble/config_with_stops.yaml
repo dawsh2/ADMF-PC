@@ -1,0 +1,12 @@
+name: basic_ensemble_with_stops
+data: SPY_5m
+
+strategy: [
+  {bollinger_bands: {period: 23, std_dev: 1.5}}
+]
+
+# For stop-loss analysis, we can add threshold conditions like:
+# threshold: |
+#   abs((close - entry_price) / entry_price) < 0.02  # 2% stop loss
+#
+# But this requires tracking entry_price, which needs execution-level support

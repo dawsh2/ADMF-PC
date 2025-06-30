@@ -1,0 +1,115 @@
+name: optimize_keltner_relaxed
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+split_ratio: 0.8
+
+# Start with best performer and progressively relax
+parameter_space:
+  strategies:
+    # 1. Our winner - baseline for comparison
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+    
+    # 2. Slightly wider bands (more trades)
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [1.1, 1.2, 1.3, 1.4, 1.5]
+    
+    # 3. Slightly faster period (more responsive)
+    - type: keltner_bands
+      param_overrides:
+        period: [40, 45, 50]
+        multiplier: [1.0, 1.1, 1.2]
+    
+    # 4. Add mild RSI filter (not too restrictive)
+    - type: keltner_bands
+      param_overrides:
+        period: [45, 50]
+        multiplier: [1.0, 1.1, 1.2]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and rsi(14) < 60) or 
+        (signal < 0 and rsi(14) > 40)
+    
+    # 5. Add mild volume confirmation (not too restrictive)
+    - type: keltner_bands
+      param_overrides:
+        period: [45, 50]
+        multiplier: [1.0, 1.1, 1.2]
+      filter: |
+        signal == 0 or 
+        volume > volume_sma_20 * 0.8
+    
+    # 6. Time filter removed - bar_index not available
+    
+    # 7. Progressive band widths with same period
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
+    
+    # 8. Test intermediate periods with tight bands
+    - type: keltner_bands
+      param_overrides:
+        period: [30, 35, 40, 45, 50]
+        multiplier: [0.8, 0.9, 1.0, 1.1]
+    
+    # 9. Dynamic multiplier based on volatility (adaptive bands)
+    - type: keltner_bands
+      param_overrides:
+        period: [40, 45, 50]
+        multiplier: [1.0, 1.1, 1.2]
+      filter: |
+        signal == 0 or 
+        (volatility_percentile(20) < 0.7)  # Only avoid extreme volatility
+    
+    # 10. Very mild trend filter - just avoid strong counter-trend
+    - type: keltner_bands
+      param_overrides:
+        period: [45, 50]
+        multiplier: [1.0, 1.1]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and close > sma_50 * 0.995) or 
+        (signal < 0 and close < sma_50 * 1.005)
+
+# Minimal features needed
+feature_configs:
+  rsi_14:
+    type: rsi
+    params:
+      period: 14
+  
+  volume_sma_20:
+    type: sma
+    params:
+      period: 20
+      column: volume
+  
+  sma_50:
+    type: sma
+    params:
+      period: 50
+  
+  volatility_percentile_20:
+    type: volatility_percentile
+    params:
+      period: 20
+      lookback: 252
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

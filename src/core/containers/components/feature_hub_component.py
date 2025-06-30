@@ -49,15 +49,23 @@ class FeatureHubComponent:
         container.event_bus.subscribe(EventType.BAR.value, self.on_bar)
         logger.info(f"FeatureHubComponent subscribed to BAR events in container {container.name}")
     
-    def configure_features(self, feature_configs: Dict[str, Dict[str, Any]]) -> None:
+    def configure_features(self, feature_configs: Dict[str, Dict[str, Any]], 
+                          required_features: Optional[List[str]] = None) -> None:
         """
         Configure which features to compute.
         
         Args:
             feature_configs: Dict mapping feature names to their configurations
+            required_features: Optional list of features actually needed (for optimization)
         """
-        self._feature_hub.configure_features(feature_configs)
-        logger.info(f"FeatureHubComponent configured with {len(feature_configs)} features")
+        self._feature_hub.configure_features(feature_configs, required_features)
+        
+        # Log configuration details
+        if required_features:
+            logger.info(f"FeatureHubComponent configured with {len(self._feature_hub._feature_configs)} "
+                       f"features (optimized from {len(feature_configs)})")
+        else:
+            logger.info(f"FeatureHubComponent configured with {len(feature_configs)} features")
     
     def on_bar(self, event: Event) -> None:
         """
@@ -196,6 +204,8 @@ def create_feature_hub_component(container_config: Dict[str, Any]) -> FeatureHub
     # Configure features if provided
     features = container_config.get('features', {})
     if features:
-        component.configure_features(features)
+        # Check if we have required_features from pre-flight check
+        required_features = container_config.get('required_features')
+        component.configure_features(features, required_features)
     
     return component

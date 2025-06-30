@@ -1,0 +1,16 @@
+name: bollinger_signal_gen
+data: SPY_5m
+
+# For signal generation, use specific parameter values, not ranges
+strategy: [
+  {
+    bollinger_bands: {
+      period: 20,      # Single value
+      std_dev: 2.0     # Single value
+    },
+    constraints: "intraday"
+  }
+]
+
+# Optional: specify which dataset to use
+dataset: train

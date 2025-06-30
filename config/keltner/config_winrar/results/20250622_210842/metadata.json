@@ -1,0 +1,72 @@
+{
+  "workflow_id": "config_winrar",
+  "workspace_path": "config/keltner/config_winrar/results/20250622_210842",
+  "total_bars": 20768,
+  "total_signals": 8298,
+  "total_classifications": 0,
+  "stored_changes": 1323,
+  "compression_ratio": 15.943600867678958,
+  "components": {
+    "SPY_5m_kb_winner_p50_m1": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_winner_p50_m1.parquet",
+      "total_bars": 20764,
+      "signal_changes": 597,
+      "compression_ratio": 0.028751685609709112,
+      "signal_frequency": 0.028751685609709112,
+      "parameters": {
+        "period": 50,
+        "multiplier": 1.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T21:08:43.034771"
+    },
+    "SPY_5m_kb_winner_p30_m1": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_winner_p30_m1.parquet",
+      "total_bars": 20768,
+      "signal_changes": 726,
+      "compression_ratio": 0.034957627118644065,
+      "signal_frequency": 0.034957627118644065,
+      "parameters": {
+        "period": 30,
+        "multiplier": 1.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T21:08:43.034851"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "kb_winner_p50_m1": {
+        "type": "keltner_bands",
+        "name": "kb_winner_p50_m1",
+        "params": {
+          "period": 50,
+          "multiplier": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_winner_p30_m1": {
+        "type": "keltner_bands",
+        "name": "kb_winner_p30_m1",
+        "params": {
+          "period": 30,
+          "multiplier": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 2,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 2,
+      "max_nesting_depth": 0
+    }
+  }
+}

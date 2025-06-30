@@ -7,14 +7,18 @@ crossing above/below another indicator or reference line.
 
 from typing import Dict, Any, Optional
 from ....core.components.discovery import strategy
+from ....core.features.feature_spec import FeatureSpec
 
 
 @strategy(
     name='sma_crossover',
-    feature_config=['sma'],  # Simple: just declare we need SMA features
-    param_feature_mapping={  # Map parameters to specific feature names
-        'fast_period': 'sma_{fast_period}',
-        'slow_period': 'sma_{slow_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('sma', {'period': params.get('fast_period', 10)}),
+        FeatureSpec('sma', {'period': params.get('slow_period', 20)})
+    ],
+    parameter_space={
+        'fast_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'slow_period': {'type': 'int', 'range': (20, 200), 'default': 20}
     }
 )
 def sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -66,10 +70,13 @@ def sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='ema_sma_crossover',
-    feature_config=['ema', 'sma'],  # Simple: declare we need EMA and SMA features
-    param_feature_mapping={
-        'ema_period': 'ema_{ema_period}',
-        'sma_period': 'sma_{sma_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('ema', {'period': params.get('ema_period', 10)}),
+        FeatureSpec('sma', {'period': params.get('sma_period', 20)})
+    ],
+    parameter_space={
+        'ema_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'sma_period': {'type': 'int', 'range': (10, 100), 'default': 20}
     }
 )
 def ema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -120,10 +127,13 @@ def ema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dic
 
 @strategy(
     name='ema_crossover',
-    feature_config=['ema'],  # Simple: just declare we need EMA features
-    param_feature_mapping={
-        'fast_ema_period': 'ema_{fast_ema_period}',
-        'slow_ema_period': 'ema_{slow_ema_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('ema', {'period': params.get('fast_ema_period', 10)}),
+        FeatureSpec('ema', {'period': params.get('slow_ema_period', 20)})
+    ],
+    parameter_space={
+        'fast_ema_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'slow_ema_period': {'type': 'int', 'range': (20, 200), 'default': 20}
     }
 )
 def ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -174,10 +184,13 @@ def ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[st
 
 @strategy(
     name='dema_sma_crossover',
-    feature_config=['dema', 'sma'],  # Simple: declare we need DEMA and SMA features
-    param_feature_mapping={
-        'dema_period': 'dema_{dema_period}',
-        'sma_period': 'sma_{sma_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('dema', {'period': params.get('dema_period', 10)}),
+        FeatureSpec('sma', {'period': params.get('sma_period', 20)})
+    ],
+    parameter_space={
+        'dema_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'sma_period': {'type': 'int', 'range': (10, 100), 'default': 20}
     }
 )
 def dema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -228,10 +241,13 @@ def dema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='dema_crossover',
-    feature_config=['dema'],  # Simple: just declare we need DEMA features
-    param_feature_mapping={
-        'fast_dema_period': 'dema_{fast_dema_period}',
-        'slow_dema_period': 'dema_{slow_dema_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('dema', {'period': params.get('fast_dema_period', 10)}),
+        FeatureSpec('dema', {'period': params.get('slow_dema_period', 20)})
+    ],
+    parameter_space={
+        'fast_dema_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'slow_dema_period': {'type': 'int', 'range': (20, 200), 'default': 20}
     }
 )
 def dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -282,10 +298,13 @@ def dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='tema_sma_crossover',
-    feature_config=['tema', 'sma'],  # Simple: declare we need TEMA and SMA features
-    param_feature_mapping={
-        'tema_period': 'tema_{tema_period}',
-        'sma_period': 'sma_{sma_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('tema', {'period': params.get('tema_period', 10)}),
+        FeatureSpec('sma', {'period': params.get('sma_period', 20)})
+    ],
+    parameter_space={
+        'sma_period': {'type': 'int', 'range': (10, 100), 'default': 20},
+        'tema_period': {'type': 'int', 'range': (5, 100), 'default': 20}
     }
 )
 def tema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -336,10 +355,19 @@ def tema_sma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='stochastic_crossover',
-    feature_config=['stochastic'],  # Simple: just declare we need stochastic features
-    param_feature_mapping={
-        'k_period': 'stochastic_{k_period}_{d_period}',
-        'd_period': 'stochastic_{k_period}_{d_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('stochastic', {
+            'k_period': params.get('k_period', 14),
+            'd_period': params.get('d_period', 3)
+        }, 'k'),
+        FeatureSpec('stochastic', {
+            'k_period': params.get('k_period', 14),
+            'd_period': params.get('d_period', 3)
+        }, 'd')
+    ],
+    parameter_space={
+        'd_period': {'type': 'int', 'range': (3, 10), 'default': 3},
+        'k_period': {'type': 'int', 'range': (5, 20), 'default': 14}
     }
 )
 def stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -390,9 +418,12 @@ def stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: 
 
 @strategy(
     name='vortex_crossover',
-    feature_config=['vortex'],  # Simple: just declare we need vortex features
-    param_feature_mapping={
-        'vortex_period': 'vortex_{vortex_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('vortex', {'period': params.get('vortex_period', 14)}, 'vi_plus'),
+        FeatureSpec('vortex', {'period': params.get('vortex_period', 14)}, 'vi_minus')
+    ],
+    parameter_space={
+        'vortex_period': {'type': 'int', 'range': (5, 100), 'default': 20}
     }
 )
 def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -441,11 +472,22 @@ def vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict
 
 @strategy(
     name='macd_crossover',
-    feature_config=['macd'],  # Simple: just declare we need MACD features
-    param_feature_mapping={
-        'fast_ema': 'macd_{fast_ema}_{slow_ema}_{signal_ema}',
-        'slow_ema': 'macd_{fast_ema}_{slow_ema}_{signal_ema}',
-        'signal_ema': 'macd_{fast_ema}_{slow_ema}_{signal_ema}'
+    feature_discovery=lambda params: [
+        FeatureSpec('macd', {
+            'fast_period': params.get('fast_ema', 12),
+            'slow_period': params.get('slow_ema', 26),
+            'signal_period': params.get('signal_ema', 9)
+        }, 'macd'),
+        FeatureSpec('macd', {
+            'fast_period': params.get('fast_ema', 12),
+            'slow_period': params.get('slow_ema', 26),
+            'signal_period': params.get('signal_ema', 9)
+        }, 'signal')
+    ],
+    parameter_space={
+        'fast_ema': {'type': 'int', 'range': (8, 15), 'default': 12},
+        'slow_ema': {'type': 'int', 'range': (20, 30), 'default': 26},
+        'signal_ema': {'type': 'int', 'range': (5, 15), 'default': 9}
     }
 )
 def macd_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -499,10 +541,19 @@ def macd_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[s
 
 @strategy(
     name='ichimoku_cloud_position',
-    feature_config=['ichimoku'],  # Simple: just declare we need ichimoku features
-    param_feature_mapping={
-        'conversion_period': 'ichimoku_{conversion_period}_{base_period}',
-        'base_period': 'ichimoku_{conversion_period}_{base_period}'
+    feature_discovery=lambda params: [
+        FeatureSpec('ichimoku', {
+            'conversion_period': params.get('conversion_period', 9),
+            'base_period': params.get('base_period', 26)
+        }, 'senkou_span_a'),
+        FeatureSpec('ichimoku', {
+            'conversion_period': params.get('conversion_period', 9),
+            'base_period': params.get('base_period', 26)
+        }, 'senkou_span_b')
+    ],
+    parameter_space={
+        'conversion_period': {'type': 'int', 'range': (5, 20), 'default': 9},
+        'base_period': {'type': 'int', 'range': (20, 52), 'default': 26}
     }
 )
 def ichimoku_cloud_position(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:

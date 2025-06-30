@@ -1,0 +1,26 @@
+# Keltner Bands optimization for 5-minute data
+# Tests 5x5 = 25 parameter combinations
+
+dataset: SPY_5m
+mode: signal_generation
+
+# Parameter space for optimization (5x5 = 25 combinations)
+parameter_space:
+  strategies:
+    - type: keltner_bands
+      param_overrides:
+        period: [10, 15, 20, 25, 30]
+        multiplier: [1.0, 1.5, 2.0, 2.5, 3.0]
+
+# Market configuration
+market_hours_only: true
+enable_metrics: true
+
+# Data configuration
+data:
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+
+# Workflow configuration
+workflow_type: signal_generation
+output_format: parquet

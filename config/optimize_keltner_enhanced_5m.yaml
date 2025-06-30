@@ -1,0 +1,257 @@
+# high value! 
+name: optimize_keltner_enhanced_5m
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+split_ratio: 0.8
+
+# Enhanced parameter space focused on pushing edge above 1 bps
+parameter_space:
+  strategies:
+    # 1. Base winner for comparison
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 0.60
+    
+    # 2. Fine-tune around optimal multiplier
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.58, 0.59, 0.60, 0.61, 0.62, 0.63]
+    
+    # 3. VWAP stretch filter - only trade when price is extended
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        abs(vwap_distance()) > ${vwap_dist}
+      filter_params:
+        vwap_dist: [0.0025, 0.003, 0.0035, 0.004, 0.0045, 0.005]
+    
+    # 4. RSI extremes - trade at oversold/overbought
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and rsi(14) < ${rsi_low}) or 
+        (signal < 0 and rsi(14) > ${rsi_high})
+      filter_params:
+        rsi_low: [25, 30, 35]
+        rsi_high: [70, 75, 80]
+    
+    # 5. Volume spike confirmation
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        volume_ratio(20) > ${vol_spike}
+      filter_params:
+        vol_spike: [1.5, 2.0, 2.5, 3.0]
+    
+    # 6. Volatility regime - trade in high volatility only
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        volatility_percentile(20) > ${vol_pct}
+      filter_params:
+        vol_pct: [0.6, 0.7, 0.8]
+    
+    # 7. Combined VWAP + RSI (high conviction)
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        (abs(vwap_distance()) > ${vwap_dist} and 
+         ((signal > 0 and rsi(14) < ${rsi_low}) or 
+          (signal < 0 and rsi(14) > ${rsi_high})))
+      filter_params:
+        vwap_dist: [0.003, 0.004]
+        rsi_low: [30, 35]
+        rsi_high: [70, 75]
+    
+    # 8. VWAP + Volume confirmation
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        (abs(vwap_distance()) > ${vwap_dist} and 
+         volume_ratio(20) > ${vol_ratio})
+      filter_params:
+        vwap_dist: [0.003, 0.0035]
+        vol_ratio: [1.5, 2.0]
+    
+    # 9. Trend alignment - only trade with trend
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and close > sma_${trend_ma}) or 
+        (signal < 0 and close < sma_${trend_ma})
+      filter_params:
+        trend_ma: [50, 100, 200]
+    
+    # 10. Counter-trend with RSI divergence
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        ((signal > 0 and close < sma_200 and rsi(14) < 30) or 
+         (signal < 0 and close > sma_200 and rsi(14) > 70))
+    
+    # 11. Triple filter - VWAP + Volume + Volatility
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        (abs(vwap_distance()) > 0.003 and 
+         volume_ratio(20) > 1.5 and 
+         volatility_percentile(20) > 0.6)
+    
+    # 12. Momentum confirmation
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and roc(10) > ${roc_thresh}) or 
+        (signal < 0 and roc(10) < -${roc_thresh})
+      filter_params:
+        roc_thresh: [0.001, 0.002, 0.003]
+    
+    # 13. Bollinger Band squeeze confirmation
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        bb_width(20, 2) < ${bb_squeeze}
+      filter_params:
+        bb_squeeze: [0.01, 0.015, 0.02]
+    
+    # 14. ATR-based volatility filter
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [0.60]
+      filter: |
+        signal == 0 or 
+        atr(14) > ${atr_min}
+      filter_params:
+        atr_min: [0.5, 0.75, 1.0, 1.25]
+
+# All required features
+feature_configs:
+  # VWAP
+  vwap:
+    type: vwap
+  
+  # RSI
+  rsi_14:
+    type: rsi
+    params:
+      period: 14
+  
+  # Volume indicators
+  # Note: SMA of volume needs to be handled differently
+  # For now, removing as it's causing errors
+  # volume_sma_20:
+  #   type: sma
+  #   params:
+  #     period: 20
+  #     column: volume
+  
+  volume_ratio_20:
+    type: volume_ratio
+    params:
+      period: 20
+  
+  # Moving averages
+  sma_50:
+    type: sma
+    params:
+      period: 50
+  
+  sma_100:
+    type: sma
+    params:
+      period: 100
+      
+  sma_200:
+    type: sma
+    params:
+      period: 200
+  
+  # Volatility
+  volatility_percentile_20:
+    type: volatility_percentile
+    params:
+      period: 20
+      lookback: 252
+  
+  # Momentum
+  roc_10:
+    type: roc
+    params:
+      period: 10
+  
+  # Bollinger Bands
+  bb_upper_20_2:
+    type: bollinger_bands
+    params:
+      period: 20
+      std_dev: 2
+      band: upper
+      
+  bb_lower_20_2:
+    type: bollinger_bands
+    params:
+      period: 20
+      std_dev: 2
+      band: lower
+      
+  bb_width_20_2:
+    type: bollinger_width
+    params:
+      period: 20
+      std_dev: 2
+  
+  # ATR
+  atr_14:
+    type: atr
+    params:
+      period: 14
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}_5m.csv"
+    
+timeframe: "5m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

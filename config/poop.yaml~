@@ -1,0 +1,25 @@
+strategy: [
+  # Trend following group (60% of capital)
+  {
+    weight: 0.6,
+    strategy: [
+      {ma_crossover: {fast: 10, slow: 30, weight: 0.5}},
+      {momentum: {period: 14, weight: 0.5}}
+    ],
+    threshold: "0.3 AND adx(14) > 25 AND volume > sma(volume, 20) * 1.2"
+  },
+  
+  # Mean reversion group (40% of capital)
+  {
+    weight: 0.4,
+    strategy: [
+      {bollinger_bands: {period: 20, std: 2.0, weight: 0.6}},
+      {rsi_extreme: {period: 14, oversold: 30, weight: 0.4}}
+    ],
+    threshold: "0.5 AND adx(14) < 20 AND abs(price - vwap()) / vwap() > 0.002"
+  },
+  
+  # Overall system threshold
+  {threshold: "0.5 AND market_hours() == 'regular'"}
+]
+

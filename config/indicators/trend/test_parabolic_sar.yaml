@@ -1,0 +1,23 @@
+# Test configuration for Parabolic SAR strategy
+name: test_parabolic_sar
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  parabolic_sar:
+    params:
+      af_start: 0.02
+      af_max: 0.2
+
+# Run with: python main.py --config config/indicators/trend/test_parabolic_sar.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Price > SAR: BUY signal (1) - uptrend
+# - Price < SAR: SELL signal (-1) - downtrend
+# - Price = SAR: Previous signal continues
+
+# Parabolic SAR is a trend-following indicator
+# SAR dots flip from below to above price (and vice versa) on trend changes

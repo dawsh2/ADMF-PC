@@ -1,0 +1,25 @@
+# Test configuration for Multi-Indicator Voting strategy
+name: test_multi_indicator_voting
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Multi-indicator voting ensemble strategy
+strategy:
+  multi_indicator_voting:
+    params:
+      rsi_period: 14
+      macd_fast: 12
+      macd_slow: 26
+      macd_signal: 9
+      bb_period: 20
+      bb_stddev: 2.0
+      min_votes: 2  # Minimum votes required for signal
+
+# Run with: python main.py --config config/indicators/trend/test_multi_indicator_voting.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Combines RSI, MACD, and Bollinger Bands
+# - Each indicator votes: bullish (+1), bearish (-1), or neutral (0)
+# - Signal when votes >= min_votes in same direction

@@ -1,0 +1,42 @@
+# Full wildcard optimization example
+# This discovers and tests ALL indicators and classifiers
+name: full_wildcard_optimization
+mode: backtest
+symbols: ["SPY", "QQQ"]
+start_date: "2024-01-01"
+end_date: "2024-03-31"
+initial_capital: 100000
+
+# Production strategy (when not optimizing)
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+
+# Classifier for production
+classifiers:
+  - name: trend_classifier
+    params:
+      trend_threshold: 0.02
+
+# Parameter space for optimization (--optimize flag)
+parameter_space:
+  # Discover ALL indicator strategies
+  indicators: "*"
+  
+  # Discover ALL classifiers
+  classifiers: "*"
+
+# Example usage:
+# python main.py --config config/examples/full_wildcard_optimization.yaml --optimize
+
+# This will:
+# 1. Discover 48 indicator strategies from src/strategy/strategies/indicators/
+# 2. Discover 12 classifiers from src/strategy/classifiers/
+# 3. Generate parameter combinations for each
+# 4. Run backtests for all combinations
+# 5. Report the best parameters
+
+# Note: Granularity is currently controlled in the ParameterSpaceExpander
+# constructor (default is 5 samples per range)

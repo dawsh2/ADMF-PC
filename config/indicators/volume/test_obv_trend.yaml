@@ -1,0 +1,23 @@
+# Test configuration for OBV Trend strategy
+name: test_obv_trend
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# On-Balance Volume trend strategy
+strategy:
+  obv_trend:
+    params:
+      obv_sma_period: 20
+
+# Run with: python main.py --config config/indicators/volume/test_obv_trend.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - OBV > OBV_SMA(20): BUY signal (1) - accumulation
+# - OBV < OBV_SMA(20): SELL signal (-1) - distribution
+# - OBV = OBV_SMA(20): No signal (0)
+
+# OBV adds volume on up days and subtracts on down days
+# Trend of OBV confirms price trend or warns of divergence
+# Rising OBV = buying pressure, falling OBV = selling pressure

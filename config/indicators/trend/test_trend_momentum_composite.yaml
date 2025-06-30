@@ -1,0 +1,23 @@
+# Test configuration for Trend Momentum Composite strategy
+name: test_trend_momentum_composite
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Trend and momentum composite strategy
+strategy:
+  trend_momentum_composite:
+    params:
+      trend_period: 50
+      momentum_period: 14
+      adx_period: 14
+      trend_strength_threshold: 25
+
+# Run with: python main.py --config config/indicators/trend/test_trend_momentum_composite.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Combines trend (SMA) and momentum (ADX/DI)
+# - BUY: Uptrend + strong momentum (ADX > threshold)
+# - SELL: Downtrend + strong momentum
+# - FLAT: Weak trend (low ADX)

@@ -1,0 +1,110 @@
+# Swing Pivot Bounce Zones - Stateless Zone-Based Strategy
+# Test on 5m data with corrected logic
+name: swing_pivot_bounce_zones_5m
+mode: signal_generation
+symbols: ["SPY_5m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Base configuration
+strategy:
+  swing_pivot_bounce_zones:
+    params:
+      sr_period: 24          # 2 hours on 5m
+      min_touches: 4         # Reliable levels
+      entry_zone: 0.003      # 0.3% zone for entries
+      exit_zone: 0.003       # 0.3% zone for exits
+      min_range: 0.005       # 0.5% minimum S/R distance
+
+# Optimization parameters
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce_zones
+      param_overrides:
+        # SR periods for 5m (1-4 hours)
+        sr_period: [12, 18, 24, 30, 36]
+        
+        # Touch requirements
+        min_touches: [3, 4, 5]
+        
+        # Entry zones (tighter to wider)
+        entry_zone: [0.002, 0.0025, 0.003, 0.0035, 0.004]
+        
+        # Exit zones (how close to opposite level)
+        exit_zone: [0.002, 0.0025, 0.003, 0.0035, 0.004]
+        
+        # Minimum range filter
+        min_range: [0.003, 0.004, 0.005, 0.006]
+
+# This generates 5 * 3 * 5 * 5 * 4 = 1500 combinations
+
+# Performance Analysis Results (2024-12-22)
+# ==========================================
+# 
+# BASELINE PERFORMANCE (No Filters):
+# - Average edge: ~0.5 bps per trade
+# - Trade frequency: ~6-14 trades/day depending on parameters
+# - Win rate: ~51-52%
+# 
+# OPTIMAL CONFIGURATIONS FOR HIGH FREQUENCY (2-3+ trades/day):
+# 
+# 1. **BEST OVERALL: Vol>70 Filter**
+#    - Edge: 2.18 bps per trade
+#    - Frequency: 2.8 trades/day  
+#    - Win rate: 54.5%
+#    - Annual return: 12.8% (after 0.5bp costs)
+#    - Strategy IDs that work best: 88, 48
+# 
+# 2. **Higher Frequency: Vol>60 Filter**
+#    - Edge: 1.61 bps per trade
+#    - Frequency: 3.7 trades/day
+#    - Win rate: 52.6%
+#    - Annual return: 10.8% (after 0.5bp costs)
+# 
+# 3. **VWAP-Based: Vol>50 + VWAP Distance >0.1%**
+#    - Edge: 1.70 bps per trade
+#    - Frequency: 2.6 trades/day
+#    - Win rate: 53.0%
+#    - Annual return: 8.2% (after 0.5bp costs)
+# 
+# 4. **Volume-Based: Volume >1.2x Average**
+#    - Edge: 1.40 bps per trade
+#    - Frequency: 3.5 trades/day
+#    - Win rate: 52.8%
+#    - Annual return: 8.2% (after 0.5bp costs)
+# 
+# HIGH-VALUE PATTERNS (Lower Frequency but Exceptional Edge):
+# - **High Vol + Far from VWAP (>0.2%)**: 4.49 bps edge, 0.81 trades/day
+# - **Extended from SMA20 + High Vol**: 3.36 bps edge, 0.32 trades/day
+# - **Best Hour**: 20:00-21:00 (3.36 bps edge)
+# 
+# KEY INSIGHTS:
+# - Relaxing volatility filter from 85th to 70th percentile quadruples frequency
+# - Shorts generally outperform longs across all configurations
+# - Counter-trend shorts in uptrends with high volatility show best results
+# - Afternoon trading maintains edge while reducing frequency slightly
+# - High range bars (>0.1%) and volume spikes correlate with better performance
+# - Quick exits (<30 minutes) perform better than longer holds
+# 
+# COMPARISON TO 1-MINUTE DATA:
+# - 5-minute significantly outperforms 1-minute for this strategy
+# - 1-minute baseline: -0.24 bps (negative edge!)
+# - 1-minute best filter (Vol>60 + Shorts): only 0.10 bps with 0.8 trades/day
+# - 5-minute provides 20x better edge with 3x more trades
+# 
+# PRODUCTION RECOMMENDATIONS:
+# 1. Use Vol>70 filter for best risk/reward (2.18 bps, 2.8 trades/day)
+# 2. Consider Vol>60 if need more trades (3.7 trades/day)
+# 3. Add VWAP distance as secondary confirmation
+# 4. Focus on afternoon sessions for slightly better edge
+# 5. Ensure execution costs stay below 0.5 bps total
+# 
+# RISK CONSIDERATIONS:
+# - Edge is sensitive to execution quality
+# - Volatility regime changes affect both edge and frequency
+# - Consider position sizing of 5% per trade (not 10%) due to higher frequency
+# - Monitor for strategy decay as more traders discover these patterns

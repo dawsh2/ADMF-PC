@@ -1,0 +1,115 @@
+# Swing Pivot Bounce Strategy - Production Configuration
+# Optimized for 5-minute bars with Vol>85 + Shorts filter
+# Expected performance: ~2.0-2.2 bps edge, 0.6-1.0 trades per day
+name: swing_pivot_bounce_production
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features
+feature_config:
+  support_resistance_20:  # Name must match what strategy expects
+    type: support_resistance
+    lookback: 20
+    min_touches: 2
+  
+  # Volatility calculation for filtering
+  volatility_20:
+    type: volatility
+    period: 20
+    
+  # Trend indicators for filtering  
+  sma_50:
+    type: sma
+    period: 50
+    
+  sma_200:
+    type: sma
+    period: 200
+
+# Strategy configuration
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 20           # Support/Resistance lookback period
+      min_touches: 2          # Minimum touches to validate level
+      bounce_threshold: 0.002 # 0.2% proximity for bounce detection
+      exit_threshold: 0.001   # 0.1% from midpoint to exit position
+      
+      # Production filters based on analysis
+      filters:
+        # Only take short positions
+        direction: "short"
+        
+        # High volatility filter (>85th percentile)
+        # This dramatically improves edge from baseline
+        min_volatility_percentile: 85
+        
+        # Optional: Trend filter (shorts in uptrends performed best)
+        # Uncomment to enable trend filtering
+        # trend_filter: "uptrend"  # Only short in uptrends
+        
+      # Risk management
+      position_sizing:
+        method: "fixed"
+        size: 0.1  # 10% of capital per trade
+        
+      # Stop loss and profit targets
+      risk_management:
+        stop_loss: 0.005  # 0.5% stop loss
+        profit_target: 0.003  # 0.3% profit target
+        
+# Execution configuration
+execution:
+  # Account for realistic execution costs
+  slippage_bps: 0.5
+  commission_bps: 0.5
+  
+  # Minimum trade frequency requirement
+  min_trades_per_day: 0.5
+  
+# Data configuration for 5-minute bars
+data:
+  frequency: "5m"
+  bars_per_day: 78  # 6.5 hours * 12 bars/hour
+  
+# Monitoring and alerts
+monitoring:
+  # Alert if strategy deviates from expected performance
+  performance_alerts:
+    min_edge_bps: 1.5  # Alert if edge drops below 1.5 bps
+    max_drawdown_pct: 5.0  # Alert on 5% drawdown
+    
+  # Trade frequency monitoring
+  frequency_alerts:
+    min_daily_trades: 0.3  # Alert if < 0.3 trades/day
+    max_daily_trades: 3.0  # Alert if > 3 trades/day (unusual)
+
+# Notes for production deployment
+notes: |
+  This configuration implements the swing pivot bounce strategy with filters
+  discovered through extensive backtesting on 5-minute SPY data.
+  
+  Key insights:
+  - Baseline strategy has very low edge (~0.04 bps on 1m, ~0.5 bps on 5m)
+  - High volatility filter (>85th percentile) is crucial for profitability
+  - Short positions only - longs consistently underperform
+  - Counter-trend shorts in uptrends showed best results in testing
+  - Expected: ~2.0-2.2 bps edge with 0.6-1.0 trades per day
+  
+  Risk considerations:
+  - Low trade frequency means larger position sizes needed for meaningful returns
+  - Volatility clustering can lead to periods of no trades
+  - Performance highly dependent on market regime
+  - Execution costs critically important given small edge
+  
+  Monitoring required:
+  - Track actual vs expected edge continuously
+  - Monitor volatility regime changes
+  - Ensure execution quality to preserve edge
+  - Consider shutting down if edge < 1.5 bps after costs

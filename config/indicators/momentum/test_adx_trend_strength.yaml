@@ -1,0 +1,29 @@
+# Test configuration for ADX Trend Strength strategy
+name: test_adx_trend_strength
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# ADX trend strength strategy with directional indicators
+strategy:
+  adx_trend_strength:
+    params:
+      adx_period: 14
+      trend_strength_threshold: 25  # ADX above 25 indicates strong trend
+      di_spread_threshold: 2       # Minimum DI+ vs DI- spread
+
+# Run with: python main.py --config config/indicators/momentum/test_adx_trend_strength.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - ADX measures trend strength (0-100)
+# - DI+ measures upward directional movement
+# - DI- measures downward directional movement
+# 
+# Signals when ADX > 25 AND DI spread > 2:
+# - DI+ > DI-: BUY signal (1) - strong uptrend
+# - DI- > DI+: SELL signal (-1) - strong downtrend
+# - Otherwise: No signal (0)
+
+# This strategy only trades in strong trends, avoiding
+# choppy or ranging markets where ADX is low.

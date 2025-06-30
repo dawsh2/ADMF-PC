@@ -1,0 +1,26 @@
+# Test per-strategy thresholds
+name: test_per_strategy_threshold
+mode: signal_generation  
+symbols: ["SPY"]
+
+# Each strategy has its own threshold
+strategy: [
+  {
+    bollinger_bands: {
+      period: 20,
+      std_dev: 2.0
+    },
+    threshold: "intraday and volume > sma(volume, 20) * 1.2"
+  },
+  {
+    rsi_strategy: {
+      period: 14,
+      oversold: 30,
+      overbought: 70
+    },
+    threshold: "intraday and atr(14) > atr(50)"
+  }
+]
+
+# Run with:
+# python main.py --config config/test_per_strategy_threshold.yaml --signal-generation

@@ -1,0 +1,34 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_521d4c3c",
+  "total_bars": 499,
+  "total_signals": 476,
+  "total_classifications": 0,
+  "stored_changes": 9,
+  "compression_ratio": 1.8907563025210083,
+  "components": {
+    "SPY_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "signal_file_path": "traces/SPY_1m/signals/bollinger_bands/SPY_compiled_strategy_0.parquet",
+      "total_bars": 425,
+      "signal_changes": 9,
+      "compression_ratio": 0.021176470588235293,
+      "signal_frequency": 0.021176470588235293,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_0"
+      },
+      "created_at": "2025-06-19T22:36:39.322529"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

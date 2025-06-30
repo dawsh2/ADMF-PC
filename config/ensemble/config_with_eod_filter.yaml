@@ -1,0 +1,9 @@
+name: basic_ensemble_eod_filter
+data: SPY_5m
+
+strategy: [
+  {bollinger_bands: {period: 23, std_dev: 1.5}, 
+   filter: "bar_of_day < 78"}  # Only allow signals before 3:50 PM
+]
+
+# This uses the filter field which should be properly handled by the compiler

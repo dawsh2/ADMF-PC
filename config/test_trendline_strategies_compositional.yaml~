@@ -1,0 +1,61 @@
+# Test configuration for trendline-based strategies using compositional syntax
+name: trendline_strategies_test
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+initial_capital: 100000
+
+# Compositional strategy syntax - array = composite with weighted vote
+strategy:
+  - weight: 0.34
+    trendline_bounces:
+      params:
+        pivot_lookback: 20
+        min_touches: 3
+        tolerance: 0.002
+        bounce_threshold: 0.003
+    
+  - weight: 0.33
+    trendline_breaks:
+      params:
+        pivot_lookback: 20
+        min_touches: 2
+        tolerance: 0.002
+    
+  - weight: 0.33
+    pivot_channel_bounces:
+      params:
+        sr_period: 20
+        min_touches: 2
+        bounce_threshold: 0.002
+
+# Common settings (if needed, otherwise weights in array work)
+weight_threshold: 0.5
+
+# Data configuration
+data:
+  storage_type: arctic
+  arctic_uri: mongodb://localhost:27017/
+  data_type: bars
+  universe_name: us_stocks
+  timeframes: ["5m"]
+
+# Execution settings
+execution:
+  mode: vectorized
+  max_positions: 1
+  position_size: 0.95
+
+# Risk management
+risk:
+  stop_loss: 0.02  # 2% stop loss
+  take_profit: 0.04  # 4% take profit
+
+# Output settings
+output:
+  results_dir: results/trendline_test
+  save_signals: true
+  save_metrics: true
+  save_trades: true
+  log_level: debug

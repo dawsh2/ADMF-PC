@@ -1,0 +1,15 @@
+# Test config with new data format to verify workspace creation
+name: test_new_data_format
+
+# New clean data format
+data: SPY_5m
+
+# Simple strategy
+strategies:
+  - type: momentum
+    name: simple_ma
+    params:
+      fast_period: 10
+      slow_period: 20
+
+# Verify workspace creation with --bars 50

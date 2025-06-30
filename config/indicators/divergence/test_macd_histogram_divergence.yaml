@@ -1,0 +1,28 @@
+# Test configuration for MACD Histogram Divergence strategy
+name: test_macd_histogram_divergence
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# MACD histogram divergence reversal strategy
+strategy:
+  macd_histogram_divergence:
+    params:
+      fast_period: 12
+      slow_period: 26
+      signal_period: 9
+      swing_lookback: 5
+      histogram_threshold: 0.001
+
+# Run with: python main.py --config config/indicators/divergence/test_macd_histogram_divergence.yaml --signal-generation --bars 100
+
+# Expected behavior (REVERSAL):
+# - At swing low with negative histogram: If less negative than expected -> BUY (1)
+# - At swing high with positive histogram: If less positive than expected -> SELL (-1)
+# - Otherwise: No signal (0)
+
+# MACD histogram divergences:
+# - Show momentum shifts before price confirms
+# - Most reliable at swing points
+# - Watch for histogram moving toward zero line

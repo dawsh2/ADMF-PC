@@ -1,0 +1,20 @@
+# Test configuration for Price Action Swing strategy
+name: test_price_action_swing
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Price action swing high/low strategy
+strategy:
+  price_action_swing:
+    params:
+      period: 10  # Swing detection lookback
+
+# Run with: python main.py --config config/indicators/structure/test_price_action_swing.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Detects swing highs and lows
+# - Higher highs + higher lows = uptrend (BUY)
+# - Lower highs + lower lows = downtrend (SELL)
+# - Mixed patterns = ranging (FLAT)

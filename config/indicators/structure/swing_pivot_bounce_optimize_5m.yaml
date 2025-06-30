@@ -1,0 +1,41 @@
+# Swing Pivot Bounce Strategy - 5m Parameter Optimization
+# Testing parameter ranges specifically tuned for 5-minute timeframe
+name: swing_pivot_bounce_optimize_5m
+mode: signal_generation
+symbols: ["SPY_5m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Base strategy config
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 24
+      min_touches: 3
+      bounce_threshold: 0.003
+      exit_threshold: 0.0015
+
+# Parameter space for 5m optimization
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce
+      param_overrides:
+        # Shorter lookbacks for 5m (1-4 hours)
+        sr_period: [12, 18, 24, 30, 36]
+        
+        # Higher touch requirements for noise filtering
+        min_touches: [3, 4, 5]
+        
+        # Tighter thresholds for 5m precision
+        bounce_threshold: [0.002, 0.0025, 0.003, 0.0035, 0.004]
+        
+        # Smaller profit targets for 5m
+        exit_threshold: [0.0008, 0.001, 0.0012, 0.0015, 0.0018]
+
+# Finer granularity for more precise tuning
+optimization:
+  granularity: 5

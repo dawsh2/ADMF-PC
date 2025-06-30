@@ -1,0 +1,28 @@
+# Test configuration for RSI Bands strategy
+# Tests signal generation with fixed parameters and limited data
+name: test_rsi_bands
+mode: signal_generation  # Just generate signals, no backtesting
+symbols: ["SPY"]
+start_date: "2024-03-26"
+end_date: "2024-03-31"  # Few days of data
+initial_capital: 100000  # For backtest mode
+
+# Single strategy with fixed parameters
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Run with: python main.py --config config/indicators/test_rsi_bands.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - RSI < 30: Generate BUY signal (1)
+# - RSI > 70: Generate SELL signal (-1)
+# - 30 <= RSI <= 70: No signal (0)
+
+# Verification steps:
+# 1. Check signal generation matches RSI values
+# 2. Verify signal storage includes accurate price data
+# 3. Confirm feature values are correctly computed

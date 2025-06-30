@@ -1,0 +1,112 @@
+{
+  "timestamp": "2025-06-19T12:10:02.107814",
+  "total_modules": 8,
+  "total_strategies": 46,
+  "valid": 8,
+  "incomplete": 0,
+  "missing": 0,
+  "details": [
+    {
+      "module": "crossovers",
+      "strategies": [
+        "sma_crossover",
+        "ema_sma_crossover",
+        "ema_crossover",
+        "dema_sma_crossover",
+        "dema_crossover",
+        "tema_sma_crossover",
+        "stochastic_crossover",
+        "vortex_crossover",
+        "ichimoku_cloud_position"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_crossovers.py"
+    },
+    {
+      "module": "divergence",
+      "strategies": [
+        "rsi_divergence",
+        "stochastic_divergence",
+        "momentum_divergence",
+        "obv_price_divergence"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_divergence.py"
+    },
+    {
+      "module": "momentum",
+      "strategies": [
+        "macd_crossover_strategy",
+        "momentum_breakout_strategy",
+        "roc_trend_strategy",
+        "adx_trend_strength_strategy",
+        "aroon_oscillator_strategy",
+        "vortex_trend_strategy",
+        "elder_ray_strategy"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_momentum.py"
+    },
+    {
+      "module": "oscillators",
+      "strategies": [
+        "rsi_threshold",
+        "rsi_bands",
+        "cci_threshold",
+        "cci_bands",
+        "stochastic_rsi",
+        "williams_r",
+        "roc_threshold",
+        "ultimate_oscillator"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_oscillators.py"
+    },
+    {
+      "module": "structure",
+      "strategies": [
+        "fibonacci_retracement",
+        "support_resistance_breakout",
+        "atr_channel_breakout",
+        "price_action_swing",
+        "swing_pivot_breakout",
+        "diagonal_channel_breakout"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_structure.py"
+    },
+    {
+      "module": "trend",
+      "strategies": [
+        "adx_trend_strength",
+        "parabolic_sar",
+        "aroon_crossover",
+        "supertrend",
+        "linear_regression_slope"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_trend.py"
+    },
+    {
+      "module": "volatility",
+      "strategies": [
+        "donchian_breakout",
+        "donchian_bands"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_volatility.py"
+    },
+    {
+      "module": "volume",
+      "strategies": [
+        "obv_trend",
+        "mfi_bands",
+        "vwap_deviation",
+        "chaikin_money_flow",
+        "accumulation_distribution"
+      ],
+      "status": "VALID",
+      "test_file": "/Users/daws/ADMF-PC/tests/unit/strategy/indicators/test_volume.py"
+    }
+  ]
+}

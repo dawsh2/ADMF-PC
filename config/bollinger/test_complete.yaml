@@ -1,0 +1,23 @@
+name: bollinger_complete
+data: SPY_5m
+
+portfolio:
+  initial_capital: 100000
+  
+strategy: [
+  {
+    bollinger_bands: {
+      period: 10,
+      std_dev: 1.5
+    },
+    constraints: "intraday",
+    risk: {
+      stop_loss: 0.00075,      # 0.075% stop loss (not 0.1%)
+      take_profit: 0.0015,     # 0.15% take profit target
+#      trailing_stop: 0.00001  # 0.05% trailing stop
+    }
+  }
+]
+
+# Enable full event tracing
+# This ensures portfolio and execution events are saved

@@ -1,0 +1,91 @@
+{
+  "workflow_id": "config",
+  "workspace_path": "config/results/20250622_165327",
+  "total_bars": 0,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "kb5_baseline": {
+        "type": "keltner_bands",
+        "name": "kb5_baseline",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb5_rsi70": {
+        "type": "keltner_bands",
+        "name": "kb5_rsi70",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb5_rsi50": {
+        "type": "keltner_bands",
+        "name": "kb5_rsi50",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb5_directional": {
+        "type": "keltner_bands",
+        "name": "kb5_directional",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb5_volume_rsi": {
+        "type": "keltner_bands",
+        "name": "kb5_volume_rsi",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb5_high_vol": {
+        "type": "keltner_bands",
+        "name": "kb5_high_vol",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb5_opt_params": {
+        "type": "keltner_bands",
+        "name": "kb5_opt_params",
+        "params": {
+          "period": 15,
+          "multiplier": 1.8
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 7,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 7,
+      "max_nesting_depth": 0
+    }
+  }
+}

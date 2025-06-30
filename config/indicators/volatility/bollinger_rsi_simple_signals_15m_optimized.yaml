@@ -1,0 +1,66 @@
+# Bollinger Band + RSI Simple Signals - 15M Optimized for Execution Costs
+# This configuration is specifically tuned for 15-minute bars to:
+# 1. Capture larger moves that offset execution costs
+# 2. Filter out small/choppy moves
+# 3. Focus on high-probability setups
+name: bollinger_rsi_simple_signals_15m_optimized
+mode: signal_generation
+symbols: ["SPY_15m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Feature configuration optimized for 15m
+feature_config:
+  bollinger_bands:
+    - period: 16    # 4 hours of price action (16 * 15min)
+      std_dev: 2.2  # Slightly wider bands for 15m volatility
+  rsi:
+    - period: 12    # Slightly faster RSI for 15m
+  # Additional features for confirmation
+  atr:
+    - period: 14    # For volatility-based position sizing
+  sma:
+    - period: 48    # 12-hour moving average for trend context
+
+# Strategy configuration
+strategy:
+  bollinger_rsi_simple_signals:
+    params:
+      bb_period: 16
+      bb_std: 2.2
+      rsi_period: 12
+      rsi_threshold: 12    # Require stronger RSI divergence on 15m
+      
+      # Additional filters for 15m optimization
+      min_bb_width_pct: 0.3   # Minimum BB width as % of price (avoid low volatility)
+      trend_filter: true      # Only trade in direction of longer-term trend
+      atr_multiplier: 1.5     # Minimum move size as multiple of ATR
+      
+# Execution parameters tuned for 15m
+execution:
+  # Realistic costs for 15m trading
+  slippage_pct: 0.03      # Lower slippage on 15m vs 1m
+  commission_per_trade: 1.0  # Fixed commission per trade
+  
+  # Position sizing based on volatility
+  position_sizing:
+    method: "atr_based"
+    risk_per_trade_pct: 0.5  # Risk 0.5% per trade
+    atr_multiplier: 2.0      # Stop loss at 2x ATR
+    
+  # Exit rules for 15m
+  exits:
+    take_profit_atr: 3.0     # Take profit at 3x ATR move
+    stop_loss_atr: 2.0       # Stop loss at 2x ATR
+    time_stop_bars: 20       # Exit after 5 hours (20 * 15min)
+    
+# Risk management for 15m
+risk:
+  max_positions: 2          # Fewer concurrent positions on 15m
+  max_daily_trades: 6       # Limit overtrading
+  required_win_rate: 0.35   # Need 35% win rate with 3:2 risk/reward
+  min_trade_interval: 4     # Wait at least 1 hour between entries

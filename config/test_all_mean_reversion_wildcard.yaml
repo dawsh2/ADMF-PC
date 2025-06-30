@@ -1,0 +1,92 @@
+# Test all mean reversion strategies using wildcard discovery
+name: test_all_mean_reversion_wildcard
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Wildcard discovery - automatically find and test all mean reversion strategies
+parameter_space:
+  # Test all indicator strategies (will filter for mean reversion)
+  indicators: "*"
+
+# Control optimization granularity (number of parameter samples)
+optimization:
+  granularity: 3  # Lower for faster testing, higher for more thorough
+
+
+# Run with:
+# python main.py --config config/test_all_mean_reversion_wildcard.yaml --signal-generation --bars 200 --optimize
+
+# This will:
+# 1. Automatically discover all strategies from src/strategy/strategies/indicators/
+# 2. Filter for strategies tagged with 'mean_reversion' 
+# 3. Extract their parameter spaces from @strategy decorators
+# 4. Generate parameter combinations based on range specifications
+# 5. Run signal generation for each combination
+# 6. Store results for analysis
+
+# Expected mean reversion strategies to be discovered:
+# From oscillators.py:
+# - rsi_bands
+# - cci_bands 
+# - williams_r
+# - stochastic_rsi
+# - ultimate_oscillator
+#
+# From volatility.py:
+# - bollinger_bands
+# - keltner_bands
+# - donchian_bands
+#
+# From structure.py:
+# - pivot_bounces
+# - swing_pivot_bounce
+# - trendline_bounces
+# - diagonal_channel_reversion
+#
+# From volume.py:
+# - vwap_deviation
+# - mfi_bands
+
+# Run with:
+# python main.py --config config/test_all_mean_reversion_wildcard.yaml --signal-generation --bars 200 --optimize
+
+# This will:
+# 1. Automatically discover all strategies in the specified categories
+# 2. Filter for strategies tagged with 'mean_reversion'
+# 3. Extract their parameter spaces from @strategy decorators
+# 4. Generate parameter combinations based on range specifications
+# 5. Run signal generation for each combination
+# 6. Store results for analysis
+
+# Expected strategies to be discovered (based on tags):
+# Oscillator category:
+# - rsi_bands (oscillator, mean_reversion)
+# - cci_bands (oscillator, mean_reversion)
+# - williams_r (oscillator, mean_reversion)
+# - stochastic_rsi (oscillator, mean_reversion)
+# - ultimate_oscillator (oscillator, mean_reversion)
+#
+# Volatility category:
+# - bollinger_bands (volatility, mean_reversion)
+# - keltner_bands (volatility, mean_reversion)
+# - donchian_bands (volatility, mean_reversion)
+#
+# Structure category:
+# - pivot_bounces (structure, mean_reversion)
+# - swing_pivot_bounce (structure, mean_reversion)
+# - trendline_bounces (structure, mean_reversion)
+# - diagonal_channel_reversion (structure, mean_reversion)
+#
+# Volume category:
+# - vwap_deviation (volume, mean_reversion)
+# - mfi_bands (volume, mean_reversion)

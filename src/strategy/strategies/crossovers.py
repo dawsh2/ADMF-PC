@@ -8,6 +8,7 @@ separate components (risk module).
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ...core.components.discovery import strategy
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rule1_ma_crossover',
-    feature_config=['sma']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def rule1_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -73,7 +74,7 @@ def rule1_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='rule2_ema_ma_crossover',
-    feature_config=['ema', 'sma']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('ema', {'period': params.get('ema_period', 20)}), FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def rule2_ema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -121,7 +122,7 @@ def rule2_ema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='rule3_ema_ema_crossover',
-    feature_config=['ema']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('ema', {'period': params.get('ema_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def rule3_ema_ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -163,7 +164,7 @@ def rule3_ema_ema_crossover(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule4_dema_ma_crossover',
-    feature_config=['dema', 'sma']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('dema', {}), FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def rule4_dema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -205,7 +206,7 @@ def rule4_dema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule5_dema_dema_crossover',
-    feature_config=['dema']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('dema', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule5_dema_dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -247,7 +248,7 @@ def rule5_dema_dema_crossover(features: Dict[str, Any], bar: Dict[str, Any], par
 
 @strategy(
     name='rule6_tema_ma_crossover',
-    feature_config=['tema', 'sma']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('tema', {}), FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def rule6_tema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -289,7 +290,7 @@ def rule6_tema_ma_crossover(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule7_stochastic_crossover',
-    feature_config=['stochastic']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('stochastic', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule7_stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -333,7 +334,7 @@ def rule7_stochastic_crossover(features: Dict[str, Any], bar: Dict[str, Any], pa
 
 @strategy(
     name='rule8_vortex_crossover',
-    feature_config=['vortex']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('vortex', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule8_vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -374,7 +375,7 @@ def rule8_vortex_crossover(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='rule9_ichimoku_crossover',
-    feature_config=['ichimoku']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('ichimoku', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule9_ichimoku_crossover(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

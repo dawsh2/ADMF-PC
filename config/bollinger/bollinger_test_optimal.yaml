@@ -1,0 +1,32 @@
+name: bollinger_test_optimal
+# Test the optimal parameters found from training analysis
+# Using test data period
+
+data: SPY_5m  # Make sure you have test period data
+
+strategy: [
+  {
+    bollinger_bands: {
+      # Top parameters from analysis
+      # Period 10-11, StdDev 1.5 performed best
+      period: "range(10, 12, 1)",
+      std_dev: [1.5]
+    },
+    constraints: "intraday"
+  },
+  
+  # Also test a few variations around optimal
+  {
+    bollinger_bands: {
+      period: "range(9, 13, 1)",
+      std_dev: "range(1.25, 1.75, 0.25)"
+    },
+    constraints: "intraday"
+  }
+]
+
+# Stop/Target Configuration Note:
+# The analysis showed optimal at:
+# - Stop Loss: 0.075%
+# - Profit Target: 0.10%
+# These will be applied in post-processing analysis

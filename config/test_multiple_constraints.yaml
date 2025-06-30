@@ -1,0 +1,14 @@
+name: test_multiple_constraints  
+data: SPY_5m
+
+# Test multiple constraints with AND logic
+strategy: [
+  {
+    bollinger_bands: {period: 20, std_dev: 2.0},
+    constraints: [
+      "intraday",
+      "volume > sma(volume, 20) * 1.2",
+      "atr(14) > 0.001"
+    ]
+  }
+]

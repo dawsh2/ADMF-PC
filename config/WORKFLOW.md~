@@ -1,0 +1,354 @@
+# Trading System Data Workflow: Sparse Traces + DuckDB + Jupyter
+
+## Overview
+
+This document describes the data workflow for a config-driven trading system that uses sparse signal traces, parquet files, DuckDB for analysis, and Jupyter notebooks for exploration.
+
+---
+
+## Core Concepts
+
+### 1. Sparse Signal Storage
+
+Instead of storing full position/signal data for every bar, we only store signal **changes**:
+
+```python
+# Traditional: Store signal for every bar (wasteful)
+timestamp            symbol  signal
+2024-12-21 09:30:00  SPY     0
+2024-12-21 09:35:00  SPY     0
+2024-12-21 09:40:00  SPY     1      # Signal changes
+2024-12-21 09:45:00  SPY     1
+2024-12-21 09:50:00  SPY     1
+2024-12-21 09:55:00  SPY     0      # Signal changes
+
+# Sparse: Only store changes (efficient)
+timestamp            symbol  signal
+2024-12-21 09:40:00  SPY     1      # Enter long
+2024-12-21 09:55:00  SPY     0      # Exit
+```
+
+### 2. Directory Structure
+
+```
+configs/
+└── keltner_research/
+    ├── config.yaml
+    ├── results/
+    │   └── 2024_12_22_143025/
+    │       ├── metadata.json
+    │       └── traces/
+    │           └── keltner_bands/
+    │               ├── period_20_multiplier_2.0.parquet
+    │               ├── period_20_multiplier_2.5.parquet
+    │               └── ... (hundreds more)
+    └── notebooks/
+        └── analysis.ipynb
+```
+
+---
+
+## Workflow Steps
+
+### 1. Run Backtest → Generate Sparse Traces
+
+```bash
+cd configs/keltner_research
+python ../../main.py -c config.yaml
+```
+
+This generates sparse signal traces for each parameter combination:
+- One parquet file per strategy variant
+- Only signal changes are stored
+- Metadata captures configuration and summary metrics
+
+### 2. Open Jupyter for Analysis
+
+```bash
+jupyter lab notebooks/analysis.ipynb
+```
+
+### 3. Load Traces with DuckDB
+
+```python
+import duckdb
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Connect to DuckDB (in-memory)
+con = duckdb.connect()
+
+# Create view of all trace files
+con.execute("""
+    CREATE VIEW traces AS 
+    SELECT * FROM read_parquet('../results/latest/traces/**/*.parquet')
+""")
+
+# Quick check - what do we have?
+con.execute("SELECT COUNT(*) as total_strategies FROM traces").df()
+# Output: 1,250 strategy variations tested
+```
+
+### 4. Reconstruct Full Signals from Sparse Data
+
+```python
+# Load market data
+market_data = pd.read_parquet('../../../../data/SPY_5m.parquet')
+
+# Load sparse signals for one strategy
+signals = con.execute("""
+    SELECT * FROM traces 
+    WHERE strategy_id = 'keltner_bands_period_20_multiplier_2.0'
+    ORDER BY timestamp
+""").df()
+
+# Merge and forward-fill to reconstruct full signal series
+df = market_data.merge(signals[['timestamp', 'signal']], on='timestamp', how='left')
+df['signal'] = df['signal'].fillna(method='ffill').fillna(0)
+
+# Now we have full position data from sparse signals
+print(f"Market data: {len(market_data)} bars")
+print(f"Sparse signals: {len(signals)} changes")
+print(f"Compression ratio: {len(signals)/len(market_data):.1%}")
+# Output: 
+# Market data: 50,000 bars
+# Sparse signals: 347 changes  
+# Compression ratio: 0.7%
+```
+
+### 5. Calculate Performance Metrics
+
+```python
+# Add returns
+df['returns'] = df['close'].pct_change() * df['signal'].shift(1)
+df['equity'] = (1 + df['returns']).cumprod()
+
+# Calculate metrics
+sharpe = df['returns'].mean() / df['returns'].std() * (252 * 78)**0.5
+max_dd = (df['equity'] / df['equity'].expanding().max() - 1).min()
+
+print(f"Sharpe: {sharpe:.2f}")
+print(f"Max Drawdown: {max_dd:.1%}")
+```
+
+### 6. Analyze All Strategies at Once
+
+```python
+# Use DuckDB to analyze all parameter combinations
+results = con.execute("""
+    WITH signal_counts AS (
+        SELECT 
+            strategy_id,
+            COUNT(*) as num_signals,
+            COUNT(DISTINCT DATE(timestamp)) as trading_days
+        FROM traces
+        GROUP BY strategy_id
+    ),
+    parsed_params AS (
+        SELECT 
+            strategy_id,
+            CAST(regexp_extract(strategy_id, 'period_(\d+)', 1) AS INT) as period,
+            CAST(regexp_extract(strategy_id, 'multiplier_([\d.]+)', 1) AS FLOAT) as multiplier
+        FROM signal_counts
+    )
+    SELECT 
+        period,
+        multiplier,
+        AVG(num_signals) as avg_trades,
+        AVG(num_signals::FLOAT / trading_days) as trades_per_day
+    FROM parsed_params
+    JOIN signal_counts USING (strategy_id)
+    GROUP BY period, multiplier
+    ORDER BY period, multiplier
+""").df()
+
+# Create parameter heatmap
+pivot = results.pivot(index='period', columns='multiplier', values='trades_per_day')
+plt.figure(figsize=(12, 8))
+plt.imshow(pivot, cmap='viridis', aspect='auto')
+plt.colorbar(label='Trades per Day')
+plt.title('Trading Frequency by Parameters')
+plt.xlabel('Multiplier')
+plt.ylabel('Period')
+```
+
+### 7. Find Best Performers
+
+```python
+# Load metadata for performance metrics
+import json
+with open('../results/latest/metadata.json') as f:
+    metadata = json.load(f)
+
+# Get best parameters
+best = metadata['strategies_tested']['keltner_bands']['best_params']
+print(f"Best parameters: {best}")
+print(f"Best Sharpe: {metadata['strategies_tested']['keltner_bands']['best_sharpe']:.2f}")
+
+# Load the best strategy's signals
+best_signals = con.execute(f"""
+    SELECT * FROM traces 
+    WHERE strategy_id = 'keltner_bands_period_{best['period']}_multiplier_{best['multiplier']}'
+    ORDER BY timestamp
+""").df()
+
+# Analyze the winning strategy...
+```
+
+### 8. Pattern Analysis Across Strategies
+
+```python
+# When do strategies agree?
+agreement = con.execute("""
+    WITH signal_pivoted AS (
+        SELECT 
+            timestamp,
+            MAX(CASE WHEN strategy_id LIKE '%period_20%' THEN signal END) as p20_signal,
+            MAX(CASE WHEN strategy_id LIKE '%period_30%' THEN signal END) as p30_signal,
+            MAX(CASE WHEN strategy_id LIKE '%multiplier_2.0%' THEN signal END) as m20_signal
+        FROM traces
+        GROUP BY timestamp
+    )
+    SELECT 
+        timestamp,
+        p20_signal,
+        p30_signal,
+        m20_signal,
+        CASE 
+            WHEN p20_signal = p30_signal AND p30_signal = m20_signal THEN 'consensus'
+            WHEN p20_signal = p30_signal OR p20_signal = m20_signal THEN 'partial'
+            ELSE 'divergent'
+        END as agreement
+    FROM signal_pivoted
+    WHERE p20_signal IS NOT NULL
+""").df()
+
+# Plot consensus periods
+consensus_periods = agreement[agreement['agreement'] == 'consensus']
+print(f"Strategies agree {len(consensus_periods)/len(agreement):.1%} of the time")
+```
+
+### 9. Export Results
+
+```python
+# Export winning strategies for production config
+winners = con.execute("""
+    SELECT DISTINCT 
+        strategy_id,
+        regexp_extract(strategy_id, 'period_(\d+)', 1) as period,
+        regexp_extract(strategy_id, 'multiplier_([\d.]+)', 1) as multiplier
+    FROM traces
+    WHERE strategy_id IN (
+        SELECT strategy_id 
+        FROM signal_counts 
+        ORDER BY sharpe_ratio DESC 
+        LIMIT 10
+    )
+""").df()
+
+# Save for production config
+winners.to_json('../production_candidates.json', orient='records')
+```
+
+---
+
+## Key Benefits
+
+### 1. **Massive Compression**
+- Sparse storage: ~100x smaller than dense storage
+- 50,000 bars → ~500 signal changes
+- Enables testing thousands of parameter combinations
+
+### 2. **Fast Analysis**
+- DuckDB reads parquet files directly
+- No loading into memory until needed
+- Columnar format perfect for aggregations
+
+### 3. **Flexible Exploration**
+- SQL for complex queries
+- Pandas for detailed analysis
+- Direct plotting from DataFrames
+
+### 4. **Reproducible Research**
+- All configs saved in metadata
+- Can recreate any backtest
+- Notebooks document analysis process
+
+---
+
+## Advanced Patterns
+
+### Streaming Analysis for Large Datasets
+
+```python
+# Process large datasets in chunks
+for chunk in con.execute("""
+    SELECT * FROM traces 
+    ORDER BY timestamp
+""").fetchdf_chunk(1000):
+    # Process chunk
+    pass
+```
+
+### Multi-Strategy Correlation
+
+```python
+# Find uncorrelated strategies for portfolio
+correlations = con.execute("""
+    WITH signal_matrix AS (
+        SELECT 
+            timestamp,
+            strategy_id,
+            signal
+        FROM traces
+    )
+    SELECT 
+        s1.strategy_id as strategy1,
+        s2.strategy_id as strategy2,
+        CORR(s1.signal, s2.signal) as correlation
+    FROM signal_matrix s1
+    JOIN signal_matrix s2 USING (timestamp)
+    WHERE s1.strategy_id < s2.strategy_id
+    GROUP BY s1.strategy_id, s2.strategy_id
+    HAVING COUNT(*) > 100
+    ORDER BY ABS(correlation)
+    LIMIT 20
+""").df()
+```
+
+### Regime-Specific Performance
+
+```python
+# Merge with regime data and analyze
+regimes = pd.read_parquet('../../../../data/market_regimes.parquet')
+
+# In DuckDB
+con.execute("""
+    CREATE VIEW regimes AS 
+    SELECT * FROM read_parquet('../../../../data/market_regimes.parquet')
+""")
+
+regime_performance = con.execute("""
+    SELECT 
+        r.regime,
+        t.strategy_id,
+        COUNT(*) as trades,
+        -- Would need returns data for full metrics
+    FROM traces t
+    JOIN regimes r ON DATE(t.timestamp) = DATE(r.date)
+    GROUP BY r.regime, t.strategy_id
+""").df()
+```
+
+---
+
+## Summary
+
+This workflow enables:
+1. **Efficient testing** of thousands of strategy variations
+2. **Fast analysis** using DuckDB's SQL engine
+3. **Interactive exploration** in Jupyter notebooks
+4. **Minimal storage** with sparse signal traces
+5. **Full flexibility** to reconstruct and analyze any aspect
+
+The combination of sparse parquet files + DuckDB + Jupyter provides a powerful, scalable platform for systematic trading research.

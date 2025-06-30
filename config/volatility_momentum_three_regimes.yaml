@@ -1,0 +1,129 @@
+# Simplified Volatility-Momentum Three-Regime Strategy
+name: volatility_momentum_three_regimes
+mode: backtest
+symbols: ["SPY", "QQQ", "IWM"]  # Test on multiple symbols
+start_date: "2024-01-01" 
+end_date: "2024-12-31"
+initial_capital: 100000
+
+# Three-regime compositional strategy
+strategy:
+  # Use conditions to map 5-state classifier to 3 regimes
+  - condition: volatility_regime(20) == 'low' and trend_strength(50) < -0.3
+    weight: 0.33
+    # Low vol bearish strategies
+    strategy:
+      - weight: 0.25
+        vwap_deviation:
+          std_multiplier: 1.5
+          band_pct: 0.015  # 1.5% bands
+            
+      - weight: 0.2
+        ultimate_oscillator:
+          params:
+            period1: 7
+            period2: 14
+            period3: 28
+            oversold: 25
+            overbought: 75
+            
+      - weight: 0.2
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 25
+            overbought: 75
+            
+      - weight: 0.2
+        keltner_breakout:
+          params:
+            period: 20
+            multiplier: 2.0
+            
+      - weight: 0.15
+        trendline_breaks:
+          params:
+            pivot_lookback: 20
+            min_touches: 2
+            tolerance: 0.002
+  
+  - condition: volatility_regime(20) == 'low' and trend_strength(50) > 0.3
+    weight: 0.33
+    # Low vol bullish strategies
+    strategy:
+      - weight: 0.25
+        vwap_deviation:
+          std_multiplier: 1.5
+          band_pct: 0.015  # 1.5% bands
+            
+      - weight: 0.25
+        ultimate_oscillator:
+          params:
+            period1: 7
+            period2: 14
+            period3: 28
+            oversold: 30
+            overbought: 70
+            
+      - weight: 0.25
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 30
+            overbought: 70
+            
+      - weight: 0.25
+        keltner_breakout:
+          params:
+            period: 20
+            multiplier: 2.0
+  
+  - weight: 0.34
+    # Neutral regime (default - no condition means always active)
+    strategy:
+      # VWAP deviation with momentum-based bands
+      - weight: 0.4
+        condition: momentum(14) > 0
+        vwap_deviation:
+          std_multiplier: 2.0
+          band_pct: 0.02  # 2% bands
+      
+      # VWAP short when momentum negative      
+      - weight: 0.3
+        condition: momentum(14) < 0
+        vwap_deviation:
+          std_multiplier: 2.0
+          band_pct: 0.02  # 2% bands
+            
+      - weight: 0.15
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 30
+            overbought: 70
+            
+      - weight: 0.15
+        ultimate_oscillator:
+          params:
+            period1: 7
+            period2: 14
+            period3: 28
+            oversold: 30
+            overbought: 70
+
+# Combination method for the top-level composite
+combination: weighted_vote
+weight_threshold: 0.5
+
+# Feature requirements will be auto-discovered from strategies
+# but we can hint at some common ones for efficiency
+features:
+  - vwap
+  - atr
+  - rsi
+  - momentum
+  - volatility_percentile
+  - trend_strength
+  - keltner_channels
+  - trendlines
+  - support_resistance

@@ -1,0 +1,37 @@
+# Bollinger Bands Squeeze Strategy
+# 
+# This strategy identifies low volatility periods (squeeze) and
+# trades the subsequent volatility expansion
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces
+
+data:
+  sources:
+    csv:
+      type: csv
+      path: ./data/SPY_5m.csv
+  symbols: [SPY]
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+strategy:
+  bollinger_bands:
+    # Multiple timeframes to detect squeeze
+    - period: 20
+      std_dev: 2.0
+      # Trade when bands are narrow (squeeze) and price breaks out
+      filter: |
+        signal != 0 and (
+          # Band width is narrow (squeeze condition)
+          (upper_band - lower_band) / middle_band < 0.02 and
+          # Price breaking out of squeeze
+          (
+            (signal > 0 and Close > middle_band and Close > Open) or
+            (signal < 0 and Close < middle_band and Close < Open)
+          )
+        )

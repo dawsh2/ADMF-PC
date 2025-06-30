@@ -1,0 +1,66 @@
+name: test_keltner_with_filters
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-11-30"
+dataset: train
+
+# Keltner bands with the best filters from analysis
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+    # Filter based on successful combinations from the other analysis
+    # HighVol(>80%) + HighVolume(>1.5x) + RSI(<50)
+    filter: "signal != 0 and volatility_percentile(20) > 80 and volume_ratio() > 1.5 and rsi(14) < 50"
+
+# Alternative: Multiple filter combinations as separate strategies
+strategies:
+  - name: keltner_high_vol_high_volume
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    # Best combination: HighVol(>90%) + HighVolume(>2x) + LowRSI(<50)
+    filter: "signal != 0 and volatility_percentile(20) > 90 and volume_ratio() > 2.0 and rsi(14) < 50"
+    
+  - name: keltner_high_vol_vwap
+    type: keltner_bands  
+    params:
+      period: 20
+      multiplier: 2.0
+    # Directional filter with VWAP
+    filter: "(signal > 0 and price < vwap()) or (signal < 0 and price > vwap())"
+    
+  - name: keltner_quick_exits_proxy
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    # Try to capture "quick exit" setups with extreme conditions
+    filter: "signal != 0 and volatility_percentile(20) > 85 and abs(price - vwap()) / vwap() < 0.002"
+
+# Features needed for filters
+features:
+  - name: volatility_percentile
+    params: {period: 20}
+  - name: volume_ratio
+  - name: rsi
+    params: {period: 14}
+  - vwap
+  - volume_sma
+
+# Data source
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+# 1-minute timeframe
+timeframe: "1m"
+
+# Enable detailed signal tracking
+signal_persistence: 
+  enabled: true
+  compression: sparse

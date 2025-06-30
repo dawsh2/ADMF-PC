@@ -1,0 +1,20 @@
+# Test configuration for Fibonacci Retracement strategy
+name: test_fibonacci_retracement
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Fibonacci retracement level strategy
+strategy:
+  fibonacci_retracement:
+    params:
+      period: 50  # Lookback for high/low
+
+# Run with: python main.py --config config/indicators/structure/test_fibonacci_retracement.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Identifies recent high/low over lookback period
+# - Calculates Fibonacci levels (23.6%, 38.2%, 50%, 61.8%, 78.6%)
+# - Uptrend: BUY above 38.2%, SELL below 61.8%
+# - Downtrend: SELL below 61.8%, BUY above 38.2%

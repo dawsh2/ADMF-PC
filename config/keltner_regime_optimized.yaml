@@ -1,0 +1,155 @@
+name: keltner_regime_optimized
+symbols: ["SPY_5m"]
+
+# Based on regime analysis findings:
+# - Best performance in high volatility (2-3x better)
+# - Strong long bias below VWAP, short bias above VWAP
+# - Avoid midday (12-2:30 PM) and low volatility periods
+# - Optimal stops at 20 bps
+
+parameter_space:
+  strategies:
+    # 1. BASELINE - Best performers from analysis
+    - type: keltner_bands
+      param_overrides:
+        period: [20]  # Strategy 0 sweet spot
+        multiplier: [2.0]
+      stop_loss: 0.002  # 20 bps optimal stop
+    
+    # 2. VOLATILITY REGIME FILTER
+    # Only trade in medium/high volatility
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: |
+        signal == 0 or 
+        atr(14) > atr_sma(50) * ${vol_threshold}
+      filter_params:
+        vol_threshold: [1.0, 1.1, 1.2]  # Above average volatility
+      stop_loss: 0.002
+    
+    # 3. VWAP POSITIONING FILTER
+    # Long below VWAP, Short above VWAP
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: |
+        signal == 0 or
+        (signal > 0 and close < vwap * ${vwap_long_threshold}) or
+        (signal < 0 and close > vwap * ${vwap_short_threshold})
+      filter_params:
+        vwap_long_threshold: [0.999, 0.998, 0.997]  # 0.1-0.3% below VWAP
+        vwap_short_threshold: [1.001, 1.002, 1.003]  # 0.1-0.3% above VWAP
+      stop_loss: 0.002
+    
+    # 4. TIME OF DAY FILTER
+    # Avoid midday doldrums (12-2:30 PM = bars 30-48)
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: |
+        signal == 0 or
+        (bar_of_day < 30 or bar_of_day > 48)
+      stop_loss: 0.002
+    
+    # 5. COMBINED OPTIMAL REGIME FILTER
+    # High volatility + VWAP positioning + avoid midday
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [1.8, 2.0, 2.2]  # Fine-tune around optimal
+      filter: |
+        signal == 0 or (
+          atr(14) > atr_sma(50) * ${vol_threshold} and
+          (bar_of_day < 30 or bar_of_day > 48) and
+          (
+            (signal > 0 and close < vwap * ${vwap_long_threshold}) or
+            (signal < 0 and close > vwap * ${vwap_short_threshold})
+          )
+        )
+      filter_params:
+        vol_threshold: [1.1, 1.2]
+        vwap_long_threshold: [0.999, 0.998]
+        vwap_short_threshold: [1.001, 1.002]
+      stop_loss: 0.002
+    
+    # 6. LONG-ONLY VARIANT (Given strong long bias)
+    # Only take long signals in optimal conditions
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: |
+        signal <= 0 or (
+          close < vwap * ${vwap_threshold} and
+          atr(14) > atr_sma(50) * ${vol_threshold} and
+          (bar_of_day < 30 or bar_of_day > 48)
+        )
+      filter_params:
+        vwap_threshold: [0.999, 0.998, 0.997]
+        vol_threshold: [1.0, 1.1, 1.2]
+      stop_loss: 0.002
+    
+    # 7. TREND FILTER
+    # Given 99% trades in neutral trend, ensure we're not in strong trends
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: |
+        signal == 0 or
+        abs(sma(20) - sma(50)) / sma(50) < ${trend_threshold}
+      filter_params:
+        trend_threshold: [0.01, 0.015, 0.02]  # Max 1-2% trend divergence
+      stop_loss: 0.002
+    
+    # 8. VOLUME-ADJUSTED POSITIONS
+    # Medium volume showed best performance for Strategy 4
+    - type: keltner_bands
+      param_overrides:
+        period: [20]
+        multiplier: [2.0]
+      filter: |
+        signal == 0 or (
+          volume > volume_sma(20) * ${vol_min} and
+          volume < volume_sma(20) * ${vol_max}
+        )
+      filter_params:
+        vol_min: [0.8, 1.0]
+        vol_max: [1.5, 2.0]
+      stop_loss: 0.002
+
+# Features automatically inferred from filters:
+# - atr_14, atr_sma_50 (volatility)
+# - vwap (VWAP calculation)
+# - close, sma_20, sma_50 (price/trend)
+# - volume, volume_sma_20 (volume)
+# - bar_of_day (time features)
+
+# Risk management settings
+risk_config:
+  max_position_size: 0.1  # 10% max per position
+  daily_loss_limit: 0.02  # 2% daily stop
+  position_sizing:
+    # Scale position size based on volatility regime
+    volatility_scaling: true
+    base_size: 0.05
+    high_vol_multiplier: 1.5
+    low_vol_multiplier: 0.5
+
+# Execution settings
+execution_config:
+  # Critical for small edges
+  max_spread_bps: 0.5
+  limit_order_offset_bps: 0.1
+  emergency_stop_loss: 0.005  # 50 bps emergency stop
+
+# This configuration focuses on:
+# 1. Trading only in favorable regimes (high vol, proper VWAP positioning)
+# 2. Avoiding known bad periods (midday, strong trends)
+# 3. Using optimal 20 bps stops consistently
+# 4. Testing variations around the best-performing base parameters
+# Total: ~40 high-quality strategy variations vs 122 in original

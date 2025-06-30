@@ -1,0 +1,119 @@
+name: test_keltner_parameter_sweep
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+
+# Define all features needed for filters
+feature_configs:
+  rsi_14:
+    type: rsi
+    period: 14
+  atr_14:
+    type: atr
+    period: 14
+  volume_ratio_20:
+    type: volume_ratio
+    period: 20
+  volatility_percentile_50:
+    type: volatility_percentile
+    period: 50
+  vwap_distance:
+    type: vwap_distance
+
+# Parameter sweep for Keltner Bands
+parameter_space:
+  keltner_bands:
+    # Period parameter space
+    period:
+      type: int
+      values: [10, 15, 20, 30, 50]
+    
+    # Multiplier parameter space  
+    multiplier:
+      type: float
+      values: [1.0, 1.5, 2.0, 2.5, 3.0]
+    
+    # RSI threshold for filters
+    rsi_threshold:
+      type: int
+      values: [30, 40, 50, 60, 70]
+    
+    # Volume ratio threshold
+    volume_threshold:
+      type: float
+      values: [1.0, 1.1, 1.2, 1.5, 2.0]
+    
+    # Volatility percentile threshold
+    volatility_threshold:
+      type: float
+      values: [0.3, 0.5, 0.7, 0.9]
+
+# Test strategies with parameter combinations
+strategies:
+  # Baseline sweep - no filter
+  - name: kb_p{period}_m{multiplier}
+    type: keltner_bands
+    params:
+      period: ${period}
+      multiplier: ${multiplier}
+    parameter_sweep:
+      period: [10, 15, 20, 30, 50]
+      multiplier: [1.0, 1.5, 2.0, 2.5, 3.0]
+      
+  # RSI filter sweep
+  - name: kb_rsi{rsi_threshold}_p{period}_m{multiplier}
+    type: keltner_bands
+    params:
+      period: ${period}
+      multiplier: ${multiplier}
+    filter: "signal == 0 or rsi(14) < ${rsi_threshold}"
+    parameter_sweep:
+      period: [15, 20, 30]
+      multiplier: [1.5, 2.0, 2.5]
+      rsi_threshold: [40, 50, 60, 70]
+      
+  # Volume filter sweep
+  - name: kb_vol{volume_threshold}_p{period}_m{multiplier}
+    type: keltner_bands
+    params:
+      period: ${period}
+      multiplier: ${multiplier}
+    filter: "signal == 0 or volume_ratio(20) > ${volume_threshold}"
+    parameter_sweep:
+      period: [15, 20, 30]
+      multiplier: [1.5, 2.0, 2.5]
+      volume_threshold: [1.1, 1.2, 1.5]
+      
+  # Combined RSI + Volume filter sweep
+  - name: kb_combo_r{rsi_threshold}_v{volume_threshold}
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (rsi(14) < ${rsi_threshold} and volume_ratio(20) > ${volume_threshold})"
+    parameter_sweep:
+      rsi_threshold: [50, 60, 70]
+      volume_threshold: [1.0, 1.1, 1.2]
+      
+  # Directional RSI sweep
+  - name: kb_dir_rsi{rsi_threshold}
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal == 0 or (signal > 0 and rsi(14) < ${rsi_threshold}) or (signal < 0 and rsi(14) > ${100-rsi_threshold})"
+    parameter_sweep:
+      rsi_threshold: [30, 35, 40, 45]
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

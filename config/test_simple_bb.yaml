@@ -1,0 +1,16 @@
+# Simple test with just Bollinger Bands
+name: test_simple_bb
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-02"
+
+# Strategy configuration
+strategy:
+  bollinger_bands:
+    params:
+      period: 20
+      std_dev: 2.0
+
+# Run with:
+# python main.py --config config/test_simple_bb.yaml --signal-generation --bars 500

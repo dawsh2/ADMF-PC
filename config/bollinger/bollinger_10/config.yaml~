@@ -1,0 +1,16 @@
+name: bollinger
+data: SPY_5m
+
+strategy:
+  - bollinger_bands:
+      period: 11
+      multiplier: 2.0
+      threshold: |
+        signal != 0 and (
+          volume > volume_sma_20 * 1.3 or
+          volatility_percentile_50 > 0.4 or
+          abs(slope_20) < 0.15 or
+          (rsi_14 < 35 or rsi_14 > 65)
+        )
+
+# performs ideally with 0.1% stop 

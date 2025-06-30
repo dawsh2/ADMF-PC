@@ -1,0 +1,36 @@
+# Test Bollinger Bands with context-based filtering
+name: test_bollinger_with_filters
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Feature configurations needed for filters
+feature_config:
+  sma:
+    - period: 200  # For trend filter
+  vwap: {}        # For VWAP filter
+  atr:
+    - period: 14   # For volatility filter
+
+# Base strategy with filters
+strategy:
+  bollinger_bands:
+    params:
+      period: 20
+      std_dev: 2.0
+    
+    # Filter configuration - only take signals when conditions are met
+    filter:
+      # Example 1: Only long when above SMA 200, only short when below
+      - condition: "signal_value > 0 and close > sma_200"
+        action: "allow"
+      - condition: "signal_value < 0 and close < sma_200"
+        action: "allow"
+      - condition: "signal_value > 0 and close <= sma_200"
+        action: "reject"  # No longs below SMA 200
+      - condition: "signal_value < 0 and close >= sma_200"
+        action: "reject"  # No shorts above SMA 200
+
+# Run with:
+# python main.py --config config/indicators/volatility/test_bollinger_with_filters.yaml --signal-generation --bars 1000

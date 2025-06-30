@@ -1,0 +1,27 @@
+# Mean Reversion Research Configuration
+# Results will be stored in: config/mean_reversion_research/results/<timestamp>/
+
+data: SPY_5m
+
+# Base strategy (used when not optimizing)
+strategies:
+  - type: bollinger_bands
+    name: bb_baseline
+    params:
+      period: 20
+      std: 2.0
+
+# Wildcard discovery for all mean reversion strategies
+parameter_space:
+  # Discover all indicator strategies with wildcard
+  indicators: "*"
+  
+  # Or use specific categories:
+  # oscillator: "*"     # RSI bands, CCI bands, Williams %R, etc.
+  # volatility: "*"     # Bollinger bands, Keltner bands, Donchian bands
+  # structure: "*"      # Pivot bounces, trendline bounces, etc.
+  # volume: "*"         # VWAP deviation, MFI bands
+
+# Control optimization parameters
+optimization:
+  granularity: 3  # Number of parameter samples per strategy

@@ -1,0 +1,13 @@
+name: keltner_2826_atr_ratio
+data: SPY_5m
+strategy:
+- keltner_bands:
+    period:
+    - 30
+    multiplier:
+    - 1.0
+    filter:
+    - atr_ratio_above:
+        period: 14
+        baseline: 50
+        threshold: 0.8

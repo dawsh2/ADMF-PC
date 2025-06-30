@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
     param_feature_mapping={
         'vol_lookback': 'atr_{vol_lookback}',
         'trend_lookback': 'sma_{trend_lookback}'
+    },
+    parameter_space={
+        'vol_lookback': {'type': 'int', 'range': (10, 50), 'default': 20},
+        'trend_lookback': {'type': 'int', 'range': (20, 100), 'default': 50},
+        'regime_threshold': {'type': 'float', 'range': (0.3, 0.7), 'default': 0.5}
     }
 )
 def market_state_classifier(

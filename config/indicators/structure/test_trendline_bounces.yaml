@@ -1,0 +1,31 @@
+# Test configuration for Trendline Bounces strategy
+name: test_trendline_bounces
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  trendline_bounces:
+    params:
+      pivot_lookback: 20  # Lookback period for pivot detection
+      min_touches: 3  # Minimum touches to validate trendline (higher for bounces)
+      min_bounces: 0  # Minimum successful bounces before trading (0 = no restriction)
+      tolerance: 0.002  # 0.2% tolerance for trendline validation
+      bounce_threshold: 0.003  # 0.3% proximity for bounce detection
+
+# Run with: python main.py --config config/indicators/structure/test_trendline_bounces.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - Price touches and bounces from uptrend support: BUY signal (1)
+# - Price touches and bounces from downtrend resistance: SELL signal (-1)
+# - Price away from trendlines: No signal (0)
+
+# Uses same trendlines as breaks strategy but trades bounces
+# Checks if low touched support and closed above (bullish bounce)
+# Checks if high touched resistance and closed below (bearish bounce)
+# Also has anticipatory signals when very close to trendlines
+
+# Note: Future enhancement - trendlines feature could track successful bounces
+# to enable more sophisticated filtering and confidence levels

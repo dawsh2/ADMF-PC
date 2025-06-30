@@ -1,0 +1,27 @@
+# Example showing how to discover all mean reversion strategies
+name: mean_reversion_strategies
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+initial_capital: 100000
+
+# Production strategy
+strategy:
+  vwap_deviation:
+    params:
+      band_pct: 0.005
+      use_atr_bands: false
+
+# Parameter space for optimization - find all mean reversion strategies
+parameter_space:
+  indicators:
+    mean_reversion: "*"  # All strategies tagged with strategy_type='mean_reversion'
+
+# This will discover strategies like:
+# - vwap_deviation (VWAP mean reversion)
+# - bollinger_mean_reversion (Bollinger + RSI mean reversion)
+# - keltner_mean_reversion (Keltner channel mean reversion)
+# And any other strategies with strategy_type='mean_reversion'
+
+# Run with: python main.py --config config/examples/mean_reversion_strategies.yaml --optimize

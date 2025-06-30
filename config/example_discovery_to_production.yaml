@@ -1,0 +1,79 @@
+# Example: Discovery to Production Workflow
+name: discovery_to_production_example
+mode: backtest
+symbols: ["SPY", "QQQ"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+initial_capital: 100000
+
+# DISCOVERY MODE: Use with --optimize flag
+# This section is used when running: python main.py --config this_file.yaml --optimize
+parameter_space:
+  # Test ALL indicator strategies with default parameters
+  indicators: "*"
+  
+  # Or be more selective:
+  # indicators:
+  #   crossover: "*"         # All crossover strategies
+  #   momentum: ["rsi_threshold", "macd_crossover", "momentum"]
+  #   structure: "*"         # All structure strategies (trendlines, pivots, etc)
+  
+  # Can also add classifiers
+  classifiers:
+    - market_regime_classifier
+    - volatility_regime_classifier
+
+# PRODUCTION MODE: Use without --optimize flag  
+# This section is used when running: python main.py --config this_file.yaml
+# Based on what you discovered works from optimization
+strategy: [
+  {
+    # High volatility strategies
+    condition: volatility_percentile(20) > 70
+    weight: 0.4
+    strategy: [
+      {bollinger_squeeze: {weight: 0.6, params: {period: 20, num_std: 2}}},
+      {atr_breakout: {weight: 0.4, params: {period: 14, multiplier: 2.0}}}
+    ]
+  },
+  {
+    # Low volatility mean reversion
+    condition: volatility_percentile(20) < 30
+    weight: 0.4
+    pivot_channel_bounces: {
+      params: {sr_period: 20, min_touches: 2, bounce_threshold: 0.002}
+    }
+  },
+  {
+    # Always-on momentum
+    weight: 0.2
+    momentum: {params: {period: 14}}
+  }
+]
+
+# Data configuration
+data:
+  storage_type: arctic
+  arctic_uri: mongodb://localhost:27017/
+  data_type: bars
+  universe_name: us_stocks
+  timeframes: ["5m"]
+
+# Execution settings
+execution:
+  mode: vectorized
+  max_positions: 3
+  position_size: 0.30
+
+# Risk management
+risk:
+  stop_loss: 0.02
+  take_profit: 0.04
+  max_drawdown: 0.10
+
+# Output settings
+output:
+  results_dir: results/discovery_example
+  save_signals: true
+  save_metrics: true
+  save_trades: true

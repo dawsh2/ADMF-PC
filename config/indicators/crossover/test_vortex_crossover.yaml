@@ -1,0 +1,23 @@
+# Test configuration for Vortex Crossover strategy
+name: test_vortex_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Vortex VI+ vs VI- crossover strategy
+strategy:
+  vortex_crossover:
+    params:
+      vortex_period: 14
+
+# Run with: python main.py --config config/indicators/crossover/test_vortex_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - VI+ > VI-: BUY signal (1)
+# - VI+ < VI-: SELL signal (-1)
+# - VI+ = VI-: No signal (0)
+
+# VI+ measures positive trend movement
+# VI- measures negative trend movement
+# Crossovers often signal trend reversals

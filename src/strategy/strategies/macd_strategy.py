@@ -5,6 +5,7 @@ MACD crossover strategy with signal line.
 """
 
 import logging
+from src.core.features.feature_spec import FeatureSpec
 from typing import Dict, Any, Optional
 
 from ...core.components.discovery import strategy
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='macd_strategy',
-    feature_config=['macd']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('macd', {'fast_period': params.get('fast_period', 12), 'slow_period': params.get('slow_period', 26), 'signal_period': params.get('signal_period', 9)})]  # Topology builder infers parameters from strategy logic
 )
 def macd_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

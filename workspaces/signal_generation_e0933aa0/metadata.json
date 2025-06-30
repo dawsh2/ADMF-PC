@@ -1,0 +1,55 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_e0933aa0",
+  "total_bars": 81787,
+  "total_signals": 81782,
+  "total_classifications": 0,
+  "stored_changes": 7386,
+  "compression_ratio": 9.031327186911545,
+  "components": {
+    "SPY_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "keltner_bands",
+      "signal_file_path": "traces/SPY_1m/signals/keltner_bands/SPY_compiled_strategy_0.parquet",
+      "total_bars": 81782,
+      "signal_changes": 7386,
+      "compression_ratio": 0.09031327186911545,
+      "signal_frequency": 0.09031327186911545,
+      "parameters": {
+        "_strategy_type": "compiled_strategy_0"
+      },
+      "created_at": "2025-06-21T20:28:59.327434"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "keltner_no_filter": {
+        "type": "keltner_bands",
+        "name": "keltner_no_filter",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "keltner_extreme_filter": {
+        "type": "keltner_bands",
+        "name": "keltner_extreme_filter",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 2,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 2,
+      "max_nesting_depth": 0
+    }
+  }
+}

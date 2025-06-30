@@ -4,6 +4,12 @@
 
 Complete replacement of the current feature inference system with a **validation-first, deterministic approach**. This design eliminates all guesswork, provides strict validation, and purges legacy patterns to prevent new developers from falling into bad habits.
 
+### Key Improvements Beyond Features
+
+1. **Dynamic Discovery with Strict Validation**: Strategies can dynamically discover their feature requirements based on parameters, but validation remains strict and deterministic.
+
+2. **Structured Event Routing**: Replace string-based strategy IDs with structured signal events and subscription descriptors to eliminate fragile string matching throughout the system.
+
 ## Core Principles
 
 ### 1. **Deterministic Feature Naming** - No Guessing
@@ -346,6 +352,158 @@ def two_layer_ensemble(features: ValidatedFeatures, bar, params):
     # All sub-strategy features guaranteed to be available
     # No manual feature declaration needed
     pass
+```
+
+## Dynamic Discovery with Validation
+
+### The Key Distinction
+- **Dynamic Discovery** = "What features does this strategy need based on its parameters?"
+- **Deterministic Validation** = "Given what we discovered, can we guarantee those features exist?"
+
+### Implementation Approaches
+
+#### 1. Pure Static Declaration
+Best for strategies with fixed feature requirements:
+```python
+@strategy(
+    name='rsi_oversold',
+    required_features=[
+        FeatureSpec('rsi', {'period': 14})  # Always uses RSI(14)
+    ]
+)
+```
+
+#### 2. Dynamic Discovery with Validation
+Best for parameterized strategies:
+```python
+@strategy(
+    name='multi_timeframe_sma',
+    feature_discovery=lambda params: [
+        FeatureSpec('sma', {'period': p}) 
+        for p in params['periods']  # Could be [10, 20] or [5, 10, 20, 50]
+    ]
+)
+```
+
+#### 3. Hybrid Approach
+Some features static, others dynamic:
+```python
+@strategy(
+    name='adaptive_momentum',
+    required_features=[
+        FeatureSpec('atr', {'period': 14})  # Always need ATR(14)
+    ],
+    feature_discovery=lambda params: [
+        FeatureSpec('sma', {'period': params['adaptive_period']}),
+        FeatureSpec('ema', {'period': params['adaptive_period']})
+    ]
+)
+```
+
+### Ensemble Strategy Discovery
+
+Ensemble strategies naturally compose through recursive discovery:
+```python
+class EnsembleStrategy:
+    def discover_features(self, config):
+        """Dynamically discover features from sub-strategies"""
+        all_features = []
+        
+        for sub_strategy_config in config['strategies']:
+            sub_meta = get_strategy_metadata(sub_strategy_config['type'])
+            
+            if sub_meta.feature_discovery:
+                # Dynamic discovery
+                features = sub_meta.feature_discovery(sub_strategy_config['params'])
+            else:
+                # Static requirements
+                features = sub_meta.required_features
+            
+            all_features.extend(features)
+        
+        # Return deduplicated, validated feature specs
+        return deduplicate_features(all_features)
+```
+
+## Structured Event Routing
+
+### Current Problem: String-Based Strategy IDs
+
+Current system creates strategy IDs like:
+```
+"SPY_1m_sma_crossover_grid_5_20"
+```
+
+This leads to:
+- Complex string parsing to extract parameters
+- Fragile matching (same problems as feature names)
+- Name explosion in grid searches
+- Difficult filtering and routing
+
+### Solution: Structured Signal Events
+
+Replace string IDs with structured event payloads:
+```python
+# Instead of strategy_id: "SPY_1m_sma_crossover_grid_5_20"
+signal_event = {
+    'symbol': 'SPY',
+    'timeframe': '1m',
+    'strategy_type': 'sma_crossover',
+    'parameters': {'fast_period': 5, 'slow_period': 20},
+    'direction': 'long',
+    'strength': 0.8
+}
+```
+
+### Subscription Descriptors
+
+Portfolios declare what signals they want using structured descriptors:
+```python
+# Portfolio subscription configuration
+portfolio_subscription = {
+    'symbol': 'SPY',
+    'timeframe': '1m',
+    'strategy_type': 'sma_crossover',
+    'parameters': {'fast_period': 5, 'slow_period': 20}
+}
+
+# Generic matcher for event routing
+def matches_subscription(event, subscription):
+    for key, value in subscription.items():
+        if isinstance(value, dict):
+            if event.payload.get(key) != value:
+                return False
+        elif event.payload.get(key) != value:
+            return False
+    return True
+```
+
+### Benefits
+1. **No String Parsing**: Parameters are explicit in the event
+2. **Flexible Matching**: Can subscribe to partial matches
+3. **Type Safety**: Real data types instead of strings
+4. **Natural Composition**: Ensembles work without special handling
+
+### Examples
+
+```python
+# Subscribe to specific parameters
+subscription_a = {
+    'strategy_type': 'sma_crossover',
+    'parameters': {'fast_period': 5, 'slow_period': 20}
+}
+
+# Subscribe to all SMA crossovers with fast=5
+subscription_b = {
+    'strategy_type': 'sma_crossover',
+    'parameters': {'fast_period': 5}  # Partial match
+}
+
+# Subscribe to multiple strategy types
+subscription_c = {
+    'symbol': 'SPY',
+    'strategy_type': ['sma_crossover', 'ema_crossover', 'macd_crossover']
+}
 ```
 
 ## Implementation Plan - Disruptive Approach

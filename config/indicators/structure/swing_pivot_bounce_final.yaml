@@ -1,0 +1,41 @@
+# Swing Pivot Bounce Strategy - Final Fine-tuning
+# Focus on exit thresholds very close to 0.0015 to achieve profitability
+name: swing_pivot_bounce_final
+mode: signal_generation
+symbols: ["SPY_15m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Best configuration from analysis
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 35
+      min_touches: 4
+      bounce_threshold: 0.004
+      exit_threshold: 0.0015
+    # Optional: Add filter to improve win rate
+    # filter: "volume > sma(volume, 20)"
+
+# Very fine-grained exit threshold testing
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce
+      param_overrides:
+        # Best SR periods only
+        sr_period: [35, 40]
+        
+        # Best touch values
+        min_touches: [3, 4, 5]
+        
+        # Best bounce thresholds
+        bounce_threshold: [0.004, 0.0045, 0.005]
+        
+        # Very fine-grained around 0.0015
+        exit_threshold: [0.0013, 0.00135, 0.0014, 0.00145, 0.0015, 0.00155, 0.0016, 0.00165, 0.0017]
+
+# This generates 2 * 3 * 3 * 9 = 162 combinations

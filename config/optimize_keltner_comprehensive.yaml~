@@ -1,0 +1,145 @@
+name: optimize_keltner_comprehensive
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+split_ratio: 0.8
+
+# More comprehensive parameter space
+parameter_space:
+  strategies:
+    # Best baseline from previous run - tight bands, slow period
+    - type: keltner_bands
+      param_overrides:
+        period: [30, 40, 50, 60]
+        multiplier: [0.8, 1.0, 1.2, 1.5]
+    
+    # VWAP distance filter - trade when price is far from VWAP
+    - type: keltner_bands
+      param_overrides:
+        period: [40, 50]
+        multiplier: [1.0, 1.2]
+      filter: |
+        signal == 0 or 
+        abs(vwap_distance()) > ${vwap_threshold}
+      filter_params:
+        vwap_threshold: [0.002, 0.003, 0.005, 0.007]  # 0.2%, 0.3%, 0.5%, 0.7%
+    
+    # Trend filter - only trade with trend
+    - type: keltner_bands
+      param_overrides:
+        period: [40, 50]
+        multiplier: [1.0, 1.2]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and close > sma_${trend_period}) or 
+        (signal < 0 and close < sma_${trend_period})
+      filter_params:
+        trend_period: [50, 100, 200]
+    
+    # Counter-trend filter - only trade against trend (mean reversion in trends)
+    - type: keltner_bands
+      param_overrides:
+        period: [40, 50]
+        multiplier: [1.0, 1.2]
+      filter: |
+        signal == 0 or 
+        (signal > 0 and close < sma_${trend_period}) or 
+        (signal < 0 and close > sma_${trend_period})
+      filter_params:
+        trend_period: [50, 100, 200]
+    
+    # Volatility regime filter
+    - type: keltner_bands
+      param_overrides:
+        period: [40, 50]
+        multiplier: [1.0, 1.2]
+      filter: |
+        signal == 0 or 
+        volatility_percentile(20) > ${vol_threshold}
+      filter_params:
+        vol_threshold: [0.3, 0.5, 0.7]  # 30th, 50th, 70th percentile
+    
+    # Combined VWAP + RSI filter
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [1.0]
+      filter: |
+        signal == 0 or 
+        (abs(vwap_distance()) > ${vwap_threshold} and 
+         ((signal > 0 and rsi(14) < ${rsi_oversold}) or 
+          (signal < 0 and rsi(14) > ${rsi_overbought})))
+      filter_params:
+        vwap_threshold: [0.003, 0.005]
+        rsi_oversold: [30, 35]
+        rsi_overbought: [65, 70]
+    
+    # Trend + Volume confirmation
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [1.0]
+      filter: |
+        signal == 0 or 
+        (((signal > 0 and close > sma_50) or (signal < 0 and close < sma_50)) and
+         volume > volume_sma_20 * ${volume_ratio})
+      filter_params:
+        volume_ratio: [1.2, 1.5]
+    
+    # Market structure filter removed - features not available
+    
+    # Time filter removed - features not available
+    
+    # Multi-timeframe confirmation (pseudo - using different EMAs)
+    - type: keltner_bands
+      param_overrides:
+        period: [50]
+        multiplier: [1.0]
+      filter: |
+        signal == 0 or 
+        ((signal > 0 and ema_10 > ema_50 and close > vwap) or
+         (signal < 0 and ema_10 < ema_50 and close < vwap))
+
+# Features needed for filters
+feature_configs:
+  # VWAP
+  vwap:
+    type: vwap
+  
+  # Trend indicators
+  sma_50:
+    type: sma
+    params:
+      period: 50
+  sma_100:
+    type: sma
+    params:
+      period: 100
+  sma_200:
+    type: sma
+    params:
+      period: 200
+  
+  # EMAs for multi-timeframe
+  ema_10:
+    type: ema
+    params:
+      period: 10
+  ema_50:
+    type: ema
+    params:
+      period: 50
+  
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}_5m.csv"
+    
+timeframe: "5m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

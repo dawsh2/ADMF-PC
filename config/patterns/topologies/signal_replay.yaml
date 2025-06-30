@@ -1,5 +1,6 @@
 # Signal Replay Pattern
-# Pipeline for replaying saved signals: signals → portfolios → risk → execution
+# Replay pre-computed signals through portfolio and execution
+# Uses SignalReplayHandler to read traces and publish SIGNAL events
 
 name: signal_replay
 description: Replay previously generated signals through portfolios and execution
@@ -7,86 +8,64 @@ description: Replay previously generated signals through portfolios and executio
 # Stateless components
 components:
   - type: risk_validators
-    from_config: risk_profiles
-
-  - type: execution_models
-    from_config: execution_models
+    from_config: risk_validators
     default: []
 
 # Containers to create
 containers:
-  # Signal replay container
-  - name: signal_replay
-    type: signal_replay
+  # Root container
+  - name: root
+    type: root
+    components: []
+    config: {}
+      
+  # Signal replay data container - reads traces and publishes SIGNAL events
+  - name: signal_replay_data
+    type: data
+    components: ["data_streamer"]
+    parent: root
     config:
-      signal_directory:
-        from_config: signal_directory
-      symbol:
-        from_config: symbol
-      start_date:
-        from_config: start_date
-      end_date:
-        from_config: end_date
+      data_source: signal_replay  # Use signal replay handler
+      traces_dir:
+        from_config: traces_dir
+        default: ./traces
+      symbols:
+        from_config: symbols
+      strategies:
+        from_config: strategies
+      parameter_space:
+        from_config: parameter_space
+      # Risk overrides for replay
+      risk:
+        from_config: risk
 
-  # Portfolio containers - one per strategy/risk combo
-  - name_template: "portfolio_{combo_id}"
-    type: portfolio
-    foreach:
-      combo: "$generated.parameter_combinations"
+  # Portfolio container - receives SIGNAL events, manages positions
+  - name: portfolio
+    type: portfolio  
+    components: ["portfolio_state", "risk_manager"]
+    parent: root
     config:
-      combo_id: "{combo_id}"
-      strategy_type: "{combo.strategy_params.type}"
-      strategy_params: "{combo.strategy_params}"
-      risk_type: "{combo.risk_params.type}"
-      risk_params: "{combo.risk_params}"
       initial_capital:
         from_config: initial_capital
         default: 100000
-      objective_function:
-        from_config: objective_function
-        default:
-          name: sharpe_ratio
-      results:
-        from_config: results
-        default: {}
-      metrics:
-        from_config: metrics
+      symbols:
+        from_config: symbols
+      # Risk configuration can be overridden during replay
+      risk:
+        from_config: risk
         default: {}
 
-  # Execution container
+  # Execution container - receives ORDER events, simulates fills
   - name: execution
     type: execution
+    components: ["execution_engine", "order_manager"]
+    parent: root
     config:
-      mode: backtest
-      execution_models:
-        from_config: execution_models
-        default: []
+      broker:
+        from_config: broker
+        default: simulated
+      execution:
+        from_config: execution
+        default: {}
 
-# Routes to create
-routes:
-  # Risk validation route
-  - name: risk_validation
-    type: risk_service
-    source_pattern: "portfolio_*"
-    target: "$root_event_bus"
-
-  # Fill broadcast
-  - name: fill_broadcast
-    type: broadcast
-    source: execution
-    targets: "portfolio_*"
-    allowed_types: [FILL]
-
-# Special behaviors
-behaviors:
-  # Subscribe portfolios to replayed signals
-  - type: subscribe_to_root_bus
-    containers: "portfolio_*"
-    event_type: SIGNAL
-    handler: signal_processor.on_signal
-
-  # Subscribe execution to orders
-  - type: subscribe_to_root_bus
-    containers: execution
-    event_type: ORDER
-    handler: execution_engine.on_order
+# Use standard events (SIGNAL, ORDER, FILL) via root event bus

@@ -7,6 +7,7 @@ after the warmup period.
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 
 from ...core.components.discovery import strategy
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='ma_crossover',
-    feature_config=['sma']  # Simple list format - topology builder infers fast_period and slow_period
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Simple list format - topology builder infers fast_period and slow_period
 )
 def ma_crossover_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

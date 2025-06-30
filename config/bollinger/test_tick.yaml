@@ -1,0 +1,15 @@
+name: bollinger_tick
+data: SPY_tick
+
+strategy: [
+  {
+    bollinger_bands: {
+      period: 10,
+      std_dev: 1.5
+    },
+    constraints: "intraday"
+  }
+]
+
+# Note: Bollinger bands on tick data will be calculated 
+# on the last 10 ticks rather than time-based bars

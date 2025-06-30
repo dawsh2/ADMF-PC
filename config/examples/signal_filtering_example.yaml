@@ -1,0 +1,85 @@
+# Example configuration demonstrating config-level signal filtering
+name: signal_filtering_example
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01" 
+end_date: "2024-01-31"
+initial_capital: 100000
+
+# Example 1: Simple filter - only long signals above VWAP
+strategies:
+  - name: sma_crossover_long_only
+    type: sma_crossover
+    params:
+      fast_period: 10
+      slow_period: 30
+    filter: "signal > 0 and price > vwap()"  # Only take long signals when price above VWAP
+
+# Example 2: Directional filters based on VWAP position
+strategies:
+  - name: momentum_vwap_directional
+    type: momentum_breakout
+    params:
+      momentum_period: 14
+      breakout_threshold: 0.02
+    # Complex conditional filter
+    filter: "(signal > 0 and price > vwap()) or (signal < 0 and price < vwap())"
+    
+# Example 3: Filter with volume confirmation
+strategies:
+  - name: rsi_with_volume
+    type: rsi_bands
+    params:
+      rsi_period: 14
+      overbought: 70
+      oversold: 30
+    filter: "abs(signal) > 0 and volume > sma(20) * 1.5"  # Only trade on high volume
+
+# Example 4: Parameterized filter for optimization
+strategies:
+  - name: macd_threshold_filter
+    type: macd_crossover_strategy
+    params:
+      fast_period: 12
+      slow_period: 26
+      signal_period: 9
+    filter: "abs(signal) > signal_threshold and volume > ma(vol_period)"
+    filter_params:
+      signal_threshold: 0.5  # Can be optimized
+      vol_period: 20        # Can be optimized
+
+# Example 5: Session-based VWAP filter
+strategies:
+  - name: trend_session_vwap
+    type: adx_trend_strength
+    params:
+      adx_period: 14
+      trend_strength_threshold: 25
+    filter: "signal > 0 and price > session_vwap()"  # Use session VWAP instead of regular VWAP
+
+# Example 6: Multi-condition filter with RSI - using single line
+strategies:
+  - name: complex_filter_example
+    type: ema_crossover
+    params:
+      fast_ema_period: 12
+      slow_ema_period: 26
+    filter: "signal != 0 and rsi(14) > 30 and rsi(14) < 70 and atr(14) / price < 0.02 and volume > sma(10)"
+      
+# Parameter space for optimization (when using --optimize flag)
+parameter_space:
+  strategies:
+    - type: macd_threshold_filter
+      param_overrides:
+        filter_params:
+          signal_threshold: [0.3, 0.5, 0.7, 1.0]  # Test different thresholds
+          vol_period: [10, 20, 30]                # Test different volume periods
+
+# Features that will be auto-discovered from filter expressions
+features:
+  - vwap
+  - session_vwap
+  - volume
+  - volume_sma
+  - rsi
+  - atr

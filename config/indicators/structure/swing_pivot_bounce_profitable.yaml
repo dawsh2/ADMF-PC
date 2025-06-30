@@ -1,0 +1,25 @@
+# Swing Pivot Bounce Strategy - Profitable Configuration
+# Based on analysis, we need: fewer trades, higher win rate, better risk/reward
+name: swing_pivot_bounce_profitable
+mode: signal_generation
+symbols: ["SPY_15m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Conservative parameters to reduce overtrading
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 60          # Longer lookback for stronger levels
+      min_touches: 5         # More touches = stronger S/R
+      bounce_threshold: 0.01 # 1% bounce = more selective
+      exit_threshold: 0.005  # 0.5% profit target
+
+# Optional: Add volume filter to improve quality
+features:
+  - volume_sma
+  - atr

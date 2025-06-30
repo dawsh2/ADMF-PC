@@ -1,0 +1,51 @@
+{
+  "workflow_id": "config",
+  "workspace_path": "config/results/20250622_172301",
+  "total_bars": 2,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "keltner_high_vol_high_volume": {
+        "type": "keltner_bands",
+        "name": "keltner_high_vol_high_volume",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "keltner_high_vol_vwap": {
+        "type": "keltner_bands",
+        "name": "keltner_high_vol_vwap",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "keltner_quick_exits_proxy": {
+        "type": "keltner_bands",
+        "name": "keltner_quick_exits_proxy",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 3,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 3,
+      "max_nesting_depth": 0
+    }
+  }
+}

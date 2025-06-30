@@ -209,10 +209,12 @@ class Container:
             # Use container_id directly to avoid double "root_" prefix
             self.event_bus = EventBus(bus_id=self.container_id)
             self._is_root_container = True
+            logger.debug(f"Root container {self.container_id} created with new event bus: {id(self.event_bus)}")
         else:
             # This is a child container - use parent's event bus
             self.event_bus = parent_event_bus
             self._is_root_container = False
+            logger.debug(f"Child container {self.container_id} using parent event bus: {id(self.event_bus)}")
         
         # State management
         self._state = ContainerState.UNINITIALIZED
@@ -278,7 +280,7 @@ class Container:
         # Simple heuristics based on component types
         component_set = set(components)
         
-        if any(comp in component_set for comp in ['portfolio_manager', 'position_manager', 'portfolio']):
+        if any(comp in component_set for comp in ['portfolio_state', 'portfolio']):
             return 'portfolio'
         elif any(comp in component_set for comp in ['strategy', 'signal_generator', 'classifier']):
             return 'strategy'  
@@ -350,7 +352,9 @@ class Container:
         
         # If component needs container reference, provide it
         if hasattr(component, 'set_container'):
+            logger.info(f"📌 Setting container reference on {name} component (type: {type(component).__name__})")
             component.set_container(self)
+            logger.info(f"✅ Container reference set on {name}")
         
         # If component needs event bus access, provide it
         if hasattr(component, 'set_event_bus'):
@@ -513,13 +517,16 @@ class Container:
     def cleanup(self) -> None:
         """Cleanup resources and dispose of components."""
         # Save results before cleanup if disk storage
-        if self.config.config.get('results_storage') == 'disk':
+        if self.config and hasattr(self.config, 'config') and self.config.config and self.config.config.get('results_storage') == 'disk':
             self._save_results_before_cleanup()
         
         # Flush trace storage before cleanup (configurable)
-        execution_config = self.config.config.get('execution', {})
-        trace_settings = execution_config.get('trace_settings', {})
-        auto_flush = trace_settings.get('auto_flush_on_cleanup', True)  # Default: True
+        auto_flush = True  # Default
+        if self.config and hasattr(self.config, 'config') and self.config.config:
+            execution_config = self.config.config.get('execution', {})
+            if execution_config:  # Check execution_config is not None
+                trace_settings = execution_config.get('trace_settings', {})
+                auto_flush = trace_settings.get('auto_flush_on_cleanup', True)
         
         if auto_flush:
             self._flush_trace_storage()
@@ -704,6 +711,12 @@ class Container:
         """
         self._metrics['events_published'] += 1
         self._metrics['last_activity'] = datetime.now()
+        
+        # Debug: log which bus we're publishing to
+        if event.event_type == "FILL":
+            logger.info(f"🚀 Container {self.name} publishing FILL to bus {id(self.event_bus)}")
+        elif "POSITION" in event.event_type:
+            logger.info(f"🚀 Container {self.name} publishing {event.event_type} to bus {id(self.event_bus)}")
         
         # All events go to the shared root event bus
         # All containers and components will see the event automatically

@@ -1,0 +1,16 @@
+name: proper_ensemble
+data: SPY_5m
+
+# This should work with current system
+strategies:
+  - type: keltner_bands
+    name: keltner_strategy
+    params:
+      period: 26
+      multiplier: 1.5  # Less conservative
+      
+  - type: bollinger_bands  
+    name: bollinger_strategy
+    params:
+      period: 11
+      std_dev: 2.0

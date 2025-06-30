@@ -1,0 +1,13 @@
+name: keltner_test_exact_structure
+data: SPY_5m
+mode: exhaustive
+granularity: 1
+strategy:
+- keltner_bands:
+    period:
+    - 30
+    multiplier:
+    - 1.0
+    filter:
+    - volatility_above:
+        threshold: 0.8

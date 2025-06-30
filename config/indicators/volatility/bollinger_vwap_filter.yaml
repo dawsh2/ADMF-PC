@@ -1,0 +1,32 @@
+# Bollinger Bands filtered by VWAP position
+name: bollinger_vwap_filter
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+feature_config:
+  vwap: {}
+  bollinger_bands:
+    - period: 20
+      std_dev: 2.0
+
+strategy:
+  bollinger_bands:
+    params:
+      period: 20
+      std_dev: 2.0
+      entry_buffer: 0.005
+      exit_mode: 'middle'
+    
+    # VWAP-based filtering
+    filter:
+      # Only take longs when below VWAP (better value)
+      - condition: "signal_value > 0 and close < vwap"
+        action: "allow"
+      # Only take shorts when above VWAP (better value)
+      - condition: "signal_value < 0 and close > vwap"
+        action: "allow"
+      # Reject opposite conditions
+      - condition: "signal_value != 0"
+        action: "reject"  # Catch-all for other cases

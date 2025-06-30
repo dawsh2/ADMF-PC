@@ -399,6 +399,7 @@ VOLATILITY_FEATURES = {
     "donchian": DonchianChannel,
     "donchian_channel": DonchianChannel,  # Alias
     "volatility": Volatility,
+    "volatility_percentile": "volatility_percentile",  # Lazy import via component registry
     "supertrend": SuperTrend,
     "vwap": VWAP,
 }

@@ -1,0 +1,44 @@
+# Swing Pivot Bounce Strategy - Conservative Parameter Optimization
+# Focus on reducing trade frequency and improving win rate
+name: swing_pivot_bounce_conservative
+mode: signal_generation
+symbols: ["SPY_15m"]
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Base strategy config
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 40
+      min_touches: 4
+      bounce_threshold: 0.008
+      exit_threshold: 0.003
+
+# Conservative parameter space - wider thresholds, longer lookbacks
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce
+      param_overrides:
+        # Longer lookback periods (10-20 hours on 15m)
+        sr_period: [40, 50, 60, 80, 100]
+        
+        # Higher touch requirements for stronger levels
+        min_touches: [4, 5, 6]
+        
+        # Much wider bounce thresholds to reduce false signals
+        bounce_threshold: [0.008, 0.01, 0.012, 0.015, 0.02]
+        
+        # Larger profit targets to improve risk/reward
+        exit_threshold: [0.003, 0.004, 0.005, 0.006, 0.008]
+
+# Lower granularity since we're testing more extreme values
+optimization:
+  granularity: 3
+
+# This should significantly reduce trade frequency
+# Goal: < 0.5 trades per day with >55% win rate

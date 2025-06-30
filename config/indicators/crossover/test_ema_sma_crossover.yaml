@@ -1,0 +1,23 @@
+# Test configuration for EMA vs SMA Crossover strategy
+name: test_ema_sma_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# EMA vs SMA crossover strategy
+strategy:
+  ema_sma_crossover:
+    params:
+      ema_period: 10
+      sma_period: 20
+
+# Run with: python main.py --config config/indicators/crossover/test_ema_sma_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - EMA > SMA: BUY signal (1)
+# - EMA < SMA: SELL signal (-1)
+# - EMA = SMA: No signal (0)
+
+# EMA (Exponential MA) reacts faster to price changes than SMA
+# This strategy uses the responsiveness difference between the two

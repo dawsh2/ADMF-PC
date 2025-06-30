@@ -1,0 +1,28 @@
+{
+  "workflow_id": "bollinger_10",
+  "workspace_path": "config/bollinger/bollinger_10/results/20250623_095431",
+  "total_bars": 16614,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "unnamed": {
+        "type": "bollinger_bands",
+        "name": "",
+        "params": {},
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

@@ -1,0 +1,5 @@
+data: SPY_5m
+
+strategy: [
+   {keltner_bands: {period: 26, multiplier: 3.0}}
+]

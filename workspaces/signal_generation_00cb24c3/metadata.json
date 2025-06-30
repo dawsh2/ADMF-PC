@@ -1,0 +1,32 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_00cb24c3",
+  "total_bars": 999,
+  "total_signals": 982,
+  "total_classifications": 0,
+  "stored_changes": 47,
+  "compression_ratio": 4.786150712830957,
+  "components": {
+    "SPY_compiled_strategy_0": {
+      "component_type": "strategy",
+      "strategy_type": "unknown",
+      "signal_file_path": "traces/SPY_1m/signals/unknown/SPY_compiled_strategy_0.parquet",
+      "total_bars": 800,
+      "signal_changes": 47,
+      "compression_ratio": 0.05875,
+      "signal_frequency": 0.05875,
+      "parameters": {},
+      "created_at": "2025-06-19T14:30:49.625353"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

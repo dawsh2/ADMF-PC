@@ -1,0 +1,20 @@
+name: keltner_winner
+data: SPY_5m
+
+
+# Strategy components - the winning parameters
+strategies:
+  # Top performer: Period=50, Multiplier=1.0, Filter=41
+  - name: kb_winner_p50_m1
+    type: keltner_bands
+    params:
+      period: 50
+      multiplier: 1.0
+    
+  # Best average: Period=30, Multiplier=1.0
+  - name: kb_winner_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+

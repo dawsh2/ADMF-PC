@@ -1,0 +1,41 @@
+{
+  "workflow_id": "config_winrar",
+  "workspace_path": "config/keltner/config_winrar/results/20250622_210439",
+  "total_bars": 2,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "kb_winner_p50_m1": {
+        "type": "keltner_bands",
+        "name": "kb_winner_p50_m1",
+        "params": {
+          "period": 50,
+          "multiplier": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_winner_p30_m1": {
+        "type": "keltner_bands",
+        "name": "kb_winner_p30_m1",
+        "params": {
+          "period": 30,
+          "multiplier": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 2,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 2,
+      "max_nesting_depth": 0
+    }
+  }
+}

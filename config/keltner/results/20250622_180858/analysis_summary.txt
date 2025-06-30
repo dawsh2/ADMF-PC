@@ -1,0 +1,20 @@
+
+KELTNER BANDS STRATEGY ANALYSIS SUMMARY
+======================================
+
+Run Details:
+- Timestamp: 2025-06-22 18:08:58
+- Total strategies tested: 2750
+- Total bars processed: 16,614
+- Total signals generated: 40,408,482
+
+Key Findings:
+1. Signal Frequency: Strategies generate signals 9.9% of the time on average
+2. Directional Bias: 0.0% long vs 0.0% short signals
+3. Trade Duration: Average trade lasts 0 minutes (0.0 bars)
+4. Most strategies (4 out of 100) have signal frequency in the 0-5% range
+
+Recommendation:
+- Focus on strategies with signal frequency between 10-20% for balanced trading
+- Consider the most selective strategies (5-10% frequency) for high-conviction setups
+- Investigate parameter combinations of top-performing strategies for further optimization

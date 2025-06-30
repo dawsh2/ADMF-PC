@@ -1,0 +1,13 @@
+name: bollinger_paired
+data: SPY_5m
+
+# Using paired parameters syntax (once implemented)
+strategy: [
+  {bollinger_bands: {
+    params: [
+      {period: 20, std_dev: 3.0},
+      {period: 20, std_dev: 2.5},
+      {period: 10, std_dev: 3.0}
+    ]
+  }}
+]

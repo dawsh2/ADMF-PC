@@ -1,0 +1,39 @@
+
+KELTNER BANDS STRATEGY OPTIMIZATION RESULTS
+==========================================
+
+Dataset: SPY 5-minute bars
+Duration: ~213.0 trading days
+Total Strategies Tested: 2,750
+
+KEY FINDINGS:
+
+1. ACTIVITY LEVELS:
+   - Most strategies (87%) have low signal frequency (<10%)
+   - Average signal frequency: 5.5%
+   - Strategies generate 440 trades on average
+
+2. PERFORMANCE METRICS:
+   - Average win rate: 64.1%
+   - Average return per trade: 0.006%
+   - 69% of strategies are profitable on average
+
+3. OPTIMAL PARAMETERS:
+   Best performing base configurations:
+   1. Period: 10, Multiplier: 3.0 (Avg Return: 0.058%)
+   2. Period: 15, Multiplier: 3.0 (Avg Return: 0.012%)
+   3. Period: 20, Multiplier: 1.0 (Avg Return: 0.011%)
+
+4. TRADING CHARACTERISTICS:
+   - Average trade duration: 5 bars (24 minutes)
+   - Directional bias: 44% long vs 9956% short
+   - Best single strategy return: 0.074% per trade
+
+5. RECOMMENDATIONS:
+   - Focus on strategies with 5-15% signal frequency for quality over quantity
+   - Best filters appear to be in the [1, 73, 30] range
+   - Consider position sizing based on signal strength and market conditions
+   - Implement proper risk management with stop losses
+
+Note: These are raw signal results without transaction costs or slippage.
+Further backtesting with realistic execution assumptions is recommended.

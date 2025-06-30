@@ -1,0 +1,11 @@
+# Test Bollinger Bands with intraday threshold
+name: test_bb_intraday
+mode: signal_generation
+symbols: ["SPY"]
+
+strategy: [
+  {
+    bollinger_bands: {period: 23, std_dev: 1.5},
+    threshold: "intraday"
+  }
+]

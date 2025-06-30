@@ -1,0 +1,31 @@
+# Simple test configuration for signal filtering
+name: test_signal_filter_simple
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01" 
+end_date: "2024-01-31"
+initial_capital: 100000
+
+# Simple test - only take long signals
+strategies:
+  - name: sma_crossover_test
+    type: sma_crossover
+    params:
+      fast_period: 10
+      slow_period: 20
+    filter: "signal > 0"  # Only long signals
+
+# Test VWAP filter
+strategies:
+  - name: ema_crossover_vwap
+    type: ema_crossover  
+    params:
+      fast_ema_period: 12
+      slow_ema_period: 26
+    filter: "signal > 0 and price > vwap()"  # Long signals above VWAP
+
+# Features required for filters
+features:
+  - vwap
+  - sma
+  - ema

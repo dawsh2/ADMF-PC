@@ -1,0 +1,11 @@
+name: bollinger_test
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      period: 20,
+      std_dev: 2.0
+    }
+  }
+]

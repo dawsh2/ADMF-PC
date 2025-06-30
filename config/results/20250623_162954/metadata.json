@@ -1,0 +1,31 @@
+{
+  "workflow_id": "config",
+  "workspace_path": "config/results/20250623_162954",
+  "total_bars": 3,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands_0": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands_0",
+        "params": {
+          "period": 23,
+          "std_dev": 1.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

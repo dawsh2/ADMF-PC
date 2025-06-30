@@ -183,19 +183,37 @@ class SimulatedBroker:
         # Calculate fill quantity
         fill_quantity = order.quantity * Decimal(str(fill_ratio))
         
-        # Calculate slippage
-        slippage = self.slippage_model.calculate_slippage(
-            order, market_price, market_data.get('volume', 0)
-        )
+        # For stop loss and take profit orders, use the specified price
+        # This ensures exits happen at the calculated stop/target levels
+        self.logger.info(f"🔍 Order metadata: {order.metadata}")
+        self.logger.info(f"🔍 Order price: {order.price}, type: {type(order.price)}, exit_type: {order.metadata.get('exit_type')}")
         
-        # Calculate fill price
-        if order.side == OrderSide.BUY:
-            fill_price = market_price + slippage
+        # Convert price to float for comparison (handles Decimal type)
+        try:
+            price_value = float(order.price) if order.price is not None else 0
+        except:
+            price_value = 0
+            
+        if price_value > 0 and order.metadata.get('exit_type') in ['stop_loss', 'take_profit', 'trailing_stop']:
+            fill_price = price_value
+            self.logger.info(f"✅ Using specified exit price for {order.metadata.get('exit_type')}: ${fill_price} (market: ${market_price})")
         else:
-            fill_price = market_price - slippage
+            # Calculate slippage for regular market orders
+            slippage = self.slippage_model.calculate_slippage(
+                order, market_price, market_data.get('volume', 0)
+            )
+            
+            # Calculate fill price
+            if order.side == OrderSide.BUY:
+                fill_price = market_price + slippage
+            else:
+                fill_price = market_price - slippage
         
         # Calculate commission
         commission = self.commission_model.calculate_commission(order, fill_price)
+        
+        # Get timestamp from market data or order metadata
+        execution_timestamp = self._get_market_timestamp(market_data, order)
         
         # Create fill
         self._fill_counter += 1
@@ -207,8 +225,9 @@ class SimulatedBroker:
             quantity=fill_quantity,
             price=Decimal(str(fill_price)),
             commission=Decimal(str(commission)),
-            executed_at=datetime.now(),
-            status=FillStatus.FILLED if fill_ratio >= 1.0 else FillStatus.PARTIAL
+            executed_at=execution_timestamp,
+            status=FillStatus.FILLED if fill_ratio >= 1.0 else FillStatus.PARTIAL,
+            metadata=order.metadata  # Pass through order metadata (exit_type, exit_reason, etc.)
         )
         
         # Update portfolio state
@@ -250,6 +269,61 @@ class SimulatedBroker:
                 return float(symbol_data)
         
         return None
+    
+    def _get_market_timestamp(self, market_data: Dict[str, Any], order: Optional[Order] = None) -> datetime:
+        """Extract timestamp from market data or order metadata."""
+        # First check if order has bar_timestamp in metadata
+        if order and order.metadata and 'bar_timestamp' in order.metadata:
+            try:
+                return datetime.fromisoformat(order.metadata['bar_timestamp'])
+            except:
+                pass
+        
+        # Try different timestamp fields in market data
+        for ts_field in ['timestamp', 'ts', 'time', 'datetime']:
+            if ts_field in market_data:
+                ts_data = market_data[ts_field]
+                
+                # Handle different timestamp formats
+                if isinstance(ts_data, datetime):
+                    return ts_data
+                elif isinstance(ts_data, str):
+                    try:
+                        # Try parsing ISO format
+                        return datetime.fromisoformat(ts_data.replace('Z', '+00:00'))
+                    except:
+                        try:
+                            # Try parsing common formats
+                            from dateutil import parser
+                            return parser.parse(ts_data)
+                        except:
+                            pass
+                elif isinstance(ts_data, (int, float)):
+                    # Assume Unix timestamp
+                    return datetime.fromtimestamp(ts_data)
+        
+        # Check if symbol-specific data has timestamp
+        for symbol_key in market_data:
+            if isinstance(market_data[symbol_key], dict):
+                symbol_data = market_data[symbol_key]
+                for ts_field in ['timestamp', 'ts', 'time']:
+                    if ts_field in symbol_data:
+                        ts_data = symbol_data[ts_field]
+                        if isinstance(ts_data, datetime):
+                            return ts_data
+                        elif isinstance(ts_data, str):
+                            try:
+                                return datetime.fromisoformat(ts_data.replace('Z', '+00:00'))
+                            except:
+                                try:
+                                    from dateutil import parser
+                                    return parser.parse(ts_data)
+                                except:
+                                    pass
+        
+        # If no timestamp found, log warning and use current time
+        self.logger.warning(f"No timestamp found in market data: {market_data.keys()}")
+        return datetime.now()
     
     def get_market_data(self) -> Dict[str, Any]:
         """Get current market data cache."""

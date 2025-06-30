@@ -1,0 +1,38 @@
+# Simple test config for volatility-momentum regime strategy - one month only
+name: test_vol_momentum_one_month
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"  # Just one month
+initial_capital: 100000
+
+# Test with simplified neutral regime only
+strategy:
+  # VWAP deviation - primary strategy
+  - weight: 0.5
+    vwap_deviation:
+      params:
+        std_multiplier: 2.0
+        min_volume_ratio: 1.0
+        
+  # RSI bands      
+  - weight: 0.25
+    rsi_bands:
+      params:
+        period: 14
+        oversold: 30
+        overbought: 70
+        
+  # Ultimate oscillator
+  - weight: 0.25
+    ultimate_oscillator:
+      params:
+        period1: 7
+        period2: 14
+        period3: 28
+        oversold: 30
+        overbought: 70
+
+# Basic settings
+weight_threshold: 0.5
+combination: weighted_vote

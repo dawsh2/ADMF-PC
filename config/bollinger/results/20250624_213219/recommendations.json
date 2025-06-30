@@ -1,0 +1,25 @@
+{
+  "run_info": {
+    "run_id": "20250624_213219",
+    "config_name": "bollinger",
+    "generated_at": "2025-06-24T21:34:12.836468",
+    "total_strategies": 205,
+    "strategies_analyzed": 205
+  },
+  "best_individual": {
+    "strategy_hash": "a2cd50f59ab7",
+    "strategy_type": "bollinger_bands",
+    "sharpe_ratio": 2.550948406164982,
+    "total_return": 0.18476604001609442,
+    "max_drawdown": -0.029885325527822415,
+    "parameters": {}
+  },
+  "best_by_type": {
+    "bollinger_bands": {
+      "strategy_hash": "a2cd50f59ab7",
+      "sharpe_ratio": 2.550948406164982,
+      "total_return": 0.18476604001609442
+    }
+  },
+  "ensemble": []
+}

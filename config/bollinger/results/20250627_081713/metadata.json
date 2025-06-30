@@ -1,0 +1,85 @@
+{
+  "workflow_id": "results",
+  "workspace_path": "config/bollinger/results/20250627_081713",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY_5m"
+    ],
+    "timeframes": [
+      "5m"
+    ]
+  },
+  "total_bars": 2214,
+  "total_signals": 2201,
+  "total_classifications": 0,
+  "total_orders": 400,
+  "total_fills": 0,
+  "total_positions": 0,
+  "stored_changes": 513,
+  "compression_ratio": 23.307587460245344,
+  "components": {
+    "SPY_5m_strategy_0": {
+      "type": "strategy",
+      "strategy_type": "bollinger_bands",
+      "symbol": "SPY_5m",
+      "timeframe": "1m",
+      "parameters": {
+        "_strategy_type": "strategy_0",
+        "period": 10,
+        "std_dev": 1.5,
+        "_risk": {
+          "stop_loss": 0.001,
+          "take_profit": 0.0015,
+          "trailing_stop": 0.0005
+        }
+      },
+      "strategy_hash": "a27a86216696",
+      "full_config": {
+        "type": "bollinger_bands",
+        "parameters": {
+          "_strategy_type": "strategy_0",
+          "period": 10,
+          "std_dev": 1.5,
+          "_risk": {
+            "stop_loss": 0.001,
+            "take_profit": 0.0015,
+            "trailing_stop": 0.0005
+          }
+        }
+      }
+    },
+    "portfolio_orders": {
+      "type": "portfolio",
+      "component_type": "orders"
+    }
+  },
+  "timestamp": "2025-06-27T08:17:14.709026",
+  "strategy_metadata": {
+    "strategies": {
+      "bollinger_bands": {
+        "type": "bollinger_bands",
+        "name": "bollinger_bands",
+        "params": {
+          "period": 10,
+          "std_dev": 1.5,
+          "_risk": {
+            "stop_loss": 0.001,
+            "take_profit": 0.0015,
+            "trailing_stop": 0.0005
+          }
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

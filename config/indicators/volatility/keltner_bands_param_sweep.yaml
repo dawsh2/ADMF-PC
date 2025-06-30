@@ -1,0 +1,22 @@
+# Keltner Bands parameter sweep for signal generation
+name: keltner_bands_param_sweep
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-10-31"
+
+# Parameter space - this will generate multiple strategy instances
+parameter_space:
+  strategies:
+    - type: keltner_bands
+      param_overrides:
+        # Test different periods (6 values)
+        period: [10, 15, 20, 30, 40, 50]
+        # Test different multipliers (5 values)
+        multiplier: [1.0, 1.5, 2.0, 2.5, 3.0]
+
+# This generates 6 * 5 = 30 strategy combinations
+
+# Optional: enable verbose signals to see what's happening
+signal_filters:
+  - verbose_signals: true

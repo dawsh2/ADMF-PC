@@ -95,7 +95,7 @@ class StrategyRiskManager:
         
         # Default validation types
         if validation_types is None:
-            validation_types = ['position_size', 'max_position', 'drawdown', 'correlation']
+            validation_types = ['position_size']  # Simplified for now
         
         # Run validations
         results = {}
@@ -179,23 +179,25 @@ class StrategyRiskManager:
         enhanced_portfolio_state = portfolio_state.copy()
         enhanced_portfolio_state['strategy_performance'] = self.strategy_performance
         
-        # Calculate base size
-        base_size = calculate_strategy_position_size(
-            signal, enhanced_portfolio_state, risk_params, market_data
-        )
-        
-        if not use_performance_adjustment or base_size == 0:
-            return base_size
-        
-        # Apply performance adjustment
+        # Simple position sizing - default to 1 share for easy analysis
+        # This makes returns calculation straightforward: P&L = price_change
         try:
-            adjusted_size = adjust_size_by_performance(
+            # Try to calculate base size if configured
+            base_size = calculate_strategy_position_size(
                 signal, enhanced_portfolio_state, risk_params, market_data
             )
-            return adjusted_size
+            
+            if base_size > 0:
+                return base_size
         except Exception as e:
-            logger.error(f"Error in performance adjustment: {e}")
-            return base_size
+            logger.debug(f"Using default position sizing due to: {e}")
+        
+        # Default: 1 share per position
+        # This is the simplest approach for analysis:
+        # - P&L = exit_price - entry_price
+        # - Return % = (exit_price - entry_price) / entry_price
+        # - No need to worry about capital allocation
+        return 1
     
     def check_exit_criteria(
         self,
@@ -446,6 +448,390 @@ class StrategyRiskManager:
                    f"target={profit_target_pct:.3f}, max_bars={max_holding_bars}")
         
         return profile
+
+
+    def evaluate_signal(
+        self,
+        signal: Dict[str, Any],
+        portfolio_state: Dict[str, Any],
+        timestamp: Any
+    ) -> List[Dict[str, Any]]:
+        """
+        Evaluate a signal and check all positions for exit conditions.
+        
+        This is the main method called by portfolio on every signal.
+        It checks ALL positions for exits and evaluates entry opportunities.
+        
+        Args:
+            signal: The incoming signal with price data
+            portfolio_state: Complete portfolio state including positions, prices, etc.
+            timestamp: Event timestamp
+            
+        Returns:
+            List of decisions (orders to create, metadata to update, etc.)
+        """
+        from .exit_monitor import check_exit_conditions
+        from ..strategy.types import SignalDirection
+        from decimal import Decimal
+        
+        decisions = []
+        signal_symbol = signal.get('symbol')
+        signal_metadata = signal.get('metadata', {})
+        signal_price = signal_metadata.get('price', 0)
+        
+        # Extract OHLC data for accurate intrabar exit checks
+        bar_data = {
+            'open': signal_metadata.get('open', signal_price),
+            'high': signal_metadata.get('high', signal_price),
+            'low': signal_metadata.get('low', signal_price),
+            'close': signal_metadata.get('close', signal_price)
+        }
+        
+        # Track positions that are being exited due to stop/target
+        positions_exiting_on_risk = set()
+        
+        # First, check ALL positions for exit conditions
+        # This ensures stop losses are checked on every bar
+        for symbol, position in portfolio_state['positions'].items():
+            if position.quantity == 0:
+                continue
+            
+            # Get current price and bar data for this position
+            # Use signal data if same symbol, otherwise last known price
+            if symbol == signal_symbol:
+                current_price = Decimal(str(signal_price))
+                position_bar_data = bar_data
+            else:
+                current_price = portfolio_state['last_prices'].get(symbol)
+                # When we don't have bar data for this symbol, use close price for all OHLC
+                position_bar_data = {
+                    'open': current_price,
+                    'high': current_price,
+                    'low': current_price,
+                    'close': current_price
+                } if current_price else None
+            
+            if not current_price or not position_bar_data:
+                logger.warning(f"No price available for {symbol}, skipping exit check")
+                continue
+            
+            # Get risk rules for this position's strategy
+            strategy_id = position.metadata.get('strategy_id')
+            if not strategy_id:
+                logger.warning(f"Position {symbol} has no strategy_id, skipping risk check")
+                continue
+            
+            risk_rules = portfolio_state['strategy_risk_rules'].get(strategy_id, {})
+            if not risk_rules:
+                logger.debug(f"No risk rules for strategy {strategy_id}")
+                continue
+            
+            # Update position metadata (highest price and trailing stop price)
+            if position.quantity > 0:
+                highest_price = Decimal(str(position.metadata.get('highest_price', position.average_price)))
+                if current_price > highest_price:
+                    # Update highest price and calculate trailing stop price
+                    trailing_stop_pct = risk_rules.get('trailing_stop', 0)
+                    if trailing_stop_pct:
+                        trailing_stop_price = current_price * (Decimal(1) - Decimal(str(trailing_stop_pct)))
+                        decisions.append({
+                            'action': 'update_metadata',
+                            'symbol': symbol,
+                            'updates': {
+                                'highest_price': str(current_price),
+                                'trailing_stop_price': str(trailing_stop_price)
+                            }
+                        })
+                        logger.debug(f"  📈 Updated trailing stop for {symbol}: highest={current_price:.4f}, stop={trailing_stop_price:.4f}")
+                    else:
+                        decisions.append({
+                            'action': 'update_metadata',
+                            'symbol': symbol,
+                            'updates': {'highest_price': str(current_price)}
+                        })
+            
+            # Check exit conditions using the bar's high/low for accurate intrabar checks
+            position_dict = {
+                'symbol': symbol,
+                'quantity': position.quantity,
+                'average_price': position.average_price,
+                'metadata': position.metadata
+            }
+            
+            # For stop loss checks, use low price for longs, high price for shorts
+            # For take profit checks, use high price for longs, low price for shorts
+            check_price = current_price
+            
+            # Import the new price level checking function
+            from .exit_monitor import check_price_level_exits
+            
+            # First check intraday price levels for stop/target hits
+            exit_signal = None
+            
+            if position.quantity > 0:  # Long position
+                # Check if low price hit stop loss
+                low_price = Decimal(str(position_bar_data['low']))
+                stop_exit = check_price_level_exits(position_dict, low_price, risk_rules, 'low')
+                if stop_exit.should_exit and stop_exit.exit_type == 'stop_loss':
+                    exit_signal = stop_exit
+                    logger.info(f"  📉 Intraday stop loss detected for {symbol}: low {low_price:.4f} hit stop")
+                else:
+                    # Check if high price hit take profit
+                    high_price = Decimal(str(position_bar_data['high']))
+                    target_exit = check_price_level_exits(position_dict, high_price, risk_rules, 'high')
+                    if target_exit.should_exit and target_exit.exit_type == 'take_profit':
+                        exit_signal = target_exit
+                        logger.info(f"  📈 Intraday take profit detected for {symbol}: high {high_price:.4f} hit target")
+            else:  # Short position
+                # Check if high price hit stop loss
+                high_price = Decimal(str(position_bar_data['high']))
+                stop_exit = check_price_level_exits(position_dict, high_price, risk_rules, 'high')
+                if stop_exit.should_exit and stop_exit.exit_type == 'stop_loss':
+                    exit_signal = stop_exit
+                    logger.info(f"  📈 Intraday stop loss detected for short {symbol}: high {high_price:.4f} hit stop")
+                else:
+                    # Check if low price hit take profit
+                    low_price = Decimal(str(position_bar_data['low']))
+                    target_exit = check_price_level_exits(position_dict, low_price, risk_rules, 'low')
+                    if target_exit.should_exit and target_exit.exit_type == 'take_profit':
+                        exit_signal = target_exit
+                        logger.info(f"  📉 Intraday take profit detected for short {symbol}: low {low_price:.4f} hit target")
+            
+            # If no intraday exit, check other conditions with close price
+            if not exit_signal:
+                exit_signal = check_exit_conditions(position_dict, current_price, risk_rules)
+            
+            if exit_signal.should_exit:
+                logger.info(f"  🚨 Risk manager: EXIT SIGNAL for {symbol}: {exit_signal.reason}")
+                
+                # Use the exit price from the signal if available (from intraday checks)
+                if hasattr(exit_signal, 'exit_price') and exit_signal.exit_price:
+                    exit_price = exit_signal.exit_price
+                    logger.info(f"  💰 Using exact exit price from intraday check: ${exit_price:.4f}")
+                else:
+                    # Calculate the actual exit price based on exit type
+                    exit_price = current_price  # Default to current price
+                    
+                    if exit_signal.exit_type == 'stop_loss':
+                        # Calculate stop loss price
+                        stop_loss_pct = risk_rules.get('stop_loss', 0)
+                        if stop_loss_pct:
+                            if position.quantity > 0:  # Long position
+                                exit_price = position.average_price * (Decimal(1) - Decimal(str(stop_loss_pct)))
+                            else:  # Short position
+                                exit_price = position.average_price * (Decimal(1) + Decimal(str(stop_loss_pct)))
+                    
+                    elif exit_signal.exit_type == 'take_profit':
+                        # Calculate take profit price
+                        take_profit_pct = risk_rules.get('take_profit', 0)
+                        if take_profit_pct:
+                            if position.quantity > 0:  # Long position
+                                exit_price = position.average_price * (Decimal(1) + Decimal(str(take_profit_pct)))
+                            else:  # Short position
+                                exit_price = position.average_price * (Decimal(1) - Decimal(str(take_profit_pct)))
+                    
+                    elif exit_signal.exit_type == 'trailing_stop':
+                        # Use the trailing stop price from metadata
+                        trailing_stop_price = position.metadata.get('trailing_stop_price')
+                        if trailing_stop_price:
+                            exit_price = Decimal(str(trailing_stop_price))
+                
+                logger.info(f"  💸 Exit price: ${exit_price:.4f} (current: ${current_price:.4f})")
+                logger.info(f"  🎯 Creating {exit_signal.exit_type} order at ${exit_price:.4f}")
+                
+                # Create exit order with the correct exit price
+                decisions.append({
+                    'action': 'create_order',
+                    'type': 'exit',
+                    'symbol': symbol,
+                    'side': 'SELL' if position.quantity > 0 else 'BUY',
+                    'quantity': abs(position.quantity),
+                    'order_type': 'MARKET',
+                    'price': str(exit_price),  # Use calculated exit price
+                    'strategy_id': f"{strategy_id}_exit",
+                    'exit_type': exit_signal.exit_type,
+                    'exit_reason': exit_signal.reason
+                })
+                
+                # Track this position as exiting on risk (stop/target)
+                if exit_signal.exit_type in ['stop_loss', 'take_profit']:
+                    positions_exiting_on_risk.add(symbol)
+                    logger.info(f"  🚫 Marking {symbol} as exiting on {exit_signal.exit_type} - will skip signal exits")
+                
+                # Store exit memory if this is a risk-based exit
+                if portfolio_state.get('exit_memory_enabled') and exit_signal.exit_type in portfolio_state.get('exit_memory_types', set()):
+                    # Get the entry signal that opened this position
+                    # This is more accurate than using the current signal value
+                    entry_signal_value = position.metadata.get('entry_signal')
+                    
+                    if entry_signal_value is not None:
+                        # Use the actual entry signal
+                        signal_to_store = float(entry_signal_value)
+                        logger.info(f"  💾 Using entry signal from position metadata: {signal_to_store}")
+                    else:
+                        # Fallback to last known signal if entry signal not stored
+                        memory_key = (symbol, strategy_id)
+                        signal_to_store = portfolio_state['last_signal_values'].get(memory_key, 0.0)
+                        logger.info(f"  💾 Using last known signal (fallback): {signal_to_store}")
+                    
+                    # Only store exit memory for directional signals (not FLAT)
+                    # This prevents blocking all future entries when exit happens during FLAT signal
+                    if abs(signal_to_store) > 0.01:  # Not FLAT (0)
+                        decisions.append({
+                            'action': 'update_exit_memory',
+                            'symbol': symbol,
+                            'strategy_id': strategy_id,
+                            'signal_value': signal_to_store
+                        })
+                        logger.info(f"  💾 Storing exit memory for directional signal: {signal_to_store}")
+                    else:
+                        logger.info(f"  ⏭️ Skipping exit memory for FLAT signal (0)")
+                
+                # Don't process entry for this symbol if we're exiting
+                if symbol == signal_symbol:
+                    return decisions
+        
+        # Now check if we should enter based on the signal
+        direction = signal.get('direction')
+        strategy_id = signal.get('strategy_id')
+        
+        # Skip exit signals (they were handled above)
+        if strategy_id and strategy_id.endswith('_exit'):
+            return decisions
+        
+        # Check exit memory - prevent re-entry after risk exit
+        if portfolio_state.get('exit_memory_enabled'):
+            base_strategy_id = strategy_id.replace("_exit", "") if strategy_id else strategy_id
+            memory_key = (signal_symbol, base_strategy_id)
+            logger.info(f"  🔍 Checking exit memory for {memory_key}, memory dict: {list(portfolio_state.get('exit_memory', {}).keys())}")
+            
+            if memory_key in portfolio_state.get('exit_memory', {}):
+                # Get current signal value
+                direction_value = 0.0
+                if direction in [SignalDirection.LONG, "LONG", 1]:
+                    direction_value = 1.0
+                elif direction in [SignalDirection.SHORT, "SHORT", -1]:
+                    direction_value = -1.0
+                elif signal.get('strength') is not None:
+                    direction_value = float(signal['strength'])
+                
+                stored_signal = portfolio_state['exit_memory'][memory_key]
+                if abs(direction_value - stored_signal) < 0.01:  # Same signal
+                    logger.info(f"  🚫 Exit memory active: Signal ({direction_value}) unchanged since risk exit")
+                    return decisions
+                else:
+                    # Signal has changed, clear memory
+                    logger.info(f"  ✅ Signal changed from {stored_signal} to {direction_value}, clearing exit memory")
+                    decisions.append({
+                        'action': 'clear_exit_memory',
+                        'symbol': signal_symbol,
+                        'strategy_id': base_strategy_id
+                    })
+        
+        # Check if we should create an entry order
+        if direction == SignalDirection.FLAT or direction == "FLAT" or direction == 0:
+            # Check if we have a position to close
+            position = portfolio_state['positions'].get(signal_symbol)
+            if position and position.quantity != 0:
+                # Skip signal exit if position is already exiting on stop/target
+                if signal_symbol in positions_exiting_on_risk:
+                    logger.info(f"  ⏭️ Skipping signal exit for {signal_symbol} - already exiting on stop/target")
+                else:
+                    # Check for EOD close
+                    metadata = signal.get('metadata', {})
+                    if metadata.get('eod_close'):
+                        exit_type = 'eod'
+                        exit_reason = 'End-of-day close'
+                    else:
+                        exit_type = 'signal'
+                        exit_reason = 'Strategy exit signal (FLAT)'
+                    
+                    decisions.append({
+                        'action': 'create_order',
+                        'type': 'exit',
+                        'symbol': signal_symbol,
+                        'side': 'SELL' if position.quantity > 0 else 'BUY',
+                        'quantity': abs(position.quantity),
+                        'order_type': 'MARKET',
+                        'price': str(signal_price),
+                        'strategy_id': strategy_id,
+                        'exit_type': exit_type,
+                        'exit_reason': exit_reason
+                    })
+        else:
+            # Check if we can enter a new position
+            # First check if we already have a position
+            current_position = portfolio_state['positions'].get(signal_symbol)
+            
+            # Handle opposite direction signal (close existing position first)
+            if current_position and current_position.quantity != 0:
+                if (direction in [SignalDirection.LONG, "LONG", 1] and current_position.quantity > 0) or \
+                   (direction in [SignalDirection.SHORT, "SHORT", -1] and current_position.quantity < 0):
+                    logger.debug(f"  ⏸️ Already in position, skipping entry signal")
+                    return decisions
+                else:
+                    # Opposite signal - check if we're already exiting on stop/target
+                    if signal_symbol in positions_exiting_on_risk:
+                        logger.info(f"  ⏭️ Skipping reversal exit for {signal_symbol} - already exiting on stop/target")
+                        # Don't create a new position either if we're exiting on risk
+                        return decisions
+                    else:
+                        # Close existing position first
+                        logger.info(f"  🔄 Opposite signal detected, closing existing position")
+                        decisions.append({
+                            'action': 'create_order',
+                            'type': 'exit',
+                            'symbol': signal_symbol,
+                            'side': 'SELL' if current_position.quantity > 0 else 'BUY',
+                            'quantity': abs(current_position.quantity),
+                            'order_type': 'MARKET',
+                            'price': str(signal_price),
+                            'strategy_id': strategy_id,
+                            'exit_type': 'signal',
+                            'exit_reason': f'Strategy reversal signal ({direction})'
+                        })
+            
+            # Check if we have pending orders
+            if signal_symbol in portfolio_state.get('pending_orders', {}):
+                logger.debug(f"  ⏸️ Pending order exists, skipping entry signal")
+                return decisions
+            
+            # Validate the entry signal
+            validation_result = self.validate_signal(
+                signal,
+                portfolio_state,
+                {'price': signal_price}
+            )
+            
+            if validation_result['approved']:
+                # Calculate position size
+                position_size = self.calculate_position_size(
+                    signal,
+                    portfolio_state,
+                    {'price': signal_price}
+                )
+                
+                if position_size > 0:
+                    # Determine signal value for entry
+                    entry_signal_value = 1.0 if direction in [SignalDirection.LONG, "LONG", 1] else -1.0
+                    
+                    decisions.append({
+                        'action': 'create_order',
+                        'type': 'entry',
+                        'symbol': signal_symbol,
+                        'side': 'BUY' if direction in [SignalDirection.LONG, "LONG", 1] else 'SELL',
+                        'quantity': position_size,
+                        'order_type': 'MARKET',
+                        'price': str(signal_price),
+                        'strategy_id': strategy_id,
+                        'metadata': {
+                            'entry_signal': entry_signal_value
+                        }
+                    })
+            else:
+                logger.info(f"  ❌ Entry signal rejected: {validation_result['reason']}")
+        
+        return decisions
 
 
 # Example integration with existing risk workflow

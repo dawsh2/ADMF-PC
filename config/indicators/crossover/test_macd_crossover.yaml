@@ -1,0 +1,24 @@
+# Test configuration for MACD Crossover strategy
+name: test_macd_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  macd_crossover:
+    params:
+      fast_ema: 12
+      slow_ema: 26
+      signal_ema: 9
+
+# Run with: python main.py --config config/indicators/crossover/test_macd_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - MACD line > Signal line: BUY signal (1)
+# - MACD line < Signal line: SELL signal (-1)
+# - MACD line = Signal line: No signal (0)
+
+# Classic MACD crossover strategy
+# Signal sustained while condition holds

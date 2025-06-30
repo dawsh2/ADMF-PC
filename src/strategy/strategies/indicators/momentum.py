@@ -14,6 +14,7 @@ Follows strategy-interface.md best practices:
 from typing import Dict, Any, Optional
 import logging
 from ....core.components.discovery import strategy
+from ....core.features.feature_spec import FeatureSpec
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,12 @@ logger = logging.getLogger(__name__)
         'fast_period': 'macd_{fast_period}_{slow_period}_{signal_period}',
         'slow_period': 'macd_{fast_period}_{slow_period}_{signal_period}',
         'signal_period': 'macd_{fast_period}_{slow_period}_{signal_period}'
+    },
+    parameter_space={
+        'fast_period': {'type': 'int', 'range': (5, 50), 'default': 10},
+        'min_threshold': {'type': 'float', 'range': (0.0, 0.1), 'default': 0.001},
+        'signal_period': {'type': 'int', 'range': (5, 20), 'default': 9},
+        'slow_period': {'type': 'int', 'range': (20, 200), 'default': 20}
     }
 )
 def macd_crossover_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -142,10 +149,9 @@ def momentum_breakout_strategy(features: Dict[str, Any], bar: Dict[str, Any], pa
 
 @strategy(
     name='roc_trend',
-    feature_config=['roc'],  # Rate of change
-    param_feature_mapping={
-        'roc_period': 'roc_{roc_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('roc', {'period': params.get('roc_period', 10)})
+    ]
 )
 def roc_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -195,10 +201,11 @@ def roc_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Di
 
 @strategy(
     name='adx_trend_strength',
-    feature_config=['adx'],  # Average Directional Index
-    param_feature_mapping={
-        'adx_period': 'adx_{adx_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('adx', {'period': params.get('adx_period', 14)}, 'adx'),
+        FeatureSpec('adx', {'period': params.get('adx_period', 14)}, 'di_plus'),
+        FeatureSpec('adx', {'period': params.get('adx_period', 14)}, 'di_minus')
+    ]
 )
 def adx_trend_strength_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -263,10 +270,10 @@ def adx_trend_strength_strategy(features: Dict[str, Any], bar: Dict[str, Any], p
 
 @strategy(
     name='aroon_oscillator',
-    feature_config=['aroon'],  # Aroon indicator
-    param_feature_mapping={
-        'aroon_period': 'aroon_{aroon_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('aroon', {'period': params.get('aroon_period', 25)}, 'up'),
+        FeatureSpec('aroon', {'period': params.get('aroon_period', 25)}, 'down')
+    ]
 )
 def aroon_oscillator_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -320,10 +327,10 @@ def aroon_oscillator_strategy(features: Dict[str, Any], bar: Dict[str, Any], par
 
 @strategy(
     name='vortex_trend',
-    feature_config=['vortex'],  # Vortex indicator
-    param_feature_mapping={
-        'vortex_period': 'vortex_{vortex_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('vortex', {'period': params.get('vortex_period', 14)}, 'vi_plus'),
+        FeatureSpec('vortex', {'period': params.get('vortex_period', 14)}, 'vi_minus')
+    ]
 )
 def vortex_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -379,10 +386,9 @@ def vortex_trend_strategy(features: Dict[str, Any], bar: Dict[str, Any], params:
 
 @strategy(
     name='elder_ray',
-    feature_config=['ema'],  # Elder Ray uses EMA as baseline
-    param_feature_mapping={
-        'ema_period': 'ema_{ema_period}'
-    }
+    feature_discovery=lambda params: [
+        FeatureSpec('ema', {'period': params.get('period', 13)})
+    ]
 )
 def elder_ray_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -397,7 +403,7 @@ def elder_ray_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Di
     - Bear Power = Low - EMA (selling pressure below trend)
     """
     # Parameters
-    ema_period = params.get('ema_period', 21)
+    ema_period = params.get('period', 21)
     bull_threshold = params.get('bull_threshold', 0.001)  # Minimum bull power
     bear_threshold = params.get('bear_threshold', -0.001)  # Maximum bear power (negative)
     

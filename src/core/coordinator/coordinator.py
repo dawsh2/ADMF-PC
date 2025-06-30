@@ -119,8 +119,97 @@ class Coordinator:
         
         logger.info(f"Executing topology '{topology_name}' directly")
         
+        # Debug: Check what's in config
+        logger.info(f"Config keys: {list(config.keys())}")
+        if 'parameter_space' in config:
+            logger.info(f"parameter_space keys: {list(config['parameter_space'].keys())}")
+            if 'strategies' in config['parameter_space']:
+                logger.info(f"Found {len(config['parameter_space']['strategies'])} strategies in parameter_space")
+        
+        # If parameter_space.strategies exists, copy to top level for topology patterns
+        if 'parameter_space' in config and 'strategies' in config['parameter_space']:
+            if 'strategies' not in config:
+                config['strategies'] = config['parameter_space']['strategies']
+                logger.info(f"Copied {len(config['strategies'])} strategies from parameter_space to top level")
+            else:
+                logger.info(f"Strategies already exist at top level: {len(config.get('strategies', []))} items")
+        
         # Configure WFV if specified
         config = self._configure_wfv_if_needed(config)
+        
+        # Pre-flight check for signal generation topology
+        if topology_name == 'signal_generation' and config.get('strategies'):
+            from .strategy_preflight import StrategyPreflightChecker
+            
+            # Extract symbol and timeframe from data config
+            data_str = config.get('data', '')
+            symbol = None
+            timeframe = None
+            if isinstance(data_str, str) and '_' in data_str:
+                parts = data_str.split('_')
+                if len(parts) >= 2:
+                    symbol = parts[0]
+                    timeframe = parts[1]
+            
+            # Check which strategies need computation
+            preflight = StrategyPreflightChecker()
+            check_result = preflight.check_strategies(
+                config['strategies'], 
+                symbol=symbol,
+                timeframe=timeframe
+            )
+            
+            logger.info(f"🔍 Pre-flight check: {check_result['total_count']} strategies in configuration")
+            
+            if check_result['all_exist']:
+                # All strategies exist - skip entire computation
+                logger.info(f"✅ All {check_result['total_count']} strategies already computed. Nothing to do.")
+                
+                # Estimate time saved
+                time_estimate = preflight.estimate_time_saved(
+                    check_result['skipped_count'],
+                    total_bars=config.get('max_bars', 16000)
+                )
+                logger.info(f"⏱️  Time saved: {time_estimate['time_saved_formatted']}")
+                
+                # Return success with metadata about what was skipped
+                return {
+                    'success': True,
+                    'workflow_id': execution_id or 'signal_generation',
+                    'results_directory': str(Path.cwd() / 'traces'),
+                    'metadata': {
+                        'all_strategies_existed': True,
+                        'strategies_skipped': check_result['skipped_count'],
+                        'time_saved': time_estimate['time_saved_formatted'],
+                        'message': check_result['summary']
+                    }
+                }
+            
+            # Some strategies need computation
+            logger.info(f"✅ Found {check_result['skipped_count']} existing strategies in global traces")
+            logger.info(f"📊 Computing {check_result['compute_count']} new strategies")
+            
+            # Update config to only include strategies that need computation
+            original_count = len(config['strategies'])
+            config['strategies'] = check_result['strategies_to_compute']
+            config['required_features'] = list(check_result['required_features'])
+            
+            logger.info(f"🎯 Required features: {len(check_result['required_features'])} "
+                       f"(reduced from all configured features)")
+            
+            # Add metadata about skipping
+            config['preflight_check'] = {
+                'original_strategy_count': original_count,
+                'computed_strategy_count': check_result['compute_count'],
+                'skipped_strategy_count': check_result['skipped_count'],
+                'required_features': list(check_result['required_features'])
+            }
+        
+        # Check for --force flag to skip preflight optimization
+        if config.get('force_recompute', False):
+            logger.info("⚠️  Force recompute enabled - ignoring existing traces")
+            if 'preflight_check' in config:
+                del config['preflight_check']
         
         # Delegate to sequencer for topology execution
         result = self.sequencer.run_topology(
@@ -129,16 +218,37 @@ class Coordinator:
             execution_id=execution_id
         )
         
-        # Integrate with SQL analytics if run was successful
-        if result.get('success'):
+        # Skip SQL analytics integration for now (per user request)
+        # Analytics workspace creation has been disabled as the system is still in development
+        # if result.get('success'):
+        #     try:
+        #         from ...analytics.integration import integrate_with_topology_result
+        #         workspace_path = integrate_with_topology_result(result, topology_name, config)
+        #         if workspace_path:
+        #             result['analytics_workspace'] = str(workspace_path)
+        #             logger.info(f"📊 SQL analytics workspace created: {workspace_path.name}")
+        #     except Exception as e:
+        #         logger.warning(f"Failed to create SQL analytics workspace: {e}")
+        
+        # Check strategy freshness for signal replay mode
+        if topology_name == 'signal_replay':
             try:
-                from ...analytics.integration import integrate_with_topology_result
-                workspace_path = integrate_with_topology_result(result, topology_name, config)
-                if workspace_path:
-                    result['analytics_workspace'] = str(workspace_path)
-                    logger.info(f"📊 SQL analytics workspace created: {workspace_path.name}")
+                from .strategy_freshness import check_strategy_freshness
+                freshness_results = check_strategy_freshness(config)
+                
+                if not freshness_results['all_fresh']:
+                    logger.warning("⚠️ Some strategies need updating:")
+                    for strategy, reason in freshness_results['reasons'].items():
+                        logger.warning(f"  - {strategy}: {reason}")
+                    if 'update_command' in freshness_results:
+                        logger.info(f"💡 To update: {freshness_results['update_command']}")
+                    
+                    # Add freshness info to results
+                    result['freshness_check'] = freshness_results
+                else:
+                    logger.info("✅ All strategy traces are up-to-date")
             except Exception as e:
-                logger.warning(f"Failed to create SQL analytics workspace: {e}")
+                logger.debug(f"Could not check strategy freshness: {e}")
         
         return result
     

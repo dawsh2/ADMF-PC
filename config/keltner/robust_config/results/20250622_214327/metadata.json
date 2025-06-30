@@ -1,0 +1,47 @@
+{
+  "workflow_id": "robust_config",
+  "workspace_path": "config/keltner/robust_config/results/20250622_214327",
+  "total_bars": 20768,
+  "total_signals": 4140,
+  "total_classifications": 0,
+  "stored_changes": 1274,
+  "compression_ratio": 30.77294685990338,
+  "components": {
+    "SPY_5m_kb_robust_p10_m3": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_robust_p10_m3.parquet",
+      "total_bars": 20764,
+      "signal_changes": 1274,
+      "compression_ratio": 0.06135619341167405,
+      "signal_frequency": 0.06135619341167405,
+      "parameters": {
+        "period": 10,
+        "multiplier": 0.5,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T21:43:27.142174"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "kb_robust_p10_m3": {
+        "type": "keltner_bands",
+        "name": "kb_robust_p10_m3",
+        "params": {
+          "period": 10,
+          "multiplier": 0.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

@@ -5,7 +5,7 @@ This module defines the protocols (interfaces) used throughout
 the system to ensure clean separation of concerns.
 """
 
-from typing import Dict, Any, List, Optional, Protocol, runtime_checkable
+from typing import Dict, Any, List, Optional, Protocol, runtime_checkable, Tuple
 from dataclasses import dataclass, field
 
 
@@ -327,5 +327,81 @@ class OptimizerProtocol(Protocol):
             
         Returns:
             List of selected parameter sets
+        """
+        ...
+
+
+@runtime_checkable
+class Optimizable(Protocol):
+    """
+    Protocol for components that can be optimized.
+    
+    Any component implementing this protocol can participate
+    in optimization workflows. This supports the recursive
+    parameter extraction for ensemble strategies.
+    """
+    
+    def get_parameter_space(self) -> Dict[str, Any]:
+        """
+        Get parameter space for optimization.
+        
+        Returns:
+            Dict mapping parameter names to:
+                - List[Any]: discrete values
+                - Tuple[float, float]: continuous range (min, max)
+                - Dict with 'type', 'min', 'max', 'step', 'default', etc.
+        """
+        ...
+    
+    def set_parameters(self, params: Dict[str, Any]) -> None:
+        """Apply parameter values."""
+        ...
+    
+    def get_parameters(self) -> Dict[str, Any]:
+        """Get current parameter values."""
+        ...
+    
+    def validate_parameters(self, params: Dict[str, Any]) -> Tuple[bool, str]:
+        """
+        Validate parameter values.
+        
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        ...
+
+
+@runtime_checkable
+class StrategyCompilerProtocol(Protocol):
+    """Protocol for compiling compositional strategy configurations into executable strategies."""
+    
+    def compile_strategies(self, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Compile strategy configuration into list of executable strategy specs.
+        
+        For grid search, this expands to many strategies.
+        For single strategy, returns list of one.
+        
+        Args:
+            config: Strategy configuration (can be atomic, composite, conditional, etc.)
+        
+        Returns:
+            List of dicts with:
+                - 'id': Unique strategy identifier
+                - 'function': Compiled strategy function
+                - 'features': List[FeatureSpec] needed
+                - 'metadata': Additional info (params, composition structure, etc.)
+        """
+        ...
+    
+    def extract_features(self, config: Dict[str, Any]) -> List['FeatureSpec']:
+        """
+        Recursively extract all features needed by the compositional strategy.
+        
+        Args:
+            config: Strategy configuration
+            
+        Returns:
+            List of FeatureSpec objects for all required features
         """
         ...

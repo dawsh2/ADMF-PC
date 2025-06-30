@@ -1,0 +1,45 @@
+# Bollinger RSI Divergence - EXACT Implementation
+# This implements the EXACT pattern that produced:
+# - 494 trades
+# - 71.9% win rate  
+# - 11.82% net return
+# - ~12 bar average holding period
+
+name: bollinger_rsi_divergence_exact
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+
+# Required features with EXACT parameters
+feature_config:
+  bollinger_bands:
+    - period: 20
+      std_dev: 2.0
+  rsi:
+    - period: 14
+  bb_rsi_divergence_exact:
+    - {}  # Uses hardcoded exact parameters
+
+# Strategy configuration
+strategy:
+  bollinger_rsi_divergence_exact:
+    params: {}  # No parameters - uses exact values
+
+# Expected results from original backtest:
+# - ~494 trades total (38 trades/month)
+# - 71.9% win rate
+# - 11.82% net return after 1bp costs
+# - Average 12 bar holding period
+# - Quick exits at middle band
+
+# The EXACT pattern:
+# 1. Price closes below lower band
+# 2. Look back 20 bars for previous close below band  
+# 3. Current low < previous low AND current RSI > previous RSI + 5
+# 4. Wait up to 10 bars for close back inside bands
+# 5. Enter on confirmation
+# 6. Exit at middle band or 50 bars max
+
+# Run with:
+# python main.py --config config/indicators/volatility/bollinger_rsi_divergence_exact.yaml --signal-generation --bars 50000

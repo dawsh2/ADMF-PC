@@ -1,0 +1,45 @@
+name: test_keltner_filtered
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-11-30"
+
+# Match the workspace we analyzed
+dataset: train
+
+# Keltner bands with entry filters
+strategy:
+  signal_filter:
+    base_strategy: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filters:
+      # High volatility filter
+      - field: volatility_percentile_20
+        operator: ">"
+        value: 80
+      # High volume filter  
+      - field: volume_ratio
+        operator: ">"
+        value: 1.5
+      # RSI filter
+      - field: rsi_14
+        operator: "<"
+        value: 50
+      # VWAP filter for longs (would need conditional logic)
+      # This is simplified - real implementation would need direction-specific filters
+
+# Data source
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+# 1-minute timeframe
+timeframe: "1m"
+
+# Enable detailed signal tracking
+signal_persistence: 
+  enabled: true
+  compression: sparse

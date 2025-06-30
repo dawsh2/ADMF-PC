@@ -10,10 +10,14 @@ from pathlib import Path
 from typing import Optional, Callable, AsyncGenerator
 import logging
 import asyncio
+import pytz
 
 from .models import Bar
 
 logger = logging.getLogger(__name__)
+
+# Pre-create timezone object for performance
+ET_TZ = pytz.timezone('US/Eastern')
 
 
 class CSVDataHandler:
@@ -115,7 +119,49 @@ class CSVDataHandler:
             if missing:
                 raise ValueError(f"Missing required columns: {missing}")
         
+        # Pre-calculate time-based features for performance
+        self._calculate_time_features()
+        
         logger.info(f"Loaded {len(self.data)} bars for {self.symbol}")
+    
+    def _calculate_time_features(self):
+        """Pre-calculate time-based features to avoid repeated timezone conversions."""
+        # Convert index to ET timezone
+        if self.data.index.tz is None:
+            # Assume UTC if no timezone
+            self.data.index = self.data.index.tz_localize('UTC')
+        
+        # Convert to ET
+        et_timestamps = self.data.index.tz_convert(ET_TZ)
+        
+        # Calculate time features
+        self.data['et_hour'] = et_timestamps.hour
+        self.data['et_minute'] = et_timestamps.minute
+        self.data['et_time'] = self.data['et_hour'] * 100 + self.data['et_minute']
+        
+        # Intraday flag - market hours 9:30 AM - 3:55 PM ET
+        self.data['intraday'] = (self.data['et_time'] >= 930) & (self.data['et_time'] < 1555)
+        
+        # Calculate bar_of_day for backward compatibility
+        # Minutes since 9:30 AM divided by timeframe
+        minutes_since_930 = ((self.data['et_hour'] - 9) * 60 + self.data['et_minute'] - 30)
+        
+        # Extract timeframe in minutes
+        timeframe_minutes = 5  # Default for 5m
+        if self.timeframe == '1m':
+            timeframe_minutes = 1
+        elif self.timeframe == '15m':
+            timeframe_minutes = 15
+        elif self.timeframe == '30m':
+            timeframe_minutes = 30
+        elif self.timeframe == '1h':
+            timeframe_minutes = 60
+        
+        self.data['bar_of_day'] = minutes_since_930 // timeframe_minutes
+        # Set pre-market bars to -1
+        self.data.loc[self.data['et_time'] < 930, 'bar_of_day'] = -1
+        
+        logger.debug(f"Pre-calculated time features for {len(self.data)} bars")
         
     def _get_next_bar(self) -> Optional[Bar]:
         """Get the next bar from the data."""

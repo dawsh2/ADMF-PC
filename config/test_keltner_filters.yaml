@@ -1,0 +1,59 @@
+name: test_keltner_filters
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-03-26"  # Valid date range
+end_date: "2024-04-30"
+dataset: train
+
+# Define additional features needed for filters
+feature_configs:
+  rsi_14:
+    type: rsi
+    period: 14
+  atr_14:
+    type: atr
+    period: 14
+
+# Test multiple filter configurations
+strategies:
+  # Baseline - no filter
+  - name: keltner_baseline
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+      
+  # RSI < 50 filter
+  - name: keltner_rsi50
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal != 0 and rsi(14) < 50"
+    
+  # RSI < 70 filter (less restrictive)
+  - name: keltner_rsi70
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "signal != 0 and rsi(14) < 70"
+    
+  # Directional RSI filter
+  - name: keltner_directional
+    type: keltner_bands
+    params:
+      period: 20
+      multiplier: 2.0
+    filter: "(signal > 0 and rsi(14) < 40) or (signal < 0 and rsi(14) > 60)"
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

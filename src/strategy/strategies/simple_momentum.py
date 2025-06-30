@@ -6,6 +6,7 @@ generating paired entry/exit signals based on momentum conditions.
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ...core.components.discovery import strategy
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='simple_momentum',
-    feature_config=['sma', 'rsi']  # Simple list format - topology builder infers parameters
+    feature_discovery=lambda params: [FeatureSpec('sma', {'period': params.get('sma_period', 20)}), FeatureSpec('rsi', {'period': params.get('rsi_period', 14)})]  # Simple list format - topology builder infers parameters
 )
 def simple_momentum_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

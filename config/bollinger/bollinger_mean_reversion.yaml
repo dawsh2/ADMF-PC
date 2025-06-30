@@ -1,0 +1,32 @@
+# Bollinger Bands Mean Reversion Strategy
+# 
+# This strategy trades the reversion to mean when price touches
+# the outer bands, expecting price to return to the middle band
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces
+
+data:
+  sources:
+    csv:
+      type: csv
+      path: ./data/SPY_5m.csv
+  symbols: [SPY]
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+strategy:
+  bollinger_bands:
+    # Mean reversion parameters - wider bands for extremes
+    - period: 20
+      std_dev: 2.5
+      # Add filter to only trade at band touches
+      filter: |
+        signal != 0 and (
+          (signal > 0 and Low <= lower_band) or  # Buy when touching lower band
+          (signal < 0 and High >= upper_band)    # Sell when touching upper band
+        )

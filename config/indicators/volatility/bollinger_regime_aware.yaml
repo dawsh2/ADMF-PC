@@ -1,0 +1,54 @@
+# Bollinger Bands with regime-aware filtering using compositional strategies
+name: bollinger_regime_aware
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Features for regime detection
+feature_config:
+  sma:
+    - period: 20
+    - period: 50
+    - period: 200
+  vwap: {}
+  atr:
+    - period: 14
+
+# Use conditional strategy to implement regime filtering
+strategy:
+  conditional:
+    # Condition: Check if we're in a trending market
+    condition:
+      trend_detector:  # Custom function that returns true/false
+        params:
+          fast_period: 20
+          slow_period: 50
+    
+    # If trending, use filtered Bollinger
+    if_true:
+      bollinger_bands:
+        params:
+          period: 20
+          std_dev: 2.0  # Tighter bands for trend trading
+        filter:
+          # In trends, only trade with the trend
+          - condition: "signal_value > 0 and sma_20 > sma_50"
+            action: "allow"
+          - condition: "signal_value < 0 and sma_20 < sma_50"
+            action: "allow"
+          - condition: "signal_value != 0"
+            action: "reject"
+    
+    # If ranging, use different Bollinger settings
+    if_false:
+      bollinger_bands:
+        params:
+          period: 20
+          std_dev: 2.5  # Wider bands for range trading
+        filter:
+          # In ranges, fade extremes more aggressively
+          - condition: "signal_value != 0 and abs((close - vwap) / vwap) > 0.01"
+            action: "allow"  # Only trade when far from VWAP
+          - condition: "signal_value != 0"
+            action: "reject"

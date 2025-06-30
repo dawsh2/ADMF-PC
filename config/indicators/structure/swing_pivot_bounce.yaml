@@ -1,0 +1,27 @@
+# Swing Pivot Bounce Strategy
+# Mean reversion strategy that trades bounces off dynamic support/resistance levels
+name: swing_pivot_bounce
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features
+feature_config:
+  support_resistance_20:  # Name must match what strategy expects
+    type: support_resistance
+    lookback: 20
+    min_touches: 2
+
+# Strategy configuration
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 20           # Support/Resistance lookback period
+      min_touches: 2          # Minimum touches to validate level
+      bounce_threshold: 0.002 # 0.2% proximity for bounce detection
+      exit_threshold: 0.001   # 0.1% from midpoint to exit position

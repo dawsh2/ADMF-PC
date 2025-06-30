@@ -1,0 +1,21 @@
+# Extensive Keltner Bands optimization
+name: keltner_bands_extensive_opt
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-10-31"
+
+# Extensive parameter space
+parameter_space:
+  strategies:
+    - type: keltner_bands
+      param_overrides:
+        # Fine-grained period testing (11 values)
+        period: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60]
+        # Fine-grained multiplier testing (9 values)
+        multiplier: [0.5, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 4.0]
+
+# This generates 11 * 9 = 99 strategy combinations
+
+# Optional: limit data for faster testing
+# bars: 20000  # Uncomment to test on first 20k bars only

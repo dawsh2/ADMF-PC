@@ -1,0 +1,10 @@
+name: bollinger_ensemble
+data: SPY_5m
+
+# Three specific Bollinger Bands configurations as ensemble
+strategy: [
+  {bollinger_bands: {period: 20, std_dev: 3.0, weight: "1/n"}},
+  {bollinger_bands: {period: 20, std_dev: 2.5, weight: "1/n"}},
+  {bollinger_bands: {period: 10, std_dev: 3.0, weight: "1/n"}},
+  {threshold: "abs(signal) > 0.5"}  # Only trade if majority agree
+]

@@ -1,0 +1,463 @@
+# Progressive Configuration Examples
+# From simple to complex trading system configurations
+
+# ============================================================================
+# LEVEL 1: Hello World - Single Strategy
+# ============================================================================
+name: simple_ma_crossover
+symbols: ["SPY"]
+timeframe: "5m"
+
+production:
+  strategy:
+    sma_crossover:
+      params:
+        fast_period: 10
+        slow_period: 30
+
+---
+# ============================================================================
+# LEVEL 2: Adding Parameter Research
+# ============================================================================
+name: ma_crossover_with_research
+symbols: ["SPY"]
+timeframe: "5m"
+
+# Exploring different parameters
+research:
+  strategies:
+    - sma_crossover:
+        fast_period: [5, 10, 15, 20]
+        slow_period: [20, 30, 50, 100]
+
+# Trading the current best
+production:
+  strategy:
+    sma_crossover:
+      params:
+        fast_period: 10
+        slow_period: 30
+
+---
+# ============================================================================
+# LEVEL 3: Adding Filters
+# ============================================================================
+name: filtered_ma_crossover
+symbols: ["SPY"]
+timeframe: "5m"
+
+research:
+  strategies:
+    # Test without filter
+    - sma_crossover:
+        fast_period: [10, 15, 20]
+        slow_period: [30, 50]
+    
+    # Test with volume filter
+    - type: sma_crossover
+      param_overrides:
+        fast_period: [10, 15, 20]
+        slow_period: [30, 50]
+      filter: "volume > sma(volume, 20) * 1.2"
+
+production:
+  strategy:
+    sma_crossover:
+      params:
+        fast_period: 15
+        slow_period: 50
+      filter: "volume > sma(volume, 20) * 1.2"
+
+---
+# ============================================================================
+# LEVEL 4: Risk Management
+# ============================================================================
+name: ma_crossover_with_risk
+symbols: ["SPY"]
+timeframe: "5m"
+
+# Global risk settings
+risk:
+  position_size: 0.1  # 10% per trade
+  max_positions: 3
+
+production:
+  strategy:
+    sma_crossover:
+      params:
+        fast_period: 15
+        slow_period: 50
+      filter: "volume > sma(volume, 20) * 1.2"
+      risk:
+        stop_loss: 0.002  # 0.2%
+        take_profit: 0.004  # 0.4%
+        max_holding_period: 100  # bars
+
+---
+# ============================================================================
+# LEVEL 5: Multiple Strategies (Ensemble)
+# ============================================================================
+name: simple_ensemble
+symbols: ["SPY"]
+timeframe: "5m"
+
+research:
+  strategies:
+    # Test multiple strategy types
+    - momentum/*
+    - mean_reversion/*
+
+production:
+  strategy: [
+    {
+      sma_crossover: {
+        params: {fast_period: 15, slow_period: 50},
+        weight: 0.4
+      }
+    },
+    {
+      rsi_threshold: {
+        params: {period: 14, oversold: 30, overbought: 70},
+        weight: 0.3
+      }
+    },
+    {
+      bollinger_bands: {
+        params: {period: 20, std: 2.0},
+        weight: 0.3
+      }
+    }
+  ]
+
+---
+# ============================================================================
+# LEVEL 6: Conditional Strategies (Regime-Based)
+# ============================================================================
+name: regime_adaptive_system
+symbols: ["SPY"]
+timeframe: "5m"
+
+production:
+  strategy: [
+    {
+      # High volatility - use momentum
+      filter: "volatility_regime() == 'high'"
+      momentum:
+        params: {period: 14}
+        filter: "trend_strength() > 0.5"
+      weight: 0.5
+    },
+    {
+      # Low volatility - use mean reversion
+      filter: "volatility_regime() == 'low'"
+      bollinger_bands:
+        params: {period: 20, std: 2.0}
+        filter: "abs(price_to_vwap()) > 0.002"
+      weight: 0.5
+    }
+  ]
+
+---
+# ============================================================================
+# LEVEL 7: Multi-Timeframe
+# ============================================================================
+name: multi_timeframe_system
+symbols: ["SPY"]
+timeframes: ["1m", "5m", "15m"]  # Default is 5m
+
+production:
+  strategy: [
+    {
+      # 15m trend following
+      timeframe: "15m"
+      sma_crossover:
+        params: {fast_period: 10, slow_period: 30}
+      weight: 0.4
+    },
+    {
+      # 5m momentum (uses default)
+      momentum:
+        params: {period: 14}
+      weight: 0.3
+    },
+    {
+      # 1m scalping
+      timeframe: "1m"
+      filter: "volatility_percentile(20) > 80"
+      scalping_strategy:
+        params: {threshold: 0.001}
+      weight: 0.3
+    }
+  ]
+
+---
+# ============================================================================
+# LEVEL 8: Complex Research with Filter Combinations
+# ============================================================================
+name: advanced_research
+symbols: ["SPY"]
+timeframe: "5m"
+
+research:
+  strategies:
+    # Test base strategies
+    - bollinger_bands:
+        period: range(15, 30, 5)
+        std: range(1.5, 2.5, 0.5)
+    
+    # Test with various filters
+    - type: bollinger_bands
+      param_overrides:
+        period: [20, 25]
+        std: [2.0]
+      filter: |
+        signal == 0 or 
+        (rsi(14) < ${rsi_threshold} and 
+         volume > sma(volume, 20) * ${vol_threshold})
+      filter_params:
+        rsi_threshold: [30, 40, 50]
+        vol_threshold: [1.1, 1.2, 1.5]
+    
+    # Directional filters
+    - type: bollinger_bands
+      param_overrides:
+        period: [20]
+        std: [2.0]
+      filter: |
+        signal == 0 or
+        (signal > 0 and price > vwap()) or
+        (signal < 0 and price < vwap())
+
+production:
+  strategy:
+    bollinger_bands:
+      params: {period: 20, std: 2.0}
+      filter: |
+        rsi(14) < 40 and 
+        volume > sma(volume, 20) * 1.2
+
+---
+# ============================================================================
+# LEVEL 9: Full Production System
+# ============================================================================
+name: production_ready_system
+symbols: ["SPY", "QQQ"]
+timeframes: ["5m"]
+
+# Execution costs
+execution:
+  commission: 0.0001  # 1bp
+  slippage: 0.0001
+  initial_capital: 100000
+
+# Risk limits
+risk:
+  max_drawdown: 0.10  # 10%
+  position_size: 0.05  # 5% per position
+  max_positions: 5
+  correlation_limit: 0.7
+
+# Still researching improvements
+research:
+  strategies:
+    - trend_following/*:
+        exclude: ["complex_ml_trend"]
+    - mean_reversion/*:
+        param_ranges: "conservative"
+
+# Production ensemble
+production:
+  strategy: [
+    {
+      # Trend component
+      filter: |
+        market_hours() == 'regular' and
+        volume > sma(volume, 50) * 0.8
+      weight: 0.35
+      
+      strategy: [
+        {
+          sma_crossover: {
+            params: {fast_period: 10, slow_period: 30},
+            weight: 0.6
+          }
+        },
+        {
+          momentum: {
+            params: {period: 14},
+            filter: "rsi(14) < 70",
+            weight: 0.4
+          }
+        }
+      ]
+    },
+    {
+      # Mean reversion component
+      filter: |
+        volatility_percentile(50) < 0.7 and
+        abs(price_to_vwap()) > 0.002
+      weight: 0.35
+      
+      bollinger_bands:
+        params: {period: 20, std: 2.0}
+        risk:
+          stop_loss: 0.0015
+          max_holding_period: 50
+    },
+    {
+      # Regime-specific
+      filter: "volatility_regime() == 'high' and trend_regime() == 'strong'"
+      weight: 0.3
+      
+      breakout_strategy:
+        params: {lookback: 20, threshold: 0.002}
+        filter: |
+          volume > sma(volume, 20) * 1.5 and
+          time_of_day() not in ['09:30-10:00', '15:30-16:00']
+    }
+  ]
+
+---
+# ============================================================================
+# LEVEL 10: Institutional-Grade Configuration
+# ============================================================================
+name: institutional_trading_system
+symbols: ["SPY", "QQQ", "IWM", "DIA"]
+timeframes: ["1m", "5m", "15m", "1h"]
+
+# Data configuration
+data:
+  source: "alpaca"  # or "file", "ib", etc.
+  start_date: "2023-01-01"
+  end_date: "2024-12-31"
+  
+# Execution configuration
+execution:
+  commission: 0.00005  # 0.5bp institutional rate
+  slippage: 
+    model: "square_root"
+    coefficient: 0.05
+  market_impact:
+    model: "almgren_chriss"
+    permanent: 0.1
+    temporary: 0.05
+  order_size_limit: 0.001  # 0.1% of volume
+
+# Advanced risk management
+risk:
+  portfolio_level:
+    max_var_95: 0.02  # 2% VaR
+    max_leverage: 2.0
+    max_drawdown: 0.15
+  position_level:
+    max_position_size: 0.02
+    max_correlated_exposure: 0.10
+  dynamic_sizing:
+    method: "kelly_criterion"
+    confidence: 0.25  # 1/4 Kelly
+
+# Research configuration
+research:
+  # Parallel processing
+  compute:
+    workers: 8
+    memory_limit: "16GB"
+  
+  # Strategy universe
+  strategies:
+    - proprietary/*:
+        param_space: "production_ranges"
+    - ml_strategies/*:
+        exclude: ["experimental_*"]
+        
+  # Walk-forward optimization
+  optimization:
+    method: "walk_forward"
+    train_period: 252  # 1 year
+    test_period: 63   # 3 months
+    step_size: 21    # 1 month
+    
+  # Performance metrics
+  metrics:
+    - sharpe_ratio
+    - sortino_ratio
+    - calmar_ratio
+    - max_drawdown
+    - win_rate
+    - profit_factor
+
+# Production configuration
+production:
+  # Portfolio allocation
+  allocation:
+    method: "risk_parity"
+    rebalance_frequency: "weekly"
+    
+  # Main strategy ensemble
+  strategy: [
+    {
+      name: "trend_following_basket"
+      symbols: ["SPY", "QQQ"]
+      weight: 0.3
+      
+      strategy: {
+        # Your proprietary trend strategy
+        advanced_trend_system: {
+          config: "configs/proprietary/trend_v3.yaml"
+        }
+      }
+    },
+    {
+      name: "market_neutral_pairs"
+      symbols: ["SPY", "IWM"]  # Large vs Small cap
+      weight: 0.3
+      
+      strategy: {
+        pairs_trading: {
+          params: {
+            lookback: 60,
+            entry_zscore: 2.0,
+            exit_zscore: 0.5
+          }
+        }
+      }
+    },
+    {
+      name: "volatility_harvesting"
+      symbols: ["*"]  # All symbols
+      weight: 0.2
+      
+      strategy: {
+        volatility_arbitrage: {
+          params: {
+            vol_lookback: 20,
+            vol_threshold: 0.15
+          }
+        }
+      }
+    },
+    {
+      name: "ml_ensemble"
+      weight: 0.2
+      
+      strategy: {
+        ml_meta_learner: {
+          models: ["lgbm_v2", "xgboost_v3", "nn_ensemble_v1"]
+          voting: "weighted"
+        }
+      }
+    }
+  ]
+  
+  # Production monitoring
+  monitoring:
+    alerts:
+      - metric: "drawdown"
+        threshold: 0.05
+        action: "reduce_position_size"
+      - metric: "sharpe_ratio_rolling_20d"
+        threshold: 0.5
+        action: "notify"
+    reporting:
+      frequency: "daily"
+      recipients: ["pm@fund.com", "risk@fund.com"]

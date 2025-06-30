@@ -1,0 +1,2 @@
+strategy_hash,strategy_type,sharpe_ratio,total_return,win_rate,avg_return_per_trade,num_trades,total_execution_cost
+3bee7e1ff576,bollinger_bands,-1.125324158569896,-0.07571702398381341,0.5551224944320713,-4.295037252213081e-05,1796,0.17960000000000004

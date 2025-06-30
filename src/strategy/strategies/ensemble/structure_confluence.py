@@ -6,6 +6,7 @@ Composite strategies that combine multiple structure indicators
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ....core.components.discovery import strategy
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='pivot_trendline_confluence',
-    feature_config=['pivot_channels', 'trendlines', 'sr_confluence']
+    feature_discovery=lambda params: [FeatureSpec('pivot_channels', {}), FeatureSpec('trendlines', {}), FeatureSpec('sr_confluence', {})]
 )
 def pivot_trendline_confluence(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -132,7 +133,7 @@ def pivot_trendline_confluence(features: Dict[str, Any], bar: Dict[str, Any], pa
 
 @strategy(
     name='multi_touch_validation',
-    feature_config=['pivot_channels', 'trendlines']
+    feature_discovery=lambda params: [FeatureSpec('pivot_channels', {}), FeatureSpec('trendlines', {})]
 )
 def multi_touch_validation(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -231,7 +232,7 @@ def multi_touch_validation(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='confluence_bounce_zones',
-    feature_config=['sr_confluence', 'pivot_channels', 'trendlines']
+    feature_discovery=lambda params: [FeatureSpec('sr_confluence', {}), FeatureSpec('pivot_channels', {}), FeatureSpec('trendlines', {})]
 )
 def confluence_bounce_zones(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -334,7 +335,7 @@ def confluence_bounce_zones(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='breakout_confluence',
-    feature_config=['pivot_channels', 'trendlines', 'sr_confluence']
+    feature_discovery=lambda params: [FeatureSpec('pivot_channels', {}), FeatureSpec('trendlines', {}), FeatureSpec('sr_confluence', {})]
 )
 def breakout_confluence(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

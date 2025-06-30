@@ -1,0 +1,31 @@
+{
+  "workflow_id": "",
+  "workspace_path": "results/20250622_162106",
+  "total_bars": 3,
+  "total_signals": 0,
+  "total_classifications": 0,
+  "stored_changes": 0,
+  "compression_ratio": 0,
+  "components": {},
+  "strategy_metadata": {
+    "strategies": {
+      "keltner_test": {
+        "type": "keltner_bands",
+        "name": "keltner_test",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 1,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 1,
+      "max_nesting_depth": 0
+    }
+  }
+}

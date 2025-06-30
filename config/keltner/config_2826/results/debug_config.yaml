@@ -1,0 +1,14 @@
+# Debug config - relaxed filter to test signal generation
+name: keltner_2826_debug
+data: SPY_5m_test  # Make sure this points to your test data
+
+strategy:
+  - keltner_bands:
+      period: [30]
+      multiplier: [1.0]
+      
+      # Try without filter first
+      # filter: {volatility_above: {threshold: 1.1}}
+      
+      # Or try with lower threshold
+      filter: {volatility_above: {threshold: 0.8}}

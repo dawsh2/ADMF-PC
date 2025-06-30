@@ -1,0 +1,40 @@
+# Keltner Bands optimization configuration
+name: optimize_keltner_bands
+mode: backtest  # For optimization, use backtest mode
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-10-31"
+
+# Base strategy configuration (used as template)
+strategy:
+  keltner_bands:
+    params:
+      period: 20
+      multiplier: 2.0
+
+# Parameter space for optimization
+parameter_space:
+  strategies:
+    - type: keltner_bands
+      param_overrides:
+        # Test different periods
+        period: [10, 15, 20, 30, 40, 50]
+        # Test different multipliers
+        multiplier: [1.0, 1.5, 2.0, 2.5, 3.0]
+
+# This generates 6 * 5 = 30 combinations
+
+# Execution settings for optimization
+execution:
+  initial_capital: 100000
+  position_size_pct: 10  # Use 10% of capital per trade
+  commission_rate: 0.0001  # 1 basis point per trade
+  slippage_rate: 0.0001   # 1 basis point slippage
+
+# Risk management
+risk:
+  max_position_size: 0.25  # Maximum 25% in one position
+  stop_loss_pct: 0.02      # 2% stop loss
+
+# For faster optimization on subset of data
+# bars: 50000

@@ -7,6 +7,7 @@ All strategies follow the stateless pattern required by the architecture.
 """
 
 from typing import Dict, Any, Optional
+from src.core.features.feature_spec import FeatureSpec
 import logging
 from ...core.components.discovery import strategy
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rule14_keltner_channel',
-    feature_config=['keltner']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('keltner', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule14_keltner_channel(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -115,7 +116,7 @@ def rule14_keltner_channel(features: Dict[str, Any], bar: Dict[str, Any], params
 
 @strategy(
     name='rule15_donchian_channel',
-    feature_config=['donchian']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('donchian', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule15_donchian_channel(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -215,7 +216,7 @@ def rule15_donchian_channel(features: Dict[str, Any], bar: Dict[str, Any], param
 
 @strategy(
     name='rule16_bollinger_bands',
-    feature_config=['bollinger']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('bollinger', {})]  # Topology builder infers parameters from strategy logic
 )
 def rule16_bollinger_bands(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

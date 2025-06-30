@@ -30,6 +30,7 @@ class SignalChange:
     timeframe: Optional[str] = None
     source_file_path: Optional[str] = None
     data_source_type: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None  # Additional metadata (e.g., order details)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for storage."""
@@ -49,6 +50,8 @@ class SignalChange:
             result['src_file'] = self.source_file_path
         if self.data_source_type:
             result['src_type'] = self.data_source_type
+        if self.metadata:
+            result['metadata'] = json.dumps(self.metadata) if isinstance(self.metadata, dict) else self.metadata
             
         return result
     
@@ -112,7 +115,8 @@ class TemporalSparseStorage:
                       strategy_id: str,
                       timestamp: str,
                       price: float,
-                      bar_index: Optional[int] = None) -> bool:
+                      bar_index: Optional[int] = None,
+                      metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Process a signal and store only if it represents a change.
         
@@ -165,7 +169,8 @@ class TemporalSparseStorage:
                 price=price,
                 timeframe=self.timeframe,
                 source_file_path=self.source_file_path,
-                data_source_type=self.data_source_type
+                data_source_type=self.data_source_type,
+                metadata=metadata
             )
             self._changes.append(change)
             

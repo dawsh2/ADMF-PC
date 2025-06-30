@@ -1,0 +1,26 @@
+# Test configuration for Momentum Divergence strategy
+name: test_momentum_divergence
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Momentum (ROC) divergence reversal strategy
+strategy:
+  momentum_divergence:
+    params:
+      momentum_period: 10
+      swing_lookback: 5
+      momentum_threshold: 0.005  # 0.5% threshold
+
+# Run with: python main.py --config config/indicators/divergence/test_momentum_divergence.yaml --signal-generation --bars 100
+
+# Expected behavior (REVERSAL):
+# - At swing low: If momentum less negative than expected -> BUY (1)
+# - At swing high: If momentum less positive than expected -> SELL (-1)
+# - Otherwise: No signal (0)
+
+# Momentum divergences indicate:
+# - Waning trend strength
+# - Potential reversals
+# - Loss of directional conviction

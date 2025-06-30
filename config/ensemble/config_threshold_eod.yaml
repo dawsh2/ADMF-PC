@@ -1,0 +1,14 @@
+name: basic_ensemble_threshold_eod
+data: SPY_5m
+
+strategy: 
+  # Use threshold to only allow signals before 3:50 PM
+  threshold: "time < 1550"  # Only pass signals before 3:50 PM (forces 0 after)
+  strategies: [
+    {bollinger_bands: {period: 23, std_dev: 1.5}}
+  ]
+
+# With stop-loss analysis preparation:
+# threshold: |
+#   (signal == 0 or time < 1550) and
+#   (signal == 0 or abs(price_change_pct) < stop_loss_pct)

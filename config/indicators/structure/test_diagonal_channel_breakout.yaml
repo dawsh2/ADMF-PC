@@ -1,0 +1,43 @@
+# Test configuration for Diagonal Channel Breakout strategy
+name: test_diagonal_channel_breakout
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Trend-following breakout strategy
+strategy:
+  diagonal_channel_breakout:
+    params:
+      lookback: 20
+      min_points: 3
+      channel_tolerance: 0.02
+      parallel_tolerance: 0.1
+      breakout_threshold: 0.002  # 0.2% beyond channel
+      exit_mode: channel_touch  # channel_touch, opposite_touch, or midline
+
+# Run with: python main.py --config config/indicators/structure/test_diagonal_channel_breakout.yaml --signal-generation --bars 100
+
+# Expected behavior (TREND FOLLOWING):
+# - Price breaks above upper channel: BUY signal (1)
+# - Price breaks below lower channel: SELL signal (-1)
+# - Exit based on exit_mode parameter
+
+# Exit modes:
+# - channel_touch: Exit when price touches the breakout line (default)
+#   * Naturally trails due to channel slope
+#   * Locks in some profit as channel rises/falls
+#
+# - opposite_touch: Hold until opposite channel is hit
+#   * Maximum profit potential
+#   * Gives back more on reversal
+#
+# - midline: Exit when price crosses channel midline
+#   * Conservative exit
+#   * Captures ~50% of channel move
+
+# The feature maintains last valid channel even after it degrades,
+# allowing exits to use the sloped channel lines as trailing stops.
+
+# Can filter based on channel quality:
+# filter: "diagonal_channel_channel_strength > 0.7 and diagonal_channel_channel_is_current"

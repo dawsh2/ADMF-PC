@@ -12,6 +12,7 @@ DESIGN PRINCIPLES:
 """
 
 import logging
+from src.core.features.feature_spec import FeatureSpec
 from typing import Dict, Any, Optional
 
 from ...core.components.discovery import strategy
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @strategy(
     name='rsi_tuned',
-    feature_config=['rsi', 'sma']  # Topology builder infers parameters from strategy logic
+    feature_discovery=lambda params: [FeatureSpec('rsi', {'period': params.get('rsi_period', 14)}), FeatureSpec('sma', {'period': params.get('sma_period', 20)})]  # Topology builder infers parameters from strategy logic
 )
 def rsi_tuned_strategy(features: Dict[str, Any], bar: Dict[str, Any], params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """

@@ -1,0 +1,39 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_058e6e16",
+  "data_source": {
+    "data_dir": "./data",
+    "data_source": "csv",
+    "symbols": [
+      "SPY"
+    ],
+    "timeframes": [
+      "1m"
+    ]
+  },
+  "total_bars": 4999,
+  "total_signals": 176,
+  "total_classifications": 0,
+  "stored_changes": 54,
+  "compression_ratio": 30.681818181818183,
+  "components": {
+    "SPY_compiled_strategy_0": {
+      "type": "strategy",
+      "strategy_type": "bollinger_rsi_true_divergence",
+      "symbol": "SPY",
+      "timeframe": "1m",
+      "parameters": {}
+    }
+  },
+  "timestamp": "2025-06-20T18:00:56.090210",
+  "strategy_metadata": {
+    "strategies": {},
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 0,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 0,
+      "max_nesting_depth": 0
+    }
+  }
+}

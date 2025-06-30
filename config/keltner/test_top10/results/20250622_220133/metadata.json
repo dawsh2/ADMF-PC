@@ -1,0 +1,272 @@
+{
+  "workflow_id": "test_top10",
+  "workspace_path": "config/keltner/test_top10/results/20250622_220133",
+  "total_bars": 20768,
+  "total_signals": 41293,
+  "total_classifications": 0,
+  "stored_changes": 8429,
+  "compression_ratio": 20.412660741530043,
+  "components": {
+    "SPY_5m_kb_p27_m10": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p27_m10.parquet",
+      "total_bars": 20768,
+      "signal_changes": 746,
+      "compression_ratio": 0.03592064714946071,
+      "signal_frequency": 0.03592064714946071,
+      "parameters": {
+        "period": 27,
+        "multiplier": 1.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.618474"
+    },
+    "SPY_5m_kb_p21_m05": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p21_m05.parquet",
+      "total_bars": 20768,
+      "signal_changes": 896,
+      "compression_ratio": 0.04314329738058552,
+      "signal_frequency": 0.04314329738058552,
+      "parameters": {
+        "period": 21,
+        "multiplier": 0.5,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.629286"
+    },
+    "SPY_5m_kb_p22_m05": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p22_m05.parquet",
+      "total_bars": 20768,
+      "signal_changes": 882,
+      "compression_ratio": 0.04246918335901387,
+      "signal_frequency": 0.04246918335901387,
+      "parameters": {
+        "period": 22,
+        "multiplier": 0.5,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.629827"
+    },
+    "SPY_5m_kb_p22_m03": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p22_m03.parquet",
+      "total_bars": 20768,
+      "signal_changes": 861,
+      "compression_ratio": 0.04145801232665639,
+      "signal_frequency": 0.04145801232665639,
+      "parameters": {
+        "period": 22,
+        "multiplier": 0.3,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.629902"
+    },
+    "SPY_5m_kb_p22_m04": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p22_m04.parquet",
+      "total_bars": 20768,
+      "signal_changes": 882,
+      "compression_ratio": 0.04246918335901387,
+      "signal_frequency": 0.04246918335901387,
+      "parameters": {
+        "period": 22,
+        "multiplier": 0.4,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.629947"
+    },
+    "SPY_5m_kb_p22_m02": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p22_m02.parquet",
+      "total_bars": 20762,
+      "signal_changes": 768,
+      "compression_ratio": 0.03699065600616511,
+      "signal_frequency": 0.03699065600616511,
+      "parameters": {
+        "period": 22,
+        "multiplier": 0.2,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.630014"
+    },
+    "SPY_5m_kb_p23_m05": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p23_m05.parquet",
+      "total_bars": 20768,
+      "signal_changes": 874,
+      "compression_ratio": 0.04208397534668721,
+      "signal_frequency": 0.04208397534668721,
+      "parameters": {
+        "period": 23,
+        "multiplier": 0.5,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.630550"
+    },
+    "SPY_5m_kb_p23_m03": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p23_m03.parquet",
+      "total_bars": 20768,
+      "signal_changes": 845,
+      "compression_ratio": 0.04068759630200308,
+      "signal_frequency": 0.04068759630200308,
+      "parameters": {
+        "period": 23,
+        "multiplier": 0.3,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.630647"
+    },
+    "SPY_5m_kb_p25_m05": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p25_m05.parquet",
+      "total_bars": 20768,
+      "signal_changes": 844,
+      "compression_ratio": 0.04063944530046225,
+      "signal_frequency": 0.04063944530046225,
+      "parameters": {
+        "period": 25,
+        "multiplier": 0.5,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.631871"
+    },
+    "SPY_5m_kb_p26_m05": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/mean_reversion/SPY_5m_kb_p26_m05.parquet",
+      "total_bars": 20768,
+      "signal_changes": 831,
+      "compression_ratio": 0.04001348228043143,
+      "signal_frequency": 0.04001348228043143,
+      "parameters": {
+        "period": 26,
+        "multiplier": 0.5,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-22T22:01:33.632508"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "kb_p22_m05": {
+        "type": "keltner_bands",
+        "name": "kb_p22_m05",
+        "params": {
+          "period": 22,
+          "multiplier": 0.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p21_m05": {
+        "type": "keltner_bands",
+        "name": "kb_p21_m05",
+        "params": {
+          "period": 21,
+          "multiplier": 0.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p26_m05": {
+        "type": "keltner_bands",
+        "name": "kb_p26_m05",
+        "params": {
+          "period": 26,
+          "multiplier": 0.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p23_m05": {
+        "type": "keltner_bands",
+        "name": "kb_p23_m05",
+        "params": {
+          "period": 23,
+          "multiplier": 0.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p25_m05": {
+        "type": "keltner_bands",
+        "name": "kb_p25_m05",
+        "params": {
+          "period": 25,
+          "multiplier": 0.5
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p22_m03": {
+        "type": "keltner_bands",
+        "name": "kb_p22_m03",
+        "params": {
+          "period": 22,
+          "multiplier": 0.3
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p22_m04": {
+        "type": "keltner_bands",
+        "name": "kb_p22_m04",
+        "params": {
+          "period": 22,
+          "multiplier": 0.4
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p23_m03": {
+        "type": "keltner_bands",
+        "name": "kb_p23_m03",
+        "params": {
+          "period": 23,
+          "multiplier": 0.3
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p27_m10": {
+        "type": "keltner_bands",
+        "name": "kb_p27_m10",
+        "params": {
+          "period": 27,
+          "multiplier": 1.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "kb_p22_m02": {
+        "type": "keltner_bands",
+        "name": "kb_p22_m02",
+        "params": {
+          "period": 22,
+          "multiplier": 0.2
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 10,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 10,
+      "max_nesting_depth": 0
+    }
+  }
+}

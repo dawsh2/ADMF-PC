@@ -1,0 +1,28 @@
+# Test configuration for Aroon Oscillator strategy
+name: test_aroon_oscillator
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Aroon oscillator trend identification strategy
+strategy:
+  aroon_oscillator:
+    params:
+      aroon_period: 25
+      oscillator_threshold: 50  # Strong trend threshold
+
+# Run with: python main.py --config config/indicators/momentum/test_aroon_oscillator.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Aroon Up: Time since highest high (0-100)
+# - Aroon Down: Time since lowest low (0-100)
+# - Aroon Oscillator = Aroon Up - Aroon Down (-100 to +100)
+#
+# - Oscillator > 50: BUY signal (1) - strong uptrend
+# - Oscillator < -50: SELL signal (-1) - strong downtrend
+# - Between thresholds: No signal (0)
+
+# Aroon identifies trend changes early by measuring time
+# since price extremes. Values near 100 = recent extreme,
+# values near 0 = distant extreme.

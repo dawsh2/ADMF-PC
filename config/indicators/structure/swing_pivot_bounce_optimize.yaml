@@ -1,0 +1,46 @@
+# Swing Pivot Bounce Strategy - Parameter Optimization
+# This config will test multiple parameter combinations to find profitable settings
+name: swing_pivot_bounce_optimize
+mode: signal_generation
+symbols: ["SPY_15m"]  # Start with 15m as it performed least poorly
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Base strategy config (used when not optimizing)
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 20
+      min_touches: 2
+      bounce_threshold: 0.002
+      exit_threshold: 0.001
+
+# Parameter space for optimization
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce
+      param_overrides:
+        # Test different S/R lookback periods
+        sr_period: [12, 16, 20, 24, 30, 40]
+        
+        # Test different touch requirements
+        min_touches: [2, 3, 4]
+        
+        # Test different bounce detection thresholds
+        # Original 0.2% was too tight, try wider ranges
+        bounce_threshold: [0.003, 0.004, 0.005, 0.006, 0.008, 0.01]
+        
+        # Test different exit thresholds
+        # Original 0.1% might be too tight
+        exit_threshold: [0.001, 0.0015, 0.002, 0.0025, 0.003]
+
+# Control optimization granularity
+optimization:
+  granularity: 5  # Will test all combinations above
+
+# This will generate 6 * 3 * 6 * 5 = 540 parameter combinations
+# Each will be tested to find profitable configurations

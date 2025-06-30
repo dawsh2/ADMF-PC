@@ -1,0 +1,20 @@
+# Test configuration for Support/Resistance Breakout strategy
+name: test_support_resistance_breakout
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Support/Resistance breakout strategy
+strategy:
+  support_resistance_breakout:
+    params:
+      period: 20
+      threshold: 0.02  # 2% breakout threshold
+
+# Run with: python main.py --config config/indicators/structure/test_support_resistance_breakout.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Identifies support/resistance levels
+# - BUY signal when price breaks above resistance
+# - SELL signal when price breaks below support

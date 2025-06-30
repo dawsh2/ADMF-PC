@@ -1,0 +1,61 @@
+# Test mean reversion strategies with classifier filtering
+# This demonstrates using classifiers to filter signals (without optimization)
+name: test_mean_reversion_with_classifiers
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Strategy configuration (no optimization, just specific configs)
+strategy:
+  # Use a conditional strategy that checks classifier state
+  conditional:
+    # Only trade mean reversion when market is ranging
+    condition:
+      market_state_classifier:
+        params:
+          vol_lookback: 20
+          trend_lookback: 50
+          regime_threshold: 0.5
+    
+    # If market is ranging (low_vol or high_vol), use mean reversion
+    if_true:
+      weighted:
+        strategies:
+          - strategy:
+              rsi_bands:
+                params:
+                  rsi_period: 14
+                  oversold: 30
+                  overbought: 70
+            weight: 0.4
+            
+          - strategy:
+              bollinger_bands:
+                params:
+                  period: 20
+                  num_std: 2.0
+            weight: 0.3
+            
+          - strategy:
+              pivot_bounces:
+                params:
+                  touch_threshold: 0.0005
+                  use_extended_levels: true
+            weight: 0.3
+    
+    # If market is trending, stay flat
+    if_false:
+      null_strategy: {}
+
+# Run with:
+# python main.py --config config/test_mean_reversion_with_classifiers.yaml --signal-generation --bars 200
+
+# This configuration:
+# 1. Uses market_state_classifier to identify ranging markets
+# 2. Only activates mean reversion strategies when market is ranging
+# 3. Combines multiple mean reversion strategies with weights
+# 4. Stays flat (null_strategy) when market is trending
+
+# The classifier acts as a filter, preventing mean reversion trades
+# during strong trending periods when they're likely to fail.

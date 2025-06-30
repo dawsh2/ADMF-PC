@@ -1,0 +1,23 @@
+# Test configuration for Donchian Channel Breakout strategy
+name: test_donchian_breakout
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  donchian_breakout:
+    params:
+      period: 20
+
+# Run with: python main.py --config config/indicators/volatility/test_donchian_breakout.yaml --signal-generation --bars 100
+
+# Expected behavior (TREND FOLLOWING):
+# - Price > Upper Channel (20-day high): BUY signal (1) - new high breakout
+# - Price < Lower Channel (20-day low): SELL signal (-1) - new low breakout
+# - Price within channel: No signal (0)
+
+# Classic turtle trading breakout strategy
+# Upper = highest high over period
+# Lower = lowest low over period

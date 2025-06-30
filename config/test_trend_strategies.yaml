@@ -1,0 +1,70 @@
+# Test configuration for trend-based strategies
+name: trend_strategies_test
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+initial_capital: 100000
+
+# Test all trend strategies
+strategy:
+  type: ensemble
+  strategies:
+    - name: adx_trend
+      type: adx_trend_strength
+      weight: 0.2
+      params:
+        adx_period: 14
+        adx_threshold: 25
+        di_period: 14
+    
+    - name: parabolic_sar_trend
+      type: parabolic_sar
+      weight: 0.2
+      params:
+        af_start: 0.02
+        af_max: 0.2
+    
+    - name: aroon_trend
+      type: aroon_crossover
+      weight: 0.2
+      params:
+        period: 25
+    
+    - name: supertrend_indicator
+      type: supertrend
+      weight: 0.2
+      params:
+        period: 10
+        multiplier: 3.0
+    
+    - name: regression_slope
+      type: linear_regression_slope
+      weight: 0.2
+      params:
+        period: 20
+        threshold: 0.001
+
+# Common strategy settings
+weight_threshold: 0.5
+
+# Data configuration
+data:
+  storage_type: arctic
+  arctic_uri: mongodb://localhost:27017/
+  data_type: bars
+  universe_name: us_stocks
+  timeframes: ["5m"]
+
+# Execution settings
+execution:
+  mode: vectorized
+  max_positions: 1
+  position_size: 0.95
+
+# Output settings
+output:
+  results_dir: results/trend_test
+  save_signals: true
+  save_metrics: true
+  save_trades: true

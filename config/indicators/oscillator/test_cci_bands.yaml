@@ -1,0 +1,24 @@
+# Test configuration for CCI Bands strategy
+name: test_cci_bands
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# CCI extreme bands mean reversion strategy
+strategy:
+  cci_bands:
+    params:
+      cci_period: 20
+      overbought: 100   # CCI > 100 is extreme
+      oversold: -100    # CCI < -100 is extreme
+
+# Run with: python main.py --config config/indicators/oscillator/test_cci_bands.yaml --signal-generation --bars 100
+
+# Expected behavior (MEAN REVERSION):
+# - CCI > 100: SELL signal (-1) - extreme overbought
+# - CCI < -100: BUY signal (1) - extreme oversold
+# - CCI between -100 and 100: No signal (0)
+
+# CCI measures how far price has moved from its statistical mean
+# Extreme values suggest price will revert to the mean

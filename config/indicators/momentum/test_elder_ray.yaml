@@ -1,0 +1,32 @@
+# Test configuration for Elder Ray strategy
+name: test_elder_ray
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Elder Ray bull/bear power analysis strategy
+strategy:
+  elder_ray:
+    params:
+      period: 21              # EMA period
+      bull_threshold: 0.001   # Minimum bull power (0.1%)
+      bear_threshold: -0.001  # Maximum bear power (-0.1%)
+
+# Run with: python main.py --config config/indicators/momentum/test_elder_ray.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Bull Power = High - EMA (buying pressure above trend)
+# - Bear Power = Low - EMA (selling pressure below trend)
+# - Both converted to percentages for comparison
+#
+# Signals:
+# - Bull Power > 0.1% AND Bear Power > -0.1%: BUY (1)
+#   (Bulls dominant, bears weak)
+# - Bear Power < -0.1% AND Bull Power < 0.1%: SELL (-1)
+#   (Bears dominant, bulls weak)
+# - Otherwise: No signal (0)
+
+# Elder Ray measures the strength of bulls and bears
+# relative to the EMA trend. It helps identify when
+# one side is gaining control of the market.

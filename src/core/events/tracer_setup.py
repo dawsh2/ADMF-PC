@@ -20,87 +20,90 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
                                context: Dict[str, Any], 
                                tracing_config: Dict[str, Any]) -> None:
     """Set up unified multi-strategy tracer on the root event bus."""
-    # Check if streaming tracer should be used for large runs
+    # Check if streaming tracer should be used
+    # Use streaming tracer for:
+    # 1. Large runs (>2000 bars)
+    # 2. When explicitly requested
+    # 3. When signal generation mode is active (to get metadata storage)
+    # 4. When universal mode is active (to get portfolio/execution traces)
     max_bars = context['config'].get('max_bars', 0)
-    use_streaming = max_bars > 2000 or context['config'].get('streaming_tracer', False)
+    mode = context.get('mode')
+    is_signal_generation = mode == 'signal_generation'
+    is_universal = mode == 'universal'
+    use_streaming = max_bars > 2000 or context['config'].get('streaming_tracer', False) or is_signal_generation or is_universal
     
     if use_streaming:
-        from .observers.streaming_multi_strategy_tracer import StreamingMultiStrategyTracer
-        logger.info(f"Using StreamingMultiStrategyTracer for {max_bars} bars")
+        from .observers.global_streaming_tracer import GlobalStreamingTracer
+        logger.info(f"Using GlobalStreamingTracer for {max_bars} bars (with global trace storage)")
     else:
         from .observers.multi_strategy_tracer import MultiStrategyTracer
     from .types import EventType
     
-    # Get workspace path from trace settings
-    trace_settings = context['config'].get('execution', {}).get('trace_settings', {})
-    workspace_path = trace_settings.get('storage', {}).get('base_dir', './workspaces')
+    # Get config file path to determine where to save results
+    config_file = context.get('config', {}).get('metadata', {}).get('config_file', '')
+    if not config_file:
+        # Try context metadata for config_file
+        config_file = context.get('metadata', {}).get('config_file', '')
+    
+    # If we have a config file, save results relative to it
+    if config_file:
+        config_path = Path(config_file)
+        # Save results in a results/ subdirectory next to the config file
+        workspace_base = config_path.parent / 'results'
+    else:
+        # Fallback to current directory if no config file specified
+        workspace_base = Path('./results')
+    
+    # Create timestamp for this run
+    from datetime import datetime
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
     # Get study configuration for organized workspace structure
     results_dir = context['config'].get('results_dir')
     wfv_window = context['config'].get('wfv_window')
     phase = context['config'].get('phase')
     
-    # Create workspace directory based on study organization
+    # Create workspace directory based on configuration
     if results_dir and wfv_window and phase:
-        # WFV execution: study_name/window_XX_phase/
-        workspace_name = f"window_{wfv_window:02d}_{phase}"
-        full_workspace_path = os.path.join(workspace_path, results_dir, workspace_name)
-        logger.info(f"WFV workspace: {results_dir}/window_{wfv_window:02d}_{phase}")
+        # WFV execution: results/<results_dir>/window_XX_phase/
+        run_dir = f"window_{wfv_window:02d}_{phase}"
+        full_workspace_path = workspace_base / results_dir / run_dir
+        logger.info(f"WFV workspace: {full_workspace_path}")
     elif results_dir:
-        # Study execution without WFV: study_name/run_unique_id/
-        unique_run_id = str(uuid.uuid4())[:8]
-        workspace_name = f"run_{unique_run_id}"
-        full_workspace_path = os.path.join(workspace_path, results_dir, workspace_name)
-        logger.info(f"Study workspace: {results_dir}/{workspace_name}")
+        # Study execution without WFV: results/<results_dir>/<timestamp>/
+        run_dir = timestamp
+        full_workspace_path = workspace_base / results_dir / run_dir
+        logger.info(f"Study workspace: {full_workspace_path}")
     else:
-        # Fallback to legacy naming for backwards compatibility
-        # First try to get experiment_id from config metadata
-        experiment_id = context.get('config', {}).get('metadata', {}).get('experiment_id')
-        if experiment_id:
-            config_name = experiment_id
-        else:
-            # Try context metadata
-            config_name = context.get('metadata', {}).get('config_name', 'unknown_config')
-            if not config_name or config_name == 'unknown_config':
-                config_file = context.get('metadata', {}).get('config_file', '')
-                if config_file:
-                    config_name = Path(config_file).stem
-                else:
-                    config_name = 'signal_generation'
+        # Standard execution: results/<timestamp>/
+        run_dir = timestamp
+        full_workspace_path = workspace_base / run_dir
         
-        # Use execution_id from context if available, otherwise generate new one
-        execution_id = context.get('execution_id')
-        if execution_id:
-            # Take last 8 chars of execution_id for brevity
-            unique_run_id = str(execution_id)[-8:]
-        else:
-            unique_run_id = str(uuid.uuid4())[:8]
+        # Create results directory if it doesn't exist
+        workspace_base.mkdir(parents=True, exist_ok=True)
         
-        workspace_name = f"{config_name}_{unique_run_id}"
-        full_workspace_path = os.path.join(workspace_path, workspace_name)
-        logger.info(f"Workspace: {workspace_name} (config: {config_name}, run: {unique_run_id})")
+        # Log the full workspace path for debugging
+        logger.info(f"📁 Creating workspace at: {full_workspace_path}")
+        
+        # Create symlink to latest run in results directory
+        latest_link = workspace_base / 'latest'
+        if latest_link.exists():
+            latest_link.unlink()
+        try:
+            latest_link.symlink_to(run_dir)
+            logger.info(f"Workspace: {full_workspace_path} (latest -> {run_dir})")
+        except Exception as e:
+            # Symlinks might not work on all systems
+            logger.debug(f"Could not create symlink: {e}")
+            logger.info(f"Workspace: {full_workspace_path}")
     
-    # Get all strategy and classifier IDs from expanded configurations
-    strategy_ids = []
-    classifier_ids = []
+    # For signal generation mode, we don't need to pre-specify strategy IDs
+    # The tracer will capture all signals based on strategy hashes
+    strategy_ids = None
+    classifier_ids = None
     
-    # Extract strategy IDs from expanded strategies
-    for strategy in context['config'].get('strategies', []):
-        strategy_name = strategy.get('name', '')
-        if strategy_name:
-            # Add symbol prefix if we have symbols
-            symbols = context['config'].get('symbols', ['SPY'])
-            for symbol in symbols:
-                strategy_ids.append(f"{symbol}_{strategy_name}")
-    
-    # Extract classifier IDs from expanded classifiers
-    for classifier in context['config'].get('classifiers', []):
-        classifier_name = classifier.get('name', '')
-        if classifier_name:
-            # Add symbol prefix if we have symbols
-            symbols = context['config'].get('symbols', ['SPY'])
-            for symbol in symbols:
-                classifier_ids.append(f"{symbol}_{classifier_name}")
+    # Log that we're using hash-based strategy identification
+    logger.info("Using hash-based strategy identification - will trace all signals")
     
     # Extract data source configuration for source metadata
     data_source_config = {
@@ -113,23 +116,29 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
     # Create the multi-strategy tracer
     if use_streaming:
         # Get write settings from config (default to no periodic writes)
+        trace_settings = context['config'].get('execution', {}).get('trace_settings', {})
         write_interval = trace_settings.get('write_interval', 0)
         write_on_changes = trace_settings.get('write_on_changes', 0)
         
-        tracer = StreamingMultiStrategyTracer(
-            workspace_path=full_workspace_path,
-            workflow_id=config_name,
+        # Include mode in full config for metadata
+        full_config = context.get('config', {}).copy()
+        if 'mode' in context:
+            full_config['mode'] = context['mode']
+            
+        tracer = GlobalStreamingTracer(
+            workspace_path=str(full_workspace_path),
+            workflow_id=workspace_base.name,  # Use parent directory name as workflow ID
             managed_strategies=strategy_ids if strategy_ids else None,
             managed_classifiers=classifier_ids if classifier_ids else None,
             data_source_config=data_source_config,
             write_interval=write_interval,
             write_on_changes=write_on_changes,
-            full_config=context.get('config', {})
+            full_config=full_config
         )
     else:
         tracer = MultiStrategyTracer(
-            workspace_path=full_workspace_path,
-            workflow_id=config_name,
+            workspace_path=str(full_workspace_path),
+            workflow_id=workspace_base.parent.name,  # Use config directory name as workflow ID
             managed_strategies=strategy_ids if strategy_ids else None,
             managed_classifiers=classifier_ids if classifier_ids else None,
             data_source_config=data_source_config,
@@ -142,11 +151,18 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
         # Use the actual root container's event bus
         root_bus = root_container.event_bus
         root_bus.attach_observer(tracer)
+        logger.info(f"Tracer attached as observer to root event bus")
+        # Note: No need to explicitly subscribe to POSITION events
+        # The observer pattern already ensures we receive ALL events
     else:
         # Fallback to context bus
         root_bus = context.get('root_event_bus')
         if root_bus:
             root_bus.attach_observer(tracer)
+            # Also subscribe to position events
+            from .types import EventType
+            root_bus.subscribe(EventType.POSITION_OPEN.value, tracer.on_event)
+            root_bus.subscribe(EventType.POSITION_CLOSE.value, tracer.on_event)
         else:
             logger.warning("No event bus found for MultiStrategyTracer attachment")
             return

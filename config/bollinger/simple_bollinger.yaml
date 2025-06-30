@@ -1,0 +1,60 @@
+# Simple Bollinger Bands Strategy Configuration
+# 
+# This strategy generates signals when price touches or crosses
+# the Bollinger Bands (2 standard deviations from 20-period SMA)
+
+# Execution settings
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces
+  # Uncomment to enable EOD closing
+  # close_eod: true
+
+# Data configuration
+data:
+  sources:
+    csv:
+      type: csv
+      path: ./data/SPY_5m.csv  # Using 5-minute data
+  symbols: [SPY]
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+# Strategy configuration
+strategy:
+  bollinger_bands:
+    # Single parameter set (no optimization)
+    - period: 20        # SMA period for middle band
+      std_dev: 2.0      # Standard deviations for upper/lower bands
+      
+    # Uncomment below for parameter optimization
+    # - period: [15, 20, 25, 30]      # Test multiple periods
+    #   std_dev: [1.5, 2.0, 2.5, 3.0]  # Test multiple std deviations
+
+# Optional: Add filters to improve signal quality
+# filters:
+#   # Only trade during high volume periods
+#   volume_filter: "volume > volume_sma_20 * 1.2"
+#   
+#   # Only trade when volatility is within normal range
+#   volatility_filter: "atr_14 / atr_sma_50 >= 0.8 and atr_14 / atr_sma_50 <= 1.5"
+#   
+#   # Combine filters
+#   combined: "signal != 0 and volume > volume_sma_20 * 1.2 and atr_14 / atr_sma_50 >= 0.8"
+
+# Risk management (optional)
+risk:
+  position_sizing:
+    type: fixed_fraction
+    fraction: 0.02  # Risk 2% per trade
+  stop_loss:
+    type: atr_multiple
+    atr_period: 14
+    multiplier: 2.0
+  take_profit:
+    type: atr_multiple
+    atr_period: 14
+    multiplier: 3.0

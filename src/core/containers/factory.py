@@ -56,8 +56,7 @@ class ContainerFactory:
             'feature_hub': ComponentSpec('feature_hub', 'core.containers.components.FeatureHubComponent'),
             
             # Portfolio components
-            'portfolio_manager': ComponentSpec('portfolio_manager', 'portfolio.PortfolioManager'),
-            'position_manager': ComponentSpec('position_manager', 'portfolio.PositionManager'),
+            'portfolio_state': ComponentSpec('portfolio_state', 'portfolio.PortfolioState'),
             
             # Risk components
             'risk_manager': ComponentSpec('risk_manager', 'risk.RiskManager'),
@@ -108,7 +107,7 @@ class ContainerFactory:
                 component = self._create_component(component_name, config)
                 if component:
                     container.add_component(component_name, component)
-                    logger.debug(f"Injected {component_name} into container {name}")
+                    logger.info(f"✅ Injected {component_name} into container {name} (component type: {type(component).__name__})")
             else:
                 logger.warning(f"Unknown component: {component_name}")
         
@@ -123,6 +122,19 @@ class ContainerFactory:
                     feature_hub = feature_hub_component.get_feature_hub()
                     strategy_state._feature_hub = feature_hub
                     logger.info(f"Wired strategy_state to feature_hub in container {name}")
+        
+        # Wire portfolio and risk manager together
+        if 'portfolio_state' in components and 'risk_manager' in components:
+            portfolio_state = container.get_component('portfolio_state')
+            risk_manager = container.get_component('risk_manager')
+            
+            if portfolio_state and risk_manager:
+                # Connect portfolio to risk manager
+                if hasattr(portfolio_state, 'set_risk_manager'):
+                    portfolio_state.set_risk_manager(risk_manager)
+                    logger.info(f"Wired portfolio_state to risk_manager in container {name}")
+                else:
+                    logger.warning(f"Portfolio state has no set_risk_manager method")
         
         return container
     
@@ -143,6 +155,7 @@ class ContainerFactory:
             'local': self._create_file_data_handler,  # Alias for file
             'alpaca_websocket': self._create_alpaca_data_handler,
             'live': self._create_alpaca_data_handler,  # Alias for alpaca_websocket
+            'signal_replay': self._create_signal_replay_handler,  # New signal replay mode
         }
         
         handler_creator = data_handler_map.get(data_source)
@@ -164,11 +177,19 @@ class ContainerFactory:
             split_ratio=config.get('split_ratio', 0.8)
         )
         
-        # Configure symbols
-        symbols = config.get('symbol', [])
+        # Configure symbols - handle both 'symbol' and 'symbols' fields
+        symbols = config.get('symbol') or config.get('symbols', [])
         if isinstance(symbols, str):
             symbols = [symbols]
-        handler.symbols = symbols or []
+        
+        # If we have a data file specification, use it directly
+        data_file = config.get('data_file') or config.get('file')
+        if data_file:
+            # Direct file specification takes precedence
+            handler.symbols = [data_file]
+            logger.info(f"📄 Using direct file specification: {data_file}")
+        else:
+            handler.symbols = symbols or []
         
         # Set max bars if configured
         if 'max_bars' in config:
@@ -192,8 +213,12 @@ class ContainerFactory:
         try:
             from ...data.live_data_handler import LiveDataHandler
             
-            # Get symbols
-            symbols = config.get('symbol', [])
+            # Debug logging
+            logger.debug(f"Alpaca handler config: {config}")
+            logger.debug(f"System config: {self._system_config}")
+            
+            # Get symbols - check multiple places
+            symbols = config.get('symbol', config.get('symbols', []))
             if isinstance(symbols, str):
                 symbols = [symbols]
             
@@ -215,6 +240,39 @@ class ContainerFactory:
             logger.error(f"Failed to import LiveDataHandler: {e}")
             logger.info("Falling back to file data handler")
             return self._create_file_data_handler(config)
+    
+    def _create_signal_replay_handler(self, config: Dict[str, Any]) -> Any:
+        """Create signal replay handler that reads pre-computed traces."""
+        from ...data.handlers import SignalReplayHandler
+        
+        # Create handler
+        handler = SignalReplayHandler(
+            handler_id=f"signal_replay_{config.get('symbol', 'unknown')}",
+            traces_dir=config.get('traces_dir', './traces')
+        )
+        
+        # Configure symbols
+        symbols = config.get('symbol') or config.get('symbols', [])
+        if isinstance(symbols, str):
+            symbols = [symbols]
+        handler.symbols = symbols or []
+        
+        # Get strategy configurations from config
+        strategy_configs = []
+        if 'strategies' in config:
+            # Strategies already parsed by clean syntax parser
+            strategy_configs = config['strategies']
+        elif 'parameter_space' in config and 'strategies' in config['parameter_space']:
+            # Strategies in parameter space format
+            strategy_configs = config['parameter_space']['strategies']
+        
+        logger.info(f"📈 Created signal replay handler for symbols: {handler.symbols}")
+        logger.info(f"📈 Will replay signals from {len(strategy_configs)} strategies")
+        
+        # Store strategy configs for later loading
+        handler.strategy_configs = strategy_configs
+        
+        return handler
 
     def _create_component(self, component_name: str, config: Optional[Dict[str, Any]] = None) -> Optional[Any]:
         """
@@ -238,52 +296,81 @@ class ContainerFactory:
             elif component_name == 'signal_streamer':
                 from ...data.streamers import SignalStreamerComponent
                 return SignalStreamerComponent()
-            elif component_name == 'portfolio_manager':
+            elif component_name == 'portfolio_state':
                 from ...portfolio import PortfolioState
-                return PortfolioState()
-            elif component_name == 'position_manager':
-                # Position manager is part of PortfolioState
-                from ...portfolio import PortfolioState
-                return PortfolioState()
+                portfolio = PortfolioState()
+                self._last_portfolio = portfolio  # Store for execution engine
+                logger.info(f"✅ Created PortfolioState instance: {id(portfolio)}")
+                return portfolio
             elif component_name == 'risk_manager':
-                from ...risk import RiskLimits
-                return RiskLimits()
+                from ...risk.strategy_risk_manager import StrategyRiskManager
+                return StrategyRiskManager()
             elif component_name == 'position_sizer':
                 from ...risk import FixedPositionSizer
                 return FixedPositionSizer()
             elif component_name == 'execution_engine':
-                from ...execution import ExecutionEngine
-                # ExecutionEngine needs component_id and broker
-                
                 # Determine broker type from config
                 broker_type = config.get('broker', 'simulated')
                 live_config = self._system_config.get('live_trading', {})
+                execution_mode = config.get('execution_mode', 'sync')
                 
-                if broker_type == 'alpaca' and live_config:
-                    # For now, use simulated broker with live data
-                    # TODO: Implement sync Alpaca broker or use async broker with adapter
-                    logger.warning("Alpaca broker requested but not yet implemented for sync execution. Using simulated broker.")
+                
+                if broker_type == 'alpaca' and execution_mode == 'async':
+                    # Use async execution engine with Alpaca
+                    from ...execution.asynchronous.brokers.alpaca_clean import create_alpaca_broker
+                    from ...execution.asynchronous.clean_engine import create_async_execution_engine
+                    
+                    # Create async Alpaca broker
+                    broker = create_alpaca_broker(
+                        api_key=live_config.get('api_key'),
+                        secret_key=live_config.get('secret_key'),
+                        paper_trading=live_config.get('paper_trading', True)
+                    )
+                    
+                    # Get portfolio reference if available
+                    portfolio = None
+                    if hasattr(self, '_last_portfolio'):
+                        portfolio = self._last_portfolio
+                    
+                    # Create async execution engine with adapter
+                    adapter = create_async_execution_engine(
+                        component_id=f"exec_{component_name}",
+                        broker=broker,
+                        portfolio=portfolio
+                    )
+                    
+                    logger.info("Created async Alpaca execution engine")
+                    return adapter
+                    
+                elif broker_type == 'alpaca' and live_config:
+                    # For sync mode with Alpaca, use simulated broker for now
+                    logger.warning("Alpaca broker requested but sync mode selected. Using simulated broker.")
                     from ...execution.synchronous.broker import SimulatedBroker
+                    from ...execution import ExecutionEngine
+                    
                     broker = SimulatedBroker(
                         broker_id="alpaca_simulated",
-                        slippage_model=None,  # TODO: Create from execution_config
-                        commission_model=None,  # TODO: Create from execution_config
-                        liquidity_model=None  # TODO: Create from execution_config
+                        slippage_model=None,
+                        commission_model=None,
+                        liquidity_model=None
                     )
-                    logger.info("Created simulated broker (Alpaca sync broker pending implementation)")
+                    logger.info("Created simulated broker (sync Alpaca broker pending implementation)")
+                    return ExecutionEngine(f"exec_{component_name}", broker)
+                    
                 else:
                     # Default to simulated broker
                     from ...execution.synchronous.broker import SimulatedBroker
+                    from ...execution import ExecutionEngine
+                    
                     execution_config = config.get('execution', {})
                     broker = SimulatedBroker(
                         broker_id="simulated",
-                        slippage_model=None,  # TODO: Create from execution_config
-                        commission_model=None,  # TODO: Create from execution_config
-                        liquidity_model=None  # TODO: Create from execution_config
+                        slippage_model=None,
+                        commission_model=None,
+                        liquidity_model=None
                     )
                     logger.info("Created simulated broker")
-                
-                return ExecutionEngine(f"exec_{component_name}", broker)
+                    return ExecutionEngine(f"exec_{component_name}", broker)
             elif component_name == 'order_manager':
                 from ...execution import SyncOrderManager
                 return SyncOrderManager(component_id="order_manager")
@@ -327,7 +414,7 @@ class ContainerFactory:
         Returns:
             Portfolio container
         """
-        components = ['portfolio_manager', 'position_manager', 'risk_manager']
+        components = ['portfolio_state', 'risk_manager']
         
         portfolio_config = config or {}
         if strategies:

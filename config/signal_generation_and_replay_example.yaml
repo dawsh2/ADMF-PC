@@ -1,0 +1,189 @@
+# Complete Signal Generation and Replay Workflow Example
+# This demonstrates the full workflow from signal generation to replay
+
+workflow:
+  name: "Signal Generation and Replay Example"
+  phases:
+    # Phase 1: Generate signals with grid search
+    - name: "signal_generation"
+      type: "signal_generation"
+      config:
+        # Data sources
+        data_sources:
+          - ["SPY", "1d"]
+          - ["QQQ", "1d"]
+        
+        data_files:
+          SPY: "data/SPY_daily.csv"
+          QQQ: "data/QQQ_daily.csv"
+        
+        # Feature calculation
+        indicators:
+          - name: "SMA"
+            params: [10, 20, 50]
+          - name: "RSI"
+            params: [14]
+          - name: "BB"
+            params: [20, 2]
+        
+        # Classifiers
+        classifiers:
+          - name: "market_regime"
+            type: "trend_volatility"
+            parameters:
+              trend_window: 20
+              vol_window: 20
+        
+        # Strategies with parameter grid
+        strategies:
+          - name: "momentum"
+            type: "momentum"
+            base_parameters:
+              rsi_period: 14
+              volume_filter: true
+            parameter_grid:
+              lookback_period: [10, 20, 30]
+              entry_threshold: [0.6, 0.7, 0.8]
+              exit_threshold: [0.4, 0.5]
+            required_data: [["SPY", "1d"]]
+            classifier_id: "market_regime"
+          
+          - name: "mean_reversion"
+            type: "mean_reversion"
+            base_parameters:
+              bb_period: 20
+              bb_std: 2
+            parameter_grid:
+              entry_z_score: [2.0, 2.5, 3.0]
+              exit_z_score: [0.0, 0.5]
+            required_data: [["QQQ", "1d"]]
+            classifier_id: "market_regime"
+        
+        # Storage configuration
+        signal_output_dir: "./signals/grid_search_001"
+        workflow_id: "grid_search_001"
+        
+        # Event tracing
+        enable_event_tracing: true
+        trace_settings:
+          events_to_trace: ["SIGNAL", "CLASSIFICATION_CHANGE"]
+          max_events: 100000
+          retention_policy: "all"
+    
+    # Phase 2: Replay signals with regime filtering
+    - name: "signal_replay_bull"
+      type: "signal_replay"
+      config:
+        # Signal source
+        signal_storage_path: "./signals/grid_search_001"
+        workflow_id: "grid_search_001"
+        
+        # Filtering
+        regime_filter: "bull"
+        sparse_replay: true  # Only replay bars with signals
+        
+        # Portfolio configuration
+        portfolios:
+          - id: "portfolio_momentum"
+            initial_capital: 100000
+            strategy_assignments:
+              # Top performing momentum variants from phase 1
+              - "momentum_lookback_20_entry_0.7_exit_0.5"
+              - "momentum_lookback_30_entry_0.8_exit_0.5"
+            position_sizing:
+              type: "fixed_fraction"
+              fraction: 0.1
+            risk_limits:
+              max_positions: 5
+              max_exposure: 0.5
+          
+          - id: "portfolio_mean_rev"
+            initial_capital: 100000
+            strategy_assignments:
+              # Top performing mean reversion variants
+              - "mean_reversion_entry_2.5_exit_0.5"
+              - "mean_reversion_entry_3.0_exit_0.0"
+            position_sizing:
+              type: "kelly"
+              confidence: 0.25
+            risk_limits:
+              max_positions: 3
+              max_drawdown: 0.15
+        
+        # Execution configuration
+        execution:
+          slippage_model:
+            type: "fixed_percentage"
+            percentage: 0.001
+          commission_model:
+            type: "per_share"
+            rate: 0.005
+        
+        # Results storage
+        results:
+          output_dir: "./results/replay_bull"
+          streaming_metrics: true
+          retention_policy: "trade_complete"
+          collection:
+            store_equity_curve: true
+            store_trades: true
+            store_signals: false  # Already stored
+    
+    # Phase 3: Replay signals in bear regime
+    - name: "signal_replay_bear"
+      type: "signal_replay"
+      config:
+        # Same signal source
+        signal_storage_path: "./signals/grid_search_001"
+        workflow_id: "grid_search_001"
+        
+        # Different regime filter
+        regime_filter: "bear"
+        sparse_replay: true
+        
+        # Modified portfolio configuration for bear market
+        portfolios:
+          - id: "portfolio_defensive"
+            initial_capital: 100000
+            strategy_assignments:
+              # More conservative variants
+              - "momentum_lookback_10_entry_0.8_exit_0.4"
+              - "mean_reversion_entry_3.0_exit_0.0"
+            position_sizing:
+              type: "fixed_fraction"
+              fraction: 0.05  # Smaller positions
+            risk_limits:
+              max_positions: 2
+              max_exposure: 0.2
+              stop_loss: 0.02
+        
+        execution:
+          slippage_model:
+            type: "market_impact"
+            impact_coefficient: 0.1
+          
+        results:
+          output_dir: "./results/replay_bear"
+          streaming_metrics: true
+          retention_policy: "sliding_window"
+          sliding_window_size: 1000
+
+# Global configuration
+global:
+  # Logging
+  logging:
+    level: "INFO"
+    handlers:
+      - type: "console"
+      - type: "file"
+        filename: "./logs/signal_workflow.log"
+  
+  # Performance monitoring
+  monitoring:
+    enabled: true
+    metrics_interval: 60  # seconds
+    
+  # Resource limits
+  resources:
+    max_parallel_containers: 10
+    max_memory_per_container: "2GB"

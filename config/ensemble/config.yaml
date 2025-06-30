@@ -1,0 +1,9 @@
+name: basic_ensemble
+data: SPY_5m
+
+strategy: [
+  {
+  bollinger_bands: {period: 23, std_dev: 1.5},
+  threshold: "intraday"
+  }
+]

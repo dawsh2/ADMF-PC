@@ -1,0 +1,25 @@
+name: test_simple_notebook
+data: SPY_5m
+
+# Simple MA crossover strategy
+strategies:
+  - type: ma_crossover
+    param_overrides:
+      fast_period: 10
+      slow_period: 20
+      signal_threshold: 0.001
+
+# Risk configuration 
+risk_profiles:
+  - type: basic
+    param_overrides:
+      base_position_size: 100
+      max_position_size: 1000
+
+# Execution
+execution:
+  type: synchronous
+  param_overrides:
+    commission_rate: 0.001
+    slippage_model: fixed
+    slippage_bps: 5

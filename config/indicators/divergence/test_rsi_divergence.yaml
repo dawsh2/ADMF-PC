@@ -1,0 +1,26 @@
+# Test configuration for RSI Divergence strategy
+name: test_rsi_divergence
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# RSI divergence reversal strategy
+strategy:
+  rsi_divergence:
+    params:
+      rsi_period: 14
+      swing_lookback: 5
+      rsi_threshold: 30  # Look for divergence when RSI < 50 or > 50
+
+# Run with: python main.py --config config/indicators/divergence/test_rsi_divergence.yaml --signal-generation --bars 100
+
+# Expected behavior (REVERSAL):
+# - At swing low: If price lower but RSI shows strength -> BUY (1)
+# - At swing high: If price higher but RSI shows weakness -> SELL (-1)
+# - Otherwise: No signal (0)
+
+# Divergences are most reliable when:
+# - RSI is in extreme zones (< 30 or > 70)
+# - Clear swing points are formed
+# - Volume confirms the divergence

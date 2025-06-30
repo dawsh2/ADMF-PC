@@ -1,0 +1,23 @@
+# Test configuration for EMA Crossover strategy
+name: test_ema_crossover
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Single strategy with fixed parameters
+strategy:
+  ema_crossover:
+    params:
+      fast_ema_period: 12
+      slow_ema_period: 26
+
+# Run with: python main.py --config config/indicators/test_ema_crossover.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - Fast EMA > Slow EMA: BUY signal (1)
+# - Fast EMA < Slow EMA: SELL signal (-1)
+# - Fast EMA = Slow EMA: No signal (0)
+
+# EMAs react faster to price changes than SMAs
+# More responsive to recent price movements

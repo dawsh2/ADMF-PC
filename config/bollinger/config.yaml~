@@ -1,0 +1,12 @@
+name: bollinger
+data: SPY_5m
+
+strategy: [
+  {
+    bollinger_bands: {
+      period: "range(10, 50, 1)",
+      std_dev: "range(1.0, 3.0, 0.5)"
+    },
+    constraints: "intraday"
+  }
+]

@@ -1,0 +1,35 @@
+# Bollinger Bands Breakout Strategy
+# 
+# This strategy trades breakouts when price moves beyond the bands
+# with strong momentum, expecting continuation in that direction
+
+execution:
+  enable_event_tracing: true
+  trace_settings:
+    use_sparse_storage: true
+    storage:
+      base_dir: ./workspaces
+
+data:
+  sources:
+    csv:
+      type: csv
+      path: ./data/SPY_5m.csv
+  symbols: [SPY]
+  start_date: '2024-01-01'
+  end_date: '2024-12-31'
+
+strategy:
+  bollinger_bands:
+    # Breakout parameters - tighter bands for earlier signals
+    - period: 20
+      std_dev: 1.5
+      # Filter for strong breakouts with volume
+      filter: |
+        signal != 0 and (
+          volume > volume_sma_20 * 1.5 and       # High volume
+          (
+            (signal > 0 and Close > upper_band) or  # Bullish breakout
+            (signal < 0 and Close < lower_band)     # Bearish breakout
+          )
+        )

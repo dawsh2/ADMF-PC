@@ -1,0 +1,36 @@
+I think we should test all strategies under src/strategy/strategies/indicators/, and while doing    │
+│   so evaluate their logic and default parameter space for improvements. Classifiers too. We also      │
+│   need to implement a session-based vwap (one that restarts at the beginning of every trading day).   │
+│                                                                                                       │
+│   I think the parameter spaces should be defined like range(x,y) rather than harcoded values. Then    │
+│   another component can expand them with desired granularity.                                         │
+│                                                                                                       │
+│   Let's also implement this:                                                                          │
+│   # Filter specific signal values                                                                     │
+│   strategy:                                                                                           │
+│     sma_crossover:                                                                                    │
+│       params: {fast: 10, slow: 30}                                                                    │
+│       filter: signal > 0 and price > vwap()  # Only long signals when above VWAP                      │
+│                                                                                                       │
+│   # Or filter both directions separately                                                              │
+│   strategy: [                                                                                         │
+│     {                                                                                                 │
+│       condition: price > vwap()                                                                       │
+│       sma_crossover:                                                                                  │
+│         params: {fast: 10, slow: 30}                                                                  │
+│         filter: signal > 0  # Only take longs                                                         │
+│     },                                                                                                │
+│     {                                                                                                 │
+│       condition: price < vwap()                                                                       │
+│       sma_crossover:                                                                                  │
+│         params: {fast: 10, slow: 30}                                                                  │
+│         filter: signal < 0  # Only take shorts                                                        │
+│     }                                                                                                 │
+│   ]                                                                                                   │
+│                                                                                                       │
+│   strategy:                                                                                           │
+│     momentum:                                                                                         │
+│       params: {period: 14}                                                                            │
+│       filter: abs(signal) > 0.5 and volume > ma(volume, 20)  # Only strong signals with volume        │
+│                                                                                                       │
+│   I would like this filtering ability at the config level.                                            

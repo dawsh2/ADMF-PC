@@ -1,0 +1,59 @@
+# Bollinger Band + RSI Simple Signals - 15 Minute Timeframe (Adjusted)
+# Parameters adjusted specifically for 15-minute timeframe characteristics
+name: bollinger_rsi_simple_signals_15m_adjusted
+mode: signal_generation
+symbols: ["SPY_15m"]  # Use the 15-minute data file
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features - adjusted for 15m timeframe
+feature_config:
+  bollinger_bands:
+    - period: 12    # 12 periods = 3 hours (faster response)
+      std_dev: 2.0
+    - period: 20    # 20 periods = 5 hours (standard)
+      std_dev: 2.5  # Wider bands for 15m volatility
+  rsi:
+    - period: 9     # Faster RSI for quicker signals
+    - period: 14    # Standard RSI
+    - period: 21    # Slower RSI for confirmation
+
+# Strategy configuration with multiple parameter sets
+strategies:
+  # Fast configuration - more signals, shorter holding periods
+  - type: bollinger_rsi_simple_signals
+    name: bb_rsi_fast_15m
+    params:
+      bb_period: 12
+      bb_std: 2.0
+      rsi_period: 9
+      rsi_threshold: 12  # Slightly higher threshold for 15m
+      
+  # Standard configuration
+  - type: bollinger_rsi_simple_signals
+    name: bb_rsi_standard_15m
+    params:
+      bb_period: 20
+      bb_std: 2.0
+      rsi_period: 14
+      rsi_threshold: 10
+      
+  # Conservative configuration - fewer signals, higher confidence
+  - type: bollinger_rsi_simple_signals
+    name: bb_rsi_conservative_15m
+    params:
+      bb_period: 20
+      bb_std: 2.5      # Wider bands = more extreme moves required
+      rsi_period: 21
+      rsi_threshold: 15  # Stronger RSI divergence required
+      
+# Risk parameters adjusted for 15m timeframe
+risk:
+  position_size: 0.02  # 2% per position
+  max_positions: 3     # Allow multiple positions
+  stop_loss_pct: 0.5   # 0.5% stop loss (larger moves on 15m)
+  take_profit_pct: 1.0 # 1% take profit target

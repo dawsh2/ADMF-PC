@@ -1,0 +1,122 @@
+{
+  "workflow_id": "signal_generation",
+  "workspace_path": "workspaces/signal_generation_57cd04b8",
+  "total_bars": 81787,
+  "total_signals": 107183,
+  "total_classifications": 0,
+  "stored_changes": 9403,
+  "compression_ratio": 8.772846440200405,
+  "components": {
+    "SPY_keltner_baseline": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/SPY_1m/signals/mean_reversion/SPY_keltner_baseline.parquet",
+      "total_bars": 81782,
+      "signal_changes": 7386,
+      "compression_ratio": 0.09031327186911545,
+      "signal_frequency": 0.09031327186911545,
+      "parameters": {
+        "period": 20,
+        "multiplier": 2.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-21T21:00:57.635794"
+    },
+    "SPY_keltner_rsi50": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/SPY_1m/signals/mean_reversion/SPY_keltner_rsi50.parquet",
+      "total_bars": 61,
+      "signal_changes": 1,
+      "compression_ratio": 0.01639344262295082,
+      "signal_frequency": 0.01639344262295082,
+      "parameters": {
+        "period": 20,
+        "multiplier": 2.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-21T21:00:57.648459"
+    },
+    "SPY_keltner_rsi70": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/SPY_1m/signals/mean_reversion/SPY_keltner_rsi70.parquet",
+      "total_bars": 81771,
+      "signal_changes": 973,
+      "compression_ratio": 0.011899084027344657,
+      "signal_frequency": 0.011899084027344657,
+      "parameters": {
+        "period": 20,
+        "multiplier": 2.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-21T21:00:57.648516"
+    },
+    "SPY_keltner_directional": {
+      "component_type": "strategy",
+      "strategy_type": "mean_reversion",
+      "signal_file_path": "traces/SPY_1m/signals/mean_reversion/SPY_keltner_directional.parquet",
+      "total_bars": 81771,
+      "signal_changes": 1043,
+      "compression_ratio": 0.012755133237944992,
+      "signal_frequency": 0.012755133237944992,
+      "parameters": {
+        "period": 20,
+        "multiplier": 2.0,
+        "_strategy_type": "keltner_bands"
+      },
+      "created_at": "2025-06-21T21:00:57.648566"
+    }
+  },
+  "strategy_metadata": {
+    "strategies": {
+      "keltner_baseline": {
+        "type": "keltner_bands",
+        "name": "keltner_baseline",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "keltner_rsi50": {
+        "type": "keltner_bands",
+        "name": "keltner_rsi50",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "keltner_rsi70": {
+        "type": "keltner_bands",
+        "name": "keltner_rsi70",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      },
+      "keltner_directional": {
+        "type": "keltner_bands",
+        "name": "keltner_directional",
+        "params": {
+          "period": 20,
+          "multiplier": 2.0
+        },
+        "depth": 0,
+        "is_ensemble": false
+      }
+    },
+    "classifiers": {},
+    "summary": {
+      "total_strategies": 4,
+      "total_ensemble_strategies": 0,
+      "total_leaf_strategies": 4,
+      "max_nesting_depth": 0
+    }
+  }
+}

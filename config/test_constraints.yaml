@@ -1,0 +1,10 @@
+name: test_constraints
+data: SPY_5m
+
+# Test single constraint
+strategy: [
+  {
+    bollinger_bands: {period: 20, std_dev: 2.0},
+    constraints: "intraday"
+  }
+]

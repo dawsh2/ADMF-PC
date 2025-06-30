@@ -1,0 +1,132 @@
+name: keltner_filtered
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+
+# Define features for filters
+feature_configs:
+  # Trend indicators
+  sma_50:
+    type: sma
+    period: 50
+  sma_200:
+    type: sma
+    period: 200
+  ema_20:
+    type: ema
+    period: 20
+  
+  # Volume indicators
+  volume_sma_20:
+    type: sma
+    column: volume
+    period: 20
+  volume_ratio_20:
+    type: volume_ratio
+    period: 20
+  
+  # Volatility indicators
+  atr_14:
+    type: atr
+    period: 14
+  atr_sma_50:
+    type: sma
+    column: atr_14
+    period: 50
+  volatility_percentile_50:
+    type: volatility_percentile
+    period: 50
+  
+  # Additional indicators
+  rsi_14:
+    type: rsi
+    period: 14
+  adx_14:
+    type: adx
+    period: 14
+
+# Test multiple filter combinations
+strategies:
+  # 1. Baseline - no filter
+  - name: kb_baseline_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+  
+  # 2. Trend filter - avoid strong trends
+  - name: kb_trend_filter_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or (abs(close - sma_50) / sma_50 < 0.02 and adx(14) < 25)"
+  
+  # 3. Volume filter - ensure liquidity
+  - name: kb_volume_filter_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or volume_ratio(20) > 1.2"
+  
+  # 4. Volatility filter - normal vol conditions
+  - name: kb_volatility_filter_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or (volatility_percentile(50) > 0.3 and volatility_percentile(50) < 0.7)"
+  
+  # 5. Combined filters - trend + volume
+  - name: kb_trend_volume_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or (abs(close - sma_50) / sma_50 < 0.02 and volume_ratio(20) > 1.1)"
+  
+  # 6. Combined filters - all three
+  - name: kb_all_filters_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or (abs(close - sma_50) / sma_50 < 0.02 and volume_ratio(20) > 1.1 and volatility_percentile(50) > 0.3 and volatility_percentile(50) < 0.7)"
+  
+  # 7. RSI oversold/overbought filter
+  - name: kb_rsi_filter_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or (signal > 0 and rsi(14) < 40) or (signal < 0 and rsi(14) > 60)"
+  
+  # 8. Time-based filter (avoid first/last 30 min)
+  - name: kb_time_filter_p30_m1
+    type: keltner_bands
+    params:
+      period: 30
+      multiplier: 1.0
+    filter: "signal == 0 or (time >= 10:00 and time <= 15:30)"
+  
+  # 9. Best combo from analysis - Period 50, Mult 1.0 with filters
+  - name: kb_p50_m1_filtered
+    type: keltner_bands
+    params:
+      period: 50
+      multiplier: 1.0
+    filter: "signal == 0 or (abs(close - sma_50) / sma_50 < 0.015 and volume_ratio(20) > 1.15 and rsi(14) > 30 and rsi(14) < 70)"
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "5m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

@@ -1,0 +1,27 @@
+# Test a focused set of mean reversion strategies
+name: test_mean_reversion_simple
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  rsi_bands:
+    params:
+      rsi_period: 14
+      oversold: 30
+      overbought: 70
+
+# Focused discovery - just RSI and Bollinger strategies
+parameter_space:
+  indicators:
+    oscillators: ["rsi_bands"]
+    volatility: ["bollinger_bands"]
+
+# Control optimization granularity (number of parameter samples)
+optimization:
+  granularity: 2  # Just 2 samples per parameter for quick testing
+
+# Run with:
+# python main.py --config config/test_mean_reversion_simple.yaml --optimize --bars 100

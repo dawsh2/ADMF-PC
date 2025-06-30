@@ -1,0 +1,55 @@
+# Enhanced Bollinger Band + RSI Strategy Configuration
+# Features stop loss, market condition filters, and volatility-aware sizing
+
+version: "1.0"
+mode: signal_generation
+
+coordinator:
+  type: workflow
+  config:
+    workflow_type: signal_generation
+    
+    # Use discovered strategies with enhanced BB RSI
+    container_config:
+      components:
+        discovered_strategies:
+          - strategy_name: bollinger_rsi_enhanced
+            parameters:
+              bb_period: 20
+              bb_std: 2.0
+              rsi_period: 14
+              rsi_threshold: 10
+              atr_period: 14
+              stop_loss_pct: 0.001  # 0.1% stop loss
+              min_bars_between_trades: 30
+            
+    # Signal generation configuration
+    signal_generation:
+      trace_level: trades  # Trace at trade level
+      save_signals: true
+      workspace_prefix: "enhanced_bb_rsi"
+      
+    # Enable transaction cost modeling
+    execution:
+      transaction_costs:
+        commission: 0.0001  # 1bp per side
+        spread: 0.0001      # 1bp spread
+        
+    # Basic risk limits (strategy handles position sizing)
+    risk:
+      max_position_size: 1.0
+      max_portfolio_heat: 0.05  # 5% max portfolio risk
+      
+# Data configuration
+data:
+  type: file
+  config:
+    file_path: "data/SPY_1m/test.parquet"
+    
+# Event configuration for tracing
+events:
+  trace_configs:
+    - type: sparse_multi_strategy_tracer
+      config:
+        trace_level: trades
+        save_to_workspace: true

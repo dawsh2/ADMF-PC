@@ -11,7 +11,7 @@ from datetime import datetime
 
 from ..types import Order, Fill, ExecutionStats
 from ..async_protocols import AsyncBroker, OrderMonitor
-from .order_manager import LiveOrderManager
+from .order_manager import AsyncOrderManager
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +28,12 @@ class AsyncExecutionEngine:
         self,
         component_id: str,
         broker: AsyncBroker,
-        order_manager: Optional[LiveOrderManager] = None,
+        order_manager: Optional[AsyncOrderManager] = None,
         order_monitor: Optional[OrderMonitor] = None
     ):
         self.component_id = component_id
         self.broker = broker
-        self.order_manager = order_manager or LiveOrderManager(f"{component_id}_orders")
+        self.order_manager = order_manager or AsyncOrderManager(f"{component_id}_orders")
         self.order_monitor = order_monitor
         
         self.stats = ExecutionStats()

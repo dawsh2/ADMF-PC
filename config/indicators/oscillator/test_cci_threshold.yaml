@@ -1,0 +1,25 @@
+# Test configuration for CCI Threshold strategy
+name: test_cci_threshold
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# CCI threshold momentum strategy
+strategy:
+  cci_threshold:
+    params:
+      cci_period: 20
+      threshold: 0  # Zero-line crossover
+
+# Run with: python main.py --config config/indicators/oscillator/test_cci_threshold.yaml --signal-generation --bars 100
+
+# Expected behavior:
+# - CCI (Commodity Channel Index) measures deviation from average
+# - CCI > 0: BUY signal (1) - bullish momentum
+# - CCI < 0: SELL signal (-1) - bearish momentum
+# - CCI = 0: No signal (0)
+
+# CCI typically ranges from -200 to +200
+# Values > +100 indicate strong uptrend
+# Values < -100 indicate strong downtrend

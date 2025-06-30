@@ -1,0 +1,28 @@
+# Swing Pivot Bounce Strategy - Simplified Version
+# Uses Bollinger Bands as dynamic support/resistance proxy
+name: swing_pivot_bounce_simple
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features - using Bollinger Bands as S/R proxy
+feature_config:
+  bollinger_bands:
+    - period: 20
+      std_dev: 2.0
+  sma:
+    - period: 20
+
+# Strategy configuration - simplified bounce strategy
+strategy:
+  bollinger_bounce:
+    params:
+      bb_period: 20
+      bb_std: 2.0
+      bounce_threshold: 0.002  # 0.2% proximity for bounce
+      exit_threshold: 0.5      # Exit when 50% back to middle band

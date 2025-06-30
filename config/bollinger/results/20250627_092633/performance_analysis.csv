@@ -1,0 +1,2 @@
+strategy_id,strategy_hash,strategy_type,symbol,timeframe,constraints,period,std_dev,trace_path,total_return,sharpe_ratio,max_drawdown,num_trades,win_rate,avg_return_per_trade,profit_factor,avg_winner,avg_loser,total_execution_cost,pf_bin
+SPY_5m_strategy_0,3bee7e1ff576,bollinger_bands,SPY_5m,1m,,10,1.5,traces/signals/bollinger_bands/SPY_5m_strategy_0.parquet,-0.07571702398381341,-1.125324158569896,-0.09038139981121096,1796,0.5551224944320713,-4.295037252213081e-05,0.9024857493818942,0.0007160615830427998,-0.0009900529003046537,0.17960000000000004,0.8-1.0

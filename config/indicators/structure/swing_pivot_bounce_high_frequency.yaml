@@ -1,0 +1,183 @@
+# Swing Pivot Bounce Strategy - High Frequency Configuration
+# Optimized for 2-3+ trades per day with good edge
+# Best pattern: Vol>70 yields 2.18 bps edge, 2.8 trades/day, 12.8% annual return (after 0.5bp costs)
+name: swing_pivot_bounce_high_frequency
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features
+feature_config:
+  support_resistance_20:  # Name must match what strategy expects
+    type: support_resistance
+    lookback: 20
+    min_touches: 2
+  
+  # Volatility calculation for filtering
+  volatility_20:
+    type: volatility
+    period: 20
+    
+  # VWAP for distance filtering
+  vwap:
+    type: vwap
+    
+  # Volume metrics
+  volume_sma_20:
+    type: sma
+    source: volume
+    period: 20
+    
+  # Price action
+  sma_20:
+    type: sma
+    period: 20
+    
+  # Trend indicators (optional)
+  sma_50:
+    type: sma
+    period: 50
+    
+  sma_200:
+    type: sma
+    period: 200
+
+# Strategy configuration
+strategy:
+  swing_pivot_bounce:
+    params:
+      sr_period: 20           # Support/Resistance lookback period
+      min_touches: 2          # Minimum touches to validate level
+      bounce_threshold: 0.002 # 0.2% proximity for bounce detection
+      exit_threshold: 0.001   # 0.1% from midpoint to exit position
+      
+      # High-frequency filters (choose one configuration)
+      # Configuration A: Best overall (2.8 trades/day, 2.18 bps)
+      filters:
+        min_volatility_percentile: 70  # Reduced from 85 to increase frequency
+        
+      # Configuration B: Higher frequency (3.7 trades/day, 1.61 bps)
+      # filters:
+      #   min_volatility_percentile: 60
+        
+      # Configuration C: Volatility + VWAP distance (2.6 trades/day, 1.70 bps)
+      # filters:
+      #   min_volatility_percentile: 50
+      #   min_vwap_distance_pct: 0.1  # Trade when >0.1% from VWAP
+        
+      # Configuration D: Volume-based (3.5 trades/day, 1.40 bps)
+      # filters:
+      #   min_volume_ratio: 1.2  # High volume bars only
+        
+      # Optional additional filters
+      # direction: "short"  # Shorts generally perform better
+      # time_filter: "afternoon"  # Afternoon trading maintains edge
+      
+      # Risk management
+      position_sizing:
+        method: "fixed"
+        size: 0.05  # 5% per trade (smaller due to higher frequency)
+        
+      # Stop loss and profit targets
+      risk_management:
+        stop_loss: 0.004      # 0.4% stop loss (tighter for higher frequency)
+        profit_target: 0.002  # 0.2% profit target
+        time_stop: 120        # Exit after 120 minutes (2 hours)
+
+# Execution configuration
+execution:
+  # Account for realistic execution costs
+  slippage_bps: 0.3       # Slightly better due to liquid market
+  commission_bps: 0.2     # Assume good execution
+  
+  # Trade frequency targets
+  target_trades_per_day: 2.8
+  min_trades_per_day: 2.0
+  max_trades_per_day: 5.0
+  
+# Data configuration for 5-minute bars
+data:
+  frequency: "5m"
+  bars_per_day: 78  # 6.5 hours * 12 bars/hour
+  
+# Monitoring and alerts
+monitoring:
+  # Performance monitoring
+  performance_alerts:
+    min_edge_bps: 1.5      # Alert if edge drops below 1.5 bps
+    target_edge_bps: 2.18  # Expected edge
+    max_drawdown_pct: 3.0  # Tighter drawdown control
+    
+  # Trade frequency monitoring
+  frequency_alerts:
+    min_daily_trades: 2.0  # Alert if < 2 trades/day
+    max_daily_trades: 5.0  # Alert if > 5 trades/day (unusual)
+    
+  # Rolling performance windows
+  performance_windows:
+    - 20_trades    # Check edge over last 20 trades
+    - 5_days       # Check edge over last 5 days
+    - 20_days      # Check edge over last month
+
+# Alternative high-frequency configurations
+alternative_configs:
+  conservative:
+    # 2.5 trades/day, 2.05 bps edge
+    filter: "Vol>70"
+    expected_annual_return: "10.3%"
+    
+  moderate:
+    # 3.3 trades/day, 1.62 bps edge
+    filter: "Vol>60"
+    expected_annual_return: "9.7%"
+    
+  aggressive:
+    # 4.2 trades/day, 1.13 bps edge
+    filter: "Vol>50"
+    expected_annual_return: "7.0%"
+    
+  vwap_based:
+    # 2.6 trades/day, 1.70 bps edge
+    filter: "Vol>50 + VWAP distance >0.1%"
+    expected_annual_return: "8.2%"
+    
+  volume_based:
+    # 3.5 trades/day, 1.40 bps edge
+    filter: "Volume >1.2x average"
+    expected_annual_return: "8.2%"
+
+# Notes for production deployment
+notes: |
+  This configuration targets 2-3+ trades per day while maintaining positive edge.
+  
+  Key insights from analysis:
+  - Vol>70 filter provides best risk/reward: 2.18 bps edge, 2.8 trades/day
+  - Vol>60 increases frequency to 3.7 trades/day but reduces edge to 1.61 bps
+  - VWAP distance filters (>0.1%) provide good alternative approach
+  - High volume bars (>1.2x average) offer 3.5 trades/day with 1.40 bps
+  - Afternoon trading maintains edge while slightly reducing frequency
+  
+  Performance expectations (Vol>70 configuration):
+  - Edge: 2.18 bps per trade
+  - Frequency: 2.8 trades per day
+  - Win rate: ~54.5%
+  - Annual return: 12.8% (after 0.5bp execution costs)
+  - Max drawdown: ~1-2%
+  
+  Risk considerations:
+  - Higher frequency = more execution risk
+  - Edge is sensitive to execution quality
+  - Volatility regime changes affect both edge and frequency
+  - Consider scaling position size based on volatility
+  
+  Optimization suggestions:
+  1. Start with Vol>70 filter for best risk/reward
+  2. If need more trades, reduce to Vol>60 (3.7 trades/day)
+  3. Consider VWAP distance as additional filter
+  4. Monitor time-of-day patterns for further optimization
+  5. Track performance by market regime

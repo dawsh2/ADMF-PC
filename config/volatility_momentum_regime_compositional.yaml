@@ -1,0 +1,166 @@
+# Volatility-Momentum Regime-Based Compositional Strategy
+name: volatility_momentum_regime
+mode: backtest
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-12-31"
+initial_capital: 100000
+
+# Compositional strategy using volatility_momentum_classifier
+strategy:
+  regime: volatility_momentum_classifier()
+  cases:
+    # Neutral regime: VWAP deviation with momentum filter, RSI bands, Ultimate oscillator
+    neutral:
+      - weight: 0.4
+        # VWAP deviation with momentum filter
+        condition: momentum(14) > 0  # Long only when momentum is positive
+        vwap_deviation:
+          std_multiplier: 2.0  # Use volatility-based bands
+          band_pct: 0.02  # 2% bands
+            
+      - weight: 0.3
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 30
+            overbought: 70
+            
+      - weight: 0.3
+        ultimate_oscillator:
+          params:
+            period1: 7
+            period2: 14
+            period3: 28
+            oversold: 30
+            overbought: 70
+    
+    # Low volatility bearish: More aggressive trend following
+    low_vol_bearish:
+      - weight: 0.25
+        vwap_deviation:
+          std_multiplier: 1.5  # Tighter bands in low vol
+          band_pct: 0.015  # 1.5% bands
+            
+      - weight: 0.2
+        ultimate_oscillator:
+          params:
+            period1: 7
+            period2: 14
+            period3: 28
+            oversold: 25  # More aggressive
+            overbought: 75
+            
+      - weight: 0.2
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 25
+            overbought: 75
+            
+      - weight: 0.2
+        keltner_breakout:
+          params:
+            period: 20
+            multiplier: 2.0
+            
+      - weight: 0.15
+        trendline_breaks:
+          params:
+            pivot_lookback: 20
+            min_touches: 2
+            tolerance: 0.002
+    
+    # Low volatility bullish: Similar to bearish but optimized for uptrends
+    low_vol_bullish:
+      - weight: 0.25
+        vwap_deviation:
+          std_multiplier: 1.5  # Tighter bands in low vol
+          band_pct: 0.015  # 1.5% bands
+            
+      - weight: 0.2
+        ultimate_oscillator:
+          params:
+            period1: 7
+            period2: 14
+            period3: 28
+            oversold: 30  # Standard thresholds for bullish
+            overbought: 70
+            
+      - weight: 0.2
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 30
+            overbought: 70
+            
+      - weight: 0.2
+        keltner_breakout:
+          params:
+            period: 20
+            multiplier: 2.0
+            
+      - weight: 0.15
+        # In bullish regime, focus on support bounces instead of breaks
+        trendline_bounces:
+          params:
+            pivot_lookback: 20
+            min_touches: 3
+            tolerance: 0.002
+            bounce_threshold: 0.003
+    
+    # High volatility regimes: More conservative, fewer strategies
+    high_vol_bullish:
+      - weight: 0.5
+        # Wider bands for high volatility
+        vwap_deviation:
+          std_multiplier: 3.0
+          band_pct: 0.03  # 3% bands
+            
+      - weight: 0.5
+        # Focus on extreme oversold in high vol
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 20  # More extreme
+            overbought: 80
+    
+    high_vol_bearish:
+      - weight: 0.5
+        # Wider bands for high volatility
+        vwap_deviation:
+          std_multiplier: 3.0
+          band_pct: 0.03  # 3% bands
+            
+      - weight: 0.5
+        # Focus on extreme overbought in high vol
+        rsi_bands:
+          params:
+            period: 14
+            oversold: 20
+            overbought: 80
+
+# Risk management parameters
+risk_management:
+  position_sizing:
+    type: volatility_based
+    base_risk: 0.02  # 2% risk per trade
+    max_position_size: 0.2  # 20% max position
+    
+  stop_loss:
+    type: atr_based
+    atr_multiplier: 2.0
+    
+  take_profit:
+    type: atr_based
+    atr_multiplier: 3.0
+
+# Classifier parameters
+classifier_params:
+  volatility_momentum_classifier:
+    vol_threshold: 1.0  # 1% ATR/price ratio
+    rsi_overbought: 60
+    rsi_oversold: 40
+    atr_period: 14
+    rsi_period: 14
+    sma_period: 20

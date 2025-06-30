@@ -1,0 +1,152 @@
+name: optimize_keltner_best_enhanced
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-06-30"
+dataset: train
+split_ratio: 0.8
+
+# Focus on enhancing the best performer (period=50, mult=1.0)
+parameter_space:
+  strategies:
+    # Baseline - our winner
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+    
+    # Add VWAP confirmation - only trade when stretched from VWAP
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        abs(vwap_distance()) > ${vwap_dist}
+      filter_params:
+        vwap_dist: [0.002, 0.003, 0.004, 0.005]
+    
+    # Add trend confirmation - trade with major trend
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        (signal > 0 and close > sma_200) or 
+        (signal < 0 and close < sma_200)
+    
+    # Add volatility filter - only trade in normal/high volatility
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        volatility_percentile(20) > ${vol_pct}
+      filter_params:
+        vol_pct: [0.3, 0.4, 0.5, 0.6]
+    
+    # Add volume spike confirmation
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        volume > volume_sma_50 * ${vol_spike}
+      filter_params:
+        vol_spike: [1.5, 2.0, 2.5]
+    
+    # RSI extreme filter - only at oversold/overbought
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        (signal > 0 and rsi(14) < ${rsi_low}) or 
+        (signal < 0 and rsi(14) > ${rsi_high})
+      filter_params:
+        rsi_low: [20, 25, 30]
+        rsi_high: [70, 75, 80]
+    
+    # Market structure filter removed - features not available
+    
+    # Best combo: VWAP + RSI extremes
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        (abs(vwap_distance()) > 0.003 and
+         ((signal > 0 and rsi(14) < 30) or 
+          (signal < 0 and rsi(14) > 70)))
+    
+    # Best combo: Trend + Volume
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        (((signal > 0 and close > sma_200) or 
+          (signal < 0 and close < sma_200)) and
+         volume > volume_sma_50 * 1.5)
+    
+    # Triple filter: VWAP + Volatility + Volume
+    - type: keltner_bands
+      params:
+        period: 50
+        multiplier: 1.0
+      filter: |
+        signal == 0 or 
+        (abs(vwap_distance()) > 0.003 and
+         volatility_percentile(20) > 0.5 and
+         volume > volume_sma_50 * 1.2)
+    
+    # Experiment with slightly different parameters
+    - type: keltner_bands
+      param_overrides:
+        period: [45, 50, 55]
+        multiplier: [0.9, 1.0, 1.1]
+
+# Features for all filters
+feature_configs:
+  vwap:
+    type: vwap
+  
+  sma_200:
+    type: sma
+    params:
+      period: 200
+  
+  volume_sma_50:
+    type: sma
+    params:
+      period: 50
+      column: volume
+  
+  rsi_14:
+    type: rsi
+    params:
+      period: 14
+  
+  volatility_percentile_20:
+    type: volatility_percentile
+    params:
+      period: 20
+      lookback: 252
+  
+
+data:
+  type: file
+  config:
+    file_pattern: "./data/{symbol}.csv"
+    
+timeframe: "1m"
+
+signal_persistence: 
+  enabled: true
+  compression: sparse

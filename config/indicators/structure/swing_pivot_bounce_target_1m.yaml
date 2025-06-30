@@ -1,0 +1,39 @@
+# Swing Pivot Bounce with Target-Based Exit - 1 Minute Timeframe
+# Test the near-breakeven strategy on 1m data for more opportunities
+name: swing_pivot_bounce_target_1m
+mode: signal_generation
+symbols: ["SPY"]  # 1m data
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Use best parameters from 15m analysis
+strategy:
+  swing_pivot_bounce_target:
+    params:
+      sr_period: 30           # 30 minutes lookback on 1m
+      min_touches: 4          
+      bounce_threshold: 0.004 # 0.4% bounce threshold
+      target_threshold: 0.004 # 0.4% exit before target (best from 15m)
+
+# Optimization focused on best performing parameters
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce_target
+      param_overrides:
+        # Adjust SR periods for 1m timeframe (15-60 minutes)
+        sr_period: [15, 20, 30, 40, 50, 60]
+        
+        # Keep successful touch requirements
+        min_touches: [3, 4, 5]
+        
+        # Focus on best bounce thresholds
+        bounce_threshold: [0.003, 0.0035, 0.004, 0.0045]
+        
+        # Fine-tune around the optimal 0.004 target threshold
+        target_threshold: [0.0035, 0.0038, 0.004, 0.0042, 0.0045]
+
+# This generates 6 * 3 * 4 * 5 = 360 combinations

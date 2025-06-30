@@ -1,0 +1,41 @@
+name: mean_reversion_high_frequency
+data: SPY_5m
+
+strategy: [
+  # RSI-based mean reversion
+  {
+    rsi: {
+      period: "range(5, 20, 1)",
+      oversold: "range(20, 35, 5)",
+      overbought: "range(65, 80, 5)"
+    },
+    constraints: "intraday"
+  },
+  
+  # Bollinger Band mean reversion (fade the extremes)
+  {
+    bollinger_bands: {
+      period: "range(10, 25, 1)",
+      std_dev: "range(1.5, 2.5, 0.25)"
+    },
+    # This will use mean reversion logic if properly configured
+    mean_reversion: true,
+    constraints: "intraday"
+  },
+  
+  # Simple price deviation mean reversion
+  {
+    mean_reversion_simple: {
+      lookback: "range(10, 30, 2)",
+      entry_threshold: "range(0.5, 2.0, 0.25)",  # % deviation from mean
+      exit_threshold: "range(0.0, 0.5, 0.25)"   # % from mean to exit
+    },
+    constraints: "intraday"
+  }
+]
+
+# Mean reversion strategies typically:
+# - Trade more frequently (5-20 trades/day)
+# - Have smaller, more predictable moves
+# - Work better with tight stops (0.5-1.5%)
+# - Benefit from profit targets

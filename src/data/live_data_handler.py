@@ -52,12 +52,17 @@ class LiveDataHandler:
         feed = live_config.get('feed', 'iex')
         paper_trading = live_config.get('paper_trading', True)
         
+        # Extract timeframe from config
+        timeframe = config.get('timeframe', '1m')  # Default to 1m if not specified
+        logger.info(f"LiveDataHandler using timeframe: {timeframe} from config: {config}")
+        
         alpaca_config = AlpacaConfig(
             api_key=api_key,
             secret_key=secret_key,
             symbols=symbols,
             paper_trading=paper_trading,
-            feed=feed
+            feed=feed,
+            timeframe=timeframe
         )
         self.streamer = AlpacaWebSocketStreamer(alpaca_config)
         
@@ -203,7 +208,7 @@ class LiveDataHandler:
                 source_id=f"live_data_{bar.symbol}",
                 container_id=self.container.container_id if self.container else None
             )
-            logger.debug(f"🔴 Publishing live BAR event #{self._bar_count} for {bar.symbol} at {bar.timestamp}")
+            logger.info(f"🔴 Publishing live BAR event #{self._bar_count} for {bar.symbol} at {bar.timestamp}")
             self.container.event_bus.publish(event)
             self._bar_count += 1
         else:

@@ -1,0 +1,43 @@
+# Swing Pivot Bounce Zones - Stateless Zone-Based Strategy
+# Test on 1m data to reproduce the 1.26 bps edge with filters
+name: swing_pivot_bounce_zones_1m
+mode: signal_generation
+symbols: ["SPY"]  # 1m data
+start_date: "2024-04-01"
+end_date: "2024-12-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Base configuration
+strategy:
+  swing_pivot_bounce_zones:
+    params:
+      sr_period: 20          # 20 minutes on 1m
+      min_touches: 3         # Standard for 1m
+      entry_zone: 0.002      # 0.2% zone for entries
+      exit_zone: 0.002       # 0.2% zone for exits
+      min_range: 0.003       # 0.3% minimum S/R distance
+
+# Optimization parameters for 1m
+parameter_space:
+  strategies:
+    - type: swing_pivot_bounce_zones
+      param_overrides:
+        # SR periods for 1m (10-60 minutes)
+        sr_period: [10, 15, 20, 30, 40, 50]
+        
+        # Touch requirements
+        min_touches: [2, 3, 4]
+        
+        # Entry zones (tighter for 1m precision)
+        entry_zone: [0.001, 0.0015, 0.002, 0.0025, 0.003]
+        
+        # Exit zones (tighter for 1m)
+        exit_zone: [0.001, 0.0015, 0.002, 0.0025, 0.003]
+        
+        # Minimum range filter (smaller for 1m)
+        min_range: [0.002, 0.003, 0.004, 0.005]
+
+# This generates 6 * 3 * 5 * 5 * 4 = 1800 combinations

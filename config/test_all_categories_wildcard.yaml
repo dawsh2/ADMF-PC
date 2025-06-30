@@ -1,0 +1,34 @@
+# Test all indicator categories using wildcard discovery
+name: test_all_categories_wildcard
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Base strategy (used when not optimizing)
+strategy:
+  sma_crossover:
+    params:
+      fast_period: 10
+      slow_period: 30
+
+# Wildcard discovery for all categories
+parameter_space:
+  indicators:
+    crossover: "*"      # All crossover strategies
+    momentum: "*"       # All momentum strategies
+    oscillator: "*"     # All oscillator strategies
+    trend: "*"          # All trend strategies
+    volatility: "*"     # All volatility strategies
+    volume: "*"         # All volume strategies
+    structure: "*"      # All structure strategies
+
+# Control optimization granularity
+optimization:
+  granularity: 3
+
+
+# Run with:
+# python main.py --config config/test_all_categories_wildcard.yaml --signal-generation --bars 200 --optimize
+
+# This will discover and test strategies from all categories

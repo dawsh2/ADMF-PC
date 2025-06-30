@@ -1,0 +1,29 @@
+# Bollinger Band + RSI Immediate Entry Strategy
+# Enters immediately at extremes with divergence, no confirmation wait
+name: bollinger_rsi_immediate
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Enable verbose signal output
+signal_filters:
+  - verbose_signals: true
+
+# Required features - minimal
+feature_config:
+  bollinger_bands:
+    - period: 20
+      std_dev: 2.0
+  rsi:
+    - period: 14
+
+# Strategy configuration
+strategy:
+  bollinger_rsi_immediate:
+    params:
+      bb_period: 20
+      bb_std: 2.0
+      rsi_period: 14
+      rsi_oversold: 30      # Enter long when RSI > 30 (not extremely oversold)
+      rsi_overbought: 70    # Enter short when RSI < 70 (not extremely overbought)

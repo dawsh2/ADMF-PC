@@ -1,0 +1,43 @@
+=== Swing Pivot Bounce Zones Detailed Statistics ===
+
+Total Strategies Analyzed: 1500
+Total Trades Executed: 162165
+
+Return Statistics:
+  Mean: 0.17%
+  Median: 0.56%
+  Std Dev: 1.57%
+  Min: -4.42%
+  Max: 1.99%
+  Positive Returns: 1035 (69.0%)
+  Sharpe Ratio (approx): 1.747
+
+Trade Statistics:
+  Avg Trades per Strategy: 108.1
+  Avg Win Rate: 47.6%
+  Avg Trade Duration: 1.7 bars
+  Avg Winning Trade: 0.14%
+  Avg Losing Trade: -0.11%
+
+Performance Quintiles:
+                total_return          ... avg_win avg_loss
+                        mean     min  ...    mean     mean
+return_quintile                       ...                 
+Q1 (Worst)           -0.0264 -0.0442  ...  0.0011  -0.0012
+Q2                    0.0024 -0.0115  ...  0.0016  -0.0012
+Q3                    0.0087  0.0064  ...  0.0012  -0.0011
+Q4                    0.0134  0.0106  ...  0.0016  -0.0010
+Q5 (Best)             0.0174  0.0167  ...  0.0012  -0.0011
+
+[5 rows x 8 columns]
+
+Correlation Matrix:
+                    total_return  win_rate  ...  avg_win  avg_loss
+total_return               1.000     0.445  ...    0.540     0.565
+win_rate                   0.445     1.000  ...   -0.375     0.276
+num_trades                -0.670     0.113  ...   -0.795    -0.350
+avg_trade_duration         0.315    -0.460  ...    0.908    -0.075
+avg_win                    0.540    -0.375  ...    1.000     0.213
+avg_loss                   0.565     0.276  ...    0.213     1.000
+
+[6 rows x 6 columns]

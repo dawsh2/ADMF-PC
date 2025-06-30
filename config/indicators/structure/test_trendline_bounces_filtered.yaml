@@ -1,0 +1,30 @@
+# Test configuration for Trendline Bounces with bounce count filter
+name: test_trendline_bounces_filtered
+mode: signal_generation
+symbols: ["SPY"]
+start_date: "2024-01-01"
+end_date: "2024-01-31"
+
+# Strategy with filter requiring minimum bounces
+strategy:
+  trendline_bounces:
+    params:
+      pivot_lookback: 20
+      min_touches: 3
+      min_bounces: 2  # Only trade after 2 successful bounces
+      tolerance: 0.002
+      bounce_threshold: 0.003
+    # Alternative: Use filter instead of min_bounces parameter
+    # filter: "trendlines_support_bounces >= 2 or trendlines_resistance_bounces >= 2"
+
+# Run with: python main.py --config config/indicators/structure/test_trendline_bounces_filtered.yaml --signal-generation --bars 100
+
+# This configuration demonstrates:
+# 1. Using min_bounces parameter to require proven trendlines
+# 2. How bounce counts improve confidence in mean reversion
+# 3. Alternative filter-based approach (commented out)
+
+# The trendlines feature now tracks:
+# - trendlines_support_bounces: Successful bounces from support
+# - trendlines_resistance_bounces: Successful bounces from resistance
+# These can be used in strategies or filters

@@ -1,0 +1,9 @@
+name: balanced_ensemble
+data: SPY_5m
+
+# Ensemble with more balanced parameters
+strategy: [
+  {keltner_bands: {period: 20, multiplier: 2.0}},    # More reasonable multiplier
+  {bollinger_bands: {period: 20, std_dev: 2.0}},     # Matching period for comparison
+  {threshold: "abs(signal) > 0.5"}                   # Require majority agreement
+]
