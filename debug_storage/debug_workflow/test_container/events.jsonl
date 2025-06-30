@@ -1,1 +1,0 @@
-{"event_type": "SIGNAL", "payload": {"strategy_id": "test_strat", "signal_value": 1.0}, "source_id": null, "container_id": null, "correlation_id": null, "causation_id": null, "timestamp": "2025-06-09T23:41:32.494427", "metadata": {}, "event_id": "test_1", "sequence_number": null, "target_container": null}

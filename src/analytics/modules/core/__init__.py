@@ -2,7 +2,10 @@
 
 from .data_loading import (
     load_global_traces,
-    load_workspace_traces,
+    load_strategy_index,
+    load_run_index,
+    load_execution_trades,
+    load_signal_references,
     load_market_data,
     load_trace_metadata
 )
@@ -24,7 +27,10 @@ from .metrics import (
 __all__ = [
     # Data loading
     'load_global_traces',
-    'load_workspace_traces', 
+    'load_strategy_index',
+    'load_run_index',
+    'load_execution_trades',
+    'load_signal_references',
     'load_market_data',
     'load_trace_metadata',
     

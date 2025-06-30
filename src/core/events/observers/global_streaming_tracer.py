@@ -91,6 +91,11 @@ class GlobalStreamingTracer(EventObserverProtocol):
         self._strategy_hash_to_path: Dict[str, Path] = {}
         self._existing_hashes: Set[str] = set()
         
+        # Trade tracking for unified trades.parquet
+        self._active_trades: Dict[str, Dict[str, Any]] = {}  # position_id -> trade data
+        self._completed_trades: List[Dict[str, Any]] = []
+        self._trade_counter = 0
+        
         # Determine global traces directory
         if global_traces_root:
             self._global_traces_dir = Path(global_traces_root)
@@ -294,84 +299,156 @@ class GlobalStreamingTracer(EventObserverProtocol):
             self._stored_changes += 1
     
     def _process_order_event(self, event: Event) -> None:
-        """Process ORDER events from portfolio."""
+        """Process ORDER events and update trade records."""
         payload = event.payload
         symbol = payload.get('symbol', 'UNKNOWN')
         timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
+        order_id = payload.get('order_id', 'unknown')
+        position_id = payload.get('position_id')
         
         self._total_orders += 1
         
-        # Store orders in workspace directory for run-specific data
-        storage_key = 'portfolio_orders'
-        if storage_key not in self._dense_storages:
-            orders_dir = self._workspace_path / 'traces' / 'portfolio' / 'orders'
-            orders_dir.mkdir(parents=True, exist_ok=True)
-            self._dense_storages[storage_key] = DenseEventStorage(str(orders_dir), 'orders')
+        # Update active trade if we have a position_id
+        if position_id and position_id in self._active_trades:
+            trade = self._active_trades[position_id]
+            side = payload.get('side', '').upper()
+            
+            if side in ['BUY', 'SELL'] and trade['entry_order_id'] is None:
+                # This is the entry order
+                trade['entry_order_id'] = order_id
+                trade['entry_order_price'] = payload.get('price', 0)
+                trade['entry_order_time'] = timestamp
+            elif side in ['SELL', 'BUY'] and trade['entry_order_id'] is not None:
+                # This is the exit order (opposite of entry)
+                trade['exit_order_id'] = order_id
+                trade['exit_order_price'] = payload.get('price', 0)
+                trade['exit_order_time'] = timestamp
         
-        self._dense_storages[storage_key].add_event(
-            symbol=symbol,
-            timestamp=timestamp,
-            bar_index=self._current_bar_count,
-            metadata=payload
-        )
-        
-        order_id = payload.get('order_id', 'unknown')
-        logger.debug(f"Stored ORDER event: {order_id} for {symbol}")
+        logger.debug(f"Processed ORDER event: {order_id} for {symbol}")
     
     def _process_fill_event(self, event: Event) -> None:
-        """Process FILL events from execution engine."""
+        """Process FILL events and update trade records."""
         payload = event.payload
         symbol = payload.get('symbol', 'UNKNOWN')
         timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
+        fill_id = payload.get('fill_id', 'unknown')
+        order_id = payload.get('order_id')
+        position_id = payload.get('position_id')
         
         self._total_fills += 1
         
-        # Store fills in workspace directory for run-specific data
-        storage_key = 'execution_fills'
-        if storage_key not in self._dense_storages:
-            fills_dir = self._workspace_path / 'traces' / 'execution' / 'fills'
-            fills_dir.mkdir(parents=True, exist_ok=True)
-            self._dense_storages[storage_key] = DenseEventStorage(str(fills_dir), 'fills')
+        # Update active trade if we have a position_id
+        if position_id and position_id in self._active_trades:
+            trade = self._active_trades[position_id]
+            
+            if order_id == trade.get('entry_order_id'):
+                # This is the entry fill
+                trade['entry_fill_id'] = fill_id
+                trade['entry_fill_price'] = payload.get('price', 0)
+                trade['entry_fill_time'] = timestamp
+                
+                # Calculate entry slippage if we have order price
+                if trade['entry_order_price'] and trade['entry_fill_price']:
+                    trade['slippage_entry'] = abs(trade['entry_fill_price'] - trade['entry_order_price'])
+                    
+            elif order_id == trade.get('exit_order_id'):
+                # This is the exit fill
+                trade['exit_fill_id'] = fill_id
+                trade['exit_fill_price'] = payload.get('price', 0)
+                trade['exit_fill_time'] = timestamp
+                
+                # Calculate exit slippage if we have order price
+                if trade['exit_order_price'] and trade['exit_fill_price']:
+                    trade['slippage_exit'] = abs(trade['exit_fill_price'] - trade['exit_order_price'])
         
-        self._dense_storages[storage_key].add_event(
-            symbol=symbol,
-            timestamp=timestamp,
-            bar_index=self._current_bar_count,
-            metadata=payload
-        )
-        
-        fill_id = payload.get('fill_id', 'unknown')
-        logger.debug(f"Stored FILL event: {fill_id} for {symbol}")
+        logger.debug(f"Processed FILL event: {fill_id} for {symbol}")
     
     def _process_position_event(self, event: Event) -> None:
-        """Process POSITION_OPEN/CLOSE events."""
+        """Process POSITION_OPEN/CLOSE events to build complete trade records."""
         payload = event.payload
         symbol = payload.get('symbol', 'UNKNOWN')
         timestamp = event.timestamp.isoformat() if hasattr(event.timestamp, 'isoformat') else str(event.timestamp)
+        position_id = payload.get('position_id', 'unknown')
         
         self._total_positions += 1
         
-        # Store positions in workspace directory for run-specific data
         if event.event_type == EventType.POSITION_OPEN.value:
-            storage_key = 'positions_open'
-            dir_name = 'positions_open'
-        else:
-            storage_key = 'positions_close'
-            dir_name = 'positions_close'
-        
-        if storage_key not in self._dense_storages:
-            positions_dir = self._workspace_path / 'traces' / 'portfolio' / dir_name
-            positions_dir.mkdir(parents=True, exist_ok=True)
-            self._dense_storages[storage_key] = DenseEventStorage(str(positions_dir), dir_name)
-        
-        self._dense_storages[storage_key].add_event(
-            symbol=symbol,
-            timestamp=timestamp,
-            bar_index=self._current_bar_count,
-            metadata=payload
-        )
-        
-        logger.debug(f"Stored {event.event_type} event for {symbol} in {storage_key} storage")
+            # Start tracking a new trade
+            self._trade_counter += 1
+            strategy_id = payload.get('strategy_id', 'unknown')
+            
+            # Find the signal hash for this strategy
+            signal_hash = None
+            for comp_id, metadata in self._component_metadata.items():
+                if comp_id == strategy_id or strategy_id in comp_id:
+                    signal_hash = metadata.get('strategy_hash')
+                    break
+            
+            trade_record = {
+                'trade_id': f"T{self._trade_counter:06d}",
+                'position_id': position_id,
+                'symbol': symbol,
+                'strategy_id': strategy_id,
+                'signal_hash': signal_hash,
+                'entry_bar_idx': self._current_bar_count,
+                'entry_time': timestamp,
+                'entry_signal_strength': payload.get('signal_strength', 0),
+                'direction': payload.get('direction', 'unknown'),
+                # Will be filled by order/fill events
+                'entry_order_id': None,
+                'entry_order_price': None,
+                'entry_order_time': None,
+                'entry_fill_id': None,
+                'entry_fill_price': None,
+                'entry_fill_time': None,
+            }
+            
+            self._active_trades[position_id] = trade_record
+            logger.debug(f"Started tracking trade {trade_record['trade_id']} for position {position_id}")
+            
+        elif event.event_type == EventType.POSITION_CLOSE.value:
+            # Complete the trade record
+            if position_id in self._active_trades:
+                trade = self._active_trades[position_id]
+                
+                # Add exit information
+                trade.update({
+                    'exit_bar_idx': self._current_bar_count,
+                    'exit_time': timestamp,
+                    'exit_reason': payload.get('exit_reason', 'unknown'),
+                    'exit_signal_strength': payload.get('signal_strength', 0),
+                    'pnl': payload.get('pnl', 0),
+                    'duration_bars': self._current_bar_count - trade['entry_bar_idx'],
+                    # Will be filled by order/fill events
+                    'exit_order_id': None,
+                    'exit_order_price': None,
+                    'exit_order_time': None,
+                    'exit_fill_id': None,
+                    'exit_fill_price': None,
+                    'exit_fill_time': None,
+                    # Execution costs
+                    'commission': payload.get('commission', 0),
+                    'slippage_entry': 0,  # Will calculate when we have order/fill prices
+                    'slippage_exit': 0,
+                })
+                
+                # Calculate duration_time if we have both timestamps
+                try:
+                    if trade['entry_time'] and trade['exit_time']:
+                        entry_dt = datetime.fromisoformat(trade['entry_time'])
+                        exit_dt = datetime.fromisoformat(timestamp)
+                        trade['duration_time'] = str(exit_dt - entry_dt)
+                except Exception as e:
+                    logger.debug(f"Could not calculate duration_time: {e}")
+                    trade['duration_time'] = None
+                
+                # Move to completed trades
+                self._completed_trades.append(trade)
+                del self._active_trades[position_id]
+                
+                logger.debug(f"Completed trade {trade['trade_id']} with PnL: {trade['pnl']}")
+            else:
+                logger.warning(f"Position close event for unknown position: {position_id}")
     
     def _get_or_create_storage(self, component_type: str, component_id: str, 
                               payload: Dict[str, Any]) -> StreamingSparseStorage:
@@ -420,11 +497,9 @@ class GlobalStreamingTracer(EventObserverProtocol):
         # Compute strategy hash
         strategy_hash = compute_strategy_hash(strategy_config)
         
-        # Create global directory structure: traces/SYMBOL/TIMEFRAME/COMPONENT_TYPE/STRATEGY_TYPE/
-        if component_type == 'strategy':
-            component_dir = self._global_traces_dir / symbol / timeframe / 'signals' / strategy_type
-        else:
-            component_dir = self._global_traces_dir / symbol / timeframe / 'classifiers' / strategy_type
+        # Create flat storage structure: traces/store/
+        store_dir = self._global_traces_dir / 'store'
+        store_dir.mkdir(parents=True, exist_ok=True)
         
         # Use hash-based filename
         filename = f"{strategy_hash}.parquet"
@@ -437,14 +512,14 @@ class GlobalStreamingTracer(EventObserverProtocol):
         
         # Create streaming storage with hash-based filename
         storage = StreamingSparseStorage(
-            base_dir=str(component_dir),
+            base_dir=str(store_dir),
             write_interval=self._write_interval,
             write_on_changes=self._write_on_changes,
             component_id=strategy_hash  # Use hash as filename
         )
         
         self._storages[component_id] = storage
-        self._strategy_hash_to_path[strategy_hash] = component_dir / filename
+        self._strategy_hash_to_path[strategy_hash] = store_dir / filename
         
         # Store metadata
         if component_id not in self._component_metadata:
@@ -455,10 +530,10 @@ class GlobalStreamingTracer(EventObserverProtocol):
                 'symbol': symbol,
                 'timeframe': timeframe,
                 'parameters': parameters,
-                'trace_path': str(component_dir / filename)  # Global path
+                'trace_path': str(store_dir / filename)  # Global path
             }
         
-        logger.debug(f"Created global storage for {component_type} {component_id} at {component_dir} (hash: {strategy_hash})")
+        logger.debug(f"Created global storage for {component_type} {component_id} at {store_dir} (hash: {strategy_hash})")
         
         return storage
     
@@ -466,11 +541,33 @@ class GlobalStreamingTracer(EventObserverProtocol):
         """Finalize all storages and save metadata."""
         logger.info(f"Finalizing GlobalStreamingTracer...")
         
-        # Save dense event storages (orders, fills, positions) in workspace
-        for storage_key, dense_storage in self._dense_storages.items():
-            filepath = dense_storage.save(f"{storage_key}.parquet")
-            if filepath:
-                logger.info(f"Saved dense storage {storage_key} to {filepath}")
+        # Create run ID and hash for trades file
+        run_timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        run_id = f"{run_timestamp}_{self._workflow_id[:8]}"
+        
+        # Ensure store directory exists
+        store_dir = self._global_traces_dir / 'store'
+        store_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Collect signal references for this run
+        signal_refs = {}
+        for comp_id, metadata in self._component_metadata.items():
+            if metadata.get('type') == 'strategy':
+                signal_refs[comp_id] = metadata.get('strategy_hash')
+        
+        # Save unified trades file with hash-based name
+        trades_hash = None
+        if self._completed_trades:
+            import pandas as pd
+            trades_df = pd.DataFrame(self._completed_trades)
+            
+            # Create a hash for the trades file
+            trades_content = f"trades_{run_id}_{len(self._completed_trades)}"
+            trades_hash = hashlib.md5(trades_content.encode()).hexdigest()[:12]
+            
+            trades_path = store_dir / f"T{trades_hash}.parquet"
+            trades_df.to_parquet(trades_path, engine='pyarrow', index=False)
+            logger.info(f"Saved {len(self._completed_trades)} trades to {trades_path}")
         
         # Finalize all sparse storages (signals) in global traces
         for component_id, storage in self._storages.items():
@@ -479,9 +576,12 @@ class GlobalStreamingTracer(EventObserverProtocol):
             except Exception as e:
                 logger.error(f"Error finalizing storage for {component_id}: {e}")
         
-        # Save workspace metadata (backward compatibility)
+        # Save run metadata
         metadata = {
+            'run_id': run_id,
             'workflow_id': self._workflow_id,
+            'trades_hash': trades_hash,
+            'signal_references': signal_refs,
             'workspace_path': str(self._workspace_path),
             'global_traces_path': str(self._global_traces_dir),
             'data_source': self._data_source_config,
@@ -491,6 +591,7 @@ class GlobalStreamingTracer(EventObserverProtocol):
             'total_orders': self._total_orders,
             'total_fills': self._total_fills,
             'total_positions': self._total_positions,
+            'total_trades': len(self._completed_trades),
             'stored_changes': self._stored_changes,
             'compression_ratio': (self._stored_changes / self._total_signals * 100) if self._total_signals > 0 else 0,
             'components': self._component_metadata,
@@ -509,20 +610,22 @@ class GlobalStreamingTracer(EventObserverProtocol):
             except Exception as e:
                 logger.error(f"Failed to extract recursive strategy metadata: {e}")
         
-        # Save metadata in workspace (create directory if needed)
+        # Save metadata in workspace for backward compatibility
         self._workspace_path.mkdir(parents=True, exist_ok=True)
-        metadata_path = self._workspace_path / 'metadata.json'
-        with open(metadata_path, 'w') as f:
+        workspace_metadata_path = self._workspace_path / 'metadata.json'
+        with open(workspace_metadata_path, 'w') as f:
             json.dump(metadata, f, indent=2)
         
         # Update global strategy index
         self._update_global_strategy_index()
         
-        # Create run-specific strategy index in workspace
-        self._create_workspace_strategy_index()
+        # Update global run index
+        self._update_global_run_index(run_id, metadata)
         
-        logger.info(f"Workspace metadata: {self._workspace_path}")
+        logger.info(f"Run ID: {run_id}")
         logger.info(f"Global traces: {self._global_traces_dir}")
+        if trades_hash:
+            logger.info(f"Trades file: traces/store/T{trades_hash}.parquet")
         
         # Calculate compression ratio safely
         if self._total_signals > 0:
@@ -562,11 +665,13 @@ class GlobalStreamingTracer(EventObserverProtocol):
                 entry = {
                     'strategy_hash': strategy_hash,
                     'strategy_type': metadata.get('strategy_type', 'unknown'),
+                    'component_type': metadata.get('type', 'strategy'),
                     'symbol': metadata.get('symbol', ''),
                     'timeframe': metadata.get('timeframe', ''),
                     'constraints': metadata.get('full_config', {}).get('constraints'),
                     'trace_path': metadata.get('trace_path', ''),
                     'first_seen': datetime.now().isoformat(),
+                    'full_config': json.dumps(metadata.get('full_config', {}))
                 }
                 
                 # Add parameters as direct columns
@@ -590,50 +695,44 @@ class GlobalStreamingTracer(EventObserverProtocol):
             logger.info(f"Updated global strategy index with {len(new_entries)} new strategies")
             logger.info(f"Total unique strategies in global index: {len(combined_df)}")
     
-    def _create_workspace_strategy_index(self) -> None:
-        """Create a strategy index for this specific run."""
+    def _update_global_run_index(self, run_id: str, metadata: Dict[str, Any]) -> None:
+        """Update the global run index with this run's information."""
         import pandas as pd
         
-        index_data = []
-        
-        for strategy_id, metadata in self._component_metadata.items():
-            if metadata.get('type') != 'strategy':
-                continue
-            
-            # Extract parameters for easy querying
-            params = metadata.get('parameters', {})
-            strategy_hash = metadata.get('strategy_hash', '')
-            
-            entry = {
-                'strategy_id': strategy_id,
-                'strategy_hash': strategy_hash,
-                'strategy_type': metadata.get('strategy_type', 'unknown'),
-                'symbol': metadata.get('symbol', ''),
-                'timeframe': metadata.get('timeframe', ''),
-                'constraints': metadata.get('full_config', {}).get('constraints'),
-                'global_trace_path': metadata.get('trace_path', ''),
-            }
-            
-            # Add parameters as direct columns
-            for param_name, param_value in params.items():
-                if not param_name.startswith('_'):
-                    entry[param_name] = param_value
-            
-            index_data.append(entry)
-        
-        if index_data:
-            # Create DataFrame and save as parquet
-            index_df = pd.DataFrame(index_data)
-            
-            # Log what we're creating
-            logger.info(f"Creating workspace strategy index with {len(index_data)} strategies")
-            logger.info(f"Unique hashes in this run: {index_df['strategy_hash'].nunique()}")
-            
-            index_path = self._workspace_path / 'strategy_index.parquet'
-            index_df.to_parquet(index_path, engine='pyarrow', index=False)
-            logger.info(f"Saved workspace strategy index to {index_path}")
+        # Load existing index if it exists
+        index_path = self._global_traces_dir / 'run_index.parquet'
+        if index_path.exists():
+            existing_df = pd.read_parquet(index_path)
         else:
-            logger.warning("No strategies found for index creation")
+            existing_df = pd.DataFrame()
+        
+        # Create new entry
+        new_entry = {
+            'run_id': run_id,
+            'timestamp': metadata['timestamp'],
+            'mode': metadata.get('mode', 'backtest'),
+            'workflow_id': metadata['workflow_id'],
+            'trades_hash': metadata.get('trades_hash'),
+            'signal_references': json.dumps(metadata.get('signal_references', {})),
+            'data_source': metadata['data_source'].get('type', 'unknown'),
+            'total_bars': metadata['total_bars'],
+            'total_signals': metadata['total_signals'],
+            'total_trades': metadata['total_trades'],
+            'total_strategies': len([c for c in metadata['components'].values() if c.get('type') == 'strategy']),
+            'workspace_path': metadata['workspace_path']
+        }
+        
+        # Append to existing
+        new_df = pd.DataFrame([new_entry])
+        if not existing_df.empty:
+            combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+        else:
+            combined_df = new_df
+        
+        # Save updated index
+        combined_df.to_parquet(index_path, engine='pyarrow', index=False)
+        logger.info(f"Updated global run index with run {run_id}")
+    
     
     # Required protocol methods
     def on_publish(self, event: Event) -> None:

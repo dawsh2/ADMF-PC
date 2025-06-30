@@ -340,6 +340,112 @@ class PapermillNotebookRunner:
                 logger.error(f"Could not launch Jupyter: {e}")
                 logger.info(f"You can manually open: jupyter lab {notebook_path}")
     
+    def run_global_analysis(self,
+                           strategy_type: Optional[str] = None,
+                           symbol: Optional[str] = None,
+                           timeframe: Optional[str] = None,
+                           execute: bool = True,
+                           launch: bool = False,
+                           generate_html: bool = False,
+                           output_dir: Optional[Path] = None) -> Optional[Path]:
+        """
+        Run global analysis directly from traces store without run directory.
+        
+        Args:
+            strategy_type: Filter by strategy type (e.g., 'bollinger_bands')
+            symbol: Filter by symbol (e.g., 'SPY')
+            timeframe: Filter by timeframe (e.g., '5m')
+            execute: Whether to execute the notebook
+            launch: Whether to launch Jupyter after generation
+            generate_html: Whether to generate HTML report
+            output_dir: Where to save the analysis (defaults to current directory)
+            
+        Returns:
+            Path to the generated notebook
+        """
+        # Use canonical signal_analysis template
+        template = self.template_dir / 'signal_analysis.ipynb'
+        
+        if not template.exists():
+            logger.error(f"Global analysis template not found: {template}")
+            return None
+        
+        # Parameters for the notebook
+        params = {
+            'strategy_type': strategy_type,
+            'symbol': symbol or 'SPY',
+            'timeframe': timeframe or '5m',
+            'traces_dir': str(Path.cwd() / 'traces'),
+            'execution_cost_bps': 1.0  # Default execution cost
+        }
+        
+        # Output path
+        if output_dir is None:
+            output_dir = Path.cwd()
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # Build filename
+        filename_parts = ['global_analysis']
+        if strategy_type:
+            filename_parts.append(strategy_type)
+        if symbol:
+            filename_parts.append(symbol)
+        if timeframe:
+            filename_parts.append(timeframe)
+        filename_parts.append(timestamp)
+        
+        output_notebook = output_dir / f"{'_'.join(filename_parts)}.ipynb"
+        
+        try:
+            if execute:
+                logger.info(f"📓 Executing global analysis notebook...")
+                logger.info(f"   Strategy type: {strategy_type or 'ALL'}")
+                logger.info(f"   Symbol: {symbol or 'ALL'}")
+                logger.info(f"   Timeframe: {timeframe or 'ALL'}")
+                logger.info(f"   Output: {output_notebook}")
+                
+                # Execute notebook
+                pm.execute_notebook(
+                    str(template),
+                    str(output_notebook),
+                    parameters=params,
+                    kernel_name='admfpc-venv',  # Use the venv kernel
+                    progress_bar=True
+                )
+                
+                logger.info(f"✅ Analysis complete: {output_notebook}")
+                
+                # Generate HTML if requested
+                if generate_html:
+                    html_path = self._generate_html_report(output_notebook)
+                    if html_path:
+                        logger.info(f"📄 HTML report generated: {html_path}")
+                        
+            else:
+                logger.info(f"📓 Creating parameterized notebook...")
+                
+                # Just parameterize without executing
+                pm.parameterize_notebook(
+                    str(template),
+                    str(output_notebook),
+                    parameters=params
+                )
+                
+                logger.info(f"✅ Notebook created: {output_notebook}")
+            
+            # Launch if requested
+            if launch:
+                self._launch_notebook(output_notebook)
+                
+            return output_notebook
+            
+        except Exception as e:
+            logger.error(f"Failed to run global analysis: {e}", exc_info=True)
+            return None
+    
     def _create_default_template(self):
         """Create a minimal default template if none exists"""
         # This is a fallback - the real template should be in templates/

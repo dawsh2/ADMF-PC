@@ -18,6 +18,11 @@ from .duration import (
     calculate_holding_periods
 )
 
+from .expected_trades import (
+    generate_expected_trades,
+    aggregate_expected_trades
+)
+
 __all__ = [
     # Extraction
     'extract_trades',
@@ -32,5 +37,9 @@ __all__ = [
     # Duration
     'analyze_trade_duration',
     'filter_by_duration',
-    'calculate_holding_periods'
+    'calculate_holding_periods',
+    
+    # Expected trades
+    'generate_expected_trades',
+    'aggregate_expected_trades'
 ]
