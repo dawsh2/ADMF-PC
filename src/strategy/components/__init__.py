@@ -6,27 +6,9 @@ rules, and signal processing components. All implement protocols
 without inheritance.
 """
 
-from .features import (
-    # Stateful feature computation engine (canonical)
-    FeatureHub,
-    create_feature_hub,
-    FEATURE_REGISTRY,
-    DEFAULT_MOMENTUM_FEATURES,
-    DEFAULT_MEAN_REVERSION_FEATURES,
-    DEFAULT_VOLATILITY_FEATURES,
-    DEFAULT_STRUCTURE_FEATURES,
-    DEFAULT_VOLUME_FEATURES,
-    # Protocol definitions
-    Feature,
-    FeatureState,
-    # Feature registries
-    TREND_FEATURES,
-    OSCILLATOR_FEATURES,
-    VOLATILITY_FEATURES,
-    VOLUME_FEATURES,
-    MOMENTUM_FEATURES,
-    STRUCTURE_FEATURES
-)
+# Features have been moved to strategy.features module
+# Import from there if needed:
+# from ..features import FeatureHub, Feature, FeatureState, etc.
 
 # Classifiers moved to strategy.classifiers module
 # from .classifiers import (
@@ -58,28 +40,6 @@ from .signal_aggregation import (
 
 
 __all__ = [
-    # Stateful feature computation engine (canonical)
-    "FeatureHub",
-    "create_feature_hub",
-    "FEATURE_REGISTRY",
-    "Feature",
-    "FeatureState",
-    
-    # Feature registries
-    "TREND_FEATURES",
-    "OSCILLATOR_FEATURES",
-    "VOLATILITY_FEATURES", 
-    "VOLUME_FEATURES",
-    "MOMENTUM_FEATURES",
-    "STRUCTURE_FEATURES",
-    
-    # Default configurations
-    "DEFAULT_MOMENTUM_FEATURES",
-    "DEFAULT_MEAN_REVERSION_FEATURES",
-    "DEFAULT_VOLATILITY_FEATURES",
-    "DEFAULT_STRUCTURE_FEATURES",
-    "DEFAULT_VOLUME_FEATURES",
-    
     # Signal Aggregation
     "InternalSignal",
     "SignalCombiner", 
