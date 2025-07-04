@@ -51,6 +51,11 @@ class PortfolioState(PortfolioStateProtocol):
         # Order ID counter for uniqueness
         self._order_counter = 0
         
+        # Position tracking
+        self._position_counter = 0
+        self._position_ids: Dict[str, str] = {}  # Map symbol to position_id
+        self._order_to_position: Dict[str, str] = {}  # Map order_id to position_id
+        
         # High water mark for drawdown
         self._high_water_mark = initial_capital
         self._max_drawdown = Decimal(0)
@@ -345,10 +350,14 @@ class PortfolioState(PortfolioStateProtocol):
             if self._container:
                 logger.info(f"  📍 Container reference exists: {self._container.name if hasattr(self._container, 'name') else self._container}")
                 from ..core.events.types import Event, EventType
+                # Get position_id
+                position_id = self._position_ids.get(symbol, 'unknown')
+                
                 position_event = Event(
                     event_type=EventType.POSITION_OPEN.value,
                     timestamp=timestamp,
                     payload={
+                        'position_id': position_id,
                         'symbol': symbol,
                         'quantity': float(quantity_delta),
                         'entry_price': float(price),
@@ -384,10 +393,14 @@ class PortfolioState(PortfolioStateProtocol):
                 # Emit POSITION_CLOSE event before deleting
                 if self._container:
                     from ..core.events.types import Event, EventType
+                    # Get position_id before we delete it
+                    position_id = self._position_ids.get(symbol, 'unknown')
+                    
                     close_event = Event(
                         event_type=EventType.POSITION_CLOSE.value,
                         timestamp=timestamp,
                         payload={
+                            'position_id': position_id,
                             'symbol': symbol,
                             'quantity': float(old_quantity),
                             'entry_price': float(position.average_price),
@@ -407,6 +420,9 @@ class PortfolioState(PortfolioStateProtocol):
                     logger.warning(f"❌ Cannot publish POSITION_CLOSE event - no container reference set!")
                 
                 del self._positions[symbol]
+                # Clean up position ID mapping
+                if symbol in self._position_ids:
+                    del self._position_ids[symbol]
                 
                 # Update cash balance for the closing trade BEFORE returning
                 cash_delta = -quantity_delta * price
@@ -447,6 +463,7 @@ class PortfolioState(PortfolioStateProtocol):
                             event_type=EventType.POSITION_CLOSE.value,
                             timestamp=timestamp,
                             payload={
+                                'position_id': self._position_ids.get(symbol, 'unknown'),
                                 'symbol': symbol,
                                 'quantity': float(old_quantity),
                                 'entry_price': float(position.average_price),
@@ -741,6 +758,11 @@ class PortfolioState(PortfolioStateProtocol):
             executed_at=datetime.fromisoformat(payload.get('filled_at', payload.get('executed_at')))
         )
         
+        # Extract position_id from payload if available
+        position_id_from_fill = payload.get('position_id')
+        if position_id_from_fill:
+            logger.info(f"  🆔 Fill includes position_id: {position_id_from_fill}")
+        
         # Update position using the centralized method that emits events
         symbol = fill.symbol
         quantity = fill.quantity if fill.side == OrderSide.BUY else -fill.quantity
@@ -810,8 +832,25 @@ class PortfolioState(PortfolioStateProtocol):
         order_timestamp = timestamp if timestamp else datetime.now()
         order_id = f"ORD_{symbol}_{order_timestamp.strftime('%Y%m%d_%H%M%S')}_{self._order_counter:06d}"
         
+        # Get or create position ID for this symbol
+        position_id = self._position_ids.get(symbol)
+        if not position_id and decision.get('type') == 'entry':
+            # Creating a new position
+            self._position_counter += 1
+            position_id = f"POS_{symbol}_{order_timestamp.strftime('%Y%m%d_%H%M%S')}_{self._position_counter:06d}"
+            self._position_ids[symbol] = position_id
+            logger.info(f"  🆔 Created new position_id: {position_id}")
+        elif position_id:
+            logger.info(f"  🆔 Using existing position_id: {position_id}")
+        
+        # Map order to position
+        if position_id:
+            self._order_to_position[order_id] = position_id
+        
         # Build metadata
         metadata = {'strategy_id': decision.get('strategy_id')}
+        if position_id:
+            metadata['position_id'] = position_id
         if 'exit_type' in decision:
             metadata['exit_type'] = decision['exit_type']
         if 'exit_reason' in decision:
@@ -861,15 +900,20 @@ class PortfolioState(PortfolioStateProtocol):
         # Publish ORDER event
         if self._container:
             from ..core.events.types import Event, EventType
+            order_payload = order.to_dict()
+            # Add position_id to payload if available
+            if position_id:
+                order_payload['position_id'] = position_id
+            
             order_event = Event(
                 event_type=EventType.ORDER.value,
                 timestamp=order_timestamp,
-                payload=order.to_dict(),
+                payload=order_payload,
                 source_id="portfolio",
                 container_id=self._container.container_id
             )
             self._container.publish_event(order_event, target_scope="parent")
-            logger.info(f"  ✅ Order published to execution engine")
+            logger.info(f"  ✅ Order published to execution engine with position_id: {position_id}")
     
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get performance summary."""

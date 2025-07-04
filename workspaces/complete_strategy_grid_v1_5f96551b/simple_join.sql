@@ -1,1 +1,0 @@
-/Users/daws/ADMF-PC/src/analytics/queries/simple_join.sql

@@ -152,17 +152,28 @@ def setup_multi_strategy_tracer(topology: Dict[str, Any],
         root_bus = root_container.event_bus
         root_bus.attach_observer(tracer)
         logger.info(f"Tracer attached as observer to root event bus")
-        # Note: No need to explicitly subscribe to POSITION events
-        # The observer pattern already ensures we receive ALL events
+        # Also explicitly subscribe to portfolio events to ensure we receive them
+        from .types import EventType
+        # ORDER events don't require a filter
+        root_bus.subscribe(EventType.ORDER.value, tracer.on_event)
+        # FILL events require a filter - use a permissive filter that accepts all events
+        root_bus.subscribe(EventType.FILL.value, tracer.on_event, filter_func=lambda event: True)
+        # POSITION events don't require filters
+        root_bus.subscribe(EventType.POSITION_OPEN.value, tracer.on_event)
+        root_bus.subscribe(EventType.POSITION_CLOSE.value, tracer.on_event)
+        logger.info(f"Tracer explicitly subscribed to ORDER, FILL, and POSITION events")
     else:
         # Fallback to context bus
         root_bus = context.get('root_event_bus')
         if root_bus:
             root_bus.attach_observer(tracer)
-            # Also subscribe to position events
+            # Also subscribe to all portfolio events
             from .types import EventType
+            root_bus.subscribe(EventType.ORDER.value, tracer.on_event)
+            root_bus.subscribe(EventType.FILL.value, tracer.on_event, filter_func=lambda event: True)
             root_bus.subscribe(EventType.POSITION_OPEN.value, tracer.on_event)
             root_bus.subscribe(EventType.POSITION_CLOSE.value, tracer.on_event)
+            logger.info(f"Tracer subscribed to all portfolio events on fallback bus")
         else:
             logger.warning("No event bus found for MultiStrategyTracer attachment")
             return

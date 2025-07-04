@@ -662,7 +662,7 @@ def create_storage_backend(backend_type: str, config: Dict[str, Any]) -> EventSt
         return storage
     elif backend_type == 'analytics_parquet':
         # Import here to avoid circular dependency
-        from ....analytics.storage.parquet_backend import ParquetEventStorage
+        from .storage.parquet_backend import ParquetEventStorage
         
         # Extract required parameters
         correlation_id = config.get('correlation_id', 'default_trace')

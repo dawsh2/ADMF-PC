@@ -1,0 +1,36 @@
+{
+  "run_info": {
+    "run_id": "20250703_222823",
+    "config_name": "bollinger",
+    "analysis_timestamp": "2025-07-03T22:29:42.978641",
+    "is_full_system": true
+  },
+  "data_summary": {
+    "total_bars": 16614,
+    "total_signals": 16601,
+    "total_orders": 4132,
+    "total_fills": 4132,
+    "total_positions": 4132
+  },
+  "performance_summary": {
+    "total_trades": 15551,
+    "total_return": 0.0007134061769999978,
+    "sharpe_ratio": 1.8883319182117724,
+    "max_drawdown": -0.0003221618652395897,
+    "win_rate": 0.14005530190984503,
+    "profit_factor": 1.1336670943300264
+  },
+  "risk_summary": {
+    "var_95": -0.398085,
+    "var_99": -0.44101840000000003,
+    "max_consecutive_losses": 114,
+    "avg_trade_duration_bars": 1.0735644010031509
+  },
+  "recommendations": [
+    {
+      "type": "performance",
+      "severity": "medium",
+      "message": "Win rate (14.0%) below minimum (45%). Review entry criteria."
+    }
+  ]
+}

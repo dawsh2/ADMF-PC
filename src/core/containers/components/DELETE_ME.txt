@@ -1,0 +1,1 @@
+This file and directory have been moved. FeatureHubComponent is now in factory.py

@@ -56,7 +56,7 @@ class StrategyFreshnessChecker:
         
         # Import trace store for checking existing traces
         try:
-            from ...analytics.storage.trace_store import TraceStore
+            from ...core.events.tracing.trace_store import TraceStore
             trace_store = TraceStore(str(self.traces_dir))
         except ImportError:
             logger.warning("TraceStore not available - assuming all strategies need update")

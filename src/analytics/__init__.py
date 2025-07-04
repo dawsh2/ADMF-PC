@@ -2,7 +2,7 @@
 ADMF-PC Analytics - Simple SQL-based trace analysis
 """
 
-from .simple_analytics import TraceAnalysis, quick_analysis, QUERIES
+from .analytics import TraceAnalysis, quick_analysis, QUERIES
 
 __version__ = "1.0.0"
 

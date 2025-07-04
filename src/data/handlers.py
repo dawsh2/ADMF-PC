@@ -820,7 +820,7 @@ class SignalReplayHandler:
         
         try:
             # Import trace store for loading signals
-            from ..analytics.storage.trace_store import TraceStore
+            from ..core.events.tracing.trace_store import TraceStore
             trace_store = TraceStore(str(self.traces_dir))
             
             for symbol in symbols:

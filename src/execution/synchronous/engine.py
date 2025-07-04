@@ -256,10 +256,16 @@ class SyncExecutionEngine:
             # Publish FILL event
             if hasattr(self, '_container') and self._container:
                 from ...core.events.types import EventType
+                fill_payload = fill.to_dict()
+                # Add position_id to fill payload if it's in the order metadata
+                if order.metadata and 'position_id' in order.metadata:
+                    fill_payload['position_id'] = order.metadata['position_id']
+                    self.logger.info(f"  🆔 Including position_id in FILL: {order.metadata['position_id']}")
+                
                 fill_event = Event(
                     event_type=EventType.FILL.value,
                     timestamp=datetime.now(),
-                    payload=fill.to_dict(),
+                    payload=fill_payload,
                     source_id="execution",
                     container_id=self._container.container_id
                 )

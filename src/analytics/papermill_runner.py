@@ -153,17 +153,22 @@ class PapermillNotebookRunner:
             'config_name': config.get('name', 'unnamed'),
             'symbols': symbols,
             'timeframe': timeframe,
-            # Global traces directory for signal analysis
-            'global_traces_dir': str(Path.cwd() / 'traces'),
-            # Analysis parameters (can be overridden by config)
-            'min_strategies_to_analyze': config.get('analysis', {}).get('min_strategies', 20),
-            'sharpe_threshold': config.get('analysis', {}).get('sharpe_threshold', 1.0),
-            'correlation_threshold': config.get('analysis', {}).get('correlation_threshold', 0.7),
-            'top_n_strategies': config.get('analysis', {}).get('top_n', 10),
-            'ensemble_size': config.get('analysis', {}).get('ensemble_size', 5),
-            'calculate_all_performance': config.get('analysis', {}).get('calculate_all', True),
-            'performance_limit': config.get('analysis', {}).get('performance_limit', 100)
         }
+        
+        # Add analysis-specific parameters only for signal_analysis template
+        if template_override == 'signal_analysis':
+            params.update({
+                # Global traces directory for signal analysis
+                'global_traces_dir': str(Path.cwd() / 'traces'),
+                # Analysis parameters (can be overridden by config)
+                'min_strategies_to_analyze': config.get('analysis', {}).get('min_strategies', 20),
+                'sharpe_threshold': config.get('analysis', {}).get('sharpe_threshold', 1.0),
+                'correlation_threshold': config.get('analysis', {}).get('correlation_threshold', 0.7),
+                'top_n_strategies': config.get('analysis', {}).get('top_n', 10),
+                'ensemble_size': config.get('analysis', {}).get('ensemble_size', 5),
+                'calculate_all_performance': config.get('analysis', {}).get('calculate_all', True),
+                'performance_limit': config.get('analysis', {}).get('performance_limit', 100)
+            })
         
         # Output path
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')

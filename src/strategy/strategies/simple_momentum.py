@@ -6,7 +6,7 @@ generating paired entry/exit signals based on momentum conditions.
 """
 
 from typing import Dict, Any, Optional
-from src.core.features.feature_spec import FeatureSpec
+from src.strategy.features.specs.feature_spec import FeatureSpec
 import logging
 from ...core.components.discovery import strategy
 

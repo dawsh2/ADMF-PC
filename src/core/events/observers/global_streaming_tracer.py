@@ -309,19 +309,45 @@ class GlobalStreamingTracer(EventObserverProtocol):
         self._total_orders += 1
         
         # Update active trade if we have a position_id
-        if position_id and position_id in self._active_trades:
+        if position_id:
+            # Create trade if it doesn't exist yet (ORDER might come before POSITION_OPEN)
+            if position_id not in self._active_trades:
+                self._trade_counter += 1
+                self._active_trades[position_id] = {
+                    'trade_id': f"T{self._trade_counter:06d}",
+                    'position_id': position_id,
+                    'symbol': symbol,
+                    'strategy_id': payload.get('metadata', {}).get('strategy_id', 'unknown'),
+                    'entry_bar_idx': self._current_bar_count,
+                    'entry_time': timestamp,
+                    'direction': 'long' if payload.get('side', '').upper() == 'BUY' else 'short',
+                    # Initialize all fields
+                    'entry_order_id': None,
+                    'entry_order_price': None,
+                    'entry_order_time': None,
+                    'entry_fill_id': None,
+                    'entry_fill_price': None,
+                    'entry_fill_time': None,
+                }
+                logger.debug(f"Created trade from ORDER event: {self._active_trades[position_id]['trade_id']}")
+            
             trade = self._active_trades[position_id]
             side = payload.get('side', '').upper()
             
-            if side in ['BUY', 'SELL'] and trade['entry_order_id'] is None:
+            if trade['entry_order_id'] is None:
                 # This is the entry order
                 trade['entry_order_id'] = order_id
-                trade['entry_order_price'] = payload.get('price', 0)
+                trade['entry_order_price'] = float(payload.get('price', 0))
                 trade['entry_order_time'] = timestamp
-            elif side in ['SELL', 'BUY'] and trade['entry_order_id'] is not None:
-                # This is the exit order (opposite of entry)
+                # Set direction based on side
+                if side == 'BUY':
+                    trade['direction'] = 'long'
+                elif side == 'SELL':
+                    trade['direction'] = 'short'
+            else:
+                # This is the exit order
                 trade['exit_order_id'] = order_id
-                trade['exit_order_price'] = payload.get('price', 0)
+                trade['exit_order_price'] = float(payload.get('price', 0))
                 trade['exit_order_time'] = timestamp
         
         logger.debug(f"Processed ORDER event: {order_id} for {symbol}")
@@ -338,28 +364,68 @@ class GlobalStreamingTracer(EventObserverProtocol):
         self._total_fills += 1
         
         # Update active trade if we have a position_id
-        if position_id and position_id in self._active_trades:
-            trade = self._active_trades[position_id]
+        if position_id:
+            # Check if trade is in active trades
+            if position_id in self._active_trades:
+                trade = self._active_trades[position_id]
+            else:
+                # Check if trade was already completed (FILL arriving after POSITION_CLOSE)
+                completed_trade = None
+                for i, t in enumerate(self._completed_trades):
+                    if t.get('position_id') == position_id:
+                        completed_trade = t
+                        completed_idx = i
+                        break
+                
+                if completed_trade:
+                    # Update the completed trade
+                    trade = completed_trade
+                    logger.debug(f"Updating completed trade {trade['trade_id']} with FILL event")
+                else:
+                    # Create trade if it doesn't exist yet (FILL might come before POSITION_OPEN)
+                    self._trade_counter += 1
+                    self._active_trades[position_id] = {
+                    'trade_id': f"T{self._trade_counter:06d}",
+                    'position_id': position_id,
+                    'symbol': symbol,
+                    'strategy_id': payload.get('metadata', {}).get('strategy_id', 'unknown'),
+                    'entry_bar_idx': self._current_bar_count,
+                    'entry_time': timestamp,
+                    'direction': 'long' if payload.get('side', '').upper() == 'BUY' else 'short',
+                    # Initialize all fields
+                    'entry_order_id': order_id,  # Assume this is entry if creating from FILL
+                    'entry_order_price': None,
+                    'entry_order_time': None,
+                    'entry_fill_id': None,
+                    'entry_fill_price': None,
+                    'entry_fill_time': None,
+                    }
+                    logger.debug(f"Created trade from FILL event: {self._active_trades[position_id]['trade_id']}")
+                    trade = self._active_trades[position_id]
+            
+            # If we don't have an entry_order_id yet, this must be the entry fill
+            if trade.get('entry_order_id') is None:
+                trade['entry_order_id'] = order_id
             
             if order_id == trade.get('entry_order_id'):
                 # This is the entry fill
                 trade['entry_fill_id'] = fill_id
-                trade['entry_fill_price'] = payload.get('price', 0)
+                trade['entry_fill_price'] = float(payload.get('price', 0))
                 trade['entry_fill_time'] = timestamp
                 
                 # Calculate entry slippage if we have order price
                 if trade['entry_order_price'] and trade['entry_fill_price']:
-                    trade['slippage_entry'] = abs(trade['entry_fill_price'] - trade['entry_order_price'])
+                    trade['slippage_entry'] = abs(float(trade['entry_fill_price']) - float(trade['entry_order_price']))
                     
             elif order_id == trade.get('exit_order_id'):
                 # This is the exit fill
                 trade['exit_fill_id'] = fill_id
-                trade['exit_fill_price'] = payload.get('price', 0)
+                trade['exit_fill_price'] = float(payload.get('price', 0))
                 trade['exit_fill_time'] = timestamp
                 
                 # Calculate exit slippage if we have order price
                 if trade['exit_order_price'] and trade['exit_fill_price']:
-                    trade['slippage_exit'] = abs(trade['exit_fill_price'] - trade['exit_order_price'])
+                    trade['slippage_exit'] = abs(float(trade['exit_fill_price']) - float(trade['exit_order_price']))
         
         logger.debug(f"Processed FILL event: {fill_id} for {symbol}")
     
@@ -373,70 +439,100 @@ class GlobalStreamingTracer(EventObserverProtocol):
         self._total_positions += 1
         
         if event.event_type == EventType.POSITION_OPEN.value:
-            # Start tracking a new trade
-            self._trade_counter += 1
-            strategy_id = payload.get('strategy_id', 'unknown')
-            
-            # Find the signal hash for this strategy
-            signal_hash = None
-            for comp_id, metadata in self._component_metadata.items():
-                if comp_id == strategy_id or strategy_id in comp_id:
-                    signal_hash = metadata.get('strategy_hash')
-                    break
-            
-            trade_record = {
-                'trade_id': f"T{self._trade_counter:06d}",
-                'position_id': position_id,
-                'symbol': symbol,
-                'strategy_id': strategy_id,
-                'signal_hash': signal_hash,
-                'entry_bar_idx': self._current_bar_count,
-                'entry_time': timestamp,
-                'entry_signal_strength': payload.get('signal_strength', 0),
-                'direction': payload.get('direction', 'unknown'),
-                # Will be filled by order/fill events
-                'entry_order_id': None,
-                'entry_order_price': None,
-                'entry_order_time': None,
-                'entry_fill_id': None,
-                'entry_fill_price': None,
-                'entry_fill_time': None,
-            }
-            
-            self._active_trades[position_id] = trade_record
-            logger.debug(f"Started tracking trade {trade_record['trade_id']} for position {position_id}")
+            # Check if trade already exists (created by ORDER/FILL events)
+            if position_id not in self._active_trades:
+                # Start tracking a new trade
+                self._trade_counter += 1
+                strategy_id = payload.get('strategy_id', 'unknown')
+                
+                # Find the signal hash for this strategy
+                signal_hash = None
+                for comp_id, metadata in self._component_metadata.items():
+                    if comp_id == strategy_id or strategy_id in comp_id:
+                        signal_hash = metadata.get('strategy_hash')
+                        break
+                
+                trade_record = {
+                    'trade_id': f"T{self._trade_counter:06d}",
+                    'position_id': position_id,
+                    'symbol': symbol,
+                    'strategy_id': strategy_id,
+                    'signal_hash': signal_hash,
+                    'entry_bar_idx': self._current_bar_count,
+                    'entry_time': timestamp,
+                    'entry_signal_strength': payload.get('signal_strength', 0),
+                    'direction': payload.get('direction', 'unknown'),
+                    # Will be filled by order/fill events
+                    'entry_order_id': None,
+                    'entry_order_price': None,
+                    'entry_order_time': None,
+                    'entry_fill_id': None,
+                    'entry_fill_price': None,
+                    'entry_fill_time': None,
+                }
+                
+                self._active_trades[position_id] = trade_record
+                logger.debug(f"Started tracking trade {trade_record['trade_id']} for position {position_id}")
+            else:
+                # Update existing trade with position info
+                trade = self._active_trades[position_id]
+                strategy_id = payload.get('strategy_id', 'unknown')
+                
+                # Update fields that might not have been set
+                if trade.get('strategy_id') == 'unknown':
+                    trade['strategy_id'] = strategy_id
+                if trade.get('direction') == 'unknown' or not trade.get('direction'):
+                    trade['direction'] = payload.get('direction', 'unknown')
+                
+                # Find and set signal hash if not already set
+                if not trade.get('signal_hash'):
+                    for comp_id, metadata in self._component_metadata.items():
+                        if comp_id == strategy_id or strategy_id in comp_id:
+                            trade['signal_hash'] = metadata.get('strategy_hash')
+                            break
+                
+                logger.debug(f"Updated trade {trade['trade_id']} with position info")
             
         elif event.event_type == EventType.POSITION_CLOSE.value:
             # Complete the trade record
             if position_id in self._active_trades:
                 trade = self._active_trades[position_id]
                 
-                # Add exit information
-                trade.update({
+                # Add exit information (don't overwrite existing order/fill data)
+                trade_update = {
                     'exit_bar_idx': self._current_bar_count,
                     'exit_time': timestamp,
                     'exit_reason': payload.get('exit_reason', 'unknown'),
                     'exit_signal_strength': payload.get('signal_strength', 0),
-                    'pnl': payload.get('pnl', 0),
+                    'pnl': payload.get('pnl', payload.get('realized_pnl', 0)),
                     'duration_bars': self._current_bar_count - trade['entry_bar_idx'],
-                    # Will be filled by order/fill events
-                    'exit_order_id': None,
-                    'exit_order_price': None,
-                    'exit_order_time': None,
-                    'exit_fill_id': None,
-                    'exit_fill_price': None,
-                    'exit_fill_time': None,
-                    # Execution costs
-                    'commission': payload.get('commission', 0),
-                    'slippage_entry': 0,  # Will calculate when we have order/fill prices
-                    'slippage_exit': 0,
-                })
+                }
+                
+                # Only set order/fill fields if they haven't been set yet
+                if trade.get('exit_order_id') is None:
+                    trade_update['exit_order_id'] = None
+                if trade.get('exit_order_price') is None:
+                    trade_update['exit_order_price'] = None
+                if trade.get('exit_order_time') is None:
+                    trade_update['exit_order_time'] = None
+                if trade.get('exit_fill_id') is None:
+                    trade_update['exit_fill_id'] = None
+                if trade.get('exit_fill_price') is None:
+                    trade_update['exit_fill_price'] = None
+                if trade.get('exit_fill_time') is None:
+                    trade_update['exit_fill_time'] = None
+                    
+                trade.update(trade_update)
+                
+                # Add execution costs
+                trade['commission'] = payload.get('commission', 0)
+                # Slippage will be calculated when we have order/fill prices
                 
                 # Calculate duration_time if we have both timestamps
                 try:
                     if trade['entry_time'] and trade['exit_time']:
                         entry_dt = datetime.fromisoformat(trade['entry_time'])
-                        exit_dt = datetime.fromisoformat(timestamp)
+                        exit_dt = datetime.fromisoformat(trade['exit_time'])
                         trade['duration_time'] = str(exit_dt - entry_dt)
                 except Exception as e:
                     logger.debug(f"Could not calculate duration_time: {e}")
